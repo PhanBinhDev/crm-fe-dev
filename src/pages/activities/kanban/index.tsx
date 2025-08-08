@@ -37,6 +37,7 @@ import {
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -149,14 +150,20 @@ const SortableActivityCard: React.FC<{ activity: IActivity }> = ({ activity }) =
 };
 
 const KanbanColumn: React.FC<{
+  id: string;
   stage: IStage;
   activities: IActivity[];
   onAddActivity: (stageId: string) => void;
-}> = ({ stage, activities, onAddActivity }) => {
+}> = ({ id, stage, activities, onAddActivity }) => {
   const activityIds = activities.map(activity => activity.id);
+
+  const { setNodeRef } = useDroppable({
+    id,
+  });
 
   return (
     <Card
+      ref={setNodeRef}
       className="kanban-column"
       title={
         <div className="column-header">
@@ -182,7 +189,7 @@ const KanbanColumn: React.FC<{
         overflowY: 'auto',
       }}
     >
-      <SortableContext items={activityIds} strategy={verticalListSortingStrategy}>
+      <SortableContext id={stage.id} items={activityIds} strategy={verticalListSortingStrategy}>
         <div className="activities-list">
           {activities.map(activity => (
             <div key={activity.id} style={{ marginBottom: 8 }}>
@@ -402,10 +409,19 @@ export const ActivitiesKanbanPage: React.FC = () => {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <Row gutter={16}>
+          <Row
+            gutter={16}
+            style={{
+              overflowX: 'scroll',
+              display: 'flex',
+              flexWrap: 'nowrap',
+              padding: '20px 10px',
+            }}
+          >
             {stages.map(stage => (
-              <Col key={stage.id} span={6}>
+              <Col key={stage.id} span={5}>
                 <KanbanColumn
+                  id={stage.id}
                   stage={stage}
                   activities={activitiesByStage[stage.id] || []}
                   onAddActivity={handleAddActivity}
