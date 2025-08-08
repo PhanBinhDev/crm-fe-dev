@@ -1,0 +1,91 @@
+.sideMenu {
+  padding: 8px;
+  background: transparent !important;
+}
+
+.sideMenu :global(.ant-menu-item) {
+  height: 40px;
+  margin: 4px 0 !important;
+  border-radius: 6px;
+  padding: 0 16px  !important;
+  display: flex;
+  align-items: center;
+}
+
+.sideMenu :global(.ant-menu-submenu-title) {
+  height: 40px;
+  line-height: 40px;
+  margin: 4px 0 !important;
+  border-radius: 6px;
+  background: transparent !important;
+  padding: 0 16px !important;
+}
+
+.sideMenu :global(.ant-menu-sub.ant-menu-inline) {
+  background: transparent !important;
+  padding: 0 4px;
+}
+
+.sideMenu :global(.ant-menu-sub .ant-menu-item) {
+  padding-left: 20px !important;
+  height: 36px;
+  line-height: 36px;
+  margin: 4px 0 !important;
+  width: calc(100% - 8px);
+  margin-left: 4px !important;
+  border-radius: 4px;
+}
+
+.sideMenu :global(.ant-menu-item .anticon),
+.sideMenu :global(.ant-menu-submenu-title .anticon) {
+  font-size: 16px;
+  margin-inline-end: 12px !important;
+  vertical-align: -0.125em;
+  min-width: 16px;
+}
+
+.sideMenu :global(.ant-menu-sub .ant-menu-item .anticon) {
+  font-size: 14px;
+  margin-inline-end: 10px !important;
+  vertical-align: -0.125em;
+}
+
+.sideMenu :global(.ant-menu-item:hover),
+.sideMenu :global(.ant-menu-submenu-title:hover) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.sideMenu :global(.ant-menu-item-selected),
+.sideMenu :global(.ant-menu-submenu-selected > .ant-menu-submenu-title),
+.sideMenu :global(.ant-menu-submenu-open > .ant-menu-submenu-title) {
+  background-color: #1890ff !important;
+  color: #fff !important;
+}
+
+/* Submenu item được chọn */
+.sideMenu :global(.ant-menu-sub .ant-menu-item-selected) {
+  background-color: rgba(24, 144, 255, 0.1) !important;
+  color: #1890ff !important;
+}
+
+/* Submenu item được chọn và nằm trong submenu đang mở */
+.sideMenu :global(.ant-menu-submenu-open .ant-menu-sub) {
+  background-color: transparent !important;
+}
+
+.sideMenu :global(.ant-menu-submenu-open .ant-menu-item-selected) {
+  background-color: rgba(24, 144, 255, 0.1) !important;
+  color: #1890ff !important;
+}
+
+.sideMenu :global(.ant-menu-submenu-active) {
+  background-color: transparent !important;
+}
+
+.sideMenu :global(.ant-menu-sub .ant-menu-item:hover) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.sideMenu :global(.ant-menu-item-active) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
