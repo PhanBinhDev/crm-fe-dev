@@ -1,6 +1,6 @@
 import { IStage } from '@/common/types';
 import { ColorPicker } from '@/components/shared/ColorPicker';
-import { BgColorsOutlined, DeleteOutlined, EditOutlined, MoreOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, MoreOutlined } from '@ant-design/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Dropdown, MenuProps, Typography } from 'antd';
