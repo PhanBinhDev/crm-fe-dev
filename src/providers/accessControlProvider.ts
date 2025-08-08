@@ -74,13 +74,22 @@ export const accessControlProvider: AccessControlProvider = {
           case 'toggle-status':
             const statusTargetUserData = params?.data;
             const statusTargetRole = statusTargetUserData?.role as UserRole;
+            const statusTargetUserId = statusTargetUserData?.id;
 
-            // TM can toggle anyone's status
+            // User cannot toggle their own status
+            if (userId === statusTargetUserId) {
+              return {
+                can: false,
+                reason: 'Bạn không thể thay đổi trạng thái của chính mình.',
+              };
+            }
+
+            // TM can toggle anyone's status (except their own)
             if (userRole === UserRole.TM) {
               return { can: true };
             }
 
-            // CNBM can toggle GV status only
+            // CNBM can toggle GV status only (except their own)
             if (userRole === UserRole.CNBM && statusTargetRole === UserRole.GV) {
               return { can: true };
             }

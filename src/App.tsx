@@ -10,7 +10,7 @@ import routerBindings, {
 } from '@refinedev/react-router-v6';
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
 
-import { authProvider } from '@/providers/AuthProvider';
+import { authProvider } from '@/providers/authProvider';
 import { accessControlProvider } from '@/providers/accessControlProvider';
 import { resources } from '@/config/resources';
 import { antdTheme } from '@/config/theme';
