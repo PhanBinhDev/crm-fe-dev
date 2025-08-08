@@ -1,0 +1,14 @@
+.ant-dropdown-menu-item-danger:hover .delete-menu-item,
+.ant-dropdown-menu-item-danger:hover .delete-menu-item * {
+  color: white !important;
+}
+.delete-menu-item {
+  color: #c62a2f;
+}
+.custom-dropdown .ant-dropdown-menu {
+  padding: 6px;
+}
+.custom-dropdown .ant-dropdown-menu-item {
+  padding: 8px 16px;
+  margin: 0;
+}

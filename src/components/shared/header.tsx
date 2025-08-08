@@ -7,12 +7,12 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { Badge } from 'antd';
-import { useUser } from '@/hooks/useUser';
 import styles from '@/styles/header.module.css';
+import { useAuth } from '@/hooks/useAuth';
 
 const { Header } = Layout;
 export const AppHeader = () => {
-  const { user, loading } = useUser();
+  const { user, isLoading } = useAuth();
 
   const notificationItems: MenuProps['items'] = [
     {
@@ -116,7 +116,7 @@ export const AppHeader = () => {
               backgroundColor: 'transparent',
             }}
           >
-            {loading ? (
+            {isLoading ? (
               <Spin size="small" />
             ) : (
               <>

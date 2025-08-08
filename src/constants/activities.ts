@@ -74,3 +74,25 @@ export const getPriorityColor = (priority: ActivityPriority): string => {
       return 'default';
   }
 };
+
+export const priorityColors = {
+  [ActivityPriority.LOW]: 'blue',
+  [ActivityPriority.MEDIUM]: 'orange',
+  [ActivityPriority.HIGH]: 'red',
+  [ActivityPriority.URGENT]: 'purple',
+};
+
+export const PRESET_COLORS = [
+  '#4338CA',
+  '#1E40AF',
+  '#0EA5E9',
+  '#059669',
+  '#10B981',
+  '#22C55E',
+  '#F59E0B',
+  '#EA580C',
+  '#DC2626',
+  '#E11D48',
+  '#9333EA',
+  '#8B5CF6',
+];

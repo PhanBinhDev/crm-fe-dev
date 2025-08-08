@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, Form, Input, Select, DatePicker, InputNumber, Switch } from 'antd';
 import { useCreate, useList } from '@refinedev/core';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -19,6 +20,8 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
   stageId,
 }) => {
   const [form] = Form.useForm();
+
+  useBodyScrollLock(visible);
 
   const { mutate: createActivity, isLoading } = useCreate();
 
@@ -70,7 +73,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
       onCancel={onCancel}
       onOk={handleSubmit}
       confirmLoading={isLoading}
-      width={600}
+      width={800}
     >
       <Form form={form} layout="vertical">
         <Form.Item

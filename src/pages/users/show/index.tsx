@@ -124,7 +124,7 @@ export const UserShow = () => {
               background: '#fafafa',
               borderRadius: 8,
             }}
-            bodyStyle={{ padding: '32px 24px' }}
+            styles={{ body: { padding: '32px 24px' } }}
           >
             <Avatar
               size={120}
@@ -177,7 +177,7 @@ export const UserShow = () => {
               </div>
             }
             style={{ height: '100%', borderRadius: 8 }}
-            bodyStyle={{ padding: '24px 32px' }}
+            styles={{ body: { padding: '24px 32px' } }}
           >
             <Descriptions
               column={1}

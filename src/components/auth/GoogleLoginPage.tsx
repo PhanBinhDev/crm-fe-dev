@@ -35,7 +35,9 @@ export const GoogleLoginPage: React.FC<GoogleLoginPageProps> = ({
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
           borderRadius: '12px',
         }}
-        bodyStyle={{ padding: '40px 32px' }}
+        styles={{
+          body: { padding: '40px 32px' },
+        }}
       >
         <Space direction="vertical" size="large" style={{ width: '100%', textAlign: 'center' }}>
           {/* Logo/Icon */}

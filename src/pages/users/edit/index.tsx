@@ -33,7 +33,7 @@ export const UserEdit = () => {
           </>
         )}
       >
-        <Card bodyStyle={{ padding: '32px 24px' }}>
+        <Card styles={{ body: { padding: '32px 24px' } }}>
           <UserForm
             onFinish={handleFinish}
             initialValues={formProps.initialValues as IUser}

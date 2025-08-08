@@ -26,6 +26,8 @@ export interface IActivity extends IBase {
   participants?: IParticipant[];
   files?: IFile[];
   feedbacks?: IFeedback[];
+  assignees?: IAssignee[];
+  progress?: number; // Progress in percentage
 }
 
 export interface ActivityFormValues {

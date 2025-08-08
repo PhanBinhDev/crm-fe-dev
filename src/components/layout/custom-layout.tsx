@@ -2,7 +2,7 @@ import { useNavigation } from '@refinedev/core';
 import type { MenuProps } from 'antd';
 import { Breadcrumb, Layout, Menu, theme } from 'antd';
 import React, { useState, useMemo, useEffect } from 'react';
-import { AppHeader } from '@/components/shared/header';
+import { AppHeader } from '@/components/shared/Header';
 import { ResourceConfig, resources } from '@/config/resources';
 import styles from '@/styles/custom-layout.module.css';
 import { Link, useLocation } from 'react-router-dom';
