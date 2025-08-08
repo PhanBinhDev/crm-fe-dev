@@ -47,11 +47,11 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import dayjs from 'dayjs';
-import { ActivityModal } from '../components/ActivityModal';
-import { StageManager } from '../components/StageManager';
+import { ActivityModal } from '@/pages/activities/components/ActivityModal';
+import { StageManager } from '@/pages/activities/components/StageManager';
 import { IActivity, IStage } from '@/common/types';
 import { ActivityPriority } from '@/common/enum/activity';
-import './kanban.css';
+import '@/styles/kanban.css';
 
 const { Title, Text } = Typography;
 const { Option } = Select;

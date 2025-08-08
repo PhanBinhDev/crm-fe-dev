@@ -1,23 +1,15 @@
 import React from 'react';
-import { Card, Statistic, Row, Col, Typography } from 'antd';
+import { Card, Statistic, Row, Col } from 'antd';
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   ExclamationCircleOutlined,
   PlusCircleOutlined,
 } from '@ant-design/icons';
-
-const { Title } = Typography;
-
-interface Activity {
-  id: string;
-  name: string;
-  status: 'new' | 'in_progress' | 'completed' | 'overdue';
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-}
+import { IActivity } from '@/common/types';
 
 interface KanbanStatsProps {
-  activities: Activity[];
+  activities: IActivity[];
 }
 
 export const KanbanStats: React.FC<KanbanStatsProps> = ({ activities }) => {
