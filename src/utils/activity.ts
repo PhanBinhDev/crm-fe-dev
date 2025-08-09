@@ -144,3 +144,52 @@ export const getActivityCategoryLabel = (category: ActivityCategory): string => 
       return category;
   }
 };
+
+export const getFileIcon = (fileName: any) => {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+
+  switch (extension) {
+    case 'pdf':
+      return '📄';
+    case 'doc':
+    case 'docx':
+      return '📝';
+    case 'xls':
+    case 'xlsx':
+      return '📊';
+    case 'ppt':
+    case 'pptx':
+      return '📋';
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'gif':
+    case 'webp':
+      return '🖼️';
+    case 'zip':
+    case 'rar':
+    case '7z':
+      return '🗜️';
+    case 'txt':
+      return '📃';
+    case 'mp4':
+    case 'avi':
+    case 'mov':
+      return '🎬';
+    case 'mp3':
+    case 'wav':
+      return '🎵';
+    default:
+      return '📎';
+  }
+};
+
+export const formatFileSize = (bytes: any) => {
+  if (!bytes) return '0 B';
+
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+};
