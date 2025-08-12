@@ -375,6 +375,9 @@ export const ActivitiesKanbanPage: React.FC = () => {
                       activities={activitiesByStage[stage.id] || []}
                       onAddActivity={handleAddActivity}
                       isDragOverlay={false}
+                      onClick={(item: IActivity) => {
+                        console.log('Column clicked:', item);
+                      }}
                     />
                   </Col>
                 ))}
@@ -392,6 +395,9 @@ export const ActivitiesKanbanPage: React.FC = () => {
                   activities={activitiesByStage[activeColumn.id] || []}
                   onAddActivity={() => {}}
                   isDragOverlay={true}
+                  onClick={() => {
+                    console.log('Column clicked:', activeColumn.id);
+                  }}
                 />
               </div>
             ) : null}

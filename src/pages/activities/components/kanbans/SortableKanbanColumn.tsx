@@ -15,7 +15,7 @@ interface SortableKanbanColumnProps {
   stage: IStage;
   activities: IActivity[];
   onAddActivity: (stageId: string) => void;
-  handleEditActivity: () => void;
+  onClick: (item: IActivity) => void;
   isDragOverlay?: boolean;
 }
 
@@ -25,7 +25,7 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
   activities,
   onAddActivity,
   isDragOverlay = false,
-  handleEditActivity,
+  onClick,
 }) => {
   const activityIds = useMemo(() => activities.map(activity => activity.id), [activities]);
 
@@ -267,7 +267,7 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
                 }}
               >
                 <SortableActivityCard
-                  handleEditActivity={handleEditActivity}
+                  onClick={() => onClick(activity)}
                   activity={activity}
                   isDragOverlay={isDragOverlay}
                 />

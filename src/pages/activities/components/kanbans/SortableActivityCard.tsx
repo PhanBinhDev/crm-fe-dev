@@ -25,6 +25,7 @@ import {
   Progress,
   Input,
   Modal,
+  message,
 } from 'antd';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -40,13 +41,13 @@ const { Title, Text } = Typography;
 interface SortableActivityCardProps {
   activity: IActivity;
   isDragOverlay?: boolean;
-  handleEditActivity: () => void;
+  onClick: (item: IActivity) => void;
 }
 
 export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
   activity,
   isDragOverlay = false,
-  handleEditActivity,
+  onClick,
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: activity.id,
@@ -56,7 +57,10 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
     },
   });
 
-  const { mutate: updateActivityName } = useUpdate();
+  const { mutate: updateActivityName } = useUpdate({
+    successNotification: false,
+    errorNotification: false,
+  });
   const { mutate: deleteActivity } = useDelete();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -179,17 +183,23 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
   };
 
   const handleNameSave = () => {
-    updateActivityName({
-      resource: 'activities',
-      id: activity.id,
-      values: { name: editedName },
-      mutationMode: 'optimistic',
-    });
+    updateActivityName(
+      {
+        resource: 'activities',
+        id: activity.id,
+        values: { name: editedName },
+        mutationMode: 'optimistic',
+      },
+      {
+        onSuccess: ({ data }) => {
+          message.success(data.message || 'Tên hoạt động đã được cập nhật');
+        },
+        onError: error => {
+          message.error(error.message || 'Không thể cập nhật tên hoạt động');
+        },
+      },
+    );
     setIsEditing(false);
-  };
-
-  const handleOpenModal = () => {
-    handleEditActivity();
   };
 
   const cardClassName = `
@@ -208,7 +218,7 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
       {...listeners}
       onClick={e => {
         e.stopPropagation();
-        handleOpenModal();
+        onClick(activity);
       }}
       size="small"
       className={cardClassName}
