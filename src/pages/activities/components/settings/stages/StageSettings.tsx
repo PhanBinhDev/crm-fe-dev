@@ -20,10 +20,9 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { IStage } from '@/common/types';
-
+import { StageModal } from '@/pages/activities/components/modals/StageModal';
+import { SortableStageItem } from './SortableStageItem';
 import '@/styles/dropdown.css';
-import { SortableStageItem } from '../SortableStageItem';
-import { StageModal } from '../StageModal';
 
 export const StageSettings: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -245,7 +244,7 @@ export const StageSettings: React.FC = () => {
                   onClick={() => setModalVisible(true)}
                   style={{
                     width: '100%',
-                    padding: '8px 12px',
+                    padding: '12px',
                     border: '1.5px dashed #d9d9d9',
                     borderRadius: '12px',
                     cursor: 'pointer',

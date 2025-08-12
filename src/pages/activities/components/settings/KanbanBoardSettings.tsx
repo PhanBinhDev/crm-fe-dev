@@ -8,7 +8,7 @@ import {
   UserOutlined,
   BellOutlined,
 } from '@ant-design/icons';
-import { StageSettings } from './StageSettings';
+import { StageSettings } from './stages/StageSettings';
 import { DisplaySettings } from './DisplaySettings';
 
 export const KanbanBoardSettings: React.FC = () => {

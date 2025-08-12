@@ -4,8 +4,6 @@ import { GoogleOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
 
-
-
 export const GoogleLoginPage: React.FC = () => {
   const [campus, setCampus] = useState<string | undefined>(undefined);
   const handleGoogleLogin = () => {
@@ -19,7 +17,7 @@ export const GoogleLoginPage: React.FC = () => {
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: '#f0f2f5',
         padding: '20px',
       }}
     >
@@ -44,9 +42,9 @@ export const GoogleLoginPage: React.FC = () => {
           />
 
           {/* Title */}
-            <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>Đăng nhập vào CRM</h2>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>Đăng nhập vào CRM</h2>
 
-             {/* Select campus */}
+          {/* Select campus */}
           <Select
             placeholder="Chọn cơ sở FPT Polytechnic"
             value={campus}
@@ -88,7 +86,6 @@ export const GoogleLoginPage: React.FC = () => {
           >
             Đăng nhập với Google
           </Button>
-
         </Space>
       </Card>
     </div>

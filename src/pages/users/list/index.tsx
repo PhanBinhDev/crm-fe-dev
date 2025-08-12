@@ -50,6 +50,10 @@ export const UserList = () => {
         },
       ],
     },
+    errorNotification: false,
+    queryOptions: {
+      retry: false,
+    },
   });
 
   const handleReset = () => {

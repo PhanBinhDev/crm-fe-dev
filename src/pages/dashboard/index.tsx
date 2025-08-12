@@ -8,20 +8,22 @@ import {
   ArrowUpOutlined,
   ArrowDownOutlined,
 } from '@ant-design/icons';
-import { useApiUrl, useCustom } from '@refinedev/core';
 
 const { Title } = Typography;
 
 export const DashboardPage: React.FC = () => {
-  const apiUrl = useApiUrl();
-
   // Fetch dashboard stats
-  const { data: statsData } = useCustom({
-    url: `${apiUrl}/dashboard/stats`,
-    method: 'get',
-  });
+  // const { data: statsData } = useCustom({
+  //   url: `${apiUrl}/dashboard/stats`,
+  //   method: 'get',
+  // });
 
-  const stats = statsData?.data || {};
+  const stats = {
+    totalCustomers: 100,
+    activeLeads: 50,
+    opportunities: 30,
+    monthlyRevenue: 2000000,
+  };
 
   return (
     <div style={{ padding: '24px' }}>

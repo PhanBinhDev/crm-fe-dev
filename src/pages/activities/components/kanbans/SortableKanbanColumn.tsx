@@ -306,8 +306,8 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
             transform: 'translate(-50%, -50%)',
             padding: '12px 20px',
             backgroundColor: '#e6f4ff',
-            border: '2px dashed #1890ff',
-            borderRadius: 6,
+            border: '1px dashed #1890ff',
+            borderRadius: 12,
             color: '#1890ff',
             fontSize: 12,
             fontWeight: 500,
@@ -329,8 +329,8 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
             right: 0,
             bottom: 0,
             backgroundColor: 'rgba(24, 144, 255, 0.1)',
-            border: '2px solid #1890ff',
-            borderRadius: 6,
+            border: '1px solid #1890ff',
+            borderRadius: 12,
             pointerEvents: 'none',
           }}
         />

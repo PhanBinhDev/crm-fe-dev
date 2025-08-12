@@ -9,9 +9,11 @@ import {
   Space,
   Input,
   Select,
-  DatePicker,
   Drawer,
-  Flex,
+  Popover,
+  Tooltip,
+  Badge,
+  Avatar,
 } from 'antd';
 import {
   PlusOutlined,
@@ -20,7 +22,12 @@ import {
   SettingOutlined,
   AppstoreOutlined,
   BarsOutlined,
-  ClearOutlined,
+  BellOutlined,
+  ShareAltOutlined,
+  SaveOutlined,
+  DownloadOutlined,
+  UsergroupAddOutlined,
+  SortAscendingOutlined,
 } from '@ant-design/icons';
 import {
   DndContext,
@@ -46,9 +53,9 @@ import { IActivity, IStage } from '@/common/types';
 import '@/styles/kanban.css';
 import { KanbanBoardSettings } from '@/pages/activities/components/settings/KanbanBoardSettings';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { KanbanFilterPopover } from '../components/kanbans/KanbanFilterPopover';
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 export const ActivitiesKanbanPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -80,6 +87,10 @@ export const ActivitiesKanbanPage: React.FC = () => {
     resource: 'stages',
     pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
+    queryOptions: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
   });
 
   const filters = useMemo(() => {
@@ -229,10 +240,6 @@ export const ActivitiesKanbanPage: React.FC = () => {
     setActivityModalVisible(true);
   }, []);
 
-  const handleSearch = useCallback((value: string) => {
-    setSearchTerm(value);
-  }, []);
-
   const clearAllFilters = useCallback(() => {
     setSearchTerm('');
     setSelectedPriority(undefined);
@@ -240,131 +247,97 @@ export const ActivitiesKanbanPage: React.FC = () => {
     setDateRange(null);
   }, []);
 
-  const hasActiveFilters = searchTerm || selectedPriority || selectedStatus || dateRange;
+  const handleSearch = useCallback((value: string) => {
+    setSearchTerm(value);
+  }, []);
 
   return (
     <div style={{ padding: '16px 24px' }}>
-      {/* Compact Header */}
-      <Card size="small" style={{ marginBottom: 16 }} styles={{ body: { padding: '16px' } }}>
-        <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
-          <Title level={3} style={{ margin: 0, fontSize: 20 }}>
-            Kanban Board
-          </Title>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 8,
+          gap: 16,
+        }}
+      >
+        {/* Search box */}
+        <Input
+          placeholder="Tìm kiếm nhiệm vụ..."
+          prefix={<SearchOutlined />}
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          allowClear
+          style={{ width: 260 }}
+        />
+        <Space size="small">
+          <Button icon={<SettingOutlined />} onClick={() => setSettingsDrawerVisible(true)}>
+            Cài đặt
+          </Button>
+          <Button icon={<DownloadOutlined />}>Nhập / Xuất</Button>
+          <Button
+            icon={<PlusOutlined />}
+            type="primary"
+            onClick={() => setActivityModalVisible(true)}
+          >
+            Thêm mới
+          </Button>
+        </Space>
+      </div>
 
-          <Space size="small">
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              size="middle"
-              onClick={() => setActivityModalVisible(true)}
-            >
-              Thêm mới
-            </Button>
-            <Button
-              icon={<SettingOutlined />}
-              size="middle"
-              onClick={() => setSettingsDrawerVisible(true)}
-            >
-              Cài đặt
-            </Button>
-            <Space.Compact size="middle">
-              <Button
-                type={viewMode === 'kanban' ? 'primary' : 'default'}
-                icon={<AppstoreOutlined />}
-                onClick={() => setViewMode('kanban')}
-              >
-                Kanban
-              </Button>
-              <Button
-                type={viewMode === 'list' ? 'primary' : 'default'}
-                icon={<BarsOutlined />}
-                onClick={() => setViewMode('list')}
-              >
-                List
-              </Button>
-            </Space.Compact>
-          </Space>
-        </Flex>
-
-        {/* Compact Filters */}
-        <Row gutter={[12, 12]}>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Input
-              placeholder="Tìm kiếm hoạt động..."
-              prefix={<SearchOutlined />}
-              value={searchTerm}
-              onChange={e => handleSearch(e.target.value)}
-              allowClear
-              size="middle"
-            />
-          </Col>
-          <Col xs={12} sm={6} md={4} lg={3}>
-            <Select
-              placeholder="Độ ưu tiên"
-              value={selectedPriority}
-              onChange={setSelectedPriority}
-              allowClear
-              size="middle"
-              style={{ width: '100%' }}
-            >
-              <Option value="low">Thấp</Option>
-              <Option value="medium">Trung bình</Option>
-              <Option value="high">Cao</Option>
-              <Option value="urgent">Khẩn cấp</Option>
-            </Select>
-          </Col>
-          <Col xs={12} sm={6} md={4} lg={3}>
-            <Select
-              placeholder="Trạng thái"
-              value={selectedStatus}
-              onChange={setSelectedStatus}
-              allowClear
-              size="middle"
-              style={{ width: '100%' }}
-            >
-              <Option value="new">Mới</Option>
-              <Option value="in_progress">Đang thực hiện</Option>
-              <Option value="completed">Hoàn thành</Option>
-              <Option value="overdue">Quá hạn</Option>
-            </Select>
-          </Col>
-          <Col xs={24} sm={12} md={6} lg={4}>
-            <DatePicker.RangePicker
-              style={{ width: '100%' }}
-              size="middle"
-              value={dateRange}
-              onChange={setDateRange}
-              placeholder={['Từ ngày', 'Đến ngày']}
-            />
-          </Col>
-          <Col xs={12} sm={6} md={2} lg={2}>
-            <Button icon={<FilterOutlined />} style={{ width: '100%' }} size="middle" type="dashed">
-              Lọc
-            </Button>
-          </Col>
-          {hasActiveFilters && (
-            <Col xs={12} sm={6} md={2} lg={2}>
-              <Button
-                icon={<ClearOutlined />}
-                style={{ width: '100%' }}
-                size="middle"
-                onClick={clearAllFilters}
-                type="text"
-                danger
-              >
-                Xóa
-              </Button>
-            </Col>
-          )}
-        </Row>
-
-        {/* Active filters indicator */}
-        {hasActiveFilters && (
-          <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
-            <Text type="secondary">Đang lọc: {activities.length} hoạt động</Text>
-          </div>
-        )}
-      </Card>
+      {/* Header row 2 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 16,
+          gap: 16,
+        }}
+      >
+        {/* Chuyển chế độ xem */}
+        <Space>
+          <Button
+            type={viewMode === 'list' ? 'primary' : 'default'}
+            icon={<BarsOutlined />}
+            onClick={() => setViewMode('list')}
+          >
+            List
+          </Button>
+          <Button
+            type={viewMode === 'kanban' ? 'primary' : 'default'}
+            icon={<AppstoreOutlined />}
+            onClick={() => setViewMode('kanban')}
+          >
+            Kanban
+          </Button>
+        </Space>
+        {/* Filter, Sort, Group */}
+        <Space>
+          <Popover
+            placement="bottomLeft"
+            content={
+              <KanbanFilterPopover
+                searchTerm={searchTerm}
+                selectedPriority={selectedPriority}
+                selectedStatus={selectedStatus}
+                dateRange={dateRange}
+                onSearch={handleSearch}
+                onPriorityChange={setSelectedPriority}
+                onStatusChange={setSelectedStatus}
+                onDateRangeChange={setDateRange}
+                onClearAll={clearAllFilters}
+              />
+            }
+            trigger="click"
+          >
+            <Button icon={<FilterOutlined />}>Filter</Button>
+          </Popover>
+          <Button icon={<SortAscendingOutlined />}>Sort</Button>
+          <Button icon={<UsergroupAddOutlined />}>Group</Button>
+        </Space>
+      </div>
 
       {/* Kanban Board */}
       {viewMode === 'kanban' && (
@@ -391,13 +364,11 @@ export const ActivitiesKanbanPage: React.FC = () => {
                 style={{
                   display: 'flex',
                   flexWrap: 'nowrap',
-                  minWidth: `${stages.length * 300}px`, // Minimum width for all columns
+                  minWidth: `${stages.length * 300}px`,
                 }}
               >
                 {stages.map(stage => (
                   <Col key={stage.id} flex="0 0 280px">
-                    {' '}
-                    {/* Fixed width columns */}
                     <SortableKanbanColumn
                       id={stage.id}
                       stage={stage}
@@ -430,11 +401,11 @@ export const ActivitiesKanbanPage: React.FC = () => {
               <Card
                 size="small"
                 style={{
-                  opacity: 0.9,
-                  transform: 'rotate(5deg)',
-                  boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+                  opacity: 0.98,
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
                   cursor: 'grabbing',
                   width: 280,
+                  borderRadius: 12,
                 }}
                 styles={{ body: { padding: '12px' } }}
               >

@@ -1,8 +1,9 @@
-import { useCan, useGetIdentity } from '@refinedev/core';
+import { useCan } from '@refinedev/core';
 import { IUser } from '@/common/types';
+import { useAuth } from './useAuth';
 
 export const useUserPermissions = (user: IUser) => {
-  const { data: identity } = useGetIdentity();
+  const { user: identity } = useAuth();
 
   const { data: canEdit } = useCan({
     resource: 'users',

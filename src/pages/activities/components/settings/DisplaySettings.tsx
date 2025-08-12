@@ -192,7 +192,7 @@ export const DisplaySettings: React.FC = () => {
               textAlign: 'center',
             }}
           >
-            Hiện tại: {config.cardsPerColumn} cards per column
+            Hiện tại: {config.cardsPerColumn} thẻ mỗi cột
           </div>
         </div>
       </div>

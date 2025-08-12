@@ -1,4 +1,4 @@
-import { Refine } from '@refinedev/core';
+import { Authenticated, Refine } from '@refinedev/core';
 import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
 import { ErrorComponent, useNotificationProvider } from '@refinedev/antd';
 import { App as AntdApp, ConfigProvider } from 'antd';
@@ -8,10 +8,10 @@ import routerBindings, {
   NavigateToResource,
   UnsavedChangesNotifier,
 } from '@refinedev/react-router-v6';
-import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 
-import { authProvider } from '@/providers/AuthProvider';
+import { authProvider } from '@/providers/authProvider';
 import { accessControlProvider } from '@/providers/accessControlProvider';
 import { resources } from '@/config/resources';
 import { antdTheme } from '@/config/theme';
@@ -24,6 +24,7 @@ import { CustomLayout } from '@/components/layout/custom-layout';
 import { GoogleLoginPage } from '@/components/auth/GoogleLoginPage';
 import { standardDataProvider } from '@/providers/nestjs';
 import { API_URL } from '@/constants';
+import { profileRoutes } from './pages/profile/routes';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
@@ -50,15 +51,18 @@ function App() {
                 <Routes>
                   <Route
                     element={
-                      <CustomLayout>
-                        <Outlet />
-                      </CustomLayout>
+                      <Authenticated key="auth" fallback={<Navigate to="/login" replace />}>
+                        <CustomLayout>
+                          <Outlet />
+                        </CustomLayout>
+                      </Authenticated>
                     }
                   >
                     <Route index element={<NavigateToResource resource="dashboard" />} />
                     <Route path="/dashboard" element={<DashboardPage />} />
                     {userRoutes}
                     {activitiesRoutes}
+                    {profileRoutes}
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
 

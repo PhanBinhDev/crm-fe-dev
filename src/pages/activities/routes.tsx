@@ -1,5 +1,5 @@
 import { Route } from 'react-router-dom';
-import { ActivitiesKanbanPage } from './kanban';
+import { ActivitiesKanbanPage } from './list';
 import { ActivitiesCreatePage } from './create';
 import { ActivitiesEditPage } from './edit';
 import { ActivitiesShowPage } from './show';
