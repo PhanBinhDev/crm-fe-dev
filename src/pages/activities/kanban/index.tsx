@@ -229,6 +229,10 @@ export const ActivitiesKanbanPage: React.FC = () => {
     setActivityModalVisible(true);
   }, []);
 
+  const handleEditActivity = () => {
+    setActivityModalVisible(true);
+  };
+
   const handleSearch = useCallback((value: string) => {
     setSearchTerm(value);
   }, []);
@@ -403,6 +407,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
                       stage={stage}
                       activities={activitiesByStage[stage.id] || []}
                       onAddActivity={handleAddActivity}
+                      handleEditActivity={handleEditActivity}
                       isDragOverlay={false}
                     />
                   </Col>
@@ -416,6 +421,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
             {activeColumn && dragType === 'column' ? (
               <div style={{ width: 280 }}>
                 <SortableKanbanColumn
+                  handleEditActivity={handleEditActivity}
                   id={activeColumn.id}
                   stage={activeColumn}
                   activities={activitiesByStage[activeColumn.id] || []}

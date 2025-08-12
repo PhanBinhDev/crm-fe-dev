@@ -72,7 +72,23 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
     sorters: [{ field: 'position', order: 'asc' }],
   });
 
+  // Fetch users for selection
+  const { data: usersData } = useList({
+    resource: 'users/all',
+    pagination: { pageSize: 100 },
+    sorters: [{ field: 'position', order: 'asc' }],
+  });
+
+  // Fetch semesters for selection
+  const { data: semestersData } = useList({
+    resource: 'semesters',
+    pagination: { pageSize: 100 },
+    sorters: [{ field: 'position', order: 'asc' }],
+  });
+
   const stages = stagesData?.data || [];
+  const users = usersData?.data || [];
+  const semesters = semestersData?.data || [];
 
   const handleSubmit = () => {
     form.validateFields().then(values => {
@@ -80,6 +96,10 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
         ...values,
         stageId: stageId || values.stageId,
         status: 'new',
+        type: values.type?.value || 'task',
+        estimateTime: Number(values.estimateTime),
+        checklist: values?.checklist ? values?.checklist[0]?.items : undefined,
+        attachments: values?.attachments ? values?.attachments[0]?.response?.url : undefined,
       };
 
       createActivity(
@@ -178,26 +198,28 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                 borderBottom: '1px solid #e6e9ef',
               }}
             >
-              <Select
-                {...activitySelect}
-                labelInValue
-                defaultValue={{ value: 'task', label: taskLabel }}
-                variant="borderless"
-                style={{
-                  width: '20%',
-                  color: '#202020',
-                  fontWeight: 600,
-                  fontSize: '18px',
-                  margin: 0,
-                }}
-                size="small"
-              />
+              <Form.Item name={'type'}>
+                <Select
+                  {...activitySelect}
+                  labelInValue
+                  defaultValue={{ value: 'task', label: taskLabel }}
+                  variant="borderless"
+                  style={{
+                    width: '20%',
+                    color: '#202020',
+                    fontWeight: 600,
+                    fontSize: '18px',
+                    margin: 0,
+                  }}
+                  size="small"
+                />
+              </Form.Item>
             </div>
 
             <div style={{ padding: '20px 24px' }}>
               {/* Taskname */}
               <div style={{ marginBottom: 20 }}>
-                <Form.Item name="title" rules={[{ required: true }]} style={{ marginBottom: 0 }}>
+                <Form.Item name="name" rules={[{ required: true }]} style={{ marginBottom: 0 }}>
                   <Input
                     placeholder="Tên công việc"
                     style={{
@@ -250,28 +272,23 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             Trạng thái
                           </div>
                           <Form.Item name="stageId" style={{ margin: 0, flex: 1 }}>
-                            <div
+                            <Select
+                              defaultValue={stageId}
+                              placeholder="Chọn trạng thái"
                               style={{
                                 background: '#f9f9f9',
-                                width: '95%',
-                                padding: '3px 0',
+                                width: '100%',
+                                padding: '4px 4px',
                                 borderRadius: '5px',
                               }}
+                              variant="borderless"
                             >
-                              <Select
-                                defaultValue={stageId}
-                                placeholder="Chọn trạng thái"
-                                style={{ width: '100%' }}
-                                variant="borderless"
-                                size="small"
-                              >
-                                {stages.map(stage => (
-                                  <Option key={stage.id} value={stage.id}>
-                                    {stage.title}
-                                  </Option>
-                                ))}
-                              </Select>
-                            </div>
+                              {stages.map(stage => (
+                                <Option key={stage.id} value={stage.id}>
+                                  {stage.title}
+                                </Option>
+                              ))}
+                            </Select>
                           </Form.Item>
                         </div>
                       </Col>
@@ -295,23 +312,25 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             Đảm nhiệm
                           </div>
                           <Form.Item name="assignees" style={{ margin: 0, flex: 1 }}>
-                            <div
+                            <Select
+                              mode="multiple"
+                              placeholder="Thêm người đảm nhiệm"
                               style={{
                                 background: '#f9f9f9',
-                                width: '95%',
-                                padding: '3px 0',
+                                width: '100%',
+                                padding: '4px 4px',
                                 borderRadius: '5px',
                               }}
+                              variant="borderless"
+                              size="small"
+                              maxTagCount={3}
                             >
-                              <Select
-                                mode="multiple"
-                                placeholder="Thêm người đảm nhiệm"
-                                style={{ width: '100%' }}
-                                variant="borderless"
-                                size="small"
-                                maxTagCount={3}
-                              />
-                            </div>
+                              {users.map(user => (
+                                <Option key={user.id} value={user.id}>
+                                  {user.name}
+                                </Option>
+                              ))}
+                            </Select>
                           </Form.Item>
                         </div>
                       </Col>
@@ -329,7 +348,6 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                               fontSize: '14px',
                               color: '#202020',
                               fontWeight: 500,
-
                               letterSpacing: '0.3px',
                               display: 'flex',
                               alignItems: 'center',
@@ -340,28 +358,22 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             Ưu tiên
                           </div>
                           <Form.Item name="priority" style={{ margin: 0, flex: 1 }}>
-                            <div
+                            <Select
+                              placeholder="Chọn mức độ ưu tiên"
                               style={{
                                 background: '#f9f9f9',
-                                width: '95%',
-                                padding: '3px 0',
+                                width: '100%',
+                                padding: '4px 4px',
                                 borderRadius: '5px',
                               }}
-                            >
-                              <Select
-                                placeholder="Chọn mức độ ưu tiên"
-                                style={{ width: '100%' }}
-                                variant="borderless"
-                                size="small"
-                                defaultValue={'medium'}
-                                options={[
-                                  { label: '🔴 Urgent', value: 'urgent' },
-                                  { label: '🟡 High', value: 'high' },
-                                  { label: '🔵 Normal', value: 'medium' },
-                                  { label: '⚪ Low', value: 'low' },
-                                ]}
-                              />
-                            </div>
+                              variant="borderless"
+                              options={[
+                                { label: '🔴 Urgent', value: 'urgent' },
+                                { label: '🟡 High', value: 'high' },
+                                { label: '🔵 Normal', value: 'medium' },
+                                { label: '⚪ Low', value: 'low' },
+                              ]}
+                            />
                           </Form.Item>
                         </div>
                       </Col>
@@ -384,12 +396,12 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             <ClockCircleOutlined style={{ color: '#8c8c8c' }} />
                             Ước lượng giờ
                           </div>
-                          <Form.Item name="estimate" style={{ margin: 0, flex: 1 }}>
+                          <Form.Item name="estimateTime" style={{ margin: 0, flex: 1 }}>
                             <div
                               style={{
                                 background: '#f9f9f9',
-                                width: '95%',
-                                padding: '3px 0',
+                                width: '100%',
+                                padding: '4px 4px',
                                 borderRadius: '5px',
                               }}
                             >
@@ -430,22 +442,17 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             Ngày bắt đầu
                           </div>
                           <Form.Item name="startTime" style={{ margin: 0, flex: 1 }}>
-                            <div
+                            <DatePicker
+                              showTime
+                              placeholder="Chọn ngày bắt đầu"
                               style={{
                                 background: '#f9f9f9',
-                                width: '95%',
-                                padding: '3px 0',
+                                width: '100%',
+                                padding: '4px 14px',
                                 borderRadius: '5px',
                               }}
-                            >
-                              <DatePicker
-                                showTime
-                                placeholder="Chọn ngày bắt đầu"
-                                style={{ width: '100%' }}
-                                variant="borderless"
-                                size="small"
-                              />
-                            </div>
+                              variant="borderless"
+                            />
                           </Form.Item>
                         </div>
                       </Col>
@@ -468,22 +475,17 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             Ngày kết thúc
                           </div>
                           <Form.Item name="endTime" style={{ margin: 0, flex: 1 }}>
-                            <div
+                            <DatePicker
+                              showTime
+                              placeholder="Chọn ngày kết thúc"
                               style={{
                                 background: '#f9f9f9',
-                                width: '95%',
-                                padding: '3px 0',
+                                width: '100%',
+                                padding: '4px 14px',
                                 borderRadius: '5px',
                               }}
-                            >
-                              <DatePicker
-                                showTime
-                                placeholder="Chọn ngày kết thúc"
-                                style={{ width: '100%' }}
-                                variant="borderless"
-                                size="small"
-                              />
-                            </div>
+                              variant="borderless"
+                            />
                           </Form.Item>
                         </div>
                       </Col>
@@ -511,22 +513,23 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             <ReadOutlined style={{ color: '#8c8c8c' }} />
                             Kỳ học
                           </div>
-                          <Form.Item name="semester" style={{ margin: 0, flex: 1 }}>
-                            <div
+                          <Form.Item name="semesterId" style={{ margin: 0, flex: 1 }}>
+                            <Select
+                              placeholder="Chọn kỳ học "
                               style={{
                                 background: '#f9f9f9',
-                                width: '95%',
-                                padding: '3px 0',
+                                width: '100%',
+                                padding: '4px 4px',
                                 borderRadius: '5px',
                               }}
+                              variant="borderless"
                             >
-                              <Select
-                                placeholder="Chọn kỳ học "
-                                style={{ width: '100%' }}
-                                variant="borderless"
-                                size="small"
-                              />
-                            </div>
+                              {semesters.map(semester => (
+                                <Option key={semester.id} value={semester.id}>
+                                  {semester.name}
+                                </Option>
+                              ))}
+                            </Select>
                           </Form.Item>
                         </div>
                       </Col>
@@ -550,12 +553,12 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             <LinkOutlined style={{ color: '#8c8c8c' }} />
                             Liên kết
                           </div>
-                          <Form.Item name="link" style={{ margin: 0, flex: 1 }}>
+                          <Form.Item name="onlineLink" style={{ margin: 0, flex: 1 }}>
                             <div
                               style={{
                                 background: '#f9f9f9',
-                                width: '95%',
-                                padding: '3px 0',
+                                width: '100%',
+                                padding: '4px 4px',
                                 borderRadius: '5px',
                               }}
                             >
@@ -577,10 +580,10 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
               <Description />
 
               {/* Subtask */}
-              <Subtasks />
+              <Subtasks users={users} />
 
               {/* Checklist */}
-              <Checklists form={form} />
+              <Checklists form={form} users={users} />
 
               {/* Attachments */}
               <Attachments />
