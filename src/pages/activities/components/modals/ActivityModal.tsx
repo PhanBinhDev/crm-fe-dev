@@ -40,10 +40,10 @@ import {
 } from '@ant-design/icons';
 import { SelectProps } from 'antd/lib';
 import { formatFileSize, getFileIcon } from '@/utils/activity';
-import Attachments from './activityModalComponents/Attachments';
-import Subtasks from './activityModalComponents/Subtasks';
-import Description from './activityModalComponents/Description';
-import Checklists from './activityModalComponents/Checklists';
+import Description from '../activityModalComponents/Description';
+import Subtasks from '../activityModalComponents/Subtasks';
+import Checklists from '../activityModalComponents/Checklists';
+import Attachments from '../activityModalComponents/Attachments';
 const { Title } = Typography;
 
 const { Option } = Select;
