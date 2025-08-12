@@ -18,6 +18,16 @@ export const UserTable: FC<UserTableProps> = ({ tableProps, onPageSizeChange }) 
   const paginationConfig = paginationConfigOptions(tableProps, onPageSizeChange);
 
   const columns: ColumnType<IUser>[] = [
+    //  {
+    //   title: 'id',
+    //   dataIndex: 'id',
+    //   render: (avatar: string, record: IUser) => (
+    //     <Avatar src={avatar || AVATAR_PLACEHOLDER} size={40} onError={() => false}>
+    //       {(record.name || 'U').charAt(0).toUpperCase()}
+    //     </Avatar>
+    //   ),
+    //   width: 80,
+    // },
     {
       title: 'Avatar',
       dataIndex: 'avatar',
