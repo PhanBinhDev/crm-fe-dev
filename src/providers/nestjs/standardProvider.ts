@@ -94,7 +94,7 @@ export const standardDataProvider = (
 
       // Handle backend ResponseDto structure
       return {
-        data: data.data || data,
+        data,
       };
     } catch (error) {
       const httpError = transformHttpError(error);

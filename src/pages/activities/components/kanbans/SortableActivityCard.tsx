@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { IActivity } from '@/common/types';
 import {
   CalendarOutlined,
@@ -13,11 +13,25 @@ import {
 } from '@ant-design/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Avatar, Card, Dropdown, Space, Tag, Typography, Tooltip, MenuProps, Progress } from 'antd';
+import {
+  Avatar,
+  Card,
+  Dropdown,
+  Space,
+  Tag,
+  Typography,
+  Tooltip,
+  MenuProps,
+  Progress,
+  Input,
+  Modal,
+  message,
+} from 'antd';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { useDelete, useUpdate } from '@refinedev/core';
 
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
@@ -27,11 +41,13 @@ const { Title, Text } = Typography;
 interface SortableActivityCardProps {
   activity: IActivity;
   isDragOverlay?: boolean;
+  onClick: (item: IActivity) => void;
 }
 
 export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
   activity,
   isDragOverlay = false,
+  onClick,
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: activity.id,
@@ -40,6 +56,15 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
       activity,
     },
   });
+
+  const { mutate: updateActivityName } = useUpdate({
+    successNotification: false,
+    errorNotification: false,
+  });
+  const { mutate: deleteActivity } = useDelete();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState(activity.name);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -105,8 +130,8 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
       icon: <EyeOutlined />,
     },
     {
-      key: 'edit',
-      label: 'Chỉnh sửa',
+      key: 'rename',
+      label: 'Sửa tên',
       icon: <EditOutlined />,
     },
     {
@@ -134,8 +159,52 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
   // Handle menu click
   const handleMenuClick = (key: string, e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation(); // Prevent card drag when clicking menu
-    console.log('Menu action:', key, activity.id);
-    // Add your menu action handlers here
+    switch (key) {
+      case 'rename':
+        setIsEditing(true);
+        break;
+      case 'delete':
+        Modal.confirm({
+          title: 'Xác nhận xóa',
+          content: 'Bạn có chắc chắn muốn xóa hoạt động này?',
+          onOk() {
+            deleteActivity({
+              resource: 'activities',
+              id: activity.id,
+              mutationMode: 'optimistic',
+            });
+          },
+        });
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const handleNameSave = () => {
+    if (editedName.trim() === activity.name) {
+      setIsEditing(false);
+      return;
+    }
+
+    updateActivityName(
+      {
+        resource: 'activities',
+        id: activity.id,
+        values: { name: editedName.trim() },
+        mutationMode: 'optimistic',
+      },
+      {
+        onSuccess: ({ data }) => {
+          message.success(data.message || 'Tên hoạt động đã được cập nhật');
+        },
+        onError: error => {
+          message.error(error.message || 'Không thể cập nhật tên hoạt động');
+        },
+      },
+    );
+    setIsEditing(false);
   };
 
   const cardClassName = `
@@ -152,14 +221,22 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
       style={style}
       {...attributes}
       {...listeners}
+      onClick={e => {
+        e.stopPropagation();
+        onClick(activity);
+      }}
       size="small"
       className={cardClassName}
       hoverable={!isDragging}
+      bordered={false}
       styles={{
         body: {
-          borderLeft: activity.priority ? `3px solid ${priorityConfig.color}` : undefined,
+          // borderLeft: activity.priority ? `3px solid ${priorityConfig.color}` : undefined,
           padding: '12px',
           position: 'relative',
+          background: 'white',
+          border: '1px solid #E0E0E0',
+          borderRadius: '8px',
         },
       }}
     >
@@ -172,19 +249,33 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
           marginBottom: 8,
         }}
       >
-        <Title
-          level={5}
-          style={{
-            margin: 0,
-            fontSize: 14,
-            lineHeight: 1.4,
-            flex: 1,
-            paddingRight: 8,
-          }}
-          ellipsis={{ rows: 2, tooltip: activity.name }}
-        >
-          {activity.name}
-        </Title>
+        {isEditing ? (
+          <Input
+            size="small"
+            value={editedName}
+            autoFocus
+            onChange={(e: any) => setEditedName(e.target.value)}
+            onPressEnter={handleNameSave}
+            onBlur={handleNameSave}
+            style={{ fontSize: 14, flex: 1, marginRight: 8 }}
+            onKeyDown={e => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
+          />
+        ) : (
+          <Title
+            level={5}
+            style={{
+              margin: 0,
+              fontSize: 14,
+              lineHeight: 1.4,
+              flex: 1,
+              paddingRight: 8,
+            }}
+            ellipsis={{ rows: 2, tooltip: activity.name }}
+          >
+            {activity.name}
+          </Title>
+        )}
 
         <Dropdown
           menu={{
@@ -225,7 +316,9 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
             tooltip: activity.description.length > 80 ? activity.description : false,
           }}
         >
-          {activity.description}
+          {activity.description.length >= 30
+            ? `${activity.description.slice(0, 30)}...`
+            : activity.description}
         </Text>
       )}
 
@@ -248,7 +341,7 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
           </Tag>
         )}
 
-        {activity.status && <Tag color={statusConfig.color}>{statusConfig.text}</Tag>}
+        {/* {activity.status && <Tag color={statusConfig.color}>{statusConfig.text}</Tag>} */}
 
         {activityMeta.isOverdue && (
           <Tag color="error" icon={<ExclamationCircleOutlined />}>
@@ -299,7 +392,7 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
         </Space>
 
         {/* Assignees */}
-        {activityMeta.assignees && activityMeta.assignees.length > 0 && (
+        {activityMeta.assignees && (
           <Avatar.Group
             maxCount={2}
             maxStyle={{
