@@ -7,6 +7,7 @@ import {
 import { IBase, IFeedback, IFile, IParticipant } from '@/common/types';
 
 import { IAssignee } from './assignee';
+import { ISemester } from './semester';
 
 export interface IActivity extends IBase {
   name: string;
@@ -21,13 +22,14 @@ export interface IActivity extends IBase {
   mandatory: boolean;
   estimateTime?: number;
   parentId?: string;
+  semester: ISemester;
   category?: ActivityCategory;
   status: ActivityStatus;
   participants?: IParticipant[];
   files?: IFile[];
   feedbacks?: IFeedback[];
   assignees?: IAssignee[];
-  progress?: number; // Progress in percentage
+  progress?: number;
 }
 
 export interface ActivityFormValues {

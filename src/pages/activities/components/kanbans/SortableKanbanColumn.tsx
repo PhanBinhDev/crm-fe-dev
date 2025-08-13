@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IActivity, IStage } from '@/common/types';
-import { PlusOutlined, MoreOutlined } from '@ant-design/icons';
+import { PlusOutlined, MoreOutlined, DragOutlined } from '@ant-design/icons';
 import { useDroppable } from '@dnd-kit/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -42,7 +42,6 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
 }) => {
   const activityIds = useMemo(() => activities.map(activity => activity.id), [activities]);
   const { mutate: updateStage } = useUpdate<IStage>();
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(stage.title);
   const [color, setColor] = useState(stage.color);
   const [open, setOpen] = useState(false);
@@ -72,15 +71,21 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
               position: stage.position,
               color: newColor,
             },
+            errorNotification: false,
+            successNotification: false,
           },
           {
-            onSuccess: data => {
+            onSuccess: () => {
               onChange?.({
                 id: stage.id,
                 title,
                 position: stage.position,
                 color: newColor,
               });
+              message.success('Cập nhật màu sắc cột thành công');
+            },
+            onError: () => {
+              message.error('Cập nhật màu sắc cột thất bại');
             },
           },
         );
@@ -89,38 +94,35 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
     [updateStage, stage.id, stage.position, title, onChange],
   );
 
-  const handleSave = () => {
-    setIsEditingTitle(false);
+  // const handleSave = () => {
+  //   updateStage(
+  //     {
+  //       resource: 'stages',
+  //       id: stage.id,
+  //       values: {
+  //         title,
+  //         position: stage.position,
+  //         color: color ?? '#1677ff',
+  //       },
+  //       errorNotification: false,
+  //       successNotification: false,
+  //     },
+  //     {
+  //       onSuccess: data => {
+  //         console.log('Stage updated successfully:', data);
 
-    updateStage(
-      {
-        resource: 'stages',
-        id: stage.id,
-        values: {
-          title,
-          position: stage.position,
-          color: color ?? '#1677ff',
-        },
-        errorNotification: false,
-        successNotification: false,
-      },
-      {
-        onSuccess: data => {
-          console.log('Stage updated successfully:', data);
+  //         onChange?.({
+  //           id: stage.id,
+  //           title,
+  //           position: stage.position,
+  //           color: color ?? '#1677ff',
+  //         });
+  //         message.success('Cập nhật cột thành công');
+  //       },
+  //     },
+  //   );
+  // };
 
-          onChange?.({
-            id: stage.id,
-            title,
-            position: stage.position,
-            color: color ?? '#1677ff',
-          });
-          message.success('Cập nhật cột thành công');
-        },
-      },
-    );
-  };
-
-  // Sortable for column dragging
   const {
     attributes: sortableAttributes,
     listeners: sortableListeners,
@@ -136,7 +138,6 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
     },
   });
 
-  // Droppable for activity dropping
   const {
     setNodeRef: setDroppableRef,
     isOver,
@@ -171,7 +172,6 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
     return stage?.color || '#f5f5f5';
   };
 
-  // Dropdown menu for column actions
   const columnMenuItems: MenuProps['items'] = [
     {
       key: 'add',
@@ -225,8 +225,6 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
 
   return (
     <Card
-      {...sortableAttributes}
-      {...sortableListeners}
       ref={setRefs}
       style={columnStyle}
       className={`kanban-column ${isDraggedOver ? 'drag-over' : ''} ${
@@ -244,13 +242,28 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
         >
           <Space size="small" style={{ flex: 1 }}>
             <div
+              {...sortableAttributes}
+              {...sortableListeners}
+              style={{
+                cursor: 'grab',
+                padding: '2px',
+                borderRadius: 4,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              title="Kéo để sắp xếp cột"
+            >
+              <DragOutlined style={{ fontSize: 12, color: '#8c8c8c' }} />
+            </div>
+
+            <div
               style={{
                 display: 'flex',
-                gap: '5px',
+                gap: '4px',
                 alignItems: 'center',
                 backgroundColor: color,
-                padding: '2px 5px',
-                borderRadius: '5px',
+                padding: '2px 8px',
+                borderRadius: '6px',
               }}
             >
               <ColorPicker
@@ -267,34 +280,19 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
                 <div
                   onClick={() => setOpen(true)}
                   style={{
-                    width: 15,
-                    height: 15,
+                    width: 13,
+                    height: 13,
                     borderRadius: '50%',
-                    border: '2px dashed #d9d9d9',
+                    border: '2px solid #d9d9d9',
                     backgroundColor: color,
                     cursor: 'pointer',
                   }}
                 />
               </ColorPicker>
 
-              {isEditingTitle ? (
-                <Input
-                  value={title}
-                  size="small"
-                  onChange={e => setTitle(e.target.value)}
-                  onBlur={handleSave}
-                  onPressEnter={handleSave}
-                  autoFocus
-                />
-              ) : (
-                <Text
-                  strong
-                  style={{ fontSize: 14, color: '#fff', cursor: 'pointer' }}
-                  onClick={() => setIsEditingTitle(true)}
-                >
-                  {title}
-                </Text>
-              )}
+              <Text style={{ fontSize: 13, color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
+                {title}
+              </Text>
             </div>
 
             <Badge

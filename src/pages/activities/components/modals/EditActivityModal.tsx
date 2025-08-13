@@ -1,52 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { Modal, Form, Input, Select, Row, Col, Typography, DatePicker, message } from 'antd';
+import { useList, useUpdate } from '@refinedev/core';
 import {
-  Modal,
-  Form,
-  Input,
-  Select,
-  Row,
-  Col,
-  Typography,
-  Upload,
-  Button,
-  DatePicker,
-  Dropdown,
-  Checkbox,
-  message,
-} from 'antd';
-import { useCreate, useList, useUpdate } from '@refinedev/core';
-import {
-  ArrowDownOutlined,
-  ArrowUpOutlined,
   CalendarOutlined,
   CheckCircleOutlined,
-  CheckSquareOutlined,
   ClockCircleOutlined,
-  CloseOutlined,
-  DeleteOutlined,
-  DownOutlined,
-  DownloadOutlined,
-  EditOutlined,
-  EyeOutlined,
   FileTextOutlined,
   FlagOutlined,
   LinkOutlined,
-  MoreOutlined,
-  PaperClipOutlined,
-  PartitionOutlined,
   ReadOutlined,
-  RightOutlined,
   TeamOutlined,
-  UploadOutlined,
 } from '@ant-design/icons';
 import { SelectProps } from 'antd/lib';
-import { formatFileSize, getFileIcon } from '@/utils/activity';
-import Description from '../activityModalComponents/Description';
-import Subtasks from '../activityModalComponents/Subtasks';
-import Checklists from '../activityModalComponents/Checklists';
-import Attachments from '../activityModalComponents/Attachments';
-import { IActivity } from '@/common/types';
 import dayjs from 'dayjs';
+import { IActivity } from '@/common/types';
 const { Title } = Typography;
 
 const { Option } = Select;
@@ -55,7 +22,7 @@ interface EditActivityModalProps {
   isOpen: boolean;
   onCancel: () => void;
   onSuccess: () => void;
-  activity?: any;
+  activity?: IActivity;
 }
 
 export const EditActivityModal: React.FC<EditActivityModalProps> = ({
@@ -122,7 +89,7 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
       updateActivity(
         {
           resource: 'activities',
-          id: activity.id,
+          id: activity?.id,
           values: activityData,
           mutationMode: 'optimistic',
         },

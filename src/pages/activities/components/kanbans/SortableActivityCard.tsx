@@ -394,14 +394,16 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
         {/* Assignees */}
         {activityMeta.assignees && (
           <Avatar.Group
-            maxCount={2}
-            maxStyle={{
-              color: '#f56a00',
-              backgroundColor: '#fde3cf',
-              fontSize: 10,
-              width: 20,
-              height: 20,
-              lineHeight: '20px',
+            max={{
+              style: {
+                color: '#f56a00',
+                backgroundColor: '#fde3cf',
+                fontSize: 10,
+                width: 20,
+                height: 20,
+                lineHeight: '20px',
+              },
+              count: 2,
             }}
           >
             {activityMeta.assignees.map((assignee, index) => (
