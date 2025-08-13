@@ -15,6 +15,7 @@ import {
   MenuProps,
   ColorPicker,
   Input,
+  message,
 } from 'antd';
 import { SortableActivityCard } from './SortableActivityCard';
 import { useUpdate } from '@refinedev/core';
@@ -24,9 +25,9 @@ interface SortableKanbanColumnProps {
   id: string;
   stage: IStage;
   activities: IActivity[];
+  isDragOverlay?: boolean;
   onAddActivity: (stageId: string) => void;
   onClick: (item: IActivity) => void;
-  isDragOverlay?: boolean;
   onChange?: (stage: { id: string; title: string; position: number; color: string }) => void;
 }
 
@@ -89,6 +90,8 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
   );
 
   const handleSave = () => {
+    setIsEditingTitle(false);
+
     updateStage(
       {
         resource: 'stages',
@@ -98,17 +101,20 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
           position: stage.position,
           color: color ?? '#1677ff',
         },
+        errorNotification: false,
+        successNotification: false,
       },
       {
         onSuccess: data => {
+          console.log('Stage updated successfully:', data);
+
           onChange?.({
             id: stage.id,
             title,
             position: stage.position,
             color: color ?? '#1677ff',
           });
-
-          setIsEditingTitle(false);
+          message.success('Cập nhật cột thành công');
         },
       },
     );
@@ -252,8 +258,8 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
                 open={open}
                 onOpenChange={setOpen}
                 trigger="click"
-                onChange={handleColorChange} // Sử dụng function mới
-                onChangeComplete={handleColorChange} // Thêm onChangeComplete để đảm bảo
+                onChange={handleColorChange}
+                onChangeComplete={handleColorChange}
                 styles={{
                   popup: { padding: 0 },
                 }}
@@ -300,22 +306,6 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
                 border: '1px solid #d9d9d9',
               }}
             />
-            {/* {stageStats.overdue > 0 && (
-              <Badge
-                count={stageStats.overdue}
-                size="small"
-                style={{ backgroundColor: '#ff4d4f' }}
-                title={`${stageStats.overdue} quá hạn`}
-              />
-            )}
-            {stageStats.highPriority > 0 && (
-              <Badge
-                count={stageStats.highPriority}
-                size="small"
-                style={{ backgroundColor: '#faad14' }}
-                title={`${stageStats.highPriority} ưu tiên cao`}
-              />
-            )} */}
           </Space>
           <Space size="small">
             <Button

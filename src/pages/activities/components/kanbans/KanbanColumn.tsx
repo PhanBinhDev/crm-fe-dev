@@ -174,18 +174,18 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         backgroundColor: isDraggedOver ? '#f0f9ff' : '#fafafa',
         transition: 'all 0.2s ease',
       }}
-      headStyle={{
-        minHeight: 42,
-        padding: '0 12px',
-        borderBottom: '1px solid #f0f0f0',
-        backgroundColor: getStageColor(stage),
-      }}
       styles={{
         body: {
           padding: '8px',
           height: 'calc(100vh - 230px)',
           overflowY: 'auto',
           overflowX: 'hidden',
+        },
+        header: {
+          minHeight: 42,
+          padding: '0 12px',
+          borderBottom: '1px solid #f0f0f0',
+          backgroundColor: getStageColor(stage),
         },
       }}
     >

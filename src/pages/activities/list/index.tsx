@@ -86,7 +86,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
   const [selectedPriority, setSelectedPriority] = useState<string>();
   const [selectedStatus, setSelectedStatus] = useState<string>();
   const [dateRange, setDateRange] = useState<[any, any] | null>(null);
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('list');
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [activityModalVisible, setActivityModalVisible] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>();
   const [settingsDrawerVisible, setSettingsDrawerVisible] = useState(false);
@@ -144,8 +144,6 @@ export const ActivitiesKanbanPage: React.FC = () => {
     pagination: { pageSize: 1000 },
     filters,
   });
-  console.log('activitydata', activitiesData);
-
   const { mutate: updateActivity } = useUpdate();
   const { mutate: updateStage } = useUpdate();
 
@@ -600,7 +598,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
                   boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
                   borderLeft: `4px solid ${getStageColor(stage)}`,
                 }}
-                bodyStyle={{ padding: 0 }}
+                styles={{ body: { padding: 0 } }}
               >
                 {/* Stage Header */}
                 <div
