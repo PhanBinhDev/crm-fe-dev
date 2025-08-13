@@ -8,12 +8,15 @@ import {
   Button,
   Space,
   Input,
-  Select,
   Drawer,
   Popover,
-  Tooltip,
   Badge,
   Avatar,
+  Table,
+  Tag,
+  Progress,
+  Dropdown,
+  Menu,
 } from 'antd';
 import {
   PlusOutlined,
@@ -22,12 +25,13 @@ import {
   SettingOutlined,
   AppstoreOutlined,
   BarsOutlined,
-  BellOutlined,
-  ShareAltOutlined,
-  SaveOutlined,
   DownloadOutlined,
   UsergroupAddOutlined,
   SortAscendingOutlined,
+  MoreOutlined,
+  UserOutlined,
+  CalendarOutlined,
+  FlagOutlined,
 } from '@ant-design/icons';
 import {
   DndContext,
@@ -54,8 +58,28 @@ import '@/styles/kanban.css';
 import { KanbanBoardSettings } from '@/pages/activities/components/settings/KanbanBoardSettings';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { KanbanFilterPopover } from '../components/kanbans/KanbanFilterPopover';
+import { EditActivityModal } from '@/pages/activities/components/modals/EditActivityModal';
 
 const { Title, Text } = Typography;
+
+// Helper function to get priority color
+const getPriorityColor = (priority: string) => {
+  switch (priority?.toLowerCase()) {
+    case 'high':
+      return '#ff4d4f';
+    case 'medium':
+      return '#faad14';
+    case 'low':
+      return '#52c41a';
+    default:
+      return '#d9d9d9';
+  }
+};
+
+// Helper function to get stage color
+const getStageColor = (stage: IStage) => {
+  return stage?.color || '#f5f5f5';
+};
 
 export const ActivitiesKanbanPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -69,6 +93,8 @@ export const ActivitiesKanbanPage: React.FC = () => {
   const [activeActivity, setActiveActivity] = useState<IActivity | null>(null);
   const [activeColumn, setActiveColumn] = useState<IStage | null>(null);
   const [dragType, setDragType] = useState<'activity' | 'column' | null>(null);
+  const [editActivityModal, setEditActivityModal] = useState(false);
+  const [editActivity, setEditActivity] = useState<IActivity | null>(null);
 
   useBodyScrollLock(settingsDrawerVisible);
 
@@ -118,7 +144,6 @@ export const ActivitiesKanbanPage: React.FC = () => {
     pagination: { pageSize: 1000 },
     filters,
   });
-
   const { mutate: updateActivity } = useUpdate();
   const { mutate: updateStage } = useUpdate();
 
@@ -240,6 +265,13 @@ export const ActivitiesKanbanPage: React.FC = () => {
     setActivityModalVisible(true);
   }, []);
 
+  // edit
+  const handleOpenEditActivityModal = useCallback((activity: IActivity) => {
+    setEditActivityModal(true);
+    setEditActivity(activity);
+    console.log(activity);
+  }, []);
+
   const clearAllFilters = useCallback(() => {
     setSearchTerm('');
     setSelectedPriority(undefined);
@@ -250,6 +282,132 @@ export const ActivitiesKanbanPage: React.FC = () => {
   const handleSearch = useCallback((value: string) => {
     setSearchTerm(value);
   }, []);
+
+  const tableColumns = [
+    {
+      title: 'STT',
+      dataIndex: 'id',
+      key: 'stt',
+      width: 60,
+      render: (_: any, __: any, index: number) => (
+        <span style={{ color: '#8c8c8c', fontSize: 13 }}>{index + 1}</span>
+      ),
+    },
+    {
+      title: 'Task',
+      dataIndex: 'name',
+      key: 'name',
+      width: 350,
+      render: (text: string, record: IActivity) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 500, marginBottom: 2 }}>{text}</div>
+            {record.description && (
+              <div style={{ fontSize: 12, color: '#8c8c8c', lineHeight: 1.3 }}>
+                {record.description.length > 80
+                  ? `${record.description.substring(0, 80)}...`
+                  : record.description}
+              </div>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: 'Priority',
+      dataIndex: 'priority',
+      key: 'priority',
+      width: 120,
+      render: (priority: string) => (
+        <Tag
+          color={getPriorityColor(priority)}
+          icon={<FlagOutlined />}
+          style={{ borderRadius: 12 }}
+        >
+          {priority || 'None'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Assignee',
+      dataIndex: 'assignedActivities',
+      key: 'assignedActivities',
+      width: 140,
+      render: (assignee: any) =>
+        assignee ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Avatar size="small" src={assignee.avatar} icon={<UserOutlined />} />
+            <span style={{ fontSize: 13 }}>{assignee.name}</span>
+          </div>
+        ) : (
+          <Avatar size="small" style={{ backgroundColor: '#f5f5f5', color: '#8c8c8c' }}>
+            <UserOutlined />
+          </Avatar>
+        ),
+    },
+    {
+      title: 'End Time',
+      dataIndex: 'endTime',
+      key: 'endTime',
+      width: 140,
+      render: (date: string) =>
+        date ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <CalendarOutlined style={{ color: '#8c8c8c', fontSize: 12 }} />
+            <span style={{ fontSize: 13 }}>{new Date(date).toLocaleDateString()}</span>
+          </div>
+        ) : (
+          '-'
+        ),
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      width: 120,
+      render: (status: number = 0) => (
+        <Progress
+          percent={status}
+          size="small"
+          strokeColor={status === 100 ? '#52c41a' : '#1890ff'}
+          showInfo={false}
+          style={{ margin: 0 }}
+        />
+      ),
+    },
+    {
+      title: 'Created',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 140,
+      render: (date: string) => (
+        <span style={{ fontSize: 13, color: '#8c8c8c' }}>
+          {new Date(date).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      title: '',
+      key: 'actions',
+      width: 60,
+      render: (record: IActivity) => (
+        <Dropdown
+          overlay={
+            <Menu>
+              <Menu.Item key="edit">Edit</Menu.Item>
+              <Menu.Item key="duplicate">Duplicate</Menu.Item>
+              <Menu.Item key="delete" danger>
+                Delete
+              </Menu.Item>
+            </Menu>
+          }
+          trigger={['click']}
+        >
+          <Button type="text" icon={<MoreOutlined />} size="small" />
+        </Dropdown>
+      ),
+    },
+  ];
 
   return (
     <div style={{ padding: '16px 24px' }}>
@@ -375,6 +533,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
                       activities={activitiesByStage[stage.id] || []}
                       onAddActivity={handleAddActivity}
                       isDragOverlay={false}
+                      onClick={handleOpenEditActivityModal}
                     />
                   </Col>
                 ))}
@@ -392,11 +551,11 @@ export const ActivitiesKanbanPage: React.FC = () => {
                   activities={activitiesByStage[activeColumn.id] || []}
                   onAddActivity={() => {}}
                   isDragOverlay={true}
+                  onClick={handleOpenEditActivityModal}
                 />
               </div>
             ) : null}
 
-            {/* Activity drag overlay */}
             {activeActivity && dragType === 'activity' ? (
               <Card
                 size="small"
@@ -425,19 +584,98 @@ export const ActivitiesKanbanPage: React.FC = () => {
         </DndContext>
       )}
 
-      {/* List View */}
       {viewMode === 'list' && (
-        <Card>
-          <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <BarsOutlined style={{ fontSize: 48, color: '#d9d9d9', marginBottom: 16 }} />
-            <div>
-              <Title level={4} type="secondary">
-                List View
-              </Title>
-              <Text type="secondary">Chế độ xem danh sách sẽ được phát triển sớm</Text>
-            </div>
-          </div>
-        </Card>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {stages.map(stage => {
+            const stageActivities = activitiesByStage[stage.id] || [];
+
+            return (
+              <Card
+                key={stage.id}
+                style={{
+                  borderRadius: 8,
+                  overflow: 'hidden',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+                  borderLeft: `4px solid ${getStageColor(stage)}`,
+                }}
+                styles={{ body: { padding: 0 } }}
+              >
+                {/* Stage Header */}
+                <div
+                  style={{
+                    backgroundColor: '#fafafa',
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '16px 24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        backgroundColor: getStageColor(stage),
+                      }}
+                    />
+                    <Title level={5} style={{ margin: 0, color: '#262626' }}>
+                      {stage.title}
+                    </Title>
+                    <Badge
+                      count={stageActivities.length}
+                      style={{
+                        backgroundColor: getStageColor(stage),
+                        fontSize: '11px',
+                        minWidth: '20px',
+                        height: '20px',
+                        lineHeight: '18px',
+                      }}
+                    />
+                  </div>
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<PlusOutlined />}
+                    onClick={() => handleAddActivity(stage.id)}
+                    style={{ color: '#8c8c8c' }}
+                  >
+                    Add task
+                  </Button>
+                </div>
+
+                {/* Tasks Table */}
+                {stageActivities.length > 0 ? (
+                  <Table
+                    columns={tableColumns}
+                    dataSource={stageActivities}
+                    rowKey="id"
+                    pagination={false}
+                    scroll={{ x: 1000 }}
+                    size="middle"
+                    className="clickup-table"
+                    rowClassName="clickup-table-row"
+                    showHeader={stage.position === 0}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      padding: '40px 24px',
+                      textAlign: 'center',
+                      color: '#8c8c8c',
+                    }}
+                  >
+                    <div style={{ marginBottom: 8 }}>No tasks in this status</div>
+                    <Button type="link" size="small" onClick={() => handleAddActivity(stage.id)}>
+                      Add the first task
+                    </Button>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
       )}
 
       {/* Activity Modal */}
@@ -453,6 +691,21 @@ export const ActivitiesKanbanPage: React.FC = () => {
           refetch();
         }}
         stageId={selectedStageId}
+      />
+
+      {/* Edit Activity Modal */}
+      <EditActivityModal
+        isOpen={editActivityModal}
+        onCancel={() => {
+          setEditActivityModal(false);
+          setEditActivity(null);
+        }}
+        onSuccess={() => {
+          setEditActivityModal(false);
+          setEditActivity(null);
+          refetch();
+        }}
+        activity={editActivity}
       />
 
       {/* Settings Drawer */}
@@ -476,6 +729,40 @@ export const ActivitiesKanbanPage: React.FC = () => {
       >
         <KanbanBoardSettings />
       </Drawer>
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+          .clickup-table .ant-table-thead > tr > th {
+            background-color: #fafafa;
+            border-bottom: 2px solid #f0f0f0;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8c8c8c;
+            padding: 12px 16px;
+          }
+          
+          .clickup-table-row {
+            border-bottom: 1px solid #f0f0f0;
+          }
+          
+          .clickup-table-row:hover {
+            background-color: #fafafa;
+          }
+          
+          .clickup-table .ant-table-tbody > tr > td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f5f5f5;
+          }
+          
+          .clickup-table .ant-table-tbody > tr:last-child > td {
+            border-bottom: none;
+          }
+        `,
+        }}
+      />
     </div>
   );
 };

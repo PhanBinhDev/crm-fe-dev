@@ -11,7 +11,7 @@ import routerBindings, {
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 
-import { authProvider } from '@/providers/authProvider';
+import { authProvider } from '@/providers/AuthProvider';
 import { accessControlProvider } from '@/providers/accessControlProvider';
 import { resources } from '@/config/resources';
 import { antdTheme } from '@/config/theme';

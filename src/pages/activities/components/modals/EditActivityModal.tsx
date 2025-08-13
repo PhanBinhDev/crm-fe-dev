@@ -1,69 +1,50 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { Modal, Form, Input, Select, Row, Col, Typography, DatePicker, message } from 'antd';
+import { useList, useUpdate } from '@refinedev/core';
 import {
-  Modal,
-  Form,
-  Input,
-  Select,
-  Row,
-  Col,
-  Typography,
-  Upload,
-  Button,
-  DatePicker,
-  Dropdown,
-  Checkbox,
-} from 'antd';
-import { useCreate, useList } from '@refinedev/core';
-import {
-  ArrowDownOutlined,
-  ArrowUpOutlined,
   CalendarOutlined,
   CheckCircleOutlined,
-  CheckSquareOutlined,
   ClockCircleOutlined,
-  CloseOutlined,
-  DeleteOutlined,
-  DownOutlined,
-  DownloadOutlined,
-  EditOutlined,
-  EyeOutlined,
   FileTextOutlined,
   FlagOutlined,
   LinkOutlined,
-  MoreOutlined,
-  PaperClipOutlined,
-  PartitionOutlined,
   ReadOutlined,
-  RightOutlined,
   TeamOutlined,
-  UploadOutlined,
 } from '@ant-design/icons';
 import { SelectProps } from 'antd/lib';
-import { formatFileSize, getFileIcon } from '@/utils/activity';
-import Description from '../activityModalComponents/Description';
-import Subtasks from '../activityModalComponents/Subtasks';
-import Checklists from '../activityModalComponents/Checklists';
-import Attachments from '../activityModalComponents/Attachments';
+import dayjs from 'dayjs';
+import { IActivity } from '@/common/types';
 const { Title } = Typography;
 
 const { Option } = Select;
 
-interface ActivityModalProps {
-  visible: boolean;
+interface EditActivityModalProps {
+  isOpen: boolean;
   onCancel: () => void;
   onSuccess: () => void;
-  stageId?: string;
+  activity?: IActivity;
 }
 
-export const ActivityModal: React.FC<ActivityModalProps> = ({
-  visible,
+export const EditActivityModal: React.FC<EditActivityModalProps> = ({
+  isOpen,
   onCancel,
   onSuccess,
-  stageId,
+  activity,
 }) => {
+  const { mutate: updateActivity, isLoading } = useUpdate({
+    successNotification: false,
+    errorNotification: false,
+  });
   const [form] = Form.useForm();
 
-  const { mutate: createActivity, isLoading } = useCreate();
+  useEffect(() => {
+    if (isOpen) {
+      form.resetFields();
+      if (activity) {
+        form.setFieldsValue(activity);
+      }
+    }
+  }, [isOpen, form, activity]);
 
   // Fetch stages for selection
   const { data: stagesData } = useList({
@@ -86,31 +67,39 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
     sorters: [{ field: 'position', order: 'asc' }],
   });
 
+  const { data: userAssigned } = useList({
+    resource: activity?.id ? `activities/${activity?.id}/assignees` : undefined,
+  });
+
   const stages = stagesData?.data || [];
   const users = usersData?.data || [];
   const semesters = semestersData?.data || [];
+  const assignees = userAssigned?.data || [];
 
   const handleSubmit = () => {
     form.validateFields().then(values => {
       const activityData = {
         ...values,
-        stageId: stageId || values.stageId,
-        status: 'new',
         type: values.type?.value || 'task',
         estimateTime: Number(values.estimateTime) || undefined,
       };
 
       console.log(activityData);
 
-      createActivity(
+      updateActivity(
         {
           resource: 'activities',
+          id: activity?.id,
           values: activityData,
+          mutationMode: 'optimistic',
         },
         {
-          onSuccess: () => {
-            form.resetFields();
+          onSuccess: ({ data }) => {
+            message.success(data.message || 'Tên hoạt động đã được cập nhật');
             onSuccess();
+          },
+          onError: error => {
+            message.error(error.message || 'Không thể cập nhật tên hoạt động');
           },
         },
       );
@@ -118,13 +107,25 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
   };
 
   React.useEffect(() => {
-    if (visible) {
+    if (isOpen) {
       form.resetFields();
-      if (stageId) {
-        form.setFieldsValue({ stageId });
+      if (activity) {
+        const formData = {
+          name: activity.name,
+          stageId: activity.stageId,
+          description: activity.description,
+          semesterId: activity.semester.id || null,
+          estimateTime: activity.estimateTime || '',
+          priority: activity.priority || '',
+          startTime: activity.startTime ? dayjs(activity.startTime) : null,
+          endTime: activity.endTime ? dayjs(activity.endTime) : null,
+          onlineLink: activity.onlineLink || '',
+          assignees,
+        };
+        form.setFieldsValue(formData);
       }
     }
-  }, [visible, stageId, form]);
+  }, [isOpen, activity, form]);
 
   const taskLabel = (
     <Title
@@ -140,7 +141,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
       }}
     >
       <CheckCircleOutlined style={{ color: '#1890ff' }} />
-      Tạo công việc mới
+      Công việc
     </Title>
   );
 
@@ -158,7 +159,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
       }}
     >
       <CalendarOutlined style={{ color: '#52c41a' }} />
-      Tạo sự kiện mới
+      Sự kiện
     </Title>
   );
 
@@ -172,7 +173,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
   return (
     <>
       <Modal
-        open={visible}
+        open={isOpen}
         onCancel={onCancel}
         onOk={handleSubmit}
         confirmLoading={isLoading}
@@ -226,7 +227,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                       fontSize: '20px',
                       fontWeight: 500,
                       border: 'none',
-                      padding: '8px 20px',
+                      padding: '8px 0',
                       background: 'transparent',
                       boxShadow: 'none',
                       color: '#202020',
@@ -271,13 +272,8 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             <CheckCircleOutlined style={{ color: '#8c8c8c' }} />
                             Trạng thái
                           </div>
-                          <Form.Item
-                            name="stageId"
-                            rules={[{ required: true }]}
-                            style={{ margin: 0, flex: 1 }}
-                          >
+                          <Form.Item name="stageId" style={{ margin: 0, flex: 1 }}>
                             <Select
-                              defaultValue={stageId}
                               placeholder="Chọn trạng thái"
                               style={{
                                 background: '#f9f9f9',
@@ -298,7 +294,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                       </Col>
 
                       {/* assignee */}
-                      {/* <Col span={12}>
+                      <Col span={12}>
                         <div style={{ display: 'flex', alignItems: 'center', minHeight: '32px' }}>
                           <div
                             style={{
@@ -337,48 +333,6 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             </Select>
                           </Form.Item>
                         </div>
-                      </Col> */}
-                      <Col span={12}>
-                        <div style={{ display: 'flex', alignItems: 'center', minHeight: '32px' }}>
-                          <div
-                            style={{
-                              width: '120px',
-                              fontSize: '14px',
-                              color: '#202020',
-                              fontWeight: 500,
-
-                              letterSpacing: '0.3px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 5,
-                            }}
-                          >
-                            <ReadOutlined style={{ color: '#8c8c8c' }} />
-                            Kỳ học
-                          </div>
-                          <Form.Item
-                            name="semesterId"
-                            rules={[{ required: true }]}
-                            style={{ margin: 0, flex: 1 }}
-                          >
-                            <Select
-                              placeholder="Chọn kỳ học "
-                              style={{
-                                background: '#f9f9f9',
-                                width: '100%',
-                                padding: '4px 4px',
-                                borderRadius: '5px',
-                              }}
-                              variant="borderless"
-                            >
-                              {semesters.map(semester => (
-                                <Option key={semester.id} value={semester.id}>
-                                  {semester.name}
-                                </Option>
-                              ))}
-                            </Select>
-                          </Form.Item>
-                        </div>
                       </Col>
                     </Row>
                   </Col>
@@ -403,11 +357,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             <FlagOutlined style={{ color: '#8c8c8c' }} />
                             Ưu tiên
                           </div>
-                          <Form.Item
-                            name="priority"
-                            rules={[{ required: true }]}
-                            style={{ margin: 0, flex: 1 }}
-                          >
+                          <Form.Item name="priority" style={{ margin: 0, flex: 1 }}>
                             <Select
                               placeholder="Chọn mức độ ưu tiên"
                               style={{
@@ -447,23 +397,20 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             Ước lượng giờ
                           </div>
                           <Form.Item name="estimateTime" style={{ margin: 0, flex: 1 }}>
-                            <div
+                            <Input
                               style={{
                                 background: '#f9f9f9',
                                 width: '100%',
-                                padding: '4px 4px',
+                                padding: '4px 13px',
                                 borderRadius: '5px',
                               }}
-                            >
-                              <Input
-                                placeholder="Ước lượng thời gian thực hiện"
-                                variant="borderless"
-                                size="small"
-                                suffix={
-                                  <span style={{ color: '#202020', fontSize: '12px' }}>phút</span>
-                                }
-                              />
-                            </div>
+                              placeholder="Ước lượng thời gian thực hiện"
+                              variant="borderless"
+                              size="small"
+                              suffix={
+                                <span style={{ color: '#202020', fontSize: '12px' }}>phút</span>
+                              }
+                            />
                           </Form.Item>
                         </div>
                       </Col>
@@ -545,9 +492,47 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                   <Col span={24}>
                     <Row gutter={24}>
                       {/* semester */}
+                      <Col span={12}>
+                        <div style={{ display: 'flex', alignItems: 'center', minHeight: '32px' }}>
+                          <div
+                            style={{
+                              width: '120px',
+                              fontSize: '14px',
+                              color: '#202020',
+                              fontWeight: 500,
+
+                              letterSpacing: '0.3px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 5,
+                            }}
+                          >
+                            <ReadOutlined style={{ color: '#8c8c8c' }} />
+                            Kỳ học
+                          </div>
+                          <Form.Item name="semesterId" style={{ margin: 0, flex: 1 }}>
+                            <Select
+                              placeholder="Chọn kỳ học "
+                              style={{
+                                background: '#f9f9f9',
+                                width: '100%',
+                                padding: '4px 4px',
+                                borderRadius: '5px',
+                              }}
+                              variant="borderless"
+                            >
+                              {semesters.map(semester => (
+                                <Option key={semester.id} value={semester.id}>
+                                  {semester.name}
+                                </Option>
+                              ))}
+                            </Select>
+                          </Form.Item>
+                        </div>
+                      </Col>
 
                       {/* Link */}
-                      <Col span={24}>
+                      <Col span={12}>
                         <div style={{ display: 'flex', alignItems: 'center', minHeight: '32px' }}>
                           <div
                             style={{
@@ -566,20 +551,17 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                             Liên kết
                           </div>
                           <Form.Item name="onlineLink" style={{ margin: 0, flex: 1 }}>
-                            <div
+                            <Input
+                              placeholder="Dán một liên kết"
+                              variant="borderless"
+                              size="small"
                               style={{
                                 background: '#f9f9f9',
                                 width: '100%',
-                                padding: '4px 4px',
+                                padding: '4px 13px',
                                 borderRadius: '5px',
                               }}
-                            >
-                              <Input
-                                placeholder="Dán một liên kết"
-                                variant="borderless"
-                                size="small"
-                              />
-                            </div>
+                            />
                           </Form.Item>
                         </div>
                       </Col>
@@ -589,7 +571,46 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
               </div>
 
               {/* Description */}
-              <Description />
+              <div>
+                <div style={{ marginBottom: 20 }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '14px',
+                        color: '#202020',
+                        fontWeight: 500,
+
+                        letterSpacing: '0.3px',
+                        marginBottom: 8,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 5,
+                      }}
+                    >
+                      <FileTextOutlined style={{ color: '#8c8c8c' }} />
+                      Mô tả
+                    </div>
+                    <Form.Item name="description" style={{ marginBottom: 0, flex: 1 }}>
+                      <Input.TextArea
+                        rows={4}
+                        placeholder="Mô tả chi tiết công việc"
+                        style={{
+                          fontSize: '14px',
+                          lineHeight: '1.5',
+                          border: '1px solid #e6e9ef',
+                          borderRadius: 6,
+                        }}
+                      />
+                    </Form.Item>
+                  </div>
+                </div>
+              </div>
 
               {/* Subtask */}
               {/* <Subtasks users={users} /> */}

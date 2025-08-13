@@ -1,7 +1,11 @@
+import { IUser } from '@/common/types';
 import { CloseOutlined, PartitionOutlined } from '@ant-design/icons';
 import { Button, DatePicker, Form, Input, Select } from 'antd';
+import React from 'react';
 
-const Subtasks = () => {
+const { Option } = Select;
+
+const Subtasks: React.FC<any> = ({ users }) => {
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
@@ -120,7 +124,7 @@ const Subtasks = () => {
                         flexShrink: 0,
                       }}
                     />
-                    <Form.Item name={[name, 'title']} style={{ margin: 0, flex: 1 }}>
+                    <Form.Item name={[name, 'name']} style={{ margin: 0, flex: 1 }}>
                       <Input
                         placeholder="Tên công việc"
                         variant="borderless"
@@ -136,20 +140,25 @@ const Subtasks = () => {
                       variant="borderless"
                       size="small"
                       style={{ fontSize: '13px' }}
-                    />
+                    >
+                      {users.map((user: IUser) => (
+                        <Option key={user.id} value={user.id}>
+                          {user.name}
+                        </Option>
+                      ))}
+                    </Select>
                   </Form.Item>
 
                   <Form.Item name={[name, 'priority']} style={{ margin: 0 }}>
                     <Select
                       placeholder="Ưu tiên"
                       variant="borderless"
-                      size="small"
-                      style={{ fontSize: '13px' }}
+                      style={{ fontSize: '13px', minWidth: '120px' }}
                       options={[
-                        { label: '🔴', value: 'urgent' },
-                        { label: '🟡', value: 'high' },
-                        { label: '🔵', value: 'medium' },
-                        { label: '⚪', value: 'low' },
+                        { label: '🔴 Urgent', value: 'urgent' },
+                        { label: '🟡 High', value: 'high' },
+                        { label: '🔵 Normal', value: 'medium' },
+                        { label: '⚪ Low', value: 'low' },
                       ]}
                     />
                   </Form.Item>
