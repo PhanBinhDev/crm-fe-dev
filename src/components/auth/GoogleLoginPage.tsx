@@ -1,18 +1,11 @@
-import React from 'react';
-import { Button, Card, Typography, Space, Divider } from 'antd';
+import React, { useState } from 'react';
+import { Button, Card, Typography, Space, Select } from 'antd';
 import { GoogleOutlined } from '@ant-design/icons';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
-interface GoogleLoginPageProps {
-  title?: string;
-  subtitle?: string;
-}
-
-export const GoogleLoginPage: React.FC<GoogleLoginPageProps> = ({
-  title = 'CRM CNTT - Đăng nhập',
-  subtitle = 'Hệ thống quản lý giáo viên Khoa Công nghệ Thông tin',
-}) => {
+export const GoogleLoginPage: React.FC = () => {
+  const [campus, setCampus] = useState<string | undefined>(undefined);
   const handleGoogleLogin = () => {
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google`;
   };
@@ -24,7 +17,7 @@ export const GoogleLoginPage: React.FC<GoogleLoginPageProps> = ({
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: '#f0f2f5',
         padding: '20px',
       }}
     >
@@ -35,23 +28,36 @@ export const GoogleLoginPage: React.FC<GoogleLoginPageProps> = ({
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
           borderRadius: '12px',
         }}
-        bodyStyle={{ padding: '40px 32px' }}
+        styles={{
+          body: { padding: '40px 32px' },
+        }}
       >
-        <Space direction="vertical" size="large" style={{ width: '100%', textAlign: 'center' }}>
+        <Space direction="vertical" size="middle" style={{ width: '100%', textAlign: 'center' }}>
           {/* Logo/Icon */}
-          <div style={{ fontSize: '48px', color: '#1890ff' }}>🎓</div>
+          <img
+            src="/logo.png"
+            alt="Logo"
+            height={70}
+            style={{ marginBottom: '24px', objectFit: 'contain' }}
+          />
 
           {/* Title */}
-          <div>
-            <Title level={2} style={{ margin: 0, color: '#262626' }}>
-              {title}
-            </Title>
-            <Text type="secondary" style={{ fontSize: '14px' }}>
-              {subtitle}
-            </Text>
-          </div>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>Đăng nhập vào CRM</h2>
 
-          <Divider style={{ margin: '20px 0' }} />
+          {/* Select campus */}
+          <Select
+            placeholder="Chọn cơ sở FPT Polytechnic"
+            value={campus}
+            onChange={setCampus}
+            style={{ width: '100%', textAlign: 'left' }}
+            allowClear
+          >
+            <Select.Option value="HaNoi">Hà Nội</Select.Option>
+            <Select.Option value="HaNam">Hà Nam</Select.Option>
+            <Select.Option value="DaNang">Đà Nẵng</Select.Option>
+            <Select.Option value="HCM">Hồ Chí Minh</Select.Option>
+            <Select.Option value="CanTho">Cần Thơ</Select.Option>
+          </Select>
 
           {/* Google Login Button */}
           <Button
@@ -61,7 +67,7 @@ export const GoogleLoginPage: React.FC<GoogleLoginPageProps> = ({
             onClick={handleGoogleLogin}
             style={{
               width: '100%',
-              height: '48px',
+              height: '40px',
               fontSize: '16px',
               backgroundColor: '#4285f4',
               borderColor: '#4285f4',
@@ -80,11 +86,6 @@ export const GoogleLoginPage: React.FC<GoogleLoginPageProps> = ({
           >
             Đăng nhập với Google
           </Button>
-
-          {/* Footer */}
-          <Text type="secondary" style={{ fontSize: '12px', marginTop: '20px' }}>
-            Dành cho Giáo viên • Chủ nhiệm Bộ môn • Trưởng môn
-          </Text>
         </Space>
       </Card>
     </div>

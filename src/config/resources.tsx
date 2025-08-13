@@ -5,6 +5,7 @@ import {
   ProjectOutlined,
   PieChartOutlined,
   FileOutlined,
+  ScheduleOutlined,
 } from '@ant-design/icons';
 
 export interface ResourceConfig {
@@ -41,6 +42,18 @@ export const resources: ResourceConfig[] = [
     meta: {
       label: 'Nhiệm vụ',
       icon: <CheckSquareOutlined />,
+      canDelete: true,
+    },
+  },
+  {
+    name: 'semesters',
+    list: '/semesters',
+    create: '/semesters/create',
+    edit: '/semesters/edit/:id',
+    show: '/semesters/show/:id',
+    meta: {
+      label: 'Kỳ Học',
+      icon: <ScheduleOutlined />,
       canDelete: true,
     },
   },

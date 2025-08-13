@@ -2,11 +2,12 @@ import { FC } from 'react';
 import { Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useCan, useGetIdentity } from '@refinedev/core';
+import { useCan } from '@refinedev/core';
+import { useAuth } from '@/hooks/useAuth';
 
 export const UserActions: FC = () => {
   const navigate = useNavigate();
-  const { data: identity } = useGetIdentity();
+  const { user: identity } = useAuth();
 
   const { data: canCreate } = useCan({
     resource: 'users',

@@ -23,7 +23,7 @@ import {
 } from '@ant-design/icons';
 import { IUser } from '@/common/types';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useOne, useCan, useGetIdentity } from '@refinedev/core';
+import { useOne, useCan } from '@refinedev/core';
 import { userRoleFilterOptions } from '@/constants/user';
 import { UserInfoSkeleton } from './components/UserInfoSkeleton';
 import {
@@ -41,13 +41,14 @@ import {
   getUserStatusColor,
   getUserStatusLabel,
 } from '@/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 const { Title } = Typography;
 
 export const UserShow = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: identity } = useGetIdentity();
+  const { user: identity } = useAuth();
 
   const { data, isLoading } = useOne<IUser>({
     resource: 'users',
@@ -124,7 +125,7 @@ export const UserShow = () => {
               background: '#fafafa',
               borderRadius: 8,
             }}
-            bodyStyle={{ padding: '32px 24px' }}
+            styles={{ body: { padding: '32px 24px' } }}
           >
             <Avatar
               size={120}
@@ -177,7 +178,7 @@ export const UserShow = () => {
               </div>
             }
             style={{ height: '100%', borderRadius: 8 }}
-            bodyStyle={{ padding: '24px 32px' }}
+            styles={{ body: { padding: '24px 32px' } }}
           >
             <Descriptions
               column={1}

@@ -11,7 +11,6 @@ export const authProvider: AuthProvider = {
 
   logout: async () => {
     try {
-      // Call logout API to clear cookies on backend
       await authService.logout();
     } catch (error) {
       console.error('Logout API error:', error);

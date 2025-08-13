@@ -7,12 +7,17 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { Badge } from 'antd';
-import { useUser } from '@/hooks/useUser';
 import styles from '@/styles/header.module.css';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { useLogout } from '@refinedev/core';
 
 const { Header } = Layout;
 export const AppHeader = () => {
-  const { user, loading } = useUser();
+  const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const { mutate: logout } = useLogout();
 
   const notificationItems: MenuProps['items'] = [
     {
@@ -31,17 +36,29 @@ export const AppHeader = () => {
     },
   ];
   const userMenuItems: MenuProps['items'] = [
-    { key: 'profile', icon: <UserOutlined />, label: 'Hồ sơ cá nhân', type: 'item' },
+    {
+      key: 'profile',
+      icon: <UserOutlined />,
+      label: 'Hồ sơ cá nhân',
+      type: 'item',
+      onClick: () => navigate('/profile'),
+    },
     { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt', type: 'item' },
     { type: 'divider' },
     {
       key: 'logout',
-      icon: <LogoutOutlined style={{ color: '#ff4d4f' }} />,
+      icon: (
+        <LogoutOutlined
+          className="logout-icon"
+          style={{
+            color: 'inherit',
+          }}
+        />
+      ),
       label: 'Đăng xuất',
       danger: true,
       type: 'item',
-      onClick: () => console.log('Logout'),
-      style: {},
+      onClick: () => logout(),
     },
   ];
 
@@ -116,13 +133,13 @@ export const AppHeader = () => {
               backgroundColor: 'transparent',
             }}
           >
-            {loading ? (
+            {isLoading ? (
               <Spin size="small" />
             ) : (
               <>
                 <Avatar
                   size={28}
-                  src={'/default-avatar.png'}
+                  src={AVATAR_PLACEHOLDER}
                   icon={<UserOutlined style={{ fontSize: '18px' }} />}
                   style={{ backgroundColor: '#1890ff', flexShrink: 0 }}
                 />

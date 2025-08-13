@@ -1,16 +1,14 @@
 import { Edit, useForm, RefreshButton } from '@refinedev/antd';
-import { Card, Button } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Card } from 'antd';
 import { UserForm } from '@/pages/users/form/components/UserForm';
 import { IUser, User } from '@/common/types';
-import { useGetIdentity } from '@refinedev/core';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 export const UserEdit = () => {
   const { formProps, saveButtonProps } = useForm<IUser>();
-  const { data: identity } = useGetIdentity<User>();
+  const { user: identity } = useAuth();
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const handleFinish = async (values: any) => {
     if (formProps.onFinish) {
@@ -35,7 +33,7 @@ export const UserEdit = () => {
           </>
         )}
       >
-        <Card bodyStyle={{ padding: '32px 24px' }}>
+        <Card styles={{ body: { padding: '32px 24px' } }}>
           <UserForm
             onFinish={handleFinish}
             initialValues={formProps.initialValues as IUser}

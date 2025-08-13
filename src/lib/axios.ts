@@ -2,6 +2,7 @@ import axios from 'axios';
 import { message } from 'antd';
 import { ApiResponse, ApiResponseNoData } from '@/common/types/api';
 import { API_URL } from '@/constants';
+import { authService } from '@/services/api/auth';
 
 export const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -15,14 +16,11 @@ axiosInstance.interceptors.response.use(
   response => {
     const data = response.data as ApiResponse<unknown> | ApiResponseNoData;
 
-    if (data.statusCode >= 400) {
-      message.error(data.message || 'Có lỗi xảy ra');
-      return Promise.reject(new Error(data.message));
-    }
+    console.log('Axios response with data:', data);
 
     return response;
   },
-  error => {
+  async error => {
     console.log('Axios error:', error);
 
     if (error?.code === 'ERR_NETWORK') {
@@ -33,9 +31,12 @@ axiosInstance.interceptors.response.use(
     const errorResponse = error.response?.data;
 
     if (errorResponse) {
-      message.error(errorResponse.message || 'Có lỗi xảy ra');
-    } else {
-      message.error('Có lỗi xảy ra');
+      if (error.response?.status === 401) {
+        message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+
+        // call api logout
+        // await authService.logout();
+      }
     }
 
     return Promise.reject(error);

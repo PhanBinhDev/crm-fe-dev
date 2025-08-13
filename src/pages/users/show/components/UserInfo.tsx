@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { Descriptions, Avatar, Tag } from 'antd';
 import type { IUser } from '@/common/types';
+import { UserRole } from '@/common/enum/user';
 
 interface UserInfoProps {
   user: IUser;
@@ -20,7 +21,7 @@ export const UserInfo: FC<UserInfoProps> = ({ user }) => {
       <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
 
       <Descriptions.Item label="Vai trò">
-        <Tag color={user.role === 'admin' ? 'blue' : 'default'}>{user.role.toUpperCase()}</Tag>
+        <Tag color={user.role === UserRole.GV ? 'blue' : 'default'}>{user.role.toUpperCase()}</Tag>
       </Descriptions.Item>
 
       <Descriptions.Item label="Trạng thái">

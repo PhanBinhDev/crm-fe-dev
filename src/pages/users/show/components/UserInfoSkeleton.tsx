@@ -26,7 +26,7 @@ export const UserInfoSkeleton = () => {
               background: '#fafafa',
               borderRadius: 8,
             }}
-            bodyStyle={{ padding: '32px 24px' }}
+            styles={{ body: { padding: '32px 24px' } }}
           >
             <Skeleton.Avatar active size={120} style={{ marginBottom: 24 }} />
             <Skeleton active paragraph={{ rows: 1 }} title={{ width: '60%' }} />
@@ -43,7 +43,7 @@ export const UserInfoSkeleton = () => {
           <Card
             title={<Skeleton.Input active size="small" style={{ width: 200 }} />}
             style={{ height: '100%', borderRadius: 8 }}
-            bodyStyle={{ padding: '24px 32px' }}
+            styles={{ body: { padding: '24px 32px' } }}
           >
             <Skeleton active paragraph={{ rows: 8 }} />
           </Card>
