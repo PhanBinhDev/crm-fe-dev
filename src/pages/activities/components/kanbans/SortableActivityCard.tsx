@@ -155,11 +155,15 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
       size="small"
       className={cardClassName}
       hoverable={!isDragging}
+      bordered={false}
       styles={{
         body: {
-          borderLeft: activity.priority ? `3px solid ${priorityConfig.color}` : undefined,
+          // borderLeft: activity.priority ? `3px solid ${priorityConfig.color}` : undefined,
           padding: '12px',
           position: 'relative',
+          background: 'white',
+          border: '1px solid #E0E0E0',
+          borderRadius: '8px',
         },
       }}
     >

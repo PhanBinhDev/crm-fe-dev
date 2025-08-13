@@ -213,7 +213,9 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                 backgroundColor: '#fafafa',
               }}
             >
-              <PlusOutlined style={{ fontSize: 24, marginBottom: 8, display: 'block' }} />
+              <Button onClick={() => onAddActivity(stage.id)}>
+                <PlusOutlined style={{ fontSize: 24, marginBottom: 8, display: 'block' }} />
+              </Button>
               <div>Không có hoạt động</div>
               <div style={{ marginTop: 4 }}>
                 <Button

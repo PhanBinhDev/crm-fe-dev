@@ -46,7 +46,7 @@ const Attachments = () => {
         >
           <Upload
             name="file"
-            action="https://api.example.com/upload"
+            action="https://nestjs-crm-production.up.railway.app/api/upload/file"
             listType="text"
             multiple
             showUploadList={{

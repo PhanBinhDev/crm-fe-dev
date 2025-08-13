@@ -74,11 +74,8 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
     return { total, completed, overdue, highPriority };
   }, [activities]);
 
-  // Stage color based on type or custom color
   const getStageColor = (stage: IStage) => {
-    if (stage.color) return stage.color;
-
-    return '#f5f5f5';
+    return stage?.color || '#f5f5f5';
   };
 
   // Dropdown menu for column actions
@@ -126,9 +123,17 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
     opacity: isColumnDragging ? 0.5 : 1,
     cursor: isColumnDragging ? 'grabbing' : 'default',
   };
+  function hexToRgba(hex: any, alpha: any) {
+    let r = parseInt(hex.slice(1, 3), 16);
+    let g = parseInt(hex.slice(3, 5), 16);
+    let b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
 
   return (
     <Card
+      {...sortableAttributes}
+      {...sortableListeners}
       ref={setRefs}
       style={columnStyle}
       className={`kanban-column ${isDraggedOver ? 'drag-over' : ''} ${
@@ -145,34 +150,28 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
           }}
         >
           <Space size="small" style={{ flex: 1 }}>
-            {/* Drag handle for column */}
             <div
-              {...sortableAttributes}
-              {...sortableListeners}
               style={{
-                cursor: 'grab',
-                padding: '2px',
-                borderRadius: 4,
                 display: 'flex',
+                gap: '5px',
                 alignItems: 'center',
-              }}
-              title="Kéo để sắp xếp cột"
-            >
-              <DragOutlined style={{ fontSize: 12, color: '#8c8c8c' }} />
-            </div>
-
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
                 backgroundColor: getStageColor(stage),
-                border: '2px solid #d9d9d9',
+                padding: '2px 5px',
+                borderRadius: '5px',
               }}
-            />
-            <Text strong style={{ fontSize: 14 }}>
-              {stage.title}
-            </Text>
+            >
+              <div
+                style={{
+                  width: 15,
+                  height: 15,
+                  borderRadius: '50%',
+                  border: '2px dashed #d9d9d9',
+                }}
+              />
+              <Text strong style={{ fontSize: 14, color: '#fff' }}>
+                {stage.title}
+              </Text>
+            </div>
             <Badge
               count={stageStats.total}
               size="small"
@@ -199,7 +198,6 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
               />
             )}
           </Space>
-
           <Space size="small">
             <Button
               type="text"
@@ -238,18 +236,20 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
           minHeight: 42,
           padding: '0 12px',
           borderBottom: '1px solid #f0f0f0',
-          backgroundColor: getStageColor(stage),
+          backgroundColor: `${hexToRgba(getStageColor(stage), 0.02)}`,
         },
         body: {
-          padding: '8px',
-          height: 'calc(100vh - 230px)',
+          padding: '5px 8px 0 8px',
+          // height: 'calc(100vh - 230px)',
           overflowY: 'auto',
           overflowX: 'hidden',
-          border: isDraggedOver ? '2px dashed #1890ff' : '1px solid #d9d9d9',
-          backgroundColor: isDraggedOver ? '#f0f9ff' : '#fafafa',
+          borderTop: isDraggedOver ? '2px dashed #1890ff' : '1px solid #d9d9d9',
+          // backgroundColor: isDraggedOver ? '#f0f9ff' : '#fafafa',
+          backgroundColor: `${hexToRgba(getStageColor(stage), 0.02)}`,
           transition: 'all 0.2s ease',
-          minHeight: 400,
+          // minHeight: 400,
           marginBottom: 0,
+          width: '260px',
         },
       }}
     >
