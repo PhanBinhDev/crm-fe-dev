@@ -164,6 +164,7 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
             </div>
 
             <div
+              className="test"
               style={{
                 width: 8,
                 height: 8,

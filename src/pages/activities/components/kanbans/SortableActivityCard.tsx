@@ -183,11 +183,16 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
   };
 
   const handleNameSave = () => {
+    if (editedName.trim() === activity.name) {
+      setIsEditing(false);
+      return;
+    }
+
     updateActivityName(
       {
         resource: 'activities',
         id: activity.id,
-        values: { name: editedName },
+        values: { name: editedName.trim() },
         mutationMode: 'optimistic',
       },
       {
@@ -249,6 +254,8 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
             onPressEnter={handleNameSave}
             onBlur={handleNameSave}
             style={{ fontSize: 14, flex: 1, marginRight: 8 }}
+            onKeyDown={e => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           />
         ) : (
           <Title
