@@ -12,8 +12,9 @@ import {
   DatePicker,
   Dropdown,
   Checkbox,
+  message,
 } from 'antd';
-import { useCreate, useList } from '@refinedev/core';
+import { useCreate, useList, useUpdate } from '@refinedev/core';
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
@@ -45,6 +46,7 @@ import Subtasks from '../activityModalComponents/Subtasks';
 import Checklists from '../activityModalComponents/Checklists';
 import Attachments from '../activityModalComponents/Attachments';
 import { IActivity } from '@/common/types';
+import dayjs from 'dayjs';
 const { Title } = Typography;
 
 const { Option } = Select;
@@ -62,7 +64,10 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
   onSuccess,
   activity,
 }) => {
-  const { mutate: createActivity, isLoading } = useCreate();
+  const { mutate: updateActivity, isLoading } = useUpdate({
+    successNotification: false,
+    errorNotification: false,
+  });
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -95,20 +100,62 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
     sorters: [{ field: 'position', order: 'asc' }],
   });
 
+  const { data: userAssigned } = useList({
+    resource: activity?.id ? `activities/${activity?.id}/assignees` : undefined,
+  });
+
   const stages = stagesData?.data || [];
   const users = usersData?.data || [];
   const semesters = semestersData?.data || [];
+  const assignees = userAssigned?.data || [];
 
   const handleSubmit = () => {
-    // form.validateFields().then(values => {
-    // });
+    form.validateFields().then(values => {
+      const activityData = {
+        ...values,
+        type: values.type?.value || 'task',
+        estimateTime: Number(values.estimateTime) || undefined,
+      };
+
+      console.log(activityData);
+
+      updateActivity(
+        {
+          resource: 'activities',
+          id: activity.id,
+          values: activityData,
+          mutationMode: 'optimistic',
+        },
+        {
+          onSuccess: ({ data }) => {
+            message.success(data.message || 'Tên hoạt động đã được cập nhật');
+            onSuccess();
+          },
+          onError: error => {
+            message.error(error.message || 'Không thể cập nhật tên hoạt động');
+          },
+        },
+      );
+    });
   };
 
   React.useEffect(() => {
     if (isOpen) {
       form.resetFields();
       if (activity) {
-        form.setFieldsValue({ activity });
+        const formData = {
+          name: activity.name,
+          stageId: activity.stageId,
+          description: activity.description,
+          semesterId: activity.semester.id || null,
+          estimateTime: activity.estimateTime || '',
+          priority: activity.priority || '',
+          startTime: activity.startTime ? dayjs(activity.startTime) : null,
+          endTime: activity.endTime ? dayjs(activity.endTime) : null,
+          onlineLink: activity.onlineLink || '',
+          assignees,
+        };
+        form.setFieldsValue(formData);
       }
     }
   }, [isOpen, activity, form]);
@@ -297,7 +344,7 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
                             <TeamOutlined style={{ color: '#8c8c8c' }} />
                             Đảm nhiệm
                           </div>
-                          <Form.Item name="parentId" style={{ margin: 0, flex: 1 }}>
+                          <Form.Item name="assignees" style={{ margin: 0, flex: 1 }}>
                             <Select
                               mode="multiple"
                               placeholder="Thêm người đảm nhiệm"
@@ -383,23 +430,20 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
                             Ước lượng giờ
                           </div>
                           <Form.Item name="estimateTime" style={{ margin: 0, flex: 1 }}>
-                            <div
+                            <Input
                               style={{
                                 background: '#f9f9f9',
                                 width: '100%',
-                                padding: '4px 4px',
+                                padding: '4px 13px',
                                 borderRadius: '5px',
                               }}
-                            >
-                              <Input
-                                placeholder="Ước lượng thời gian thực hiện"
-                                variant="borderless"
-                                size="small"
-                                suffix={
-                                  <span style={{ color: '#202020', fontSize: '12px' }}>phút</span>
-                                }
-                              />
-                            </div>
+                              placeholder="Ước lượng thời gian thực hiện"
+                              variant="borderless"
+                              size="small"
+                              suffix={
+                                <span style={{ color: '#202020', fontSize: '12px' }}>phút</span>
+                              }
+                            />
                           </Form.Item>
                         </div>
                       </Col>
@@ -540,20 +584,17 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
                             Liên kết
                           </div>
                           <Form.Item name="onlineLink" style={{ margin: 0, flex: 1 }}>
-                            <div
+                            <Input
+                              placeholder="Dán một liên kết"
+                              variant="borderless"
+                              size="small"
                               style={{
                                 background: '#f9f9f9',
                                 width: '100%',
-                                padding: '4px 4px',
+                                padding: '4px 13px',
                                 borderRadius: '5px',
                               }}
-                            >
-                              <Input
-                                placeholder="Dán một liên kết"
-                                variant="borderless"
-                                size="small"
-                              />
-                            </div>
+                            />
                           </Form.Item>
                         </div>
                       </Col>
@@ -563,16 +604,55 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
               </div>
 
               {/* Description */}
-              <Description />
+              <div>
+                <div style={{ marginBottom: 20 }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '14px',
+                        color: '#202020',
+                        fontWeight: 500,
+
+                        letterSpacing: '0.3px',
+                        marginBottom: 8,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 5,
+                      }}
+                    >
+                      <FileTextOutlined style={{ color: '#8c8c8c' }} />
+                      Mô tả
+                    </div>
+                    <Form.Item name="description" style={{ marginBottom: 0, flex: 1 }}>
+                      <Input.TextArea
+                        rows={4}
+                        placeholder="Mô tả chi tiết công việc"
+                        style={{
+                          fontSize: '14px',
+                          lineHeight: '1.5',
+                          border: '1px solid #e6e9ef',
+                          borderRadius: 6,
+                        }}
+                      />
+                    </Form.Item>
+                  </div>
+                </div>
+              </div>
 
               {/* Subtask */}
-              <Subtasks users={users} />
+              {/* <Subtasks users={users} /> */}
 
               {/* Checklist */}
-              <Checklists form={form} users={users} />
+              {/* <Checklists form={form} users={users} /> */}
 
               {/* Attachments */}
-              <Attachments />
+              {/* <Attachments /> */}
             </div>
           </Form>
         </div>
