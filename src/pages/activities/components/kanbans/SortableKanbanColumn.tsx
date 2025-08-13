@@ -25,6 +25,7 @@ interface SortableKanbanColumnProps {
   stage: IStage;
   activities: IActivity[];
   onAddActivity: (stageId: string) => void;
+  onClick: (item: IActivity) => void;
   isDragOverlay?: boolean;
   onChange?: (stage: { id: string; title: string; position: number; color: string }) => void;
 }
@@ -35,6 +36,7 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
   activities,
   onAddActivity,
   isDragOverlay = false,
+  onClick,
   onChange,
 }) => {
   const activityIds = useMemo(() => activities.map(activity => activity.id), [activities]);
@@ -298,7 +300,7 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
                 border: '1px solid #d9d9d9',
               }}
             />
-            {stageStats.overdue > 0 && (
+            {/* {stageStats.overdue > 0 && (
               <Badge
                 count={stageStats.overdue}
                 size="small"
@@ -313,7 +315,7 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
                 style={{ backgroundColor: '#faad14' }}
                 title={`${stageStats.highPriority} ưu tiên cao`}
               />
-            )}
+            )} */}
           </Space>
           <Space size="small">
             <Button
@@ -381,7 +383,11 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
                   transition: 'all 0.2s ease',
                 }}
               >
-                <SortableActivityCard activity={activity} isDragOverlay={isDragOverlay} />
+                <SortableActivityCard
+                  onClick={() => onClick(activity)}
+                  activity={activity}
+                  isDragOverlay={isDragOverlay}
+                />
               </div>
             ))
           ) : (

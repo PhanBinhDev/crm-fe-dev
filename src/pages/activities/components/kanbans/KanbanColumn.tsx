@@ -13,6 +13,7 @@ interface KanbanColumnProps {
   stage: IStage;
   activities: IActivity[];
   onAddActivity: (stageId: string) => void;
+  onClick: () => void;
   isDragOverlay?: boolean;
 }
 
@@ -20,8 +21,9 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   id,
   stage,
   activities,
-  onAddActivity,
   isDragOverlay = false,
+  onAddActivity,
+  onClick,
 }) => {
   const activityIds = useMemo(() => activities.map(activity => activity.id), [activities]);
 
@@ -198,7 +200,11 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                   transition: 'all 0.2s ease',
                 }}
               >
-                <SortableActivityCard activity={activity} isDragOverlay={isDragOverlay} />
+                <SortableActivityCard
+                  activity={activity}
+                  isDragOverlay={isDragOverlay}
+                  onClick={onClick}
+                />
               </div>
             ))
           ) : (

@@ -46,7 +46,8 @@ const Attachments = () => {
         >
           <Upload
             name="file"
-            action="https://nestjs-crm-production.up.railway.app/api/upload/file"
+            action={import.meta.env.VITE_API_UPLOAD_URL as string}
+            withCredentials
             listType="text"
             multiple
             showUploadList={{

@@ -58,6 +58,7 @@ import '@/styles/kanban.css';
 import { KanbanBoardSettings } from '@/pages/activities/components/settings/KanbanBoardSettings';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { KanbanFilterPopover } from '../components/kanbans/KanbanFilterPopover';
+import { EditActivityModal } from '@/pages/activities/components/modals/EditActivityModal';
 
 const { Title, Text } = Typography;
 
@@ -92,6 +93,8 @@ export const ActivitiesKanbanPage: React.FC = () => {
   const [activeActivity, setActiveActivity] = useState<IActivity | null>(null);
   const [activeColumn, setActiveColumn] = useState<IStage | null>(null);
   const [dragType, setDragType] = useState<'activity' | 'column' | null>(null);
+  const [editActivityModal, setEditActivityModal] = useState(false);
+  const [editActivity, setEditActivity] = useState<IActivity | null>(null);
 
   useBodyScrollLock(settingsDrawerVisible);
 
@@ -262,6 +265,13 @@ export const ActivitiesKanbanPage: React.FC = () => {
   const handleAddActivity = useCallback((stageId: string) => {
     setSelectedStageId(stageId);
     setActivityModalVisible(true);
+  }, []);
+
+  // edit
+  const handleOpenEditActivityModal = useCallback((activity: IActivity) => {
+    setEditActivityModal(true);
+    setEditActivity(activity);
+    console.log(activity);
   }, []);
 
   const clearAllFilters = useCallback(() => {
@@ -525,6 +535,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
                       activities={activitiesByStage[stage.id] || []}
                       onAddActivity={handleAddActivity}
                       isDragOverlay={false}
+                      onClick={handleOpenEditActivityModal}
                     />
                   </Col>
                 ))}
@@ -542,6 +553,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
                   activities={activitiesByStage[activeColumn.id] || []}
                   onAddActivity={() => {}}
                   isDragOverlay={true}
+                  onClick={handleOpenEditActivityModal}
                 />
               </div>
             ) : null}
@@ -681,6 +693,21 @@ export const ActivitiesKanbanPage: React.FC = () => {
           refetch();
         }}
         stageId={selectedStageId}
+      />
+
+      {/* Edit Activity Modal */}
+      <EditActivityModal
+        isOpen={editActivityModal}
+        onCancel={() => {
+          setEditActivityModal(false);
+          setEditActivity(null);
+        }}
+        onSuccess={() => {
+          setEditActivityModal(false);
+          setEditActivity(null);
+          refetch();
+        }}
+        activity={editActivity}
       />
 
       {/* Settings Drawer */}

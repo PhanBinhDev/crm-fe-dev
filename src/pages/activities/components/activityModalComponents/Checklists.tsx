@@ -1,3 +1,4 @@
+import { IUser } from '@/common/types';
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
@@ -13,9 +14,10 @@ import { Button, Checkbox, Dropdown, Form, Input, Select } from 'antd';
 import { FormInstance } from 'antd';
 interface ChecklistsProps {
   form: FormInstance;
+  users: any;
 }
 
-const Checklists: React.FC<ChecklistsProps> = ({ form }) => {
+const Checklists: React.FC<ChecklistsProps> = ({ form, users }) => {
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
@@ -295,7 +297,13 @@ const Checklists: React.FC<ChecklistsProps> = ({ form }) => {
                                     size="small"
                                     style={{ fontSize: '12px' }}
                                     allowClear
-                                  />
+                                  >
+                                    {users.map((user: IUser) => (
+                                      <Option key={user.id} value={user.id}>
+                                        {user.name}
+                                      </Option>
+                                    ))}
+                                  </Select>
                                 </Form.Item>
 
                                 {/* Delete Item Button */}
