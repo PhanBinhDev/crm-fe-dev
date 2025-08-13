@@ -12,9 +12,10 @@ import { UserRowActions } from './UserRowActions';
 interface UserTableProps {
   tableProps: TableProps<any>;
   onPageSizeChange?: (size: number) => void;
+  onUserUpdated?: () => void; // Callback to refresh user list
 }
 
-export const UserTable: FC<UserTableProps> = ({ tableProps, onPageSizeChange }) => {
+export const UserTable: FC<UserTableProps> = ({ tableProps, onPageSizeChange, onUserUpdated }) => {
   const paginationConfig = paginationConfigOptions(tableProps, onPageSizeChange);
 
   const columns: ColumnType<IUser>[] = [
@@ -67,7 +68,9 @@ export const UserTable: FC<UserTableProps> = ({ tableProps, onPageSizeChange }) 
       title: 'Thao tác',
       key: 'actions',
       width: 80,
-      render: (_: any, record: IUser) => <UserRowActions user={record} />,
+      render: (_: any, record: IUser) => (
+        <UserRowActions user={record} onUserUpdated={onUserUpdated} />
+      ),
     },
   ];
 

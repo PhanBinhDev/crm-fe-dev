@@ -1,9 +1,10 @@
 import { useTable } from '@refinedev/antd';
 import { Card, Row, Col } from 'antd';
 import { UserFilters, UserTable, UserActions } from './components';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import type { IUser } from '@/common/types';
 import { UserRole } from '@/common/enum/user';
+import { useInvalidate } from '@refinedev/core';
 
 export const UserList = () => {
   const [searchText, setSearchText] = useState('');
@@ -15,6 +16,8 @@ export const UserList = () => {
     role: undefined,
     isActive: undefined,
   });
+
+  const invalidate = useInvalidate();
 
   const dynamicFilters = useMemo(() => {
     const filterList: Array<{ field: string; operator: 'contains' | 'eq'; value: any }> = [];
@@ -61,6 +64,14 @@ export const UserList = () => {
     setFilters({ role: undefined, isActive: undefined });
   };
 
+  // Callback to refresh user list after CRUD operations
+  const handleUserUpdated = useCallback(() => {
+    invalidate({
+      resource: 'users/all',
+      invalidates: ['list'],
+    });
+  }, [invalidate]);
+
   return (
     <Card>
       <Row gutter={[0, 16]}>
@@ -77,7 +88,11 @@ export const UserList = () => {
           <UserActions />
         </Col>
         <Col span={24}>
-          <UserTable tableProps={tableProps} onPageSizeChange={setPageSize} />
+          <UserTable 
+            tableProps={tableProps} 
+            onPageSizeChange={setPageSize}
+            onUserUpdated={handleUserUpdated}
+          />
         </Col>
       </Row>
     </Card>
