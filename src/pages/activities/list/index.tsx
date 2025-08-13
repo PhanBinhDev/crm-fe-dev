@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { useList, useTable, useUpdate } from '@refinedev/core';
+import { useList, useUpdate } from '@refinedev/core';
 import {
   Card,
   Row,
@@ -8,10 +8,8 @@ import {
   Button,
   Space,
   Input,
-  Select,
   Drawer,
   Popover,
-  Tooltip,
   Badge,
   Avatar,
   Table,
@@ -27,9 +25,6 @@ import {
   SettingOutlined,
   AppstoreOutlined,
   BarsOutlined,
-  BellOutlined,
-  ShareAltOutlined,
-  SaveOutlined,
   DownloadOutlined,
   UsergroupAddOutlined,
   SortAscendingOutlined,
@@ -58,7 +53,7 @@ import {
 
 import { ActivityModal } from '@/pages/activities/components/modals/ActivityModal';
 import { SortableKanbanColumn } from '@/pages/activities/components/kanbans/SortableKanbanColumn';
-import { IActivity, IStage, IUser } from '@/common/types';
+import { IActivity, IStage } from '@/common/types';
 import '@/styles/kanban.css';
 import { KanbanBoardSettings } from '@/pages/activities/components/settings/KanbanBoardSettings';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';

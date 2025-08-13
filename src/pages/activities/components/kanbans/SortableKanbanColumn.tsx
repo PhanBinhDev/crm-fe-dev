@@ -1,13 +1,23 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IActivity, IStage } from '@/common/types';
-import { PlusOutlined, MoreOutlined, DragOutlined } from '@ant-design/icons';
+import { PlusOutlined, MoreOutlined } from '@ant-design/icons';
 import { useDroppable } from '@dnd-kit/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Button, Card, Space, Typography, Badge, Dropdown, MenuProps } from 'antd';
+import {
+  Button,
+  Card,
+  Space,
+  Typography,
+  Badge,
+  Dropdown,
+  MenuProps,
+  ColorPicker,
+  Input,
+} from 'antd';
 import { SortableActivityCard } from './SortableActivityCard';
-
+import { useUpdate } from '@refinedev/core';
 const { Text } = Typography;
 
 interface SortableKanbanColumnProps {
@@ -16,6 +26,7 @@ interface SortableKanbanColumnProps {
   activities: IActivity[];
   onAddActivity: (stageId: string) => void;
   isDragOverlay?: boolean;
+  onChange?: (stage: { id: string; title: string; position: number; color: string }) => void;
 }
 
 export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
@@ -24,8 +35,82 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
   activities,
   onAddActivity,
   isDragOverlay = false,
+  onChange,
 }) => {
   const activityIds = useMemo(() => activities.map(activity => activity.id), [activities]);
+  const { mutate: updateStage } = useUpdate<IStage>();
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [title, setTitle] = useState(stage.title);
+  const [color, setColor] = useState(stage.color);
+  const [open, setOpen] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    setTitle(stage.title);
+    setColor(stage.color);
+  }, [stage.title, stage.color]);
+
+  const handleColorChange = useCallback(
+    (colorValue: any) => {
+      const newColor = colorValue.toHexString();
+      setColor(newColor);
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        updateStage(
+          {
+            resource: 'stages',
+            id: stage.id,
+            values: {
+              title,
+              position: stage.position,
+              color: newColor,
+            },
+          },
+          {
+            onSuccess: data => {
+              onChange?.({
+                id: stage.id,
+                title,
+                position: stage.position,
+                color: newColor,
+              });
+            },
+          },
+        );
+      }, 500);
+    },
+    [updateStage, stage.id, stage.position, title, onChange],
+  );
+
+  const handleSave = () => {
+    updateStage(
+      {
+        resource: 'stages',
+        id: stage.id,
+        values: {
+          title,
+          position: stage.position,
+          color: color ?? '#1677ff',
+        },
+      },
+      {
+        onSuccess: data => {
+          onChange?.({
+            id: stage.id,
+            title,
+            position: stage.position,
+            color: color ?? '#1677ff',
+          });
+
+          setIsEditingTitle(false);
+        },
+      },
+    );
+  };
 
   // Sortable for column dragging
   const {
@@ -155,23 +240,55 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
                 display: 'flex',
                 gap: '5px',
                 alignItems: 'center',
-                backgroundColor: getStageColor(stage),
+                backgroundColor: color,
                 padding: '2px 5px',
                 borderRadius: '5px',
               }}
             >
-              <div
-                style={{
-                  width: 15,
-                  height: 15,
-                  borderRadius: '50%',
-                  border: '2px dashed #d9d9d9',
+              <ColorPicker
+                value={color}
+                open={open}
+                onOpenChange={setOpen}
+                trigger="click"
+                onChange={handleColorChange} // Sử dụng function mới
+                onChangeComplete={handleColorChange} // Thêm onChangeComplete để đảm bảo
+                styles={{
+                  popup: { padding: 0 },
                 }}
-              />
-              <Text strong style={{ fontSize: 14, color: '#fff' }}>
-                {stage.title}
-              </Text>
+              >
+                <div
+                  onClick={() => setOpen(true)}
+                  style={{
+                    width: 15,
+                    height: 15,
+                    borderRadius: '50%',
+                    border: '2px dashed #d9d9d9',
+                    backgroundColor: color,
+                    cursor: 'pointer',
+                  }}
+                />
+              </ColorPicker>
+
+              {isEditingTitle ? (
+                <Input
+                  value={title}
+                  size="small"
+                  onChange={e => setTitle(e.target.value)}
+                  onBlur={handleSave}
+                  onPressEnter={handleSave}
+                  autoFocus
+                />
+              ) : (
+                <Text
+                  strong
+                  style={{ fontSize: 14, color: '#fff', cursor: 'pointer' }}
+                  onClick={() => setIsEditingTitle(true)}
+                >
+                  {title}
+                </Text>
+              )}
             </div>
+
             <Badge
               count={stageStats.total}
               size="small"
