@@ -17,6 +17,7 @@ import {
   Progress,
   Dropdown,
   Menu,
+  Tooltip,
 } from 'antd';
 import {
   PlusOutlined,
@@ -59,6 +60,8 @@ import { KanbanBoardSettings } from '@/pages/activities/components/settings/Kanb
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { KanbanFilterPopover } from '../components/kanbans/KanbanFilterPopover';
 import { EditActivityModal } from '@/pages/activities/components/modals/EditActivityModal';
+import { getColorFromName, getInitials } from '@/utils/activity';
+import { AVATAR_PLACEHOLDER } from '@/constants/app';
 
 const { Title, Text } = Typography;
 
@@ -330,20 +333,58 @@ export const ActivitiesKanbanPage: React.FC = () => {
     },
     {
       title: 'Assignee',
-      dataIndex: 'assignedActivities',
-      key: 'assignedActivities',
+      dataIndex: 'assignees',
+      key: 'assignees',
       width: 140,
-      render: (assignee: any) =>
-        assignee ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Avatar size="small" src={assignee.avatar} icon={<UserOutlined />} />
-            <span style={{ fontSize: 13 }}>{assignee.name}</span>
-          </div>
-        ) : (
-          <Avatar size="small" style={{ backgroundColor: '#f5f5f5', color: '#8c8c8c' }}>
-            <UserOutlined />
-          </Avatar>
-        ),
+      render: (assignees: any[]) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {assignees && assignees.length > 0 ? (
+            assignees.slice(0, 3).map((assignee, index) => (
+              <Tooltip key={index} title={assignee.user.name} placement="top">
+                {assignee.user.avatar ? (
+                  <Avatar
+                    size="small"
+                    src={assignee.user.avatar}
+                    style={{ marginLeft: index > 0 ? -8 : 0 }}
+                  />
+                ) : (
+                  <Avatar
+                    size="small"
+                    style={{
+                      backgroundColor: getColorFromName(assignee.user.name || AVATAR_PLACEHOLDER),
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      marginLeft: index > 0 ? -8 : 0,
+                    }}
+                  >
+                    {getInitials(assignee.user.name)}
+                  </Avatar>
+                )}
+              </Tooltip>
+            ))
+          ) : (
+            <Tooltip title="Chưa có người thực hiện" placement="top">
+              <Avatar size="small" style={{ backgroundColor: '#f5f5f5', color: '#8c8c8c' }}>
+                <UserOutlined />
+              </Avatar>
+            </Tooltip>
+          )}
+
+          {/* Hiển thị số lượng còn lại nếu có nhiều hơn 3 assignees */}
+          {assignees && assignees.length > 3 && (
+            <Avatar
+              size="small"
+              style={{
+                backgroundColor: '#f5f5f5',
+                color: '#999',
+                marginLeft: -8,
+              }}
+            >
+              +{assignees.length - 3}
+            </Avatar>
+          )}
+        </div>
+      ),
     },
     {
       title: 'End Time',
@@ -705,7 +746,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
           setEditActivity(null);
           refetch();
         }}
-        activity={editActivity}
+        activity={editActivity ?? undefined}
       />
 
       {/* Settings Drawer */}

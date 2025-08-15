@@ -1,7 +1,7 @@
 import { IActivity, IBase } from '@/common/types';
 
 export interface IFile extends IBase {
-  fileUrl: string;
+  url: string;
   fileName: string;
   activityId: string;
   activity: IActivity;

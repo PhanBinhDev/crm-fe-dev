@@ -9,4 +9,5 @@ export interface IUser extends IBase {
   role: UserRole;
   isActive: boolean;
   assignedActivities?: IActivityAssignee[];
+  avatar: string;
 }
