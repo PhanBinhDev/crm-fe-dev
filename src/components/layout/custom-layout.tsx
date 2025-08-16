@@ -1,11 +1,12 @@
 import { useNavigation } from '@refinedev/core';
 import type { MenuProps } from 'antd';
 import { Breadcrumb, Layout, Menu, theme } from 'antd';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { AppHeader } from '@/components/shared/Header';
-import { ResourceConfig, resources } from '@/config/resources';
+import { getResourcesByRole, ResourceConfig } from '@/config/resources';
 import styles from '@/styles/custom-layout.module.css';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const { Content, Footer, Sider } = Layout;
 
@@ -17,44 +18,104 @@ interface CustomLayoutProps {
 
 export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const { user, isLoading } = useAuth();
   const { push } = useNavigation();
   const location = useLocation();
 
+  const resourcesByRole = useCallback(() => {
+    if (!user) return [];
+
+    return getResourcesByRole(user?.role);
+  }, [user?.role, isLoading, getResourcesByRole]);
+
+  // Cải thiện logic tìm selected key
   const getSelectedKeyFromPath = (pathname: string) => {
     // Xử lý dashboard
-    if (pathname === '/') return ['dashboard'];
+    if (pathname === '/' || pathname === '/dashboard') return ['dashboard'];
 
-    const paths = pathname.slice(1).split('/');
+    // Tìm exact match trước
+    for (const resource of resourcesByRole()) {
+      // Kiểm tra resource cha
+      if (resource.meta?.menuPath === pathname) {
+        return [resource.name];
+      }
 
-    // Tìm resource config dựa trên pathname
-    const findResourceByPath = (path: string): any => {
-      for (const res of resources) {
-        // Kiểm tra resource cha
-        if (res.list === path || res.name === paths[0]) {
-          return { key: res.name };
-        }
-        // Kiểm tra resource con
-        if (res.children) {
-          const child = res.children.find(
-            (c: any) => c.list === path || c.name === paths[0] || c.identifier === paths[0],
-          );
-          if (child) {
-            return { key: child.identifier || child.name };
+      // Kiểm tra resource con
+      if (resource.children) {
+        for (const child of resource.children) {
+          if (child.meta?.menuPath === pathname) {
+            return [child.identifier || child.name];
           }
         }
       }
-      return null;
-    };
+    }
 
-    const resource = findResourceByPath('/' + paths[0]);
-    return resource ? [resource.key] : [paths[0]];
+    // Nếu không tìm thấy exact match, tìm theo pattern
+    const pathSegments = pathname.split('/').filter(Boolean);
+
+    for (const resource of resourcesByRole()) {
+      const resourcePath = resource.meta?.menuPath?.split('/').filter(Boolean) || [];
+      if (resourcePath.length > 0 && pathSegments[0] === resourcePath[0]) {
+        if (resource.children && pathSegments.length > 1) {
+          const subPath = `/${pathSegments.slice(0, 2).join('/')}`;
+          const child = resource.children.find(c => c.meta?.menuPath === subPath);
+          if (child) {
+            return [child.identifier || child.name];
+          }
+        }
+        if (pathSegments.length > 1) {
+          const action = pathSegments[1];
+          if (['show', 'edit', 'create'].includes(action)) {
+            return [resource.name];
+          }
+        }
+        return [resource.name];
+      }
+      if (resource.children) {
+        for (const child of resource.children) {
+          const childPath = child.meta?.menuPath?.split('/').filter(Boolean) || [];
+          if (
+            childPath.length >= 2 &&
+            pathSegments[0] === childPath[0] &&
+            pathSegments[1] === childPath[1]
+          ) {
+            return [child.identifier || child.name];
+          }
+        }
+      }
+    }
+
+    return [];
+  };
+
+  const getOpenKeysFromPath = (pathname: string) => {
+    const openKeys: string[] = [];
+
+    for (const resource of resourcesByRole()) {
+      if (resource.children) {
+        const hasActiveChild = resource.children.some(child => {
+          if (child.meta?.menuPath === pathname) return true;
+          const pathSegments = pathname.split('/').filter(Boolean);
+          const childPath = child.meta?.menuPath?.split('/').filter(Boolean) || [];
+          return (
+            childPath.length >= 2 &&
+            pathSegments[0] === childPath[0] &&
+            pathSegments[1] === childPath[1]
+          );
+        });
+        if (hasActiveChild) {
+          openKeys.push(resource.name);
+        }
+      }
+    }
+
+    return openKeys;
   };
 
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  // Tự động generate menu items từ resources config
   const menuItems: MenuItem[] = useMemo(() => {
     const generateMenuItem = (resourceConfig: ResourceConfig): MenuItem => {
       const { name, meta, children } = resourceConfig;
@@ -72,7 +133,6 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
         };
       }
 
-      // Menu item thông thường
       return {
         key: name,
         icon: meta?.icon,
@@ -80,12 +140,9 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
       };
     };
 
-    const resourceItems = resources.map(generateMenuItem);
+    return resourcesByRole().map(generateMenuItem);
+  }, [user?.role, isLoading, getResourcesByRole]);
 
-    return resourceItems;
-  }, []);
-
-  // Tự động generate breadcrumb từ current resource
   const breadcrumbItems = useMemo(() => {
     const items: {
       title: string;
@@ -93,119 +150,101 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
     }[] = [{ title: 'Trang chủ', href: '/' }];
 
     const pathname = location.pathname;
-    const pathSegments = pathname.split('/').filter(Boolean);
 
-    // Xử lý breadcrumb dựa trên URL segments
-    if (pathSegments.length > 0) {
-      const resourceName = pathSegments[0];
+    if (pathname === '/profile') {
+      items.push({ title: 'Hồ sơ cá nhân' });
+      return items;
+    }
 
-      // Tìm resource config
-      const findResourceByName = (name: string): any => {
-        for (const res of resources) {
-          if (res.name === name) return res;
-          if (res.children) {
-            const found = res.children.find((child: any) => child.name === name);
-            if (found) return { parent: res, child: found };
-          }
-        }
-        return null;
-      };
+    let currentResource = null;
+    let parentResource = null;
 
-      const foundResource = findResourceByName(resourceName);
+    for (const resource of resourcesByRole()) {
+      if (resource.meta?.menuPath === pathname) {
+        currentResource = resource;
+        break;
+      }
 
-      if (foundResource) {
-        if (foundResource.parent) {
-          // Resource con
-          items.push({
-            title: foundResource.parent.meta?.label || foundResource.parent.name,
-            href: foundResource.parent.list,
-          });
-          items.push({
-            title: foundResource.child.meta?.label || foundResource.child.name,
-            href: foundResource.child.list,
-          });
-        } else {
-          // Resource chính
-          items.push({
-            title: foundResource.meta?.label || foundResource.name,
-            href: foundResource.list,
-          });
-
-          // Xử lý action (show, create, edit)
-          if (pathSegments.length > 1) {
-            const action = pathSegments[1];
-            let actionTitle = action;
-
-            switch (action) {
-              case 'show':
-                actionTitle = 'Chi tiết';
-                break;
-              case 'create':
-                actionTitle = 'Tạo mới';
-                break;
-              case 'edit':
-                actionTitle = 'Chỉnh sửa';
-                break;
-              default:
-                actionTitle = action;
-            }
-
-            items.push({
-              title: actionTitle,
-            });
-          }
+      if (resource.children) {
+        const child = resource.children.find(c => c.meta?.menuPath === pathname);
+        if (child) {
+          parentResource = resource;
+          currentResource = child;
+          break;
         }
       }
+    }
+
+    if (!currentResource) {
+      const pathSegments = pathname.split('/').filter(Boolean);
+
+      for (const resource of resourcesByRole()) {
+        const resourcePath = resource.meta?.menuPath?.split('/').filter(Boolean) || [];
+        if (resourcePath.length > 0 && pathSegments[0] === resourcePath[0]) {
+          currentResource = resource;
+
+          // Kiểm tra action
+          if (pathSegments.length > 1) {
+            const action = pathSegments[1];
+            if (['show', 'edit', 'create'].includes(action)) {
+              items.push({
+                title: resource.meta?.label || resource.name,
+                href: resource.meta?.menuPath,
+              });
+
+              let actionTitle = action;
+              switch (action) {
+                case 'show':
+                  actionTitle = 'Chi tiết';
+                  break;
+                case 'create':
+                  actionTitle = 'Tạo mới';
+                  break;
+                case 'edit':
+                  actionTitle = 'Chỉnh sửa';
+                  break;
+              }
+
+              items.push({ title: actionTitle });
+              return items;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    if (currentResource) {
+      if (parentResource) {
+        items.push({
+          title: parentResource.meta?.label || parentResource.name,
+          href: parentResource.meta?.menuPath,
+        });
+      }
+
+      items.push({
+        title: currentResource.meta?.label || currentResource.name,
+        href: currentResource.meta?.menuPath,
+      });
     }
 
     return items;
+  }, [location.pathname, resourcesByRole]);
+
+  // Sử dụng logic mới cho selected keys và open keys
+  const selectedKeys = useMemo(() => {
+    return getSelectedKeyFromPath(location.pathname);
   }, [location.pathname]);
 
-  const { initialOpenKeys, selectedKeys } = useMemo(() => {
-    const pathname = location.pathname;
-    const currentSelectedKeys = getSelectedKeyFromPath(pathname);
-
-    let parentKey = null;
-    const findParentKey = (path: string) => {
-      // Bỏ dấu / đầu tiên
-      const currentPath = path.slice(1);
-
-      for (const res of resources) {
-        if (res.children) {
-          // Kiểm tra xem path hiện tại có match với list path của child resource không
-          const hasChild = res.children.some(
-            (child: any) => child.list?.slice(1) === currentPath || child.name === currentPath,
-          );
-          if (hasChild) {
-            return res.name;
-          }
-        }
-      }
-      return null;
-    };
-
-    // Tìm parent key dựa vào pathname
-    parentKey = findParentKey(pathname);
-
-    return {
-      initialOpenKeys: parentKey ? [parentKey] : [],
-      selectedKeys: currentSelectedKeys,
-    };
-  }, [location.pathname, resources]);
-
-  const [currentOpenKeys, setCurrentOpenKeys] = useState<string[]>([]);
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
 
   useEffect(() => {
-    if (initialOpenKeys.length > 0) {
-      setCurrentOpenKeys(prev => {
-        const newKeys = [...new Set([...prev, ...initialOpenKeys])];
-        return newKeys;
-      });
-    }
-  }, [initialOpenKeys]);
+    const newOpenKeys = getOpenKeysFromPath(location.pathname);
+    setOpenKeys(newOpenKeys);
+  }, [location.pathname]);
 
   const handleOpenChange = (keys: string[]) => {
-    setCurrentOpenKeys(keys);
+    setOpenKeys(keys);
   };
 
   // Tự động handle menu click
@@ -217,11 +256,14 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
       return;
     }
 
-    const findResourceConfig = (name: string): any => {
-      for (const res of resources) {
-        if (res.name === name) return res;
+    // Tìm resource config
+    const findResourceConfig = (searchKey: string): ResourceConfig | null => {
+      for (const res of resourcesByRole()) {
+        if (res.name === searchKey) return res;
         if (res.children) {
-          const found = res.children.find((child: any) => child.name === name);
+          const found = res.children.find(
+            (child: any) => (child.identifier || child.name) === searchKey,
+          );
           if (found) return found;
         }
       }
@@ -230,10 +272,8 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
 
     const resourceConfig = findResourceConfig(key);
 
-    console.log('Resource config found:', resourceConfig);
-
-    if (resourceConfig) {
-      push(resourceConfig.list || `/${key}`);
+    if (resourceConfig && resourceConfig.list) {
+      push(resourceConfig.list);
     } else {
       push(`/${key}`);
     }
@@ -257,7 +297,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
           transition: 'all 0.2s ease-in-out',
         }}
         width={240}
-        collapsedWidth={80}
+        collapsedWidth={72}
         breakpoint="lg"
       >
         <Link
@@ -302,7 +342,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
         <Menu
           theme="dark"
           selectedKeys={selectedKeys}
-          openKeys={currentOpenKeys}
+          openKeys={openKeys}
           onOpenChange={handleOpenChange}
           mode="inline"
           items={menuItems}
@@ -312,7 +352,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
       </Sider>
       <Layout
         style={{
-          marginLeft: collapsed ? 80 : 240,
+          marginLeft: collapsed ? 72 : 240,
           transition: 'margin-left 0.2s',
           minHeight: '100vh',
           backgroundColor: '#f0f2f5',
@@ -328,6 +368,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
             borderRadius: borderRadiusLG,
             boxShadow: '0 1px 4px rgba(0,21,41,0.08)',
             overflow: 'auto',
+            marginTop: 80,
           }}
         >
           <Breadcrumb

@@ -18,65 +18,70 @@ import { antdTheme } from '@/config/theme';
 import { queryClient } from '@/config/queryClient';
 import { DashboardPage } from '@pages/dashboard';
 import { userRoutes } from '@/pages/users/routes';
-import { activitiesRoutes } from '@/pages/activities/routes';
+import { activitiesRoutes } from '@/pages/workspaces/routes';
 import '@/styles/globals.css';
 import { CustomLayout } from '@/components/layout/custom-layout';
 import { GoogleLoginPage } from '@/components/auth/GoogleLoginPage';
 import { standardDataProvider } from '@/providers/nestjs';
 import { API_URL } from '@/constants';
 import { profileRoutes } from './pages/profile/routes';
+import { WorkspaceProvider } from './contexts/workspace';
+import { semesterRoutes } from './pages/semester/routes';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <RefineKbarProvider>
-          <ConfigProvider locale={viVN} theme={antdTheme}>
-            <AntdApp>
-              <Refine
-                dataProvider={dataProvider}
-                authProvider={authProvider}
-                accessControlProvider={accessControlProvider}
-                routerProvider={routerBindings}
-                notificationProvider={useNotificationProvider}
-                resources={resources}
-                options={{
-                  syncWithLocation: true,
-                  warnWhenUnsavedChanges: true,
-                  useNewQueryKeys: true,
-                }}
-              >
-                <Routes>
-                  <Route
-                    element={
-                      <Authenticated key="auth" fallback={<Navigate to="/login" replace />}>
-                        <CustomLayout>
-                          <Outlet />
-                        </CustomLayout>
-                      </Authenticated>
-                    }
-                  >
-                    <Route index element={<NavigateToResource resource="dashboard" />} />
-                    <Route path="/dashboard" element={<DashboardPage />} />
-                    {userRoutes}
-                    {activitiesRoutes}
-                    {profileRoutes}
-                    <Route path="*" element={<ErrorComponent />} />
-                  </Route>
+      <WorkspaceProvider>
+        <BrowserRouter>
+          <RefineKbarProvider>
+            <ConfigProvider locale={viVN} theme={antdTheme}>
+              <AntdApp>
+                <Refine
+                  dataProvider={dataProvider}
+                  authProvider={authProvider}
+                  accessControlProvider={accessControlProvider}
+                  routerProvider={routerBindings}
+                  notificationProvider={useNotificationProvider}
+                  resources={resources}
+                  options={{
+                    syncWithLocation: true,
+                    warnWhenUnsavedChanges: true,
+                    useNewQueryKeys: true,
+                  }}
+                >
+                  <Routes>
+                    <Route
+                      element={
+                        <Authenticated key="auth" fallback={<Navigate to="/login" replace />}>
+                          <CustomLayout>
+                            <Outlet />
+                          </CustomLayout>
+                        </Authenticated>
+                      }
+                    >
+                      <Route index element={<NavigateToResource resource="dashboard" />} />
+                      <Route path="/dashboard" element={<DashboardPage />} />
+                      {userRoutes}
+                      {activitiesRoutes}
+                      {profileRoutes}
+                      {semesterRoutes}
+                      <Route path="*" element={<ErrorComponent />} />
+                    </Route>
 
-                  <Route element={<GoogleLoginPage />} path="/login" />
-                </Routes>
+                    <Route element={<GoogleLoginPage />} path="/login" />
+                  </Routes>
 
-                <RefineKbar />
-                <UnsavedChangesNotifier />
-                <DocumentTitleHandler />
-              </Refine>
-            </AntdApp>
-          </ConfigProvider>
-        </RefineKbarProvider>
-      </BrowserRouter>
+                  <RefineKbar />
+                  <UnsavedChangesNotifier />
+                  <DocumentTitleHandler />
+                </Refine>
+              </AntdApp>
+            </ConfigProvider>
+          </RefineKbarProvider>
+        </BrowserRouter>
+      </WorkspaceProvider>
     </QueryClientProvider>
   );
 }

@@ -71,8 +71,10 @@ export const AppHeader = () => {
         padding: '0 24px',
         background: '#fff',
         boxShadow: '0 2px 8px rgba(0,21,41,0.08)',
-        position: 'sticky',
+        position: 'fixed',
         top: 0,
+        right: 0,
+        left: 0,
         zIndex: 10,
         height: 64,
       }}

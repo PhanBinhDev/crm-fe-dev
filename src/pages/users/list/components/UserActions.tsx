@@ -20,8 +20,8 @@ export const UserActions: FC = () => {
   }
 
   return (
-    <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/users/create')}>
-      Thêm người dùng
+    <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/teachers/create')}>
+      Thêm giáo viên
     </Button>
   );
 };

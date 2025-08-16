@@ -6,3 +6,12 @@ export interface IFile extends IBase {
   activityId: string;
   activity: IActivity;
 }
+
+export interface IFileUploadResponse {
+  url: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  encoding: string;
+  fileName: string;
+}

@@ -8,6 +8,7 @@ import { ColumnType } from 'antd/lib/table';
 import { paginationConfigOptions } from '@/config/pagination';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { UserRowActions } from './UserRowActions';
+import { getUserRoleColor, getUserRoleLabel } from '@/utils';
 
 interface UserTableProps {
   tableProps: TableProps<any>;
@@ -44,7 +45,7 @@ export const UserTable: FC<UserTableProps> = ({ tableProps, onPageSizeChange }) 
       dataIndex: 'role',
       filters: userRoleFilterOptions,
       render: (role: UserRole) => (
-        <Tag color={role === 'TM' ? 'blue' : 'default'}>{role.toUpperCase()}</Tag>
+        <Tag color={getUserRoleColor(role)}>{getUserRoleLabel(role)}</Tag>
       ),
     },
     {

@@ -1,12 +1,28 @@
-import React, { useState } from 'react';
-import { Button, Card, Typography, Space, Select } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Button, Card, Space, Select, Alert } from 'antd';
 import { GoogleOutlined } from '@ant-design/icons';
-
-const { Text } = Typography;
 
 export const GoogleLoginPage: React.FC = () => {
   const [campus, setCampus] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('error') === 'email_not_exists') {
+      setError('Email của bạn chưa được đăng ký trong hệ thống. Vui lòng liên hệ quản trị viên.');
+    }
+  }, []);
+
+  const handleCampusChange = (value: string) => {
+    setCampus(value);
+    setError(null);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('error');
+    window.history.replaceState({}, '', url.toString());
+  };
+
   const handleGoogleLogin = () => {
+    setError(null);
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google`;
   };
 
@@ -33,7 +49,6 @@ export const GoogleLoginPage: React.FC = () => {
         }}
       >
         <Space direction="vertical" size="middle" style={{ width: '100%', textAlign: 'center' }}>
-          {/* Logo/Icon */}
           <img
             src="/logo.png"
             alt="Logo"
@@ -41,14 +56,14 @@ export const GoogleLoginPage: React.FC = () => {
             style={{ marginBottom: '24px', objectFit: 'contain' }}
           />
 
-          {/* Title */}
           <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>Đăng nhập vào CRM</h2>
 
-          {/* Select campus */}
+          {error && <Alert type="error" message={error} showIcon style={{ textAlign: 'left' }} />}
+
           <Select
             placeholder="Chọn cơ sở FPT Polytechnic"
             value={campus}
-            onChange={setCampus}
+            onChange={handleCampusChange}
             style={{ width: '100%', textAlign: 'left' }}
             allowClear
           >
@@ -59,7 +74,6 @@ export const GoogleLoginPage: React.FC = () => {
             <Select.Option value="CanTho">Cần Thơ</Select.Option>
           </Select>
 
-          {/* Google Login Button */}
           <Button
             type="primary"
             size="large"

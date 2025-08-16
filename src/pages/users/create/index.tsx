@@ -6,9 +6,9 @@ import { IUser } from '@/common/types';
 export const UserCreate = () => {
   const { formProps, saveButtonProps } = useForm<IUser>();
 
-  const handleFinish = async (values: any) => {
+  const handleFinish = (values: any) => {
     if (formProps.onFinish) {
-      await formProps.onFinish(values);
+      formProps.onFinish(values);
     }
   };
 
@@ -21,7 +21,13 @@ export const UserCreate = () => {
       breadcrumb={false}
     >
       <Card>
-        <UserForm onFinish={handleFinish} isEdit={false} isSelfEdit={false} />
+        <UserForm
+          initialValues={undefined}
+          onFinish={handleFinish}
+          isEdit={false}
+          isSelfEdit={false}
+          formProps={formProps}
+        />
       </Card>
     </Create>
   );

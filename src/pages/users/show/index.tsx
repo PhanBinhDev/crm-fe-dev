@@ -101,14 +101,14 @@ export const UserShow = () => {
           alignItems: 'center',
         }}
       >
-        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/users')}>
+        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/teachers')}>
           Quay lại danh sách
         </Button>
         {canEdit?.can && (
           <Button
             type="primary"
             icon={<EditOutlined />}
-            onClick={() => navigate(`/users/edit/${user.id}`)}
+            onClick={() => navigate(`/teachers/edit/${user.id}`)}
           >
             Chỉnh sửa
           </Button>

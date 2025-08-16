@@ -12,5 +12,7 @@ export {
   getActivityCategoryLabel,
 } from './activity';
 
+export { getSemesterColor, getSemesterLabel } from './semester';
+
 // User utilities
 export { getUserRoleLabel, getUserRoleColor, getUserStatusLabel, getUserStatusColor } from './user';

@@ -18,7 +18,7 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
       key: 'view',
       icon: <EyeOutlined />,
       label: 'Xem chi tiết',
-      onClick: () => navigate(`/users/show/${user.id}`),
+      onClick: () => navigate(`/teachers/show/${user.id}`),
     },
   ];
 
@@ -27,7 +27,7 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
       key: 'edit',
       icon: <EditOutlined />,
       label: 'Chỉnh sửa',
-      onClick: () => navigate(`/users/edit/${user.id}`),
+      onClick: () => navigate(`/teachers/edit/${user.id}`),
     });
   }
 

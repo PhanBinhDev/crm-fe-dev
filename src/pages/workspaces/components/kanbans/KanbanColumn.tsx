@@ -13,6 +13,7 @@ interface KanbanColumnProps {
   stage: IStage;
   activities: IActivity[];
   onAddActivity: (stageId: string) => void;
+  onClick: () => void;
   isDragOverlay?: boolean;
 }
 
@@ -20,8 +21,9 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   id,
   stage,
   activities,
-  onAddActivity,
   isDragOverlay = false,
+  onAddActivity,
+  onClick,
 }) => {
   const activityIds = useMemo(() => activities.map(activity => activity.id), [activities]);
 
@@ -172,18 +174,18 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         backgroundColor: isDraggedOver ? '#f0f9ff' : '#fafafa',
         transition: 'all 0.2s ease',
       }}
-      headStyle={{
-        minHeight: 42,
-        padding: '0 12px',
-        borderBottom: '1px solid #f0f0f0',
-        backgroundColor: getStageColor(stage),
-      }}
       styles={{
         body: {
           padding: '8px',
           height: 'calc(100vh - 230px)',
           overflowY: 'auto',
           overflowX: 'hidden',
+        },
+        header: {
+          minHeight: 42,
+          padding: '0 12px',
+          borderBottom: '1px solid #f0f0f0',
+          backgroundColor: getStageColor(stage),
         },
       }}
     >
@@ -198,7 +200,11 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                   transition: 'all 0.2s ease',
                 }}
               >
-                <SortableActivityCard activity={activity} isDragOverlay={isDragOverlay} />
+                <SortableActivityCard
+                  activity={activity}
+                  isDragOverlay={isDragOverlay}
+                  onClick={onClick}
+                />
               </div>
             ))
           ) : (
@@ -213,7 +219,9 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                 backgroundColor: '#fafafa',
               }}
             >
-              <PlusOutlined style={{ fontSize: 24, marginBottom: 8, display: 'block' }} />
+              <Button onClick={() => onAddActivity(stage.id)}>
+                <PlusOutlined style={{ fontSize: 24, marginBottom: 8, display: 'block' }} />
+              </Button>
               <div>Không có hoạt động</div>
               <div style={{ marginTop: 4 }}>
                 <Button
