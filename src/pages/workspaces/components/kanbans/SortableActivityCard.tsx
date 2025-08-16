@@ -32,6 +32,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useDelete, useUpdate } from '@refinedev/core';
+import { getColorFromName, getInitials } from '@/utils/activity';
 
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
@@ -407,18 +408,26 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
             }}
           >
             {activityMeta.assignees.map((assignee, index) => (
-              <Tooltip
-                key={index}
-                title={assignee.user.name || assignee.user.email}
-                placement="top"
-              >
-                <Avatar size={20} src={AVATAR_PLACEHOLDER} style={{ fontSize: 10 }}>
-                  {assignee.user.name ? (
-                    assignee.user.name.charAt(0).toUpperCase()
-                  ) : (
-                    <UserOutlined />
-                  )}
-                </Avatar>
+              <Tooltip key={index} title={assignee.user.name} placement="top">
+                {assignee.user.avatar ? (
+                  <Avatar
+                    size="small"
+                    src={assignee.user.avatar}
+                    style={{ marginLeft: index > 0 ? -8 : 0 }}
+                  />
+                ) : (
+                  <Avatar
+                    size="small"
+                    style={{
+                      backgroundColor: getColorFromName(assignee.user.name || AVATAR_PLACEHOLDER),
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      marginLeft: index > 0 ? -8 : 0,
+                    }}
+                  >
+                    {getInitials(assignee.user.name)}
+                  </Avatar>
+                )}
               </Tooltip>
             ))}
           </Avatar.Group>

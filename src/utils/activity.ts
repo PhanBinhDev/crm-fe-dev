@@ -193,3 +193,41 @@ export const formatFileSize = (bytes: any) => {
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 };
+
+
+export const getColorFromName = (name: any) => {
+  const colors = [
+    '#f56a00',
+    '#7265e6',
+    '#ffbf00',
+    '#00a2ae',
+    '#87d068',
+    '#108ee9',
+    '#f56a00',
+    '#722ed1',
+    '#eb2f96',
+    '#52c41a',
+    '#1890ff',
+    '#fa541c',
+    '#13c2c2',
+    '#a0d911',
+    '#fa8c16',
+  ];
+
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
+
+// Hàm lấy chữ cái đầu từ tên
+export const getInitials = (name: any) => {
+  if (!name) return 'U';
+  return name
+    .split(' ')
+    .map((word: any) => word.charAt(0))
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
+};

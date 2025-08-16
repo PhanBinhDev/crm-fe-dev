@@ -141,7 +141,7 @@ export const AppHeader = () => {
               <>
                 <Avatar
                   size={28}
-                  src={AVATAR_PLACEHOLDER}
+                  src={user?.avatar || AVATAR_PLACEHOLDER}
                   icon={<UserOutlined style={{ fontSize: '18px' }} />}
                   style={{ backgroundColor: '#1890ff', flexShrink: 0 }}
                 />
