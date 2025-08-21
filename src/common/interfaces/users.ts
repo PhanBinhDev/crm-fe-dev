@@ -15,4 +15,6 @@ export interface CreateUserDto {
   phone?: string;
 }
 
-export interface UpdateUserDto extends Partial<CreateUserDto> {}
+export interface UpdateUserDto extends Partial<CreateUserDto> {
+  isActive?: boolean;
+}

@@ -1,49 +1,24 @@
-import React, { useState } from 'react';
-import {
-  Modal,
-  Form,
-  Input,
-  Select,
-  Row,
-  Col,
-  Typography,
-  Upload,
-  Button,
-  DatePicker,
-  Dropdown,
-  Checkbox,
-} from 'antd';
+import React from 'react';
+import { Modal, Form, Input, Select, Row, Col, Typography, DatePicker } from 'antd';
 import { useCreate, useList } from '@refinedev/core';
 import {
-  ArrowDownOutlined,
-  ArrowUpOutlined,
   CalendarOutlined,
   CheckCircleOutlined,
-  CheckSquareOutlined,
   ClockCircleOutlined,
-  CloseOutlined,
-  DeleteOutlined,
-  DownOutlined,
-  DownloadOutlined,
-  EditOutlined,
-  EyeOutlined,
-  FileTextOutlined,
   FlagOutlined,
   LinkOutlined,
-  MoreOutlined,
-  PaperClipOutlined,
-  PartitionOutlined,
   ReadOutlined,
-  RightOutlined,
-  TeamOutlined,
-  UploadOutlined,
 } from '@ant-design/icons';
+import {
+  IconCalendar,
+  IconClock,
+  IconFlag,
+  IconLink,
+  IconBook,
+  IconCircleCheck,
+} from '@tabler/icons-react';
 import { SelectProps } from 'antd/lib';
-import { formatFileSize, getFileIcon } from '@/utils/activity';
 import Description from '../activityModalComponents/Description';
-import Subtasks from '../activityModalComponents/Subtasks';
-import Checklists from '../activityModalComponents/Checklists';
-import Attachments from '../activityModalComponents/Attachments';
 const { Title } = Typography;
 
 const { Option } = Select;
@@ -68,26 +43,18 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
   // Fetch stages for selection
   const { data: stagesData } = useList({
     resource: 'stages',
-    pagination: { pageSize: 100 },
-    sorters: [{ field: 'position', order: 'asc' }],
-  });
-
-  // Fetch users for selection
-  const { data: usersData } = useList({
-    resource: 'users/all',
-    pagination: { pageSize: 100 },
+    pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
   });
 
   // Fetch semesters for selection
   const { data: semestersData } = useList({
     resource: 'semesters',
-    pagination: { pageSize: 100 },
+    pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
   });
 
   const stages = stagesData?.data || [];
-  const users = usersData?.data || [];
   const semesters = semestersData?.data || [];
 
   const handleSubmit = () => {
@@ -139,7 +106,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
         gap: 5,
       }}
     >
-      <CheckCircleOutlined style={{ color: '#1890ff' }} />
+      <IconCircleCheck style={{ color: '#1890ff' }} size={16} />
       Tạo công việc mới
     </Title>
   );
@@ -157,7 +124,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
         gap: 5,
       }}
     >
-      <CalendarOutlined style={{ color: '#52c41a' }} />
+      <IconCalendar style={{ color: '#52c41a' }} size={16} />
       Tạo sự kiện mới
     </Title>
   );

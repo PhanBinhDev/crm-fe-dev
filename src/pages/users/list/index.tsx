@@ -51,6 +51,7 @@ export const UserList = () => {
       ],
     },
     errorNotification: false,
+    successNotification: false,
     queryOptions: {
       retry: false,
     },
@@ -64,17 +65,27 @@ export const UserList = () => {
   return (
     <Card>
       <Row gutter={[0, 16]}>
-        <Col span={24} style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <UserFilters
-            searchValue={searchText}
-            roleValue={filters.role}
-            statusValue={filters.isActive}
-            onSearch={setSearchText}
-            onRoleFilter={value => setFilters(prev => ({ ...prev, role: value }))}
-            onStatusFilter={value => setFilters(prev => ({ ...prev, isActive: value }))}
-            onReset={handleReset}
-          />
-          <UserActions />
+        <Col span={24}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              gap: 8,
+              marginBottom: 8,
+            }}
+          >
+            <UserFilters
+              searchValue={searchText}
+              roleValue={filters.role}
+              statusValue={filters.isActive}
+              onSearch={setSearchText}
+              onRoleFilter={value => setFilters(prev => ({ ...prev, role: value }))}
+              onStatusFilter={value => setFilters(prev => ({ ...prev, isActive: value }))}
+              onReset={handleReset}
+            />
+            <UserActions />
+          </div>
         </Col>
         <Col span={24}>
           <UserTable tableProps={tableProps} onPageSizeChange={setPageSize} />

@@ -1,12 +1,5 @@
-import { Layout, Space, Dropdown, Button, Avatar, Spin, MenuProps } from 'antd';
-import {
-  BellOutlined,
-  ClockCircleOutlined,
-  LogoutOutlined,
-  SettingOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
-import { Badge } from 'antd';
+import { Layout, Space, Dropdown, Button, Avatar, Spin, MenuProps, Badge } from 'antd';
+import { IconBell, IconClock, IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
 import styles from '@/styles/header.module.css';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -22,14 +15,14 @@ export const AppHeader = () => {
   const notificationItems: MenuProps['items'] = [
     {
       key: '1',
-      icon: <BellOutlined style={{ color: '#1890ff' }} />,
+      icon: <IconBell size={18} color="#1890ff" />,
       label: 'Bạn có một nhiệm vụ mới',
       onClick: () => console.log('Click notification 1'),
       className: 'notification-item',
     },
     {
       key: '2',
-      icon: <ClockCircleOutlined style={{ color: '#ff4d4f' }} />,
+      icon: <IconClock size={18} color="#ff4d4f" />,
       label: 'Deadline sắp đến hạn',
       onClick: () => console.log('Click notification 2'),
       className: 'notification-item',
@@ -38,18 +31,18 @@ export const AppHeader = () => {
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
-      icon: <UserOutlined />,
+      icon: <IconUser size={18} />,
       label: 'Hồ sơ cá nhân',
       type: 'item',
       onClick: () => navigate('/profile'),
     },
-    { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt', type: 'item' },
+    { key: 'settings', icon: <IconSettings size={18} />, label: 'Cài đặt', type: 'item' },
     { type: 'divider' },
     {
       key: 'logout',
       icon: (
-        <LogoutOutlined
-          className="logout-icon"
+        <IconLogout
+          size={18}
           style={{
             color: 'inherit',
           }}
@@ -99,7 +92,7 @@ export const AppHeader = () => {
             <Badge count={2} size="small" offset={[-2, 2]} style={{ backgroundColor: '#ff4d4f' }}>
               <Button
                 type="text"
-                icon={<BellOutlined style={{ fontSize: '18px', color: '#595959' }} />}
+                icon={<IconBell size={18} color="#595959" />}
                 style={{
                   width: 32,
                   height: 32,
@@ -142,7 +135,7 @@ export const AppHeader = () => {
                 <Avatar
                   size={28}
                   src={user?.avatar || AVATAR_PLACEHOLDER}
-                  icon={<UserOutlined style={{ fontSize: '18px' }} />}
+                  icon={<IconUser size={18} />}
                   style={{ backgroundColor: '#1890ff', flexShrink: 0 }}
                 />
                 <span className={styles.userName}>{user?.name}</span>

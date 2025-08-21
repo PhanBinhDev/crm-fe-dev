@@ -127,10 +127,16 @@ export const ProfilePage: React.FC = () => {
         resource: 'users',
         id: identity.id,
         values: editData,
+        errorNotification: false,
+        successNotification: false,
       },
       {
         onSuccess: () => {
           setIsEditing(false);
+          message.success('Cập nhật thông tin thành công');
+        },
+        onError: () => {
+          message.error('Cập nhật thông tin thất bại');
         },
       },
     );

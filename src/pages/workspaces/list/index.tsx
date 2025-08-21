@@ -16,19 +16,10 @@ import {
   Tag,
   Progress,
   Dropdown,
-  Menu,
   Tooltip,
 } from 'antd';
 import {
   PlusOutlined,
-  SearchOutlined,
-  FilterOutlined,
-  SettingOutlined,
-  AppstoreOutlined,
-  BarsOutlined,
-  DownloadOutlined,
-  UsergroupAddOutlined,
-  SortAscendingOutlined,
   MoreOutlined,
   UserOutlined,
   CalendarOutlined,
@@ -47,7 +38,6 @@ import {
 
 import {
   DndContext,
-  closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -55,6 +45,7 @@ import {
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  closestCorners,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -96,6 +87,12 @@ export const ActivitiesKanbanPage: React.FC = () => {
   const [dragType, setDragType] = useState<'activity' | 'column' | null>(null);
   const [editActivityModal, setEditActivityModal] = useState(false);
   const [editActivity, setEditActivity] = useState<IActivity | null>(null);
+
+  const getTargetStageId = (over: any) => {
+    const sortableData = over?.data?.current?.sortable;
+    if (sortableData?.containerId) return String(sortableData.containerId);
+    return over?.id ? String(over.id) : undefined;
+  };
 
   useBodyScrollLock(settingsDrawerVisible);
 
@@ -164,19 +161,17 @@ export const ActivitiesKanbanPage: React.FC = () => {
 
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
-      const { active } = event;
+      const t = event.active?.data?.current?.type as 'column' | 'activity' | undefined;
 
-      const draggedColumn = stages.find(stage => stage.id === active.id);
-      if (draggedColumn) {
-        setActiveColumn(draggedColumn);
-        setDragType('column');
+      if (t === 'column') {
+        const col = stages.find(s => s.id === event.active.id);
+        if (col) setActiveColumn(col);
         return;
       }
 
-      const activity = activities.find(a => a.id === active.id);
-      if (activity) {
-        setActiveActivity(activity);
-        setDragType('activity');
+      if (t === 'activity') {
+        const a = activities.find(x => x.id === event.active.id);
+        if (a) setActiveActivity(a);
       }
     },
     [activities, stages],
@@ -187,77 +182,77 @@ export const ActivitiesKanbanPage: React.FC = () => {
       const { active, over } = event;
       setActiveActivity(null);
       setActiveColumn(null);
-      setDragType(null);
 
       if (!over || !active) return;
 
-      if (dragType === 'column') {
-        const activeColumnIndex = stages.findIndex(stage => stage.id === active.id);
-        const overColumnIndex = stages.findIndex(stage => stage.id === over.id);
+      const type = active.data?.current?.type as 'column' | 'activity' | undefined;
 
-        if (
-          activeColumnIndex !== overColumnIndex &&
-          activeColumnIndex !== -1 &&
-          overColumnIndex !== -1
-        ) {
-          const newStages = arrayMove(stages, activeColumnIndex, overColumnIndex);
+      if (type === 'column') {
+        const from = stages.findIndex(s => s.id === active.id);
+        // over có thể là 1 column hoặc 1 activity trong column; lấy containerId nếu có
+        const overStageId = getTargetStageId(over);
+        const to = stages.findIndex(s => s.id === overStageId);
+        if (from === -1 || to === -1 || from === to) return;
 
-          // Update positions for all affected stages
-          newStages.forEach((stage, index) => {
-            if (stage.position !== index) {
-              updateStage(
-                {
-                  resource: 'stages',
-                  id: stage.id,
-                  values: { position: index },
-                  mutationMode: 'optimistic',
-                },
-                {
-                  onError: () => {
-                    refetch();
-                  },
-                },
-              );
-            }
-          });
-        }
+        const newStages = arrayMove(stages, from, to);
+
+        newStages.forEach((stage, idx) => {
+          if (stage.position !== idx) {
+            updateStage(
+              {
+                resource: 'stages',
+                id: stage.id,
+                values: { position: idx },
+                mutationMode: 'optimistic',
+              },
+              { onError: () => refetch() },
+            );
+          }
+        });
         return;
       }
 
-      if (dragType === 'activity') {
-        const activeActivity = activities.find(a => a.id === active.id);
-        if (!activeActivity) return;
+      if (type === 'activity') {
+        const a = activities.find(x => x.id === active.id);
+        if (!a) return;
 
-        // Find target stage - check if dropping on stage or on activity within stage
-        let targetStageId: string | undefined;
+        const targetStageId = getTargetStageId(over);
+        if (!targetStageId) return;
 
-        if (stages.find(stage => stage.id === over.id)) {
-          // Dropped directly on stage
-          targetStageId = over.id as string;
-        } else {
-          // Dropped on activity - find which stage this activity belongs to
-          for (const stage of stages) {
-            if (
-              activitiesByStage[stage.id]?.some((activity: IActivity) => activity.id === over.id)
-            ) {
-              targetStageId = stage.id;
-              break;
-            }
-          }
+        if (a.stageId !== targetStageId) {
+          updateActivity({
+            resource: 'activities',
+            id: a.id,
+            values: { stageId: targetStageId },
+            mutationMode: 'optimistic',
+            successNotification: false,
+          });
+          return;
         }
 
-        if (!targetStageId || activeActivity.stageId === targetStageId) return;
-
-        updateActivity({
-          resource: 'activities',
-          id: activeActivity.id,
-          values: { stageId: targetStageId },
-          mutationMode: 'optimistic',
-          successNotification: false,
-        });
+        // (TÙY CHỌN) Nếu có field position trong IActivity, thêm logic reorder trong cùng cột:
+        // const list = activitiesByStage[targetStageId] || [];
+        // const from = list.findIndex(x => x.id === active.id);
+        // const overId = over.id as string;
+        // const to = list.findIndex(x => x.id === overId);
+        // if (from !== -1 && to !== -1 && from !== to) {
+        //   const reordered = arrayMove(list, from, to);
+        //   // cập nhật position cho các item bị ảnh hưởng (optimistic)
+        //   reordered.forEach((item, idx) => {
+        //     if (item.position !== idx) {
+        //       updateActivity({
+        //         resource: 'activities',
+        //         id: item.id,
+        //         values: { position: idx },
+        //         mutationMode: 'optimistic',
+        //         successNotification: false,
+        //       });
+        //     }
+        //   });
+        // }
       }
     },
-    [dragType, activities, stages, activitiesByStage, updateActivity, updateStage, refetch],
+    [stages, activities, activitiesByStage, updateStage, updateActivity, refetch],
   );
 
   const handleAddActivity = useCallback((stageId: string) => {
@@ -265,7 +260,6 @@ export const ActivitiesKanbanPage: React.FC = () => {
     setActivityModalVisible(true);
   }, []);
 
-  // edit
   const handleOpenEditActivityModal = useCallback((activity: IActivity) => {
     setEditActivityModal(true);
     setEditActivity(activity);
@@ -431,15 +425,26 @@ export const ActivitiesKanbanPage: React.FC = () => {
       width: 60,
       render: (record: IActivity) => (
         <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item key="edit">Edit</Menu.Item>
-              <Menu.Item key="duplicate">Duplicate</Menu.Item>
-              <Menu.Item key="delete" danger>
-                Delete
-              </Menu.Item>
-            </Menu>
-          }
+          menu={{
+            items: [
+              {
+                key: 'edit',
+                label: 'Chỉnh sửa',
+                onClick: () => handleOpenEditActivityModal(record),
+              },
+              {
+                key: 'duplicate',
+                label: 'Nhân bản',
+                onClick: () => console.log('Duplicate', record.id),
+              },
+              {
+                key: 'delete',
+                label: 'Xoá',
+                danger: true,
+                onClick: () => console.log('Delete', record.id),
+              },
+            ],
+          }}
           trigger={['click']}
         >
           <Button type="text" icon={<MoreOutlined />} size="small" />
@@ -470,6 +475,13 @@ export const ActivitiesKanbanPage: React.FC = () => {
         />
         <Space size="middle">
           <Button
+            styles={{
+              icon: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+            }}
             icon={<IconSettings size={16} />}
             onClick={() => setSettingsDrawerVisible(true)}
             style={{ borderRadius: 8 }}
@@ -553,7 +565,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
       {viewMode === 'kanban' && (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={closestCorners}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
@@ -593,7 +605,6 @@ export const ActivitiesKanbanPage: React.FC = () => {
           </div>
 
           <DragOverlay dropAnimation={{ duration: 200 }}>
-            {/* Column drag overlay */}
             {activeColumn && dragType === 'column' ? (
               <div style={{ width: 280 }}>
                 <SortableKanbanColumn

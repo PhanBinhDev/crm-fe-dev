@@ -11,6 +11,9 @@ export const GoogleLoginPage: React.FC = () => {
     if (params.get('error') === 'email_not_exists') {
       setError('Email của bạn chưa được đăng ký trong hệ thống. Vui lòng liên hệ quản trị viên.');
     }
+    if (params.get('error') === 'account_not_active') {
+      setError('Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.');
+    }
   }, []);
 
   const handleCampusChange = (value: string) => {
@@ -33,8 +36,11 @@ export const GoogleLoginPage: React.FC = () => {
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        background: '#f0f2f5',
         padding: '20px',
+        backgroundImage: 'url(/assets/images/auth-background.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
       }}
     >
       <Card

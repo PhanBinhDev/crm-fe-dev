@@ -1,6 +1,6 @@
 import { Authenticated, Refine } from '@refinedev/core';
 import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
-import { ErrorComponent, useNotificationProvider } from '@refinedev/antd';
+import { useNotificationProvider } from '@refinedev/antd';
 import { App as AntdApp, ConfigProvider } from 'antd';
 import viVN from 'antd/locale/vi_VN';
 import routerBindings, {
@@ -12,21 +12,22 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import { QueryClientProvider } from '@tanstack/react-query';
 
 import { authProvider } from '@/providers/AuthProvider';
-import { accessControlProvider } from '@/providers/accessControlProvider';
+import { accessControlProvider } from '@/providers/AccessControlProvider';
 import { resources } from '@/config/resources';
 import { antdTheme } from '@/config/theme';
 import { queryClient } from '@/config/queryClient';
-import { DashboardPage } from '@pages/dashboard';
-import { userRoutes } from '@/pages/users/routes';
-import { activitiesRoutes } from '@/pages/workspaces/routes';
 import '@/styles/globals.css';
 import { CustomLayout } from '@/components/layout/custom-layout';
 import { GoogleLoginPage } from '@/components/auth/GoogleLoginPage';
 import { standardDataProvider } from '@/providers/nestjs';
 import { API_URL } from '@/constants';
-import { profileRoutes } from './pages/profile/routes';
 import { WorkspaceProvider } from './contexts/workspace';
-import { semesterRoutes } from './pages/semester/routes';
+import { DashboardPage } from '@pages/dashboard';
+import { activitiesRoutes } from '@/pages/workspaces/routes';
+import { userRoutes } from '@/pages/users/routes';
+import { profileRoutes } from '@/pages/profile/routes';
+import { semesterRoutes } from '@/pages/semester/routes';
+import { ErrorComponent } from './components/common/ErrorBoundary';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
@@ -49,6 +50,22 @@ function App() {
                     syncWithLocation: true,
                     warnWhenUnsavedChanges: true,
                     useNewQueryKeys: true,
+                    reactQuery: {
+                      clientConfig: {
+                        defaultOptions: {
+                          queries: {
+                            staleTime: 1000 * 60 * 5,
+                            cacheTime: 1000 * 60 * 10,
+                            retry: 2,
+                            refetchOnWindowFocus: false,
+                          },
+                          mutations: {
+                            retry: 1,
+                            cacheTime: 0,
+                          },
+                        },
+                      },
+                    },
                   }}
                 >
                   <Routes>

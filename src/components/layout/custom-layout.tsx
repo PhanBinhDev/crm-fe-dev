@@ -24,23 +24,17 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
 
   const resourcesByRole = useCallback(() => {
     if (!user) return [];
-
     return getResourcesByRole(user?.role);
   }, [user?.role, isLoading, getResourcesByRole]);
 
-  // Cải thiện logic tìm selected key
+  // Chỉ cho phép duy nhất 1 selectedKey và 1 openKey
   const getSelectedKeyFromPath = (pathname: string) => {
-    // Xử lý dashboard
     if (pathname === '/' || pathname === '/dashboard') return ['dashboard'];
 
-    // Tìm exact match trước
     for (const resource of resourcesByRole()) {
-      // Kiểm tra resource cha
       if (resource.meta?.menuPath === pathname) {
         return [resource.name];
       }
-
-      // Kiểm tra resource con
       if (resource.children) {
         for (const child of resource.children) {
           if (child.meta?.menuPath === pathname) {
@@ -50,7 +44,6 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
       }
     }
 
-    // Nếu không tìm thấy exact match, tìm theo pattern
     const pathSegments = pathname.split('/').filter(Boolean);
 
     for (const resource of resourcesByRole()) {
@@ -89,27 +82,25 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
   };
 
   const getOpenKeysFromPath = (pathname: string) => {
-    const openKeys: string[] = [];
-
     for (const resource of resourcesByRole()) {
       if (resource.children) {
-        const hasActiveChild = resource.children.some(child => {
-          if (child.meta?.menuPath === pathname) return true;
+        for (const child of resource.children) {
+          if (child.meta?.menuPath === pathname) {
+            return [resource.name];
+          }
           const pathSegments = pathname.split('/').filter(Boolean);
           const childPath = child.meta?.menuPath?.split('/').filter(Boolean) || [];
-          return (
+          if (
             childPath.length >= 2 &&
             pathSegments[0] === childPath[0] &&
             pathSegments[1] === childPath[1]
-          );
-        });
-        if (hasActiveChild) {
-          openKeys.push(resource.name);
+          ) {
+            return [resource.name];
+          }
         }
       }
     }
-
-    return openKeys;
+    return [];
   };
 
   const {
@@ -244,7 +235,8 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
   }, [location.pathname]);
 
   const handleOpenChange = (keys: string[]) => {
-    setOpenKeys(keys);
+    // Chỉ cho phép mở duy nhất 1 menu cha
+    setOpenKeys(keys.length > 0 ? [keys[keys.length - 1]] : []);
   };
 
   // Tự động handle menu click
@@ -401,15 +393,6 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
             {children}
           </div>
         </Content>
-        <Footer
-          style={{
-            textAlign: 'center',
-            background: 'transparent',
-            padding: '16px',
-          }}
-        >
-          CRM CNTT ©{new Date().getFullYear()} Khoa Công nghệ Thông tin
-        </Footer>
       </Layout>
     </Layout>
   );

@@ -1,11 +1,10 @@
 import { AccessControlProvider } from '@refinedev/core';
 import { UserRole } from '@/common/enum/user';
 
-// Role hierarchy: TM > CNBM > GV
 const ROLE_HIERARCHY = {
-  [UserRole.TM]: 3, // Trưởng môn - highest authority
-  [UserRole.CNBM]: 2, // Chủ nhiệm bộ môn - middle authority
-  [UserRole.GV]: 1, // Giáo viên - lowest authority
+  [UserRole.TM]: 3,
+  [UserRole.CNBM]: 2,
+  [UserRole.GV]: 1,
 };
 
 export const accessControlProvider: AccessControlProvider = {
@@ -13,7 +12,7 @@ export const accessControlProvider: AccessControlProvider = {
     const user = params?.identity;
 
     if (!user) {
-      return { can: false, reason: 'User not authenticated' };
+      return { can: false, reason: 'Bạn cần đăng nhập để thực hiện hành động này.' };
     }
 
     const userRole = user.role as UserRole;
@@ -25,11 +24,9 @@ export const accessControlProvider: AccessControlProvider = {
         switch (action) {
           case 'list':
           case 'show':
-            // All authenticated users can view users
             return { can: true };
 
           case 'create':
-            // Only TM and CNBM can create users
             return {
               can: userRole === UserRole.TM || userRole === UserRole.CNBM,
               reason:
@@ -41,7 +38,6 @@ export const accessControlProvider: AccessControlProvider = {
           case 'edit':
             const targetUserId = params?.id;
 
-            // User can always edit their own profile
             if (userId === targetUserId) {
               return { can: true };
             }
@@ -59,7 +55,6 @@ export const accessControlProvider: AccessControlProvider = {
             const targetUserData = params?.data;
             const targetRole = targetUserData?.role as UserRole;
 
-            // Only TM can delete users and cannot delete users with equal or higher role
             return {
               can:
                 userRole === UserRole.TM &&
@@ -76,7 +71,6 @@ export const accessControlProvider: AccessControlProvider = {
             const statusTargetRole = statusTargetUserData?.role as UserRole;
             const statusTargetUserId = statusTargetUserData?.id;
 
-            // User cannot toggle their own status
             if (userId === statusTargetUserId) {
               return {
                 can: false,
@@ -84,12 +78,10 @@ export const accessControlProvider: AccessControlProvider = {
               };
             }
 
-            // TM can toggle anyone's status (except their own)
             if (userRole === UserRole.TM) {
               return { can: true };
             }
 
-            // CNBM can toggle GV status only (except their own)
             if (userRole === UserRole.CNBM && statusTargetRole === UserRole.GV) {
               return { can: true };
             }
@@ -104,7 +96,6 @@ export const accessControlProvider: AccessControlProvider = {
         }
 
       default:
-        // For other resources, allow access by default
         return { can: true };
     }
   },

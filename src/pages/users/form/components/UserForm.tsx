@@ -14,9 +14,10 @@ import {
   message,
   Button,
 } from 'antd';
-import { UploadOutlined, UserOutlined } from '@ant-design/icons';
+import { IconUpload, IconUser } from '@tabler/icons-react';
 import type { UploadProps, UploadFile } from 'antd';
 import type { IUser } from '@/common/types';
+import { useCreate, useUpdate } from '@refinedev/core';
 import { userStatusFilterOptions, userRoleFilterOptions } from '@/constants/user';
 import dayjs from 'dayjs';
 
@@ -73,7 +74,6 @@ export const UserForm: FC<UserFormProps> = ({
     }
 
     if (info.file.status === 'done') {
-      // Get this url from response in real world.
       const url = info.file.response?.url || URL.createObjectURL(info.file.originFileObj!);
       setAvatarUrl(url);
       form.setFieldsValue({ avatar: url });
@@ -102,6 +102,54 @@ export const UserForm: FC<UserFormProps> = ({
     return isJpgOrPng && isLt2M;
   };
 
+  const { mutate: createUser } = useCreate();
+  const { mutate: updateUser } = useUpdate();
+
+  const handleSubmit = (values: any) => {
+    if (isEdit && initialValues?.id) {
+      updateUser(
+        {
+          resource: 'users',
+          id: initialValues.id,
+          values,
+          successNotification: false,
+          errorNotification: false,
+        },
+        {
+          onSuccess: () => {
+            form.resetFields();
+            if (onFinish) onFinish(values);
+            message.success('Cập nhật người dùng thành công!');
+          },
+          onError: error => {
+            message.error(error?.message || 'Có lỗi xảy ra!');
+          },
+        },
+      );
+      if (onFinish) onFinish(values);
+    } else {
+      createUser(
+        {
+          resource: 'users',
+          values,
+          successNotification: false,
+          errorNotification: false,
+          meta: {},
+        },
+        {
+          onSuccess: () => {
+            form.resetFields();
+            if (onFinish) onFinish(values);
+            message.success('Tạo người dùng thành công!');
+          },
+          onError: error => {
+            message.error(error?.message || 'Có lỗi xảy ra!');
+          },
+        },
+      );
+    }
+  };
+
   return (
     <Card
       title={isEdit ? 'Chỉnh sửa thông tin người dùng' : 'Thêm người dùng mới'}
@@ -112,7 +160,7 @@ export const UserForm: FC<UserFormProps> = ({
         form={form}
         layout="vertical"
         initialValues={transformedInitialValues}
-        onFinish={onFinish}
+        onFinish={handleSubmit}
         key={initialValues?.id}
         size="large"
         {...formProps}
@@ -126,7 +174,7 @@ export const UserForm: FC<UserFormProps> = ({
                 <Avatar
                   size={120}
                   src={avatarUrl}
-                  icon={<UserOutlined />}
+                  icon={<IconUser size={64} />}
                   style={{
                     border: '4px solid #f0f0f0',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
@@ -142,7 +190,7 @@ export const UserForm: FC<UserFormProps> = ({
                   maxCount={1}
                   showUploadList={false}
                 >
-                  <Button icon={<UploadOutlined />} type="dashed">
+                  <Button icon={<IconUpload size={20} />} type="dashed">
                     Tải ảnh lên
                   </Button>
                 </Upload>

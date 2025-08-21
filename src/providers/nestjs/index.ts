@@ -1,4 +1,4 @@
-import { standardDataProvider } from './standardProvider';
+import { standardDataProvider } from './StandardProvider';
 
 export { standardDataProvider };
 
