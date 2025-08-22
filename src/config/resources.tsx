@@ -163,46 +163,17 @@ export const resources: ResourceConfig[] = [
       },
     ],
   },
-  {
+ {
     name: 'semester-management',
-    list: '/semesters',
+    list: '/semesters/list',
+    create: '/semesters/create',
+    edit: '/semesters/edit/:id',
+    show: '/semesters/show/:id',
     meta: {
       label: 'Quản lý kỳ học',
       icon: <IconCalendarEvent size={16} />,
       menuPath: '/semesters',
     },
-    children: [
-      {
-        name: 'semester-list',
-        identifier: 'semesters/list',
-        meta: {
-          label: 'Danh sách kỳ học',
-          icon: <IconClipboardList size={14} />,
-          parent: 'semester-management',
-          menuPath: '/semesters/list',
-        },
-      },
-      {
-        name: 'active-semester',
-        identifier: 'semesters/active',
-        meta: {
-          label: 'Kỳ học hiện tại',
-          icon: <IconCalendarCheck size={14} />,
-          parent: 'semester-management',
-          menuPath: '/semesters/active',
-        },
-      },
-      {
-        name: 'semester-planning',
-        identifier: 'semesters/planning',
-        meta: {
-          label: 'Kế hoạch kỳ học',
-          icon: <IconNotebook size={14} />,
-          parent: 'semester-management',
-          menuPath: '/semesters/planning',
-        },
-      },
-    ],
   },
   {
     name: 'subjects',
