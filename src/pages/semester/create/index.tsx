@@ -1,10 +1,21 @@
+import { Create, useForm } from '@refinedev/antd';
 import { Card } from 'antd';
-import SemesterForm from '@/pages/semester/components/form';
+import { ISemester } from '@/common/types/semester';
+import SemesterForm from './../components/form/index';
 
-const SemesterCreatePage = () => (
-  <Card title="Tạo kỳ học mới" style={{ maxWidth: 600, margin: '32px auto' }}>
-    <SemesterForm />
-  </Card>
-);
+export const SemesterCreatePage = () => {
+  // Lấy formProps và saveButtonProps từ useForm
+  const { formProps } = useForm<ISemester>({
+    resource: 'semesters',
+  });
 
-export default SemesterCreatePage;
+  return (
+    <Create breadcrumb={false}>
+   <Card>
+      <SemesterForm {...formProps} />
+   </Card>
+   
+</Create>
+
+  );
+};

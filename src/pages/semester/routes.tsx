@@ -1,8 +1,8 @@
 import SemesterListPage from './list';
-import SemesterCreatePage from './create';
 import SemesterEditPage from './edit';
 import SemesterShowPage from './show';
 import { Navigate, Route } from 'react-router-dom';
+import { SemesterCreatePage } from './create/index';
 
 export const semesterRoutes = [
   <Route path="/semesters" element={<Navigate to="/semesters/active" />} />,

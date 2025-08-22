@@ -12,7 +12,6 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import { QueryClientProvider } from '@tanstack/react-query';
 
 import { authProvider } from '@/providers/AuthProvider';
-import { accessControlProvider } from '@/providers/AccessControlProvider';
 import { resources } from '@/config/resources';
 import { antdTheme } from '@/config/theme';
 import { queryClient } from '@/config/queryClient';
@@ -28,6 +27,7 @@ import { userRoutes } from '@/pages/users/routes';
 import { profileRoutes } from '@/pages/profile/routes';
 import { semesterRoutes } from '@/pages/semester/routes';
 import { ErrorComponent } from './components/common/ErrorBoundary';
+import { accessControlProvider } from './providers/accessControlProvider';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
