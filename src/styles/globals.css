@@ -62,3 +62,134 @@ body {
     font-size: 14px;
   }
 }
+
+/*Stage Card + Collapse*/
+
+.stage-card {
+  border-left: 4px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Collapse wrapper */
+.stage-card .ant-collapse {
+  border: none !important;
+  background: transparent;
+}
+
+.stage-card .ant-collapse-item {
+  border: none !important;
+}
+
+.stage-card .ant-collapse-header {
+  padding: 0 !important;
+}
+
+/* Arrow trong header */
+.stage-card .ant-collapse-header .ant-collapse-arrow {
+  display: flex;
+  align-items: center;
+  margin-right: 6px;
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* Panel Header*/
+
+.stage-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: #fff;
+  border: none !important;
+}
+
+.stage-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stage-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.stage-title {
+  font-size: 14px;
+  margin: 0 !important;
+  color: #262626;
+}
+
+.stage-badge {
+  font-size: 11px;
+  min-width: 20px;
+  height: 20px;
+  line-height: 18px;
+  border-radius: 10px;
+  color: #fff;
+}
+
+.stage-add-btn {
+  color: #8c8c8c !important;
+  font-size: 12px;
+}
+
+
+/* Empty State (No tasks)*/
+
+.stage-empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 16px;
+  color: #8c8c8c;
+}
+
+.stage-empty-text {
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.clickup-table {
+  font-size: 13px;
+  border: none !important;
+}
+
+/* Table header */
+.clickup-table .ant-table-thead>tr>th {
+  padding: 4px 8px !important;
+  font-weight: 500;
+  font-size: 12px;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  border-right: none !important;
+}
+
+/* Table body */
+.clickup-table .ant-table-tbody>tr>td {
+  padding: 6px 10px !important;
+  font-size: 13px;
+  border-bottom: 1px solid #f5f5f5;
+  border-right: none !important;
+}
+
+.clickup-table .ant-table-tbody>tr:hover>td {
+  background: #fafafa !important;
+}
+
+/* Container */
+.clickup-table .ant-table-container {
+  border: none !important;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+/* Remove vertical border */
+.clickup-table .ant-table-cell {
+  border-right: none !important;
+}

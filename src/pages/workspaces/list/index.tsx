@@ -17,6 +17,7 @@ import {
   Progress,
   Dropdown,
   Tooltip,
+  Collapse,
 } from 'antd';
 import {
   PlusOutlined,
@@ -277,6 +278,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
     setSearchTerm(value);
   }, []);
 
+  const { Panel } = Collapse;
   const tableColumns = [
     {
       title: 'STT',
@@ -654,86 +656,68 @@ export const ActivitiesKanbanPage: React.FC = () => {
             return (
               <Card
                 key={stage.id}
-                style={{
-                  borderRadius: 8,
-                  overflow: 'hidden',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-                  borderLeft: `4px solid ${getStageColor(stage)}`,
-                }}
+                className="stage-card"
                 styles={{ body: { padding: 0 } }}
+                style={{ borderLeft: '3px solid', borderLeftColor: getStageColor(stage) }}
               >
-                {/* Stage Header */}
-                <div
-                  style={{
-                    backgroundColor: '#fafafa',
-                    borderBottom: '1px solid #f0f0f0',
-                    padding: '16px 24px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        backgroundColor: getStageColor(stage),
-                      }}
-                    />
-                    <Title level={5} style={{ margin: 0, color: '#262626' }}>
-                      {stage.title}
-                    </Title>
-                    <Badge
-                      count={stageActivities.length}
-                      style={{
-                        backgroundColor: getStageColor(stage),
-                        fontSize: '11px',
-                        minWidth: '20px',
-                        height: '20px',
-                        lineHeight: '18px',
-                      }}
-                    />
-                  </div>
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<PlusOutlined />}
-                    onClick={() => handleAddActivity(stage.id)}
-                    style={{ color: '#8c8c8c' }}
+                <Collapse accordion>
+                  <Panel
+                    showArrow={false}
+                    header={
+                      <div className="stage-panel-header flex">
+                        <div className="stage-header-left">
+                          <div
+                            className="stage-dot"
+                            style={{ backgroundColor: getStageColor(stage) }}
+                          />
+                          <Title level={5} className="stage-title" style={{ fontWeight: '500' }}>
+                            {stage.title}
+                          </Title>
+                          <Badge
+                            count={stageActivities.length}
+                            className="stage-badge"
+                            style={{ backgroundColor: getStageColor(stage) }}
+                          />
+                        </div>
+                        <Button
+                          type="text"
+                          size="small"
+                          icon={<PlusOutlined />}
+                          onClick={() => handleAddActivity(stage.id)}
+                          className="stage-add-btn"
+                        >
+                          Add task
+                        </Button>
+                      </div>
+                    }
+                    key={1}
                   >
-                    Add task
-                  </Button>
-                </div>
-
-                {/* Tasks Table */}
-                {stageActivities.length > 0 ? (
-                  <Table
-                    columns={tableColumns}
-                    dataSource={stageActivities}
-                    rowKey="id"
-                    pagination={false}
-                    scroll={{ x: 1000 }}
-                    size="middle"
-                    className="clickup-table"
-                    rowClassName="clickup-table-row"
-                    showHeader={stage.position === 0}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      padding: '40px 24px',
-                      textAlign: 'center',
-                      color: '#8c8c8c',
-                    }}
-                  >
-                    <div style={{ marginBottom: 8 }}>No tasks in this status</div>
-                    <Button type="link" size="small" onClick={() => handleAddActivity(stage.id)}>
-                      Add the first task
-                    </Button>
-                  </div>
-                )}
+                    {stageActivities.length > 0 ? (
+                      <Table
+                        columns={tableColumns}
+                        dataSource={stageActivities}
+                        rowKey="id"
+                        pagination={false}
+                        scroll={{ x: 1000 }}
+                        size="middle"
+                        className="clickup-table"
+                        rowClassName="clickup-table-row"
+                        showHeader={stage.position === 0}
+                      />
+                    ) : (
+                      <div className="stage-empty">
+                        <div className="stage-empty-text">No tasks in this status</div>
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={() => handleAddActivity(stage.id)}
+                        >
+                          Add the first task
+                        </Button>
+                      </div>
+                    )}
+                  </Panel>
+                </Collapse>
               </Card>
             );
           })}
