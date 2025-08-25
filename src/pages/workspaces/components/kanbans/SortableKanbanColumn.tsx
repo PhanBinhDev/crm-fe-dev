@@ -187,11 +187,7 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
       key: 'edit',
       label: 'Chỉnh sửa cột',
     },
-    {
-      key: 'duplicate',
-      label: 'Nhân bản cột',
-    },
-    {
+     {
       key: 'divider2',
       type: 'divider',
     },

@@ -50,8 +50,6 @@ export const UserList = () => {
         },
       ],
     },
-    errorNotification: false,
-    successNotification: false,
     queryOptions: {
       retry: false,
     },

@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Table, Tag } from 'antd';
+import { Badge, Table, Tag, Tooltip } from 'antd';
 import type { IUser } from '@/common/types';
 import { Avatar, type TableProps } from 'antd';
 import { userRoleFilterOptions, userStatusColumnFilters } from '@/constants/user';
@@ -23,17 +23,57 @@ export const UserTable: FC<UserTableProps> = ({ tableProps, onPageSizeChange }) 
       title: 'Avatar',
       dataIndex: 'avatar',
       render: (avatar: string, record: IUser) => (
-        <Avatar src={avatar || AVATAR_PLACEHOLDER} size={40} onError={() => false}>
-          {(record.name || 'U').charAt(0).toUpperCase()}
-        </Avatar>
+        <Tooltip title={getUserRoleLabel(record.role)}>
+          <Avatar
+            src={avatar || AVATAR_PLACEHOLDER}
+            size={40}
+            style={{ border: '1px solid #eee', background: '#f6f6f6' }}
+          >
+            {(record.name || 'U').charAt(0).toUpperCase()}
+          </Avatar>
+        </Tooltip>
       ),
       width: 80,
+    },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'isActive',
+      align: 'center',
+      width: 120,
+      render: (isActive: boolean) => (
+        <Badge
+          status={isActive ? 'success' : 'error'}
+          text={isActive ? 'Active' : 'Inactive'}
+          style={{
+            fontSize: 14,
+            padding: '2px 8px',
+            borderRadius: 8,
+            background: isActive ? '#f6ffed' : '#fff1f0',
+            color: isActive ? '#389e0d' : '#cf1322',
+            fontWeight: 500,
+          }}
+        />
+      ),
     },
     {
       title: 'Họ tên',
       dataIndex: 'name',
       sorter: true,
-      render: (_: string, record: IUser) => `${record.name}`,
+      render: (_: string, record: IUser) => (
+        <div>
+          <span>{record.name}</span>
+          {record.isActive === false && (
+            <Tag color="error" style={{ marginLeft: 8, fontSize: 10 }}>
+              Không hoạt động
+            </Tag>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: 'Username',
+      dataIndex: 'username',
+      sorter: true,
     },
     {
       title: 'Email',
@@ -41,22 +81,14 @@ export const UserTable: FC<UserTableProps> = ({ tableProps, onPageSizeChange }) 
       sorter: true,
     },
     {
-      title: 'Vai trò',
-      dataIndex: 'role',
-      filters: userRoleFilterOptions,
-      render: (role: UserRole) => (
-        <Tag color={getUserRoleColor(role)}>{getUserRoleLabel(role)}</Tag>
-      ),
+      title: 'Chuyên ngành',
+      dataIndex: 'major',
+      render: (major: string) => major || '-',
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'isActive',
-      filters: userStatusColumnFilters,
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'success' : 'error'}>
-          {isActive ? 'Hoạt động' : 'Không hoạt động'}
-        </Tag>
-      ),
+      title: 'Ngày sinh',
+      dataIndex: 'dateOfBirth',
+      render: (date: string) => (date ? new Date(date).toLocaleDateString('vi-VN') : '-'),
     },
     {
       title: 'Ngày tạo',

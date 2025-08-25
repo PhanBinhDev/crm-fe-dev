@@ -16,8 +16,6 @@ axiosInstance.interceptors.response.use(
   response => {
     const data = response.data as ApiResponse<unknown> | ApiResponseNoData;
 
-    console.log('Axios response with data:', data);
-
     return response;
   },
   async error => {

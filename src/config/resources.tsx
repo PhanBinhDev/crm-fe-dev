@@ -124,46 +124,6 @@ export const resources: ResourceConfig[] = [
     ],
   },
   {
-    name: 'my-teaching',
-    meta: {
-      label: 'Giảng dạy của tôi',
-      icon: <IconSchool size={16} />,
-      menuPath: '/my-teaching',
-    },
-    children: [
-      {
-        name: 'my-subjects',
-        identifier: 'my-teaching/subjects',
-        meta: {
-          label: 'Môn học phụ trách',
-          icon: <IconBook size={14} />,
-          parent: 'my-teaching',
-          menuPath: '/my-teaching/subjects',
-        },
-      },
-      {
-        name: 'my-classes',
-        identifier: 'my-teaching/classes',
-        meta: {
-          label: 'Lớp học phụ trách',
-          icon: <IconUsers size={14} />,
-          parent: 'my-teaching',
-          menuPath: '/my-teaching/classes',
-        },
-      },
-      {
-        name: 'my-schedule',
-        identifier: 'my-teaching/schedule',
-        meta: {
-          label: 'Lịch giảng dạy',
-          icon: <IconCalendar size={14} />,
-          parent: 'my-teaching',
-          menuPath: '/my-teaching/schedule',
-        },
-      },
-    ],
-  },
- {
     name: 'semester-management',
     list: '/semesters/list',
     create: '/semesters/create',
@@ -371,7 +331,6 @@ export const getResourcesByRole = (role: UserRole): ResourceConfig[] => {
     'dashboard',
     'workspaces',
     'my-work',
-    'my-teaching',
     'subjects',
     'classes',
     'students',

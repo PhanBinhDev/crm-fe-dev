@@ -1,1 +1,1 @@
-export type ModalType = '';
+export type ModalType = 'ModalAddWorkspace' | 'ModalAddIcon' | 'ModalUserForm';

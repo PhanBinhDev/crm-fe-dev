@@ -1,6 +1,5 @@
 import { Authenticated, Refine } from '@refinedev/core';
 import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
-import { useNotificationProvider } from '@refinedev/antd';
 import { App as AntdApp, ConfigProvider } from 'antd';
 import viVN from 'antd/locale/vi_VN';
 import routerBindings, {
@@ -20,14 +19,16 @@ import { CustomLayout } from '@/components/layout/custom-layout';
 import { GoogleLoginPage } from '@/components/auth/GoogleLoginPage';
 import { standardDataProvider } from '@/providers/nestjs';
 import { API_URL } from '@/constants';
-import { WorkspaceProvider } from './contexts/workspace';
+import { WorkspaceProvider } from './contexts/workspaces';
 import { DashboardPage } from '@pages/dashboard';
 import { activitiesRoutes } from '@/pages/workspaces/routes';
 import { userRoutes } from '@/pages/users/routes';
 import { profileRoutes } from '@/pages/profile/routes';
 import { semesterRoutes } from '@/pages/semester/routes';
 import { ErrorComponent } from './components/common/ErrorBoundary';
-import { accessControlProvider } from './providers/accessControlProvider';
+import { accessControlProvider } from './providers/AccessControlProvider';
+import { workspaceRoutes } from './pages/workspace/routes';
+import Modals from './components/modals';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
@@ -44,7 +45,6 @@ function App() {
                   authProvider={authProvider}
                   accessControlProvider={accessControlProvider}
                   routerProvider={routerBindings}
-                  notificationProvider={useNotificationProvider}
                   resources={resources}
                   options={{
                     syncWithLocation: true,
@@ -90,6 +90,7 @@ function App() {
                     <Route element={<GoogleLoginPage />} path="/login" />
                   </Routes>
 
+                  <Modals />
                   <RefineKbar />
                   <UnsavedChangesNotifier />
                   <DocumentTitleHandler />

@@ -67,7 +67,7 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
         },
       },
     );
-  }
+  } 
 
   return (
     <Dropdown menu={{ items: menuItems }} trigger={['click']}>

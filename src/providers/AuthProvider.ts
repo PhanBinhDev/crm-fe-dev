@@ -49,8 +49,6 @@ export const authProvider: AuthProvider = {
     try {
       const response = await authService.getProfile();
 
-      console.log('User identity:', response.data);
-
       return response.data.data;
     } catch {
       return null;

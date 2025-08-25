@@ -190,7 +190,6 @@ export const ActivitiesKanbanPage: React.FC = () => {
 
       if (type === 'column') {
         const from = stages.findIndex(s => s.id === active.id);
-        // over có thể là 1 column hoặc 1 activity trong column; lấy containerId nếu có
         const overStageId = getTargetStageId(over);
         const to = stages.findIndex(s => s.id === overStageId);
         if (from === -1 || to === -1 || from === to) return;
@@ -490,17 +489,42 @@ export const ActivitiesKanbanPage: React.FC = () => {
           >
             Cài đặt
           </Button>
-          <Button icon={<IconDownload size={18} />} style={{ borderRadius: 8 }}>
-            Nhập / Xuất
-          </Button>
+          <Popover
+            placement="bottomLeft"
+            content={
+              <KanbanFilterPopover
+                searchTerm={searchTerm}
+                selectedPriority={selectedPriority}
+                selectedStatus={selectedStatus}
+                dateRange={dateRange}
+                onSearch={handleSearch}
+                onPriorityChange={setSelectedPriority}
+                onStatusChange={setSelectedStatus}
+                onDateRangeChange={setDateRange}
+                onClearAll={clearAllFilters}
+              />
+            }
+            trigger="click"
+          >
+            <Button
+              icon={<IconFilter size={18} />}
+              style={{ borderRadius: 8 }}
+              styles={{
+                icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+              }}
+            >
+              Filter
+            </Button>
+          </Popover>
           <Button
             icon={<IconPlus size={18} />}
             type="primary"
             style={{ borderRadius: 8 }}
+            styles={{
+              icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+            }}
             onClick={() => setActivityModalVisible(true)}
-          >
-            Thêm mới
-          </Button>
+          />
         </Space>
       </div>
 
@@ -530,35 +554,6 @@ export const ActivitiesKanbanPage: React.FC = () => {
             onClick={() => setViewMode('kanban')}
           >
             Kanban
-          </Button>
-        </Space>
-        <Space>
-          <Popover
-            placement="bottomLeft"
-            content={
-              <KanbanFilterPopover
-                searchTerm={searchTerm}
-                selectedPriority={selectedPriority}
-                selectedStatus={selectedStatus}
-                dateRange={dateRange}
-                onSearch={handleSearch}
-                onPriorityChange={setSelectedPriority}
-                onStatusChange={setSelectedStatus}
-                onDateRangeChange={setDateRange}
-                onClearAll={clearAllFilters}
-              />
-            }
-            trigger="click"
-          >
-            <Button icon={<IconFilter size={18} />} style={{ borderRadius: 8 }}>
-              Filter
-            </Button>
-          </Popover>
-          <Button icon={<IconSortAscending size={18} />} style={{ borderRadius: 8 }}>
-            Sort
-          </Button>
-          <Button icon={<IconUsersGroup size={18} />} style={{ borderRadius: 8 }}>
-            Group
           </Button>
         </Space>
       </div>

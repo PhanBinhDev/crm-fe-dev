@@ -38,7 +38,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
 }) => {
   const [form] = Form.useForm();
 
-  const { mutate: createActivity, isLoading } = useCreate();
+  const { mutate: createActivity, isPending } = useCreate();
 
   // Fetch stages for selection
   const { data: stagesData } = useList({
@@ -142,7 +142,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
         open={visible}
         onCancel={onCancel}
         onOk={handleSubmit}
-        confirmLoading={isLoading}
+        confirmLoading={isPending}
         width={1000}
         style={{ top: 20 }}
         styles={{
