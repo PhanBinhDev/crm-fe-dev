@@ -10,7 +10,7 @@ interface UserInfoProps {
 export const UserInfo: FC<UserInfoProps> = ({ user }) => {
   return (
     <Descriptions bordered>
-      <Descriptions.Item label="Avatar" span={3}>
+      {/* <Descriptions.Item label="Avatar" span={3}>
         <Avatar src={'/default.png'} size={64} />
       </Descriptions.Item>
 
@@ -36,7 +36,7 @@ export const UserInfo: FC<UserInfoProps> = ({ user }) => {
 
       <Descriptions.Item label="Cập nhật lần cuối">
         {new Date(user.updatedAt).toLocaleDateString('vi-VN')}
-      </Descriptions.Item>
+      </Descriptions.Item> */}
     </Descriptions>
   );
 };

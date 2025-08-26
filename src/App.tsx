@@ -26,7 +26,7 @@ import { userRoutes } from '@/pages/users/routes';
 import { profileRoutes } from '@/pages/profile/routes';
 import { semesterRoutes } from '@/pages/semester/routes';
 import { ErrorComponent } from './components/common/ErrorBoundary';
-import { accessControlProvider } from './providers/AccessControlProvider';
+import { accessControlProvider } from './providers/accessControlProvider';
 import { workspaceRoutes } from './pages/workspace/routes';
 import Modals from './components/modals';
 

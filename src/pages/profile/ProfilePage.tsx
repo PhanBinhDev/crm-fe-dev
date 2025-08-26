@@ -122,6 +122,19 @@ export const ProfilePage: React.FC = () => {
   };
 
   const handleSave = () => {
+    const hasChanged =
+      editData.phone !== (identity.phone || '') ||
+      editData.username !== (identity.username || '') ||
+      editData.major !== (identity.major || '') ||
+      (editData.dateOfBirth || '') !== (identity.dateOfBirth || '');
+
+    if (!hasChanged) {
+      setIsEditing(false);
+      return;
+    }
+
+    console.log(editData);
+
     updateUser(
       {
         resource: 'users',
