@@ -1,6 +1,6 @@
 import { Authenticated, Refine } from '@refinedev/core';
 import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
-import { useNotificationProvider } from '@refinedev/antd';
+// import { useNotificationProvider } from '@refinedev/antd';
 import { App as AntdApp, ConfigProvider } from 'antd';
 import viVN from 'antd/locale/vi_VN';
 import routerBindings, {
@@ -28,9 +28,11 @@ import { profileRoutes } from '@/pages/profile/routes';
 import { semesterRoutes } from '@/pages/semester/routes';
 import { ErrorComponent } from './components/common/ErrorBoundary';
 import { accessControlProvider } from './providers/accessControlProvider';
+import { customNotificationProvider } from './providers/customNotificationProvider';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
+  
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -44,7 +46,8 @@ function App() {
                   authProvider={authProvider}
                   accessControlProvider={accessControlProvider}
                   routerProvider={routerBindings}
-                  notificationProvider={useNotificationProvider}
+                  // notificationProvider={useNotificationProvider}
+                  notificationProvider={customNotificationProvider}
                   resources={resources}
                   options={{
                     syncWithLocation: true,
