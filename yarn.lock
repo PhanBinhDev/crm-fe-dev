@@ -1234,7 +1234,7 @@
 
 "@tabler/icons-react@^3.34.1":
   version "3.34.1"
-  resolved "https://registry.npmjs.org/@tabler/icons-react/-/icons-react-3.34.1.tgz"
+  resolved "https://registry.yarnpkg.com/@tabler/icons-react/-/icons-react-3.34.1.tgz#852b8efcab5382e44cc0f09b3de7d25ef3cba6f9"
   integrity sha512-Ld6g0NqOO05kyyHsfU8h787PdHBm7cFmOycQSIrGp45XcXYDuOK2Bs0VC4T2FWSKZ6bx5g04imfzazf/nqtk1A==
   dependencies:
     "@tabler/icons" "3.34.1"
