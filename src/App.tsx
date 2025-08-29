@@ -32,6 +32,7 @@ import Modals from './components/modals';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
+  
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -19,11 +19,11 @@ const SemesterFilters: FC<SemesterFiltersProps> = ({
   searchValue,
   yearValue,
   statusValue,
-  sortValue,
+  // sortValue,
   onSearch,
   onYearChange,
   onStatusChange,
-  onSortChange,
+  // onSortChange,
   onReset,
 }) => {
   return (
@@ -58,10 +58,10 @@ const SemesterFilters: FC<SemesterFiltersProps> = ({
           { label: 'Completed (Đã hoàn thành)', value: 'Completed' },
           { label: 'Upcoming (Sắp diễn ra)', value: 'Upcoming' },
         ]}
-      />
+      /> 
 
       {/* Sắp xếp */}
-      <Select<string>
+      {/* <Select<string>
         placeholder="Sắp xếp"
         allowClear
         style={{ width: 180 }}
@@ -73,7 +73,7 @@ const SemesterFilters: FC<SemesterFiltersProps> = ({
           { label: 'Năm (Mới → Cũ)', value: 'yearDesc' },
           { label: 'Năm (Cũ → Mới)', value: 'yearAsc' },
         ]}
-      />
+      /> */}
 
       {/* Nút reset */}
       <Button icon={<ReloadOutlined />} onClick={onReset}>
