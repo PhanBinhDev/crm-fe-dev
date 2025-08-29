@@ -8,6 +8,8 @@ import { useLogout } from '@refinedev/core';
 import { useState } from 'react';
 import { UserInfo } from '@/pages/users/show/components';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
+import { useState } from 'react';
+import { ProfilePage } from '@/pages/profile/ProfilePage';
 
 const { Header } = Layout;
 export const AppHeader = () => {
@@ -15,6 +17,7 @@ export const AppHeader = () => {
   const navigate = useNavigate();
   const { mutate: logout } = useLogout();
   const [settingsDrawerVisible, setSettingsDrawerVisible] = useState(false);
+  const [profileTab, setProfileTab] = useState(false);
 
   const notificationItems: MenuProps['items'] = [
     {
@@ -38,7 +41,7 @@ export const AppHeader = () => {
       icon: <IconUser size={18} />,
       label: 'Hồ sơ cá nhân',
       type: 'item',
-      onClick: () => setSettingsDrawerVisible(true),
+      onClick: () => setProfileTab(true),
     },
     { key: 'settings', icon: <IconSettings size={18} />, label: 'Cài đặt', type: 'item' },
     { type: 'divider' },
@@ -109,22 +112,34 @@ export const AppHeader = () => {
               </Badge>
             </div>
           </Dropdown>
-
-          <Button
-            type="text"
-            className={styles.userAvatar}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              color: '#595959',
-              backgroundColor: 'transparent',
+          <Dropdown
+            menu={{
+              items: userMenuItems,
+              style: {
+                padding: '8px 6px',
+                minWidth: 150,
+                boxShadow:
+                  '0 3px 6px -4px rgba(0,0,0,0.2), 0 6px 16px 0 rgba(0,0,0,0.08), 0 9px 28px 8px rgba(0,0,0,0.05)',
+              },
             }}
+            placement="bottomRight"
+            trigger={['click']}
+            getPopupContainer={trigger => trigger.parentElement || document.body}
           >
-            {isLoading ? (
-              <Spin size="small" />
-            ) : (
-              <>
-                <div onClick={() => setSettingsDrawerVisible(true)}>
+            <Button
+              type="text"
+              className={styles.userAvatar}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                color: '#595959',
+                backgroundColor: 'transparent',
+              }}
+            >
+              {isLoading ? (
+                <Spin size="small" />
+              ) : (
+                <>
                   <Avatar
                     size={28}
                     src={user?.avatar || AVATAR_PLACEHOLDER}
@@ -132,17 +147,18 @@ export const AppHeader = () => {
                     style={{ backgroundColor: '#1890ff', flexShrink: 0 }}
                   />
                   <span className={styles.userName}>{user?.name}</span>
-                </div>
-              </>
-            )}
-          </Button>
+                </>
+              )}
+            </Button>
+          </Dropdown>
         </Space>
       </Header>
+
       <Drawer
         title="Hồ sơ cá nhân"
-        width={700}
-        open={settingsDrawerVisible}
-        onClose={() => setSettingsDrawerVisible(false)}
+        width={500}
+        open={profileTab}
+        onClose={() => setProfileTab(false)}
         mask={true}
         maskClosable={true}
         styles={{
@@ -155,14 +171,7 @@ export const AppHeader = () => {
             position: 'fixed',
           },
         }}
-        // style={{ position: 'relative' }}
       >
-        <Button
-          style={{ position: 'absolute', top: '12px', right: '30px', zIndex: '100', color: 'red' }}
-          onClick={() => logout()}
-        >
-          Đăng xuất
-        </Button>
         <ProfilePage />
       </Drawer>
     </>
