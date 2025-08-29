@@ -1,16 +1,12 @@
-import { useList, useNavigation } from '@refinedev/core';
+import { useNavigation } from '@refinedev/core';
 import type { MenuProps } from 'antd';
-import { Breadcrumb, Layout, Menu, Select, theme } from 'antd';
+import { Breadcrumb, Layout, Menu, theme } from 'antd';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { AppHeader } from '@/components/shared/Header';
 import { getResourcesByRole, ResourceConfig } from '@/config/resources';
 import styles from '@/styles/custom-layout.module.css';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { IconPlus } from '@tabler/icons-react';
-import { useModal } from '@/hooks/useModal';
-import * as TablerIcons from '@tabler/icons-react';
 
 const { Content, Sider } = Layout;
 
@@ -25,47 +21,6 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
   const { user, isLoading } = useAuth();
   const { push } = useNavigation();
   const location = useLocation();
-  const { data: workspaces, isLoading: workspacesLoading } = useList({
-    resource: 'workspaces/mine',
-    config: {
-      pagination: { mode: 'off' },
-    },
-    queryOptions: {
-      enabled: location.pathname.startsWith('/workspaces'),
-    },
-  });
-
-  const workspaceOptions = useMemo(() => {
-    if (workspacesLoading) return [];
-    return (
-      workspaces?.data.map(workspace => ({
-        label: (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* Hiện icon Tabler nếu có */}
-            {workspace.icon && TablerIcons[workspace.icon] ? (
-              React.createElement(TablerIcons[workspace.icon], {
-                size: 22,
-                style: { color: '#1890ff', marginRight: 4 },
-              })
-            ) : (
-              <span
-                style={{
-                  width: 22,
-                  height: 22,
-                  display: 'inline-block',
-                  background: '#eee',
-                  borderRadius: 6,
-                  marginRight: 4,
-                }}
-              />
-            )}
-            <span style={{ fontWeight: 600 }}>{workspace.name}</span>
-          </div>
-        ),
-        value: workspace.id,
-      })) || []
-    );
-  }, [workspaces, workspacesLoading]);
 
   const resourcesByRole = useCallback(() => {
     if (!user) return [];
@@ -373,16 +328,6 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
           )}
         </Link>
 
-        {location.pathname.startsWith('/workspaces') && (
-          <div
-            style={{
-              padding: collapsed ? '12px 8px' : '16px 16px 8px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: collapsed ? 'center' : 'flex-start',
-            }}
-          ></div>
-        )}
         <Menu
           theme="dark"
           selectedKeys={selectedKeys}
@@ -421,7 +366,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
               alignItems: 'center',
               justifyContent: 'space-between',
               position: 'relative',
-              marginBottom: 24,
+              marginBottom: 16,
             }}
           >
             <Breadcrumb

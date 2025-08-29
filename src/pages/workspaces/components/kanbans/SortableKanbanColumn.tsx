@@ -1,22 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IActivity, IStage } from '@/common/types';
-import { PlusOutlined, MoreOutlined, DragOutlined } from '@ant-design/icons';
+import { PlusOutlined, DragOutlined } from '@ant-design/icons';
 import { useDroppable } from '@dnd-kit/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import {
-  Button,
-  Card,
-  Space,
-  Typography,
-  Badge,
-  Dropdown,
-  MenuProps,
-  ColorPicker,
-  Input,
-  message,
-} from 'antd';
+import { Button, Card, Space, Typography, Badge, ColorPicker, message } from 'antd';
 import { SortableActivityCard } from './SortableActivityCard';
 import { useUpdate } from '@refinedev/core';
 const { Text } = Typography;
@@ -71,8 +60,6 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
               position: stage.position,
               color: newColor,
             },
-            errorNotification: false,
-            successNotification: false,
           },
           {
             onSuccess: () => {
@@ -93,35 +80,6 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
     },
     [updateStage, stage.id, stage.position, title, onChange],
   );
-
-  // const handleSave = () => {
-  //   updateStage(
-  //     {
-  //       resource: 'stages',
-  //       id: stage.id,
-  //       values: {
-  //         title,
-  //         position: stage.position,
-  //         color: color ?? '#1677ff',
-  //       },
-  //       errorNotification: false,
-  //       successNotification: false,
-  //     },
-  //     {
-  //       onSuccess: data => {
-  //         console.log('Stage updated successfully:', data);
-
-  //         onChange?.({
-  //           id: stage.id,
-  //           title,
-  //           position: stage.position,
-  //           color: color ?? '#1677ff',
-  //         });
-  //         message.success('Cập nhật cột thành công');
-  //       },
-  //     },
-  //   );
-  // };
 
   const {
     attributes: sortableAttributes,
@@ -156,7 +114,6 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
     setDroppableRef(element);
   };
 
-  // Calculate stage statistics
   const stageStats = useMemo(() => {
     const total = activities.length;
     const completed = activities.filter(a => a.status === 'completed').length;
@@ -171,37 +128,6 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
   const getStageColor = (stage: IStage) => {
     return stage?.color || '#f5f5f5';
   };
-
-  const columnMenuItems: MenuProps['items'] = [
-    {
-      key: 'add',
-      label: 'Thêm hoạt động',
-      icon: <PlusOutlined />,
-      onClick: () => onAddActivity(stage.id),
-    },
-    {
-      key: 'divider1',
-      type: 'divider',
-    },
-    {
-      key: 'edit',
-      label: 'Chỉnh sửa cột',
-    },
-     {
-      key: 'divider2',
-      type: 'divider',
-    },
-    {
-      key: 'clear',
-      label: 'Xóa tất cả hoạt động',
-      disabled: activities.length === 0,
-    },
-    {
-      key: 'delete',
-      label: 'Xóa cột',
-      danger: true,
-    },
-  ];
 
   const isDraggedOver = isOver && active && active.data.current?.type === 'activity';
   const isEmpty = activities.length === 0;
@@ -317,20 +243,6 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
               }}
               title="Thêm hoạt động mới"
             />
-            <Dropdown menu={{ items: columnMenuItems }} trigger={['click']} placement="bottomRight">
-              <Button
-                type="text"
-                size="small"
-                icon={<MoreOutlined />}
-                onClick={e => e.stopPropagation()}
-                style={{
-                  minWidth: 24,
-                  height: 24,
-                  padding: 0,
-                }}
-                title="Thêm tùy chọn"
-              />
-            </Dropdown>
           </Space>
         </div>
       }
@@ -343,14 +255,11 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
         },
         body: {
           padding: '5px 8px 0 8px',
-          // height: 'calc(100vh - 230px)',
           overflowY: 'auto',
           overflowX: 'hidden',
           borderTop: isDraggedOver ? '2px dashed #1890ff' : '1px solid #d9d9d9',
-          // backgroundColor: isDraggedOver ? '#f0f9ff' : '#fafafa',
           backgroundColor: `${hexToRgba(getStageColor(stage), 0.02)}`,
           transition: 'all 0.2s ease',
-          // minHeight: 400,
           marginBottom: 0,
           width: '260px',
         },

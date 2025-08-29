@@ -1,25 +1,15 @@
-import React from 'react';
-import { Modal, Form, Input, Select, Row, Col, Typography, DatePicker } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Modal, Form, Input, Select, Row, Col, Tabs, DatePicker, message } from 'antd';
 import { useCreate, useList } from '@refinedev/core';
 import {
-  CalendarOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  FlagOutlined,
-  LinkOutlined,
-  ReadOutlined,
-} from '@ant-design/icons';
-import {
-  IconCalendar,
-  IconClock,
-  IconFlag,
-  IconLink,
-  IconBook,
   IconCircleCheck,
+  IconCalendar,
+  IconFlag,
+  IconClock,
+  IconLink,
+  IconUser,
 } from '@tabler/icons-react';
-import { SelectProps } from 'antd/lib';
 import Description from '../activityModalComponents/Description';
-const { Title } = Typography;
 
 const { Option } = Select;
 
@@ -37,25 +27,39 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
   stageId,
 }) => {
   const [form] = Form.useForm();
+  const [activeTab, setActiveTab] = useState<'task' | 'event'>('task');
 
   const { mutate: createActivity, isPending } = useCreate();
 
-  // Fetch stages for selection
   const { data: stagesData } = useList({
     resource: 'stages',
     pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
   });
-
-  // Fetch semesters for selection
   const { data: semestersData } = useList({
     resource: 'semesters',
     pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
   });
+  const { data: usersData } = useList({
+    resource: 'users/all',
+    pagination: { mode: 'off' },
+    sorters: [{ field: 'name', order: 'asc' }],
+  });
 
   const stages = stagesData?.data || [];
   const semesters = semestersData?.data || [];
+  const users = usersData?.data || [];
+
+  useEffect(() => {
+    if (visible) {
+      form.resetFields();
+      setActiveTab('task');
+      if (stageId) {
+        form.setFieldsValue({ stageId });
+      }
+    }
+  }, [visible, stageId, form]);
 
   const handleSubmit = () => {
     form.validateFields().then(values => {
@@ -63,11 +67,10 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
         ...values,
         stageId: stageId || values.stageId,
         status: 'new',
-        type: values.type?.value || 'task',
-        estimateTime: Number(values.estimateTime) || undefined,
+        type: activeTab,
+        estimateTime: values.estimateTime ? Number(values.estimateTime) : undefined,
+        assignees: values.assignees || [],
       };
-
-      console.log(activityData);
 
       createActivity(
         {
@@ -77,499 +80,338 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
         {
           onSuccess: () => {
             form.resetFields();
+            message.success('Tạo hoạt động thành công');
             onSuccess();
+          },
+          onError: () => {
+            message.error('Tạo hoạt động thất bại');
           },
         },
       );
     });
   };
 
-  React.useEffect(() => {
-    if (visible) {
-      form.resetFields();
-      if (stageId) {
-        form.setFieldsValue({ stageId });
-      }
-    }
-  }, [visible, stageId, form]);
-
-  const taskLabel = (
-    <Title
-      level={3}
-      style={{
-        color: '#202020',
-        fontWeight: 600,
-        fontSize: '14px',
-        margin: 0,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 5,
-      }}
-    >
-      <IconCircleCheck style={{ color: '#1890ff' }} size={16} />
-      Tạo công việc mới
-    </Title>
-  );
-
-  const eventLabel = (
-    <Title
-      level={3}
-      style={{
-        color: '#202020',
-        fontWeight: 600,
-        fontSize: '14px',
-        margin: 0,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 5,
-      }}
-    >
-      <IconCalendar style={{ color: '#52c41a' }} size={16} />
-      Tạo sự kiện mới
-    </Title>
-  );
-
-  const activitySelect: SelectProps<any> = {
-    options: [
-      { label: taskLabel, value: 'task' },
-      { label: eventLabel, value: 'event' },
-    ],
-  };
-
-  return (
-    <>
-      <Modal
-        open={visible}
-        onCancel={onCancel}
-        onOk={handleSubmit}
-        confirmLoading={isPending}
-        width={1000}
-        style={{ top: 20 }}
-        styles={{
-          body: {
-            padding: 0,
-            background: '#ffffff',
-          },
-        }}
-      >
+  const priorityOptions = [
+    {
+      label: (
         <div
           style={{
-            background: '#ffffff',
-            borderRadius: 8,
+            display: 'flex',
+            alignItems: 'center',
           }}
         >
-          <Form form={form} layout="vertical">
-            <div
-              style={{
-                padding: '20px 24px 16px',
-                borderBottom: '1px solid #e6e9ef',
-              }}
-            >
-              <Form.Item name={'type'}>
-                <Select
-                  {...activitySelect}
-                  labelInValue
-                  defaultValue={{ value: 'task', label: taskLabel }}
-                  variant="borderless"
-                  style={{
-                    width: '20%',
-                    color: '#202020',
-                    fontWeight: 600,
-                    fontSize: '18px',
-                    margin: 0,
-                  }}
-                  size="small"
-                />
-              </Form.Item>
-            </div>
+          <IconFlag size={14} style={{ color: '#ff4d4f', marginRight: 6 }} />
+          Urgent
+        </div>
+      ),
+      value: 'urgent',
+    },
+    {
+      label: (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <IconFlag size={14} style={{ color: '#faad14', marginRight: 6 }} />
+          High
+        </div>
+      ),
+      value: 'high',
+    },
+    {
+      label: (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <IconFlag size={14} style={{ color: '#1890ff', marginRight: 6 }} />
+          Normal
+        </div>
+      ),
+      value: 'medium',
+    },
+    {
+      label: (
+        <div>
+          <IconFlag size={14} style={{ color: '#bfbfbf', marginRight: 6 }} />
+          Low
+        </div>
+      ),
+      value: 'low',
+    },
+  ];
 
-            <div style={{ padding: '20px 24px' }}>
-              {/* Taskname */}
-              <div style={{ marginBottom: 20 }}>
-                <Form.Item name="name" rules={[{ required: true }]} style={{ marginBottom: 0 }}>
+  return (
+    <Modal
+      open={visible}
+      onCancel={onCancel}
+      onOk={handleSubmit}
+      confirmLoading={isPending}
+      width={800}
+      centered
+      title={
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {activeTab === 'task' ? (
+            <IconCircleCheck style={{ color: '#1890ff' }} size={20} />
+          ) : (
+            <IconCalendar style={{ color: '#52c41a' }} size={20} />
+          )}
+          {activeTab === 'task' ? 'Tạo công việc mới' : 'Tạo sự kiện mới'}
+        </span>
+      }
+      styles={{ body: { background: '#fff', padding: 0 } }}
+    >
+      <Tabs
+        activeKey={activeTab}
+        onChange={key => setActiveTab(key as 'task' | 'event')}
+        items={[
+          {
+            key: 'task',
+            label: (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
+                <IconCircleCheck style={{ color: '#1890ff' }} size={16} />
+                Công việc
+              </span>
+            ),
+            children: (
+              <Form form={form} layout="vertical">
+                <Form.Item
+                  label="Tên công việc"
+                  name="name"
+                  rules={[{ required: true, message: 'Nhập tên công việc' }]}
+                >
                   <Input
-                    placeholder="Tên công việc"
-                    style={{
-                      fontSize: '20px',
-                      fontWeight: 500,
-                      border: 'none',
-                      padding: '8px 20px',
-                      background: 'transparent',
-                      boxShadow: 'none',
-                      color: '#202020',
-                    }}
+                    placeholder="Nhập tên công việc"
+                    size="middle"
+                    style={{ fontWeight: 500 }}
                   />
                 </Form.Item>
-                <div
-                  style={{
-                    height: '1px',
-                    background: '#e6e9ef',
-                    marginTop: '4px',
-                  }}
-                />
-              </div>
-
-              <div
-                style={{
-                  marginBottom: 20,
-                  padding: '16px',
-                  borderRadius: 8,
-                  border: '1px solid #e6e9ef',
-                }}
-              >
-                <Row gutter={[0, 12]}>
-                  <Col span={24}>
-                    <Row gutter={24}>
-                      {/* Status */}
-                      <Col span={12}>
-                        <div style={{ display: 'flex', alignItems: 'center', minHeight: '32px' }}>
-                          <div
-                            style={{
-                              width: '120px',
-                              fontSize: '14px',
-                              color: '#202020',
-                              fontWeight: 500,
-                              letterSpacing: '0.3px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 5,
-                            }}
-                          >
-                            <CheckCircleOutlined style={{ color: '#8c8c8c' }} />
-                            Trạng thái
-                          </div>
-                          <Form.Item
-                            name="stageId"
-                            rules={[{ required: true }]}
-                            style={{ margin: 0, flex: 1 }}
-                          >
-                            <Select
-                              defaultValue={stageId}
-                              placeholder="Chọn trạng thái"
-                              style={{
-                                background: '#f9f9f9',
-                                width: '100%',
-                                padding: '4px 4px',
-                                borderRadius: '5px',
-                              }}
-                              variant="borderless"
-                            >
-                              {stages.map(stage => (
-                                <Option key={stage.id} value={stage.id}>
-                                  {stage.title}
-                                </Option>
-                              ))}
-                            </Select>
-                          </Form.Item>
-                        </div>
-                      </Col>
-
-                      {/* assignee */}
-                      {/* <Col span={12}>
-                        <div style={{ display: 'flex', alignItems: 'center', minHeight: '32px' }}>
-                          <div
-                            style={{
-                              width: '120px',
-                              fontSize: '14px',
-                              color: '#202020',
-                              fontWeight: 500,
-                              letterSpacing: '0.3px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 5,
-                            }}
-                          >
-                            <TeamOutlined style={{ color: '#8c8c8c' }} />
-                            Đảm nhiệm
-                          </div>
-                          <Form.Item name="assignees" style={{ margin: 0, flex: 1 }}>
-                            <Select
-                              mode="multiple"
-                              placeholder="Thêm người đảm nhiệm"
-                              style={{
-                                background: '#f9f9f9',
-                                width: '100%',
-                                padding: '4px 4px',
-                                borderRadius: '5px',
-                              }}
-                              variant="borderless"
-                              size="small"
-                              maxTagCount={3}
-                            >
-                              {users.map(user => (
-                                <Option key={user.id} value={user.id}>
-                                  {user.name}
-                                </Option>
-                              ))}
-                            </Select>
-                          </Form.Item>
-                        </div>
-                      </Col> */}
-                      <Col span={12}>
-                        <div style={{ display: 'flex', alignItems: 'center', minHeight: '32px' }}>
-                          <div
-                            style={{
-                              width: '120px',
-                              fontSize: '14px',
-                              color: '#202020',
-                              fontWeight: 500,
-
-                              letterSpacing: '0.3px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 5,
-                            }}
-                          >
-                            <ReadOutlined style={{ color: '#8c8c8c' }} />
-                            Kỳ học
-                          </div>
-                          <Form.Item
-                            name="semesterId"
-                            rules={[{ required: true }]}
-                            style={{ margin: 0, flex: 1 }}
-                          >
-                            <Select
-                              placeholder="Chọn kỳ học "
-                              style={{
-                                background: '#f9f9f9',
-                                width: '100%',
-                                padding: '4px 4px',
-                                borderRadius: '5px',
-                              }}
-                              variant="borderless"
-                            >
-                              {semesters.map(semester => (
-                                <Option key={semester.id} value={semester.id}>
-                                  {semester.name}
-                                </Option>
-                              ))}
-                            </Select>
-                          </Form.Item>
-                        </div>
-                      </Col>
-                    </Row>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Trạng thái"
+                      name="stageId"
+                      rules={[{ required: true, message: 'Chọn trạng thái' }]}
+                    >
+                      <Select placeholder="Chọn trạng thái" style={{ width: '100%' }} size="middle">
+                        {stages.map(stage => (
+                          <Option key={stage.id} value={stage.id}>
+                            {stage.title}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
                   </Col>
-
-                  <Col span={24}>
-                    <Row gutter={24}>
-                      {/* Priority */}
-                      <Col span={12}>
-                        <div style={{ display: 'flex', alignItems: 'center', minHeight: '32px' }}>
-                          <div
-                            style={{
-                              width: '120px',
-                              fontSize: '14px',
-                              color: '#202020',
-                              fontWeight: 500,
-                              letterSpacing: '0.3px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 5,
-                            }}
-                          >
-                            <FlagOutlined style={{ color: '#8c8c8c' }} />
-                            Ưu tiên
-                          </div>
-                          <Form.Item
-                            name="priority"
-                            rules={[{ required: true }]}
-                            style={{ margin: 0, flex: 1 }}
-                          >
-                            <Select
-                              placeholder="Chọn mức độ ưu tiên"
-                              style={{
-                                background: '#f9f9f9',
-                                width: '100%',
-                                padding: '4px 4px',
-                                borderRadius: '5px',
-                              }}
-                              variant="borderless"
-                              options={[
-                                { label: '🔴 Urgent', value: 'urgent' },
-                                { label: '🟡 High', value: 'high' },
-                                { label: '🔵 Normal', value: 'medium' },
-                                { label: '⚪ Low', value: 'low' },
-                              ]}
-                            />
-                          </Form.Item>
-                        </div>
-                      </Col>
-
-                      {/* estimate */}
-                      <Col span={12}>
-                        <div style={{ display: 'flex', alignItems: 'center', minHeight: '32px' }}>
-                          <div
-                            style={{
-                              width: '120px',
-                              fontSize: '14px',
-                              color: '#202020',
-                              fontWeight: 500,
-                              letterSpacing: '0.3px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 5,
-                            }}
-                          >
-                            <ClockCircleOutlined style={{ color: '#8c8c8c' }} />
-                            Ước lượng giờ
-                          </div>
-                          <Form.Item name="estimateTime" style={{ margin: 0, flex: 1 }}>
-                            <div
-                              style={{
-                                background: '#f9f9f9',
-                                width: '100%',
-                                padding: '4px 4px',
-                                borderRadius: '5px',
-                              }}
-                            >
-                              <Input
-                                placeholder="Ước lượng thời gian thực hiện"
-                                variant="borderless"
-                                size="small"
-                                suffix={
-                                  <span style={{ color: '#202020', fontSize: '12px' }}>phút</span>
-                                }
-                              />
-                            </div>
-                          </Form.Item>
-                        </div>
-                      </Col>
-                    </Row>
-                  </Col>
-
-                  <Col span={24}>
-                    <Row gutter={24}>
-                      {/* start date */}
-                      <Col span={12}>
-                        <div style={{ display: 'flex', alignItems: 'center', minHeight: '32px' }}>
-                          <div
-                            style={{
-                              width: '120px',
-                              fontSize: '14px',
-                              color: '#202020',
-                              fontWeight: 500,
-
-                              letterSpacing: '0.3px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 5,
-                            }}
-                          >
-                            <CalendarOutlined style={{ color: '#8c8c8c' }} />
-                            Ngày bắt đầu
-                          </div>
-                          <Form.Item name="startTime" style={{ margin: 0, flex: 1 }}>
-                            <DatePicker
-                              showTime
-                              placeholder="Chọn ngày bắt đầu"
-                              style={{
-                                background: '#f9f9f9',
-                                width: '100%',
-                                padding: '4px 14px',
-                                borderRadius: '5px',
-                              }}
-                              variant="borderless"
-                            />
-                          </Form.Item>
-                        </div>
-                      </Col>
-                      {/* end date */}
-                      <Col span={12}>
-                        <div style={{ display: 'flex', alignItems: 'center', minHeight: '32px' }}>
-                          <div
-                            style={{
-                              width: '120px',
-                              fontSize: '14px',
-                              color: '#202020',
-                              fontWeight: 500,
-                              letterSpacing: '0.3px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 5,
-                            }}
-                          >
-                            <CalendarOutlined style={{ color: '#8c8c8c' }} />
-                            Ngày kết thúc
-                          </div>
-                          <Form.Item name="endTime" style={{ margin: 0, flex: 1 }}>
-                            <DatePicker
-                              showTime
-                              placeholder="Chọn ngày kết thúc"
-                              style={{
-                                background: '#f9f9f9',
-                                width: '100%',
-                                padding: '4px 14px',
-                                borderRadius: '5px',
-                              }}
-                              variant="borderless"
-                            />
-                          </Form.Item>
-                        </div>
-                      </Col>
-                    </Row>
-                  </Col>
-
-                  <Col span={24}>
-                    <Row gutter={24}>
-                      {/* semester */}
-
-                      {/* Link */}
-                      <Col span={24}>
-                        <div style={{ display: 'flex', alignItems: 'center', minHeight: '32px' }}>
-                          <div
-                            style={{
-                              width: '120px',
-                              fontSize: '14px',
-                              color: '#202020',
-                              fontWeight: 500,
-
-                              letterSpacing: '0.3px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 5,
-                            }}
-                          >
-                            <LinkOutlined style={{ color: '#8c8c8c' }} />
-                            Liên kết
-                          </div>
-                          <Form.Item name="onlineLink" style={{ margin: 0, flex: 1 }}>
-                            <div
-                              style={{
-                                background: '#f9f9f9',
-                                width: '100%',
-                                padding: '4px 4px',
-                                borderRadius: '5px',
-                              }}
-                            >
-                              <Input
-                                placeholder="Dán một liên kết"
-                                variant="borderless"
-                                size="small"
-                              />
-                            </div>
-                          </Form.Item>
-                        </div>
-                      </Col>
-                    </Row>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Kỳ học"
+                      name="semesterId"
+                      rules={[{ required: true, message: 'Chọn kỳ học' }]}
+                    >
+                      <Select placeholder="Chọn kỳ học" style={{ width: '100%' }} size="middle">
+                        {semesters.map(semester => (
+                          <Option key={semester.id} value={semester.id}>
+                            {semester.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
                   </Col>
                 </Row>
-              </div>
-
-              {/* Description */}
-              <Description />
-
-              {/* Subtask */}
-              {/* <Subtasks users={users} /> */}
-
-              {/* Checklist */}
-              {/* <Checklists form={form} users={users} /> */}
-
-              {/* Attachments */}
-              {/* <Attachments /> */}
-            </div>
-          </Form>
-        </div>
-      </Modal>
-    </>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item label="Người đảm nhiệm" name="assignees">
+                      <Select
+                        mode="multiple"
+                        placeholder="Chọn người đảm nhiệm"
+                        style={{ width: '100%' }}
+                        size="middle"
+                        maxTagCount={3}
+                        optionLabelProp="label"
+                      >
+                        {users.map(user => (
+                          <Option key={user.id} value={user.id} label={user.name}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <IconUser size={16} style={{ color: '#1890ff' }} />
+                              {user.name}
+                            </span>
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item label="Ưu tiên" name="priority" rules={[{ required: true }]}>
+                      <Select
+                        placeholder="Chọn mức độ ưu tiên"
+                        options={priorityOptions}
+                        style={{ width: '100%' }}
+                        size="middle"
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item label="Ước lượng thời gian (phút)" name="estimateTime">
+                      <Input
+                        placeholder="Ước lượng thời gian thực hiện"
+                        size="middle"
+                        type="number"
+                        min={0}
+                        suffix={<IconClock size={16} style={{ color: '#8c8c8c' }} />}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item label="Liên kết online" name="onlineLink">
+                      <Input
+                        placeholder="Dán một liên kết"
+                        size="middle"
+                        prefix={<IconLink size={16} style={{ color: '#8c8c8c' }} />}
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item label="Ngày bắt đầu" name="startTime">
+                      <DatePicker
+                        showTime
+                        placeholder="Chọn ngày bắt đầu"
+                        style={{ width: '100%' }}
+                        size="middle"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item label="Ngày kết thúc" name="endTime">
+                      <DatePicker
+                        showTime
+                        placeholder="Chọn ngày kết thúc"
+                        style={{ width: '100%' }}
+                        size="middle"
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Form.Item name="description">
+                  <Description />
+                </Form.Item>
+              </Form>
+            ),
+          },
+          {
+            key: 'event',
+            label: (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
+                <IconCalendar style={{ color: '#52c41a' }} size={16} />
+                Sự kiện
+              </span>
+            ),
+            children: (
+              <Form form={form} layout="vertical">
+                <Form.Item
+                  label="Tên sự kiện"
+                  name="name"
+                  rules={[{ required: true, message: 'Nhập tên sự kiện' }]}
+                >
+                  <Input placeholder="Nhập tên sự kiện" size="middle" style={{ fontWeight: 500 }} />
+                </Form.Item>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Trạng thái"
+                      name="stageId"
+                      rules={[{ required: true, message: 'Chọn trạng thái' }]}
+                    >
+                      <Select placeholder="Chọn trạng thái" style={{ width: '100%' }} size="middle">
+                        {stages.map(stage => (
+                          <Option key={stage.id} value={stage.id}>
+                            {stage.title}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Kỳ học"
+                      name="semesterId"
+                      rules={[{ required: true, message: 'Chọn kỳ học' }]}
+                    >
+                      <Select placeholder="Chọn kỳ học" style={{ width: '100%' }} size="middle">
+                        {semesters.map(semester => (
+                          <Option key={semester.id} value={semester.id}>
+                            {semester.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item label="Người tham gia" name="assignees">
+                      <Select
+                        mode="multiple"
+                        placeholder="Chọn người tham gia"
+                        style={{ width: '100%' }}
+                        size="middle"
+                        maxTagCount={3}
+                        optionLabelProp="label"
+                      >
+                        {users.map(user => (
+                          <Option key={user.id} value={user.id} label={user.name}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <IconUser size={16} style={{ color: '#1890ff' }} />
+                              {user.name}
+                            </span>
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item label="Địa điểm" name="location">
+                      <Input placeholder="Nhập địa điểm tổ chức" size="middle" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item label="Ngày bắt đầu" name="startTime">
+                      <DatePicker
+                        showTime
+                        placeholder="Chọn ngày bắt đầu"
+                        style={{ width: '100%' }}
+                        size="middle"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item label="Ngày kết thúc" name="endTime">
+                      <DatePicker
+                        showTime
+                        placeholder="Chọn ngày kết thúc"
+                        style={{ width: '100%' }}
+                        size="middle"
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Form.Item label="Mô tả" name="description">
+                  <Description />
+                </Form.Item>
+              </Form>
+            ),
+          },
+        ]}
+      />
+    </Modal>
   );
 };

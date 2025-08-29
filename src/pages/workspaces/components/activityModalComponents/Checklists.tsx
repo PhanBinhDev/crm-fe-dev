@@ -12,6 +12,7 @@ import {
 } from '@ant-design/icons';
 import { Button, Checkbox, Dropdown, Form, Input, Select } from 'antd';
 import { FormInstance } from 'antd';
+const { Option } = Select;
 interface ChecklistsProps {
   form: FormInstance;
   users: any;

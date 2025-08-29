@@ -1,4 +1,4 @@
-import { FileTextOutlined } from '@ant-design/icons';
+import { IconFileDescription } from '@tabler/icons-react';
 import { Form, Input } from 'antd';
 
 const Description = () => {
@@ -25,7 +25,7 @@ const Description = () => {
               gap: 5,
             }}
           >
-            <FileTextOutlined style={{ color: '#8c8c8c' }} />
+            <IconFileDescription size={18} style={{ color: '#8c8c8c' }} />
             Mô tả
           </div>
           <Form.Item name="description" style={{ marginBottom: 0, flex: 1 }}>

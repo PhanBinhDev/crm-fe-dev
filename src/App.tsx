@@ -20,15 +20,14 @@ import { GoogleLoginPage } from '@/components/auth/GoogleLoginPage';
 import { standardDataProvider } from '@/providers/nestjs';
 import { API_URL } from '@/constants';
 import { WorkspaceProvider } from './contexts/workspaces';
-import { DashboardPage } from '@pages/dashboard';
-import { activitiesRoutes } from '@/pages/workspaces/routes';
 import { userRoutes } from '@/pages/users/routes';
 import { profileRoutes } from '@/pages/profile/routes';
 import { semesterRoutes } from '@/pages/semester/routes';
 import { ErrorComponent } from './components/common/ErrorBoundary';
-import { accessControlProvider } from './providers/accessControlProvider';
-import { workspaceRoutes } from './pages/workspace/routes';
+import { accessControlProvider } from './providers/AccessControlProvider';
 import Modals from './components/modals';
+import { workspaceRoutes } from './pages/workspace/routes';
+import { ActivitiesKanbanPage } from './pages/workspaces/list';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
@@ -80,11 +79,12 @@ function App() {
                       }
                     >
                       <Route index element={<NavigateToResource resource="dashboard" />} />
-                      <Route path="/dashboard" element={<DashboardPage />} />
+                      <Route path="/dashboard" element={<ActivitiesKanbanPage />} />
                       {userRoutes}
-                      {activitiesRoutes}
+                      {/* {activitiesRoutes} */}
                       {profileRoutes}
                       {semesterRoutes}
+                      {workspaceRoutes}
                       <Route path="*" element={<ErrorComponent />} />
                     </Route>
 

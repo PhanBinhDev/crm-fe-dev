@@ -35,6 +35,7 @@ import {
   IconFilter,
   IconSortAscending,
   IconUsersGroup,
+  IconSearch,
 } from '@tabler/icons-react';
 
 import {
@@ -468,7 +469,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
       >
         <Input
           placeholder="Tìm kiếm nhiệm vụ..."
-          prefix={<IconList size={18} style={{ color: '#8c8c8c' }} />}
+          prefix={<IconSearch size={16} style={{ color: '#8c8c8c' }} />}
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           allowClear
@@ -507,7 +508,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
             trigger="click"
           >
             <Button
-              icon={<IconFilter size={18} />}
+              icon={<IconFilter size={16} />}
               style={{ borderRadius: 8 }}
               styles={{
                 icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -517,7 +518,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
             </Button>
           </Popover>
           <Button
-            icon={<IconPlus size={18} />}
+            icon={<IconPlus size={16} />}
             type="primary"
             style={{ borderRadius: 8 }}
             styles={{
@@ -543,6 +544,13 @@ export const ActivitiesKanbanPage: React.FC = () => {
             type={viewMode === 'list' ? 'primary' : 'default'}
             icon={<IconList size={18} />}
             style={{ borderRadius: 8 }}
+            styles={{
+              icon: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+            }}
             onClick={() => setViewMode('list')}
           >
             List
@@ -553,7 +561,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
             style={{ borderRadius: 8 }}
             onClick={() => setViewMode('kanban')}
           >
-            Kanban
+            Board
           </Button>
         </Space>
       </div>
@@ -659,31 +667,44 @@ export const ActivitiesKanbanPage: React.FC = () => {
                   <Panel
                     showArrow={false}
                     header={
-                      <div className="stage-panel-header flex">
-                        <div className="stage-header-left">
-                          <div
-                            className="stage-dot"
-                            style={{ backgroundColor: getStageColor(stage) }}
-                          />
-                          <Title level={5} className="stage-title" style={{ fontWeight: '500' }}>
+                      <Row
+                        align="middle"
+                        justify="space-between"
+                        style={{ padding: '8px 14px', background: '#fff', border: 'none' }}
+                      >
+                        <Space align="center">
+                          <Badge color={getStageColor(stage)} style={{ marginRight: 8 }} />
+                          <Title
+                            level={5}
+                            style={{ fontWeight: 500, fontSize: 14, margin: 0, color: '#262626' }}
+                          >
                             {stage.title}
                           </Title>
                           <Badge
                             count={stageActivities.length}
-                            className="stage-badge"
-                            style={{ backgroundColor: getStageColor(stage) }}
+                            style={{
+                              backgroundColor: getStageColor(stage),
+                              fontSize: 11,
+                              minWidth: 20,
+                              height: 20,
+                              lineHeight: '18px',
+                              borderRadius: 10,
+                              color: '#fff',
+                              marginLeft: 8,
+                            }}
                           />
-                        </div>
+                        </Space>
                         <Button
                           type="text"
                           size="small"
                           icon={<PlusOutlined />}
                           onClick={() => handleAddActivity(stage.id)}
-                          className="stage-add-btn"
-                        >
-                          Add task
-                        </Button>
-                      </div>
+                          style={{
+                            color: '#8c8c8c',
+                            fontSize: 12,
+                          }}
+                        />
+                      </Row>
                     }
                     key={1}
                   >
@@ -700,14 +721,25 @@ export const ActivitiesKanbanPage: React.FC = () => {
                         showHeader={stage.position === 0}
                       />
                     ) : (
-                      <div className="stage-empty">
-                        <div className="stage-empty-text">No tasks in this status</div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          padding: '20px 16px',
+                          color: '#8c8c8c',
+                        }}
+                      >
+                        <Text style={{ marginBottom: 4, fontSize: 13 }}>
+                          Không có hoạt động nào
+                        </Text>
                         <Button
                           type="link"
                           size="small"
                           onClick={() => handleAddActivity(stage.id)}
                         >
-                          Add the first task
+                          Thêm hoạt động đầu tiên
                         </Button>
                       </div>
                     )}

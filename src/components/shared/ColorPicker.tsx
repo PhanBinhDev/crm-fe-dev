@@ -1,17 +1,20 @@
 import { PRESET_COLORS } from '@/constants';
 import { Popover, ColorPicker as AntdColorPicker } from 'antd';
 import { useState } from 'react';
+import { useDebounceCallback } from 'usehooks-ts';
 
 interface ColorPickerProps {
   value?: string;
   onChange?: (color: string) => void;
   size?: number;
+  radius?: number;
 }
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   value = '#EA580C',
   onChange,
   size = 8,
+  radius = 999,
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -20,10 +23,10 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     setOpen(false);
   };
 
-  const handleCustomColorChange = (color: any) => {
+  const debouncedCustomColorChange = useDebounceCallback((color: any) => {
     const hexColor = typeof color === 'string' ? color : color.toHexString();
     onChange?.(hexColor);
-  };
+  }, 300);
 
   const ColorGrid = (
     <div style={{ padding: '12px', width: '200px' }}>
@@ -63,7 +66,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
       {/* Custom color picker button */}
       <AntdColorPicker
         value={value}
-        onChange={handleCustomColorChange}
+        onChange={debouncedCustomColorChange}
         trigger="click"
         placement="right"
       >
@@ -104,13 +107,13 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
       open={open}
       onOpenChange={setOpen}
       placement="bottomLeft"
-      overlayStyle={{ zIndex: 1060 }}
+      styles={{ root: { zIndex: 1060 } }}
     >
       <div
         style={{
           width: `${size + 4}px`,
           height: `${size + 4}px`,
-          borderRadius: '50%',
+          borderRadius: `${radius}px`,
           backgroundColor: '#fff',
           border: '1px solid #e5e7eb',
           cursor: 'pointer',
@@ -120,18 +123,12 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
         }}
-        onMouseEnter={e => {
-          e.currentTarget.style.transform = 'scale(1.3)';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.transform = 'scale(1)';
-        }}
       >
         <div
           style={{
             width: `${size}px`,
             height: `${size}px`,
-            borderRadius: '50%',
+            borderRadius: `${radius}px`,
             backgroundColor: value,
           }}
         />
