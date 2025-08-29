@@ -1,5 +1,18 @@
-import React, { useEffect } from 'react';
-import { Modal, Form, Input, Select, Row, Col, Typography, DatePicker, message } from 'antd';
+import React, { useEffect, useState } from 'react';
+import {
+  Modal,
+  Form,
+  Input,
+  Select,
+  Row,
+  Col,
+  Typography,
+  DatePicker,
+  message,
+  Tooltip,
+  Avatar,
+  Space,
+} from 'antd';
 import { useList, useUpdate } from '@refinedev/core';
 import {
   CalendarOutlined,
@@ -14,6 +27,11 @@ import {
 import { SelectProps } from 'antd/lib';
 import dayjs from 'dayjs';
 import { IActivity } from '@/common/types';
+import Subtasks from '@/pages/workspaces/components/activityModalComponents/Subtasks';
+import Checklists from '@/pages/workspaces/components/activityModalComponents/Checklists';
+import Attachments from '@/pages/workspaces/components/activityModalComponents/Attachments';
+import { getUsername } from '@/utils/formatter';
+import { verticalListSortingStrategy } from '@dnd-kit/sortable';
 const { Title } = Typography;
 
 const { Option } = Select;
@@ -36,6 +54,8 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
     errorNotification: false,
   });
   const [form] = Form.useForm();
+
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -84,6 +104,8 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
         estimateTime: Number(values.estimateTime) || undefined,
       };
 
+      activityData.assignees = undefined;
+
       updateActivity(
         {
           resource: 'activities',
@@ -106,11 +128,16 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
     });
   };
 
+  const handleAssignee = () => {
+    console.log(selectedUsers);
+  };
+
   React.useEffect(() => {
     if (isOpen) {
       form.resetFields();
       if (activity) {
         const formData = {
+          type: activity.type,
           name: activity.name,
           stageId: activity.stageId,
           description: activity.description,
@@ -145,6 +172,57 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
     </Title>
   );
 
+  const tagRender = (props: any) => {
+    const { label, value, closable, onClose } = props;
+    const user = users.find(u => u.id === value);
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 3px',
+          background: '#f0f0f0',
+          borderRadius: '12px',
+          height: 20,
+          fontSize: 12,
+          marginRight: 4,
+          position: 'relative',
+        }}
+      >
+        {user?.avatar ? (
+          <Avatar src={user.avatar} size={24} style={{ marginRight: 4 }} />
+        ) : (
+          <Avatar size={24} style={{ marginRight: 4, fontSize: 10, backgroundColor: '#333' }}>
+            {getUsername(user?.name || '')}
+          </Avatar>
+        )}
+        {closable && (
+          <span
+            style={{
+              marginLeft: 4,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '13px',
+              height: '13px',
+              borderRadius: '1000px',
+              backgroundColor: '#333',
+              color: '#fff',
+              cursor: 'pointer',
+              fontSize: 10,
+              position: 'absolute',
+              top: '-9px',
+              right: '-3px',
+            }}
+            onClick={onClose}
+          >
+            ×
+          </span>
+        )}
+      </div>
+    );
+  };
+
   const eventLabel = (
     <Title
       level={3}
@@ -169,6 +247,8 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
       { label: eventLabel, value: 'event' },
     ],
   };
+
+  console.log(users);
 
   return (
     <>
@@ -321,13 +401,48 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
                                 padding: '4px 4px',
                                 borderRadius: '5px',
                               }}
+                              tagRender={tagRender}
                               variant="borderless"
                               size="small"
                               maxTagCount={3}
+                              onChange={values => setSelectedUsers(values)}
+                              onBlur={handleAssignee}
+                              onDeselect={values => {
+                                console.log(values);
+                              }}
                             >
                               {users.map(user => (
                                 <Option key={user.id} value={user.id}>
-                                  {user.name}
+                                  <Tooltip
+                                    placement="bottom"
+                                    color="#fff"
+                                    title={
+                                      <div style={{ backgroundColor: '#fff', color: '#333' }}>
+                                        <div>
+                                          <b>{user.name}</b>
+                                        </div>
+                                        <div>
+                                          <b>Email:</b> {user.email}
+                                        </div>
+                                        <div>
+                                          <b>Phone:</b> {user.phone}
+                                        </div>
+                                      </div>
+                                    }
+                                  >
+                                    {user.avatar ? (
+                                      <Space>
+                                        <Avatar src={user.avatar} />
+                                        <div>
+                                          <p>{user.name} </p> <p>{user.email}</p>
+                                        </div>
+                                      </Space>
+                                    ) : (
+                                      <Avatar style={{ backgroundColor: '#333' }}>
+                                        {getUsername(user.name)}
+                                      </Avatar>
+                                    )}
+                                  </Tooltip>
                                 </Option>
                               ))}
                             </Select>
@@ -611,17 +726,23 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
                   </div>
                 </div>
               </div>
-
-              {/* Subtask */}
-              {/* <Subtasks users={users} /> */}
-
-              {/* Checklist */}
-              {/* <Checklists form={form} users={users} /> */}
-
-              {/* Attachments */}
-              {/* <Attachments /> */}
             </div>
           </Form>
+          <div
+            style={{
+              padding: '20px 24px 16px',
+              borderBottom: '1px solid #e6e9ef',
+            }}
+          >
+            {/* Subtask */}
+            <Subtasks users={users} />
+
+            {/* Checklist */}
+            <Checklists form={form} users={users} />
+
+            {/* Attachments */}
+            <Attachments />
+          </div>
         </div>
       </Modal>
     </>
