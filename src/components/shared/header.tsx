@@ -2,21 +2,15 @@ import { Layout, Space, Dropdown, Button, Avatar, Spin, MenuProps, Badge, Drawer
 import { IconBell, IconClock, IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
 import styles from '@/styles/header.module.css';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useLogout } from '@refinedev/core';
-import { useState } from 'react';
-import { UserInfo } from '@/pages/users/show/components';
-import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { useState } from 'react';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
 
 const { Header } = Layout;
 export const AppHeader = () => {
   const { user, isLoading } = useAuth();
-  const navigate = useNavigate();
   const { mutate: logout } = useLogout();
-  const [settingsDrawerVisible, setSettingsDrawerVisible] = useState(false);
   const [profileTab, setProfileTab] = useState(false);
 
   const notificationItems: MenuProps['items'] = [
