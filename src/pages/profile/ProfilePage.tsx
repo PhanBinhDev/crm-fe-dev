@@ -8,7 +8,6 @@ import {
   Typography,
   Space,
   Button,
-  Tag,
   Spin,
   Upload,
   Input,
@@ -128,23 +127,18 @@ export const ProfilePage: React.FC = () => {
       return;
     }
 
-    console.log(editData);
-
     updateUser(
       {
         resource: 'users',
         id: identity.id,
         values: editData,
-        errorNotification: false,
-        successNotification: false,
       },
       {
         onSuccess: () => {
           setIsEditing(false);
           message.success('Cập nhật thông tin thành công');
         },
-        onError: error => {
-          console.error('Update error:', error);
+        onError: () => {
           message.error('Cập nhật thông tin thất bại');
         },
       },
@@ -183,8 +177,6 @@ export const ProfilePage: React.FC = () => {
               resource: 'users',
               id: identity.id,
               values: { avatar: fullUrl },
-              errorNotification: false,
-              successNotification: false,
             },
             {
               onSuccess: () => {
@@ -329,15 +321,27 @@ export const ProfilePage: React.FC = () => {
             marginBottom: 12,
             paddingLeft: '12px',
             paddingRight: '12px',
-            borderBottom: '2px solid #f0f0f0',
             background: '#fff',
-            borderRadius: '8px 8px 0 0',
+            borderRadius: 12,
+            border: '1px solid #f0f0f0',
           }}
           items={[
             {
               key: 'contact',
               label: (
-                <Space>
+                <Space
+                  styles={{
+                    item: {
+                      display: 'flex',
+                      alignItems: 'center',
+                    },
+                  }}
+                  style={{
+                    alignItems: 'center',
+                    display: 'flex',
+                    gap: 8,
+                  }}
+                >
                   <IconUser size={18} stroke={1.5} />
                   <span>Thông tin liên hệ</span>
                 </Space>
@@ -583,7 +587,19 @@ export const ProfilePage: React.FC = () => {
             {
               key: 'account',
               label: (
-                <Space>
+                <Space
+                  styles={{
+                    item: {
+                      display: 'flex',
+                      alignItems: 'center',
+                    },
+                  }}
+                  style={{
+                    alignItems: 'center',
+                    display: 'flex',
+                    gap: 8,
+                  }}
+                >
                   <IconCalendar size={18} stroke={1.5} />
                   <span>Thông tin tài khoản</span>
                 </Space>
