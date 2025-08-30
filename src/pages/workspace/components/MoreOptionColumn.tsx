@@ -1,14 +1,20 @@
-import { useState } from 'react';
 import { IconChevronDown, IconDots, IconPencil, IconPlus } from '@tabler/icons-react';
 import { Popover, Tooltip } from 'antd';
+import { useState } from 'react';
 
 interface MoreOptionColumnProps {
   onEditColumn: () => void;
   collapsed: boolean;
   onCollapseGroup: () => void;
+  onAddActivity: () => void;
 }
 
-const MoreOptionColumn = ({ collapsed, onEditColumn, onCollapseGroup }: MoreOptionColumnProps) => {
+const MoreOptionColumn = ({
+  collapsed,
+  onEditColumn,
+  onCollapseGroup,
+  onAddActivity,
+}: MoreOptionColumnProps) => {
   const [open, setOpen] = useState(false);
 
   const handleEdit = () => {
@@ -75,7 +81,10 @@ const MoreOptionColumn = ({ collapsed, onEditColumn, onCollapseGroup }: MoreOpti
           fontSize: 14,
           transition: 'background 0.2s',
         }}
-        onClick={() => setOpen(false)}
+        onClick={() => {
+          onAddActivity();
+          setOpen(false);
+        }}
         onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f5')}
         onMouseLeave={e => (e.currentTarget.style.background = 'none')}
       >

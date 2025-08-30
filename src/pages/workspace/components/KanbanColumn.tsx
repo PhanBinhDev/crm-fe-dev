@@ -4,6 +4,7 @@ import ModalEditColumn from '@/components/modals/ModalEditColumn';
 import { ColorPicker } from '@/components/shared/ColorPicker';
 import { DragDropType } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
+import { useModal } from '@/hooks/useModal';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useUpdate } from '@refinedev/core';
@@ -33,6 +34,7 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
   // Mutate
   const { mutate: updateStage } = useUpdate<IStage>();
 
+  const { openModal } = useModal();
   const { attributes, listeners, isDragging, setNodeRef, transition, transform } = useSortable({
     id,
     data: {
@@ -217,6 +219,7 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
               onEditColumn={() => setEditModalOpen(true)}
               collapsed={collapsed}
               onCollapseGroup={() => setCollapsed(v => !v)}
+              onAddActivity={() => openModal('ModalAddActivity', { stageId: stage.id })}
             />
           </div>
         }
@@ -263,7 +266,11 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
                     }}
                     onMouseEnter={e => (e.currentTarget.style.background = '#eaecef')}
                     onMouseLeave={e => (e.currentTarget.style.background = '#f6faff')}
-                    onClick={() => {}}
+                    onClick={() => {
+                      openModal('ModalAddActivity', {
+                        stageId: stage.id,
+                      });
+                    }}
                   >
                     <IconPlus size={20} stroke={1.5} color="#bfbfbf" />
                   </button>

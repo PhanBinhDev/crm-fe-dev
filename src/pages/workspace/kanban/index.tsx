@@ -1,18 +1,22 @@
-import { useCallback, useState } from 'react';
-import { Button, Space, Tabs, Tooltip } from 'antd';
-import { IconLayoutKanban, IconList, IconPlus } from '@tabler/icons-react';
-import SearchActivities from '@/pages/workspace/components/SearchActivities';
+import { IActivity, IStage } from '@/common/types';
+import { useModal } from '@/hooks/useModal';
 import FilterActivities from '@/pages/workspace/components/FilterActivities';
+import SearchActivities from '@/pages/workspace/components/SearchActivities';
 import SettingsActivities from '@/pages/workspace/components/SettingsActivities';
 import KanbanView from '@/pages/workspace/views/KanbanView';
 import ListView from '@/pages/workspace/views/ListView';
 import { useList } from '@refinedev/core';
-import { IActivity, IStage } from '@/common/types';
+import { IconCalendar, IconLayoutKanban, IconList, IconPlus } from '@tabler/icons-react';
+import { Button, Space, Tabs, Tooltip } from 'antd';
+import { useCallback, useState } from 'react';
+import CalendarView from '../views/CalendarView';
 
-type TabKey = 'kanban' | 'list';
+type TabKey = 'kanban' | 'list' | 'calendar';
 
 const KanbanWorkspaces = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('kanban');
+
+  const { openModal } = useModal();
 
   const onSearch = useCallback((value: string) => {
     console.log('run with value', value);
@@ -46,6 +50,7 @@ const KanbanWorkspaces = () => {
       <Space
         style={{
           justifyContent: 'space-between',
+          alignItems: 'center',
           width: '100%',
         }}
       >
@@ -57,18 +62,75 @@ const KanbanWorkspaces = () => {
             {
               key: 'kanban',
               label: (
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <IconLayoutKanban size={16} style={{ marginRight: 2 }} />
-                  Board
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontWeight: activeTab === 'kanban' ? 600 : 400,
+                    color: activeTab === 'kanban' ? '#1677ff' : '#888',
+                    transition: 'color 0.2s',
+                  }}
+                >
+                  <IconLayoutKanban
+                    size={16}
+                    style={{
+                      marginRight: 2,
+                      color: activeTab === 'kanban' ? '#1677ff' : '#bfbfbf',
+                      transition: 'color 0.2s',
+                    }}
+                  />
+                  Bảng
                 </span>
               ),
             },
             {
               key: 'list',
               label: (
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <IconList size={16} style={{ marginRight: 2 }} />
-                  List
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontWeight: activeTab === 'list' ? 600 : 400,
+                    color: activeTab === 'list' ? '#1677ff' : '#888',
+                    transition: 'color 0.2s',
+                  }}
+                >
+                  <IconList
+                    size={16}
+                    style={{
+                      marginRight: 2,
+                      color: activeTab === 'list' ? '#1677ff' : '#bfbfbf',
+                      transition: 'color 0.2s',
+                    }}
+                  />
+                  Danh sách
+                </span>
+              ),
+            },
+            {
+              key: 'calendar',
+              label: (
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontWeight: activeTab === 'calendar' ? 600 : 400,
+                    color: activeTab === 'calendar' ? '#1677ff' : '#888',
+                    transition: 'color 0.2s',
+                  }}
+                >
+                  <IconCalendar
+                    size={16}
+                    style={{
+                      marginRight: 2,
+                      color: activeTab === 'calendar' ? '#1677ff' : '#bfbfbf',
+                      transition: 'color 0.2s',
+                    }}
+                  />
+                  Lịch
                 </span>
               ),
             },
@@ -80,15 +142,19 @@ const KanbanWorkspaces = () => {
             minHeight: 36,
             display: 'flex',
             alignItems: 'center',
+            background: '#fff',
+            borderRadius: 10,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+            padding: '0 12px',
+            gap: 8,
           }}
           style={{
-            background: '#fff',
-            borderRadius: 8,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            padding: '0 14px',
+            borderRadius: 10,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
             height: 36,
             display: 'flex',
             alignItems: 'center',
+            gap: 8,
           }}
         />
         <div
@@ -96,7 +162,6 @@ const KanbanWorkspaces = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end',
-            marginBottom: 12,
             gap: 12,
             flexWrap: 'wrap',
           }}
@@ -108,6 +173,7 @@ const KanbanWorkspaces = () => {
             <Button
               type="primary"
               icon={<IconPlus size={16} />}
+              onClick={() => openModal('ModalAddActivity')}
               style={{
                 borderRadius: 8,
                 width: 36,
@@ -129,6 +195,7 @@ const KanbanWorkspaces = () => {
         <KanbanView stages={stagesData?.data || []} activities={activitiesData?.data || []} />
       )}
       {activeTab === 'list' && <ListView />}
+      {activeTab === 'calendar' && <CalendarView />}
     </div>
   );
 };
