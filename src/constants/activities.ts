@@ -96,3 +96,8 @@ export const PRESET_COLORS = [
   '#9333EA',
   '#8B5CF6',
 ];
+
+export const DragDropType = {
+  KANBAN_COLUMN: 'kanban-column',
+  KANBAN_CARD: 'kanban-card',
+};

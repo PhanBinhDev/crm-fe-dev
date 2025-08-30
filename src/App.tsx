@@ -28,10 +28,10 @@ import { accessControlProvider } from './providers/AccessControlProvider';
 import Modals from './components/modals';
 import { workspaceRoutes } from './pages/workspace/routes';
 import { ActivitiesKanbanPage } from './pages/workspaces/list';
+import { activitiesRoutes } from './pages/workspaces/routes';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
-  
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -82,9 +82,9 @@ function App() {
                       <Route path="/dashboard" element={<ActivitiesKanbanPage />} />
                       {userRoutes}
                       {/* {activitiesRoutes} */}
+                      {workspaceRoutes}
                       {profileRoutes}
                       {semesterRoutes}
-                      {workspaceRoutes}
                       <Route path="*" element={<ErrorComponent />} />
                     </Route>
 

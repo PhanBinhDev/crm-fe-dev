@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Button, Space, Tabs, Tooltip } from 'antd';
 import { IconLayoutKanban, IconList, IconPlus } from '@tabler/icons-react';
 import SearchActivities from '@/pages/workspace/components/SearchActivities';
@@ -14,9 +14,9 @@ type TabKey = 'kanban' | 'list';
 const KanbanWorkspaces = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('kanban');
 
-  const onSearch = (value: string) => {
+  const onSearch = useCallback((value: string) => {
     console.log('run with value', value);
-  };
+  }, []);
 
   // query
 

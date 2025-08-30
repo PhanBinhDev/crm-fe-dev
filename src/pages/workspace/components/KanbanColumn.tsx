@@ -1,17 +1,17 @@
+import { UserRole } from '@/common/enum/user';
 import { IActivity, IStage } from '@/common/types';
+import ModalEditColumn from '@/components/modals/ModalEditColumn';
 import { ColorPicker } from '@/components/shared/ColorPicker';
-import { DragOutlined } from '@ant-design/icons';
-import { useDroppable } from '@dnd-kit/core';
+import { DragDropType } from '@/constants';
+import { useAuth } from '@/hooks/useAuth';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useUpdate } from '@refinedev/core';
-import { Card, Col, Input, message, Modal, Space, Tooltip, Typography } from 'antd';
+import { IconChevronDown, IconGripVertical, IconPlus } from '@tabler/icons-react';
+import { Card, Col, message, Space, Tooltip, Typography } from 'antd';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import MoreOptionColumn from './MoreOptionColumn';
-import { IconChevronDown, IconPlus } from '@tabler/icons-react';
 import ActivityCard from './ActivityCard';
-import { useAuth } from '@/hooks/useAuth';
-import { UserRole } from '@/common/enum/user';
+import MoreOptionColumn from './MoreOptionColumn';
 
 const { Text } = Typography;
 
@@ -25,7 +25,6 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
   const [color, setColor] = useState<string | undefined>(stage.color);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editTitle, setEditTitle] = useState(stage.title);
-  const [rowOrder, setRowOrder] = useState<string[]>(activities?.map(row => row.id) || []);
   const [collapsed, setCollapsed] = useState(false);
   const [hoverHeader, setHoverHeader] = useState(false);
 
@@ -34,48 +33,26 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
   // Mutate
   const { mutate: updateStage } = useUpdate<IStage>();
 
-  const {
-    attributes,
-    listeners,
-    isDragging,
-    setNodeRef: setSortableRef,
-    transition,
-    transform,
-  } = useSortable({
-    id,
-  });
-
-  const { isOver, setNodeRef: setDroppableRef } = useDroppable({
+  const { attributes, listeners, isDragging, setNodeRef, transition, transform } = useSortable({
     id,
     data: {
-      type: 'kanban-column',
+      type: DragDropType.KANBAN_COLUMN,
       stage,
     },
   });
 
-  useEffect(() => {
-    if (activities.length) {
-      const newIds = activities.map(act => act.id);
-      if (newIds.length !== rowOrder.length) {
-        setRowOrder(activities.map(activity => activity.id));
-      }
-    }
-  }, [activities]);
+  const rowOrder = useMemo(() => activities.map(activity => activity.id), [activities]);
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    boxShadow: isDragging
-      ? '0 6px 24px rgba(24, 144, 255, 0.18)'
-      : isOver
-      ? '0 0 0 2px #1677ff'
-      : '0 2px 8px rgba(0,0,0,0.06)',
-    background: isDragging ? '#e6f4ff' : isOver ? '#f0faff' : '#fff',
-    border: isDragging ? '1px solid #1677ff' : '1px solid #f0f0f0',
+    background: '#fff',
+    border: '1px solid #f0f0f0',
     borderRadius: 8,
-    opacity: isDragging ? 0.8 : 1,
+    opacity: isDragging ? 0.5 : 1,
     userSelect: 'none',
     width: '100%',
+    maxWidth: '280px',
   };
 
   const handleColorChange = useCallback(
@@ -103,28 +80,36 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
     [stage, updateStage],
   );
 
-  const setRefs = (element: HTMLElement | null) => {
-    setSortableRef(element);
-    setDroppableRef(element);
-  };
+  useEffect(() => {
+    setColor(stage.color || '#1677ff');
+  }, [stage.color]);
+
+  useEffect(() => {
+    setEditTitle(stage.title);
+  }, [stage.title]);
 
   const canDragColumn = useMemo(() => {
     if (!user || isLoadingUser) return false;
     return [UserRole.CNBM, UserRole.TM].includes(user.role);
   }, [user?.role, isLoadingUser]);
 
+  const isDirty = useMemo(() => {
+    return editTitle !== stage.title || color !== stage.color;
+  }, [editTitle, color, stage]);
+
   return (
-    <Col flex="0 0 280px" ref={setRefs}>
+    <Col flex="0 0 280px" ref={setNodeRef}>
       <Card
         size="small"
         style={style}
         styles={{
           header: {
-            padding: canDragColumn ? '0 6px 1px 12px' : '0 6px 1px 6px',
+            padding: canDragColumn ? '0 6px 1px 4px' : '0 6px 1px 6px',
             borderBottomColor: collapsed ? 'transparent' : '#f0f0f0',
           },
           body: {
             padding: collapsed ? '0 0 1px' : '12px',
+            minHeight: collapsed ? 'auto' : '200px',
           },
         }}
         title={
@@ -138,22 +123,36 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
             onMouseEnter={() => setHoverHeader(true)}
             onMouseLeave={() => setHoverHeader(false)}
           >
-            <Space size="small" style={{ flex: 1 }}>
+            <Space size="small" style={{ flex: 1, gap: 4 }}>
               {canDragColumn && (
                 <div
                   {...attributes}
                   {...listeners}
                   style={{
-                    cursor: 'grab',
-                    padding: '2px',
-                    borderRadius: 4,
+                    cursor: isDragging ? 'grabbing' : 'grab',
                     display: 'flex',
                     alignItems: 'center',
-                    background: isDragging ? '#e6f4ff' : undefined,
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: 4,
+                    minWidth: 28,
+                    height: 28,
+                    justifyContent: 'center',
+                    transition: 'all 0.2s ease',
+                    marginRight: 2,
+                    background: 'transparent',
+                    color: '#8c8c8c',
                   }}
-                  title="Kéo để sắp xếp cột"
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#f5f5f5';
+                    e.currentTarget.style.color = '#595959';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = '#8c8c8c';
+                  }}
                 >
-                  <DragOutlined style={{ fontSize: 12, color: '#8c8c8c' }} />
+                  <IconGripVertical size={11} style={{ color: '#8c8c8c' }} />
                 </div>
               )}
 
@@ -187,7 +186,7 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
                   type="button"
                   style={{
                     border: 'none',
-                    background: 'none',
+                    background: 'transparent',
                     borderRadius: 6,
                     padding: 4,
                     minWidth: 28,
@@ -195,20 +194,19 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    transition: 'background 0.2s',
+                    transition: 'all 0.2s ease',
                     cursor: 'pointer',
-                    marginRight: 2,
                   }}
                   onClick={() => setCollapsed(v => !v)}
                   onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f5')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
                   <IconChevronDown
                     size={18}
                     color="#8c8c8c"
                     style={{
-                      transform: collapsed ? 'rotate(-180deg)' : 'none',
-                      transition: 'transform 0.2s',
+                      transform: collapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
                     }}
                   />
                 </button>
@@ -279,64 +277,23 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
         )}
       </Card>
 
-      <Modal
+      <ModalEditColumn
         open={editModalOpen}
-        width={340}
-        title={<span style={{ fontWeight: 600, fontSize: 16 }}>Sửa cột</span>}
-        onCancel={() => setEditModalOpen(false)}
-        centered
-        onOk={() => {
-          updateStage({
-            resource: 'stages',
-            id: stage.id,
-            values: { title: editTitle, color },
-            mutationMode: 'optimistic',
-          });
+        stageId={stage.id}
+        editTitle={editTitle}
+        color={color || ''}
+        isDirty={isDirty}
+        onCancel={() => {
+          setEditModalOpen(false);
+          setEditTitle(stage.title);
+          setColor(stage.color || '#1677ff');
+        }}
+        onSuccess={() => {
           setEditModalOpen(false);
         }}
-        okText="Lưu"
-        styles={{ body: { padding: '6px 0' } }}
-      >
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ flex: 1 }}>
-            <label
-              style={{
-                fontWeight: 500,
-                marginBottom: 6,
-                display: 'block',
-                fontSize: 13,
-                color: '#888',
-              }}
-            >
-              Tên cột
-            </label>
-            <Input
-              value={editTitle}
-              onChange={e => setEditTitle(e.target.value)}
-              placeholder="Nhập tên cột mới"
-              maxLength={40}
-              style={{
-                fontSize: 14,
-                borderRadius: 6,
-                padding: '4px 8px',
-              }}
-            />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <label
-              style={{
-                fontWeight: 500,
-                marginBottom: 6,
-                fontSize: 13,
-                color: '#888',
-              }}
-            >
-              Màu sắc
-            </label>
-            <ColorPicker value={color} onChange={setColor} size={32} radius={6} />
-          </div>
-        </div>
-      </Modal>
+        setEditTitle={setEditTitle}
+        setColor={setColor}
+      />
     </Col>
   );
 };

@@ -23,6 +23,10 @@ body {
   font-size: 16px;
 }
 
+.ant-tabs-nav::before {
+  border-bottom: none !important;
+}
+
 .ant-table-tbody > tr > td {
   border-bottom: 1px solid #f0f0f0;
 }

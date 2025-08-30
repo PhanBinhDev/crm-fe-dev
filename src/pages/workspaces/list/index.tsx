@@ -1,73 +1,70 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { useList, useUpdate } from '@refinedev/core';
 import {
-  Card,
-  Row,
-  Col,
-  Typography,
-  Button,
-  Space,
-  Input,
-  Drawer,
-  Popover,
-  Badge,
-  Avatar,
-  Table,
-  Tag,
-  Progress,
-  Dropdown,
-  Tooltip,
-  Collapse,
-} from 'antd';
-import {
-  PlusOutlined,
-  MoreOutlined,
-  UserOutlined,
   CalendarOutlined,
   FlagOutlined,
+  MoreOutlined,
+  PlusOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
+import { useList, useUpdate } from '@refinedev/core';
 import {
-  IconSettings,
-  IconDownload,
-  IconPlus,
-  IconList,
-  IconLayoutKanban,
   IconFilter,
-  IconSortAscending,
-  IconUsersGroup,
+  IconLayoutKanban,
+  IconList,
+  IconPlus,
   IconSearch,
+  IconSettings,
 } from '@tabler/icons-react';
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  Col,
+  Collapse,
+  Drawer,
+  Dropdown,
+  Input,
+  Popover,
+  Progress,
+  Row,
+  Space,
+  Table,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import {
   DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  KeyboardSensor,
+  PointerSensor,
   closestCorners,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core';
 import {
   SortableContext,
-  sortableKeyboardCoordinates,
-  horizontalListSortingStrategy,
   arrayMove,
+  horizontalListSortingStrategy,
+  sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 
-import { ActivityModal } from '@/pages/workspaces/components/modals/ActivityModal';
-import { SortableKanbanColumn } from '@/pages/workspaces/components/kanbans/SortableKanbanColumn';
-import { IActivity, IStage } from '@/common/types';
-import '@/styles/kanban.css';
-import { KanbanBoardSettings } from '@/pages/workspaces/components/settings/KanbanBoardSettings';
-import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
-import { KanbanFilterPopover } from '../components/kanbans/KanbanFilterPopover';
-import { EditActivityModal } from '@/pages/workspaces/components/modals/EditActivityModal';
-import { getActivityPriorityColor } from '@/utils';
 import { ActivityPriority } from '@/common/enum/activity';
-import { getColorFromName, getInitials } from '@/utils/activity';
+import { IActivity, IStage } from '@/common/types';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { SortableKanbanColumn } from '@/pages/workspaces/components/kanbans/SortableKanbanColumn';
+import { ActivityModal } from '@/pages/workspaces/components/modals/ActivityModal';
+import { EditActivityModal } from '@/pages/workspaces/components/modals/EditActivityModal';
+import { KanbanBoardSettings } from '@/pages/workspaces/components/settings/KanbanBoardSettings';
+import '@/styles/kanban.css';
+import { getActivityPriorityColor } from '@/utils';
+import { getColorFromName, getInitials } from '@/utils/activity';
+import { KanbanFilterPopover } from '../components/kanbans/KanbanFilterPopover';
 
 const { Title, Text } = Typography;
 
@@ -155,10 +152,13 @@ export const ActivitiesKanbanPage: React.FC = () => {
   const activities = useMemo(() => (activitiesData?.data || []) as IActivity[], [activitiesData]);
 
   const activitiesByStage = useMemo(() => {
-    return stages.reduce((acc, stage) => {
-      acc[stage.id] = activities.filter(activity => activity.stageId === stage.id);
-      return acc;
-    }, {} as Record<string, IActivity[]>);
+    return stages.reduce(
+      (acc, stage) => {
+        acc[stage.id] = activities.filter(activity => activity.stageId === stage.id);
+        return acc;
+      },
+      {} as Record<string, IActivity[]>,
+    );
   }, [stages, activities]);
 
   const handleDragStart = useCallback(
@@ -230,27 +230,6 @@ export const ActivitiesKanbanPage: React.FC = () => {
           });
           return;
         }
-
-        // (TÙY CHỌN) Nếu có field position trong IActivity, thêm logic reorder trong cùng cột:
-        // const list = activitiesByStage[targetStageId] || [];
-        // const from = list.findIndex(x => x.id === active.id);
-        // const overId = over.id as string;
-        // const to = list.findIndex(x => x.id === overId);
-        // if (from !== -1 && to !== -1 && from !== to) {
-        //   const reordered = arrayMove(list, from, to);
-        //   // cập nhật position cho các item bị ảnh hưởng (optimistic)
-        //   reordered.forEach((item, idx) => {
-        //     if (item.position !== idx) {
-        //       updateActivity({
-        //         resource: 'activities',
-        //         id: item.id,
-        //         values: { position: idx },
-        //         mutationMode: 'optimistic',
-        //         successNotification: false,
-        //       });
-        //     }
-        //   });
-        // }
       }
     },
     [stages, activities, activitiesByStage, updateStage, updateActivity, refetch],

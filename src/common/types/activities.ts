@@ -18,6 +18,7 @@ export interface IActivity extends IBase {
   startTime?: Date;
   endTime?: Date;
   location?: string;
+  position: number;
   onlineLink?: string;
   mandatory: boolean;
   estimateTime?: number;
