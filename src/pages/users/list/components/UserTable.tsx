@@ -1,14 +1,11 @@
-import { FC } from 'react';
-import { Badge, Table, Tag, Tooltip } from 'antd';
 import type { IUser } from '@/common/types';
-import { Avatar, type TableProps } from 'antd';
-import { userRoleFilterOptions, userStatusColumnFilters } from '@/constants/user';
-import { UserRole } from '@/common/enum/user';
-import { ColumnType } from 'antd/lib/table';
 import { paginationConfigOptions } from '@/config/pagination';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { getUserRoleLabel } from '@/utils';
+import { Avatar, Badge, Table, Tag, Tooltip, type TableProps } from 'antd';
+import { ColumnType } from 'antd/lib/table';
+import { FC } from 'react';
 import { UserRowActions } from './UserRowActions';
-import { getUserRoleColor, getUserRoleLabel } from '@/utils';
 
 interface UserTableProps {
   tableProps: TableProps<any>;

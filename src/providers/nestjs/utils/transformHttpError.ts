@@ -2,27 +2,18 @@ import { HttpError } from '@refinedev/core';
 
 import { transformErrorMessages } from './transformErrorMessages';
 
-export function transformHttpError(error: any): HttpError {
-  const response = error?.response;
+export const transformHttpError = (error: any): HttpError => {
+  const message = error.response.data.error;
+  const statusCode = error.response.data.statusCode;
+  const errorMessages = error.response.data.message;
 
-  // Ưu tiên lấy message từ BE
-  const apiMessage = response?.data?.message;
-  let finalMessage: string;
+  const errors = transformErrorMessages(errorMessages);
 
-  if (Array.isArray(apiMessage)) {
-    finalMessage = apiMessage.join(", ");
-  } else if (typeof apiMessage === "string") {
-    finalMessage = apiMessage;
-  } else {
-    finalMessage =
-      response?.statusText ||
-      error?.message ||
-      "Đã xảy ra lỗi không xác định";
-  }
-
-  return {
-    statusCode: response?.status,
-    message: finalMessage,   
-    errors: response?.data,  
+  const httpError: HttpError = {
+    statusCode,
+    message,
+    errors,
   };
-}
+
+  return httpError;
+};

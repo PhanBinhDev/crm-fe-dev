@@ -61,7 +61,6 @@ import { SortableKanbanColumn } from '@/pages/workspaces/components/kanbans/Sort
 import { ActivityModal } from '@/pages/workspaces/components/modals/ActivityModal';
 import { EditActivityModal } from '@/pages/workspaces/components/modals/EditActivityModal';
 import { KanbanBoardSettings } from '@/pages/workspaces/components/settings/KanbanBoardSettings';
-import '@/styles/kanban.css';
 import { getActivityPriorityColor } from '@/utils';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { KanbanFilterPopover } from '../components/kanbans/KanbanFilterPopover';
@@ -83,7 +82,7 @@ export const ActivitiesKanbanPage: React.FC = () => {
   const [settingsDrawerVisible, setSettingsDrawerVisible] = useState(false);
   const [activeActivity, setActiveActivity] = useState<IActivity | null>(null);
   const [activeColumn, setActiveColumn] = useState<IStage | null>(null);
-  const [dragType, setDragType] = useState<'activity' | 'column' | null>(null);
+  const [dragType] = useState<'activity' | 'column' | null>(null);
   const [editActivityModal, setEditActivityModal] = useState(false);
   const [editActivity, setEditActivity] = useState<IActivity | null>(null);
 

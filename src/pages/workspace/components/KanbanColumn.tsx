@@ -35,13 +35,20 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
   const { mutate: updateStage } = useUpdate<IStage>();
 
   const { openModal } = useModal();
-  const { attributes, listeners, isDragging, setNodeRef, transition, transform } = useSortable({
-    id,
-    data: {
-      type: DragDropType.KANBAN_COLUMN,
-      stage,
-    },
-  });
+  const { attributes, listeners, isDragging, setNodeRef, transition, transform, isOver } =
+    useSortable({
+      id,
+      data: {
+        type: DragDropType.KANBAN_COLUMN,
+        stage,
+      },
+    });
+
+  useEffect(() => {
+    if (collapsed && isOver) {
+      setCollapsed(false);
+    }
+  }, [collapsed, isOver]);
 
   const rowOrder = useMemo(() => activities.map(activity => activity.id), [activities]);
 
@@ -252,9 +259,9 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
                   <button
                     type="button"
                     style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 12,
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
                       background: '#f6faff',
                       border: 'none',
                       display: 'flex',

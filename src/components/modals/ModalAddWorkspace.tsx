@@ -1,10 +1,10 @@
-import { useModal } from '@/hooks/useModal';
-import { IconCopy, IconCopyCheckFilled, IconLink, IconPlus, IconTrash } from '@tabler/icons-react';
-import { Button, Form, Input, message, Modal, Switch, Tooltip, Select, Avatar, Tag } from 'antd';
-import { useMemo, useState } from 'react';
-import SelectIcon from '@/components/shared/SelectIcon';
-import { useCreate, useInvalidate, useList } from '@refinedev/core';
 import { IUser } from '@/common/types';
+import SelectIcon from '@/components/shared/SelectIcon';
+import { useModal } from '@/hooks/useModal';
+import { useCreate, useInvalidate, useList } from '@refinedev/core';
+import { IconCopy, IconCopyCheckFilled, IconLink, IconTrash } from '@tabler/icons-react';
+import { Avatar, Button, Form, Input, message, Modal, Select, Switch, Tooltip } from 'antd';
+import { useMemo, useState } from 'react';
 
 const { Option } = Select;
 

@@ -52,6 +52,7 @@ const KanbanWorkspaces = () => {
           justifyContent: 'space-between',
           alignItems: 'center',
           width: '100%',
+          marginBottom: 12,
         }}
       >
         {/* Change layout */}

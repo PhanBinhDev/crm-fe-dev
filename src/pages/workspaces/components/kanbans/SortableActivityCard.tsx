@@ -1,38 +1,37 @@
-import React, { useMemo, useState } from 'react';
 import { IActivity } from '@/common/types';
+import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { getColorFromName, getInitials } from '@/utils/activity';
 import {
   CalendarOutlined,
+  ClockCircleOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  ExclamationCircleOutlined,
+  EyeOutlined,
   FlagOutlined,
   MoreOutlined,
-  UserOutlined,
-  ClockCircleOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  EyeOutlined,
-  ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useDelete, useUpdate } from '@refinedev/core';
 import {
   Avatar,
   Card,
   Dropdown,
+  Input,
+  MenuProps,
+  Modal,
+  Progress,
   Space,
   Tag,
-  Typography,
   Tooltip,
-  MenuProps,
-  Progress,
-  Input,
-  Modal,
+  Typography,
   message,
 } from 'antd';
 import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
-import { AVATAR_PLACEHOLDER } from '@/constants/app';
-import { useDelete, useUpdate } from '@refinedev/core';
-import { getColorFromName, getInitials } from '@/utils/activity';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import React, { useMemo, useState } from 'react';
 
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
@@ -369,8 +368,8 @@ export const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
                     color: activityMeta.isOverdue
                       ? '#f5222d'
                       : activityMeta.isNearDeadline
-                      ? '#fa8c16'
-                      : '#8c8c8c',
+                        ? '#fa8c16'
+                        : '#8c8c8c',
                   }}
                 >
                   {activityMeta.endTime.fromNow()}

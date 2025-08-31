@@ -56,7 +56,7 @@ const Attachments = () => {
               showDownloadIcon: true,
             }}
             style={{ width: '100%' }}
-            itemRender={(originNode, file, fileList, actions) => {
+            itemRender={(_originNode, file, _fileList, actions) => {
               return (
                 <div
                   key={file.uid}

@@ -1,7 +1,7 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { IconSearch, IconX } from '@tabler/icons-react';
-import { Input, InputRef, Tooltip } from 'antd';
 import { useDebounce } from '@/hooks/useDebounce';
+import { IconSearch, IconX } from '@tabler/icons-react';
+import { Input, InputRef } from 'antd';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 interface SearchActivitiesProps {
   placeholder?: string;

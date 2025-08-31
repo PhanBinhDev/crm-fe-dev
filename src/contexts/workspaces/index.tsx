@@ -21,7 +21,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
 
 export const WorkspaceContext = createContext<WorkspaceStore>({
   workspaceId: '',
-  setWorkspaceId: (id: string) => {},
+  setWorkspaceId: (_id: string) => {},
 });
 
 export const WorkspaceProvider = ({ children }: { children: React.ReactNode }) => {

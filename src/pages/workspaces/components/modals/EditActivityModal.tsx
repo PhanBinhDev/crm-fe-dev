@@ -1,19 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Modal,
-  Form,
-  Input,
-  Select,
-  Row,
-  Col,
-  Typography,
-  DatePicker,
-  message,
-  Tooltip,
-  Avatar,
-  Space,
-} from 'antd';
-import { useList, useUpdate } from '@refinedev/core';
+import { IActivity } from '@/common/types';
+import Attachments from '@/pages/workspaces/components/activityModalComponents/Attachments';
+import Checklists from '@/pages/workspaces/components/activityModalComponents/Checklists';
+import Subtasks from '@/pages/workspaces/components/activityModalComponents/Subtasks';
+import { getUsername } from '@/utils/formatter';
 import {
   CalendarOutlined,
   CheckCircleOutlined,
@@ -24,14 +13,24 @@ import {
   ReadOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
+import { useList, useUpdate } from '@refinedev/core';
+import {
+  Avatar,
+  Col,
+  DatePicker,
+  Form,
+  Input,
+  message,
+  Modal,
+  Row,
+  Select,
+  Space,
+  Tooltip,
+  Typography,
+} from 'antd';
 import { SelectProps } from 'antd/lib';
 import dayjs from 'dayjs';
-import { IActivity } from '@/common/types';
-import Subtasks from '@/pages/workspaces/components/activityModalComponents/Subtasks';
-import Checklists from '@/pages/workspaces/components/activityModalComponents/Checklists';
-import Attachments from '@/pages/workspaces/components/activityModalComponents/Attachments';
-import { getUsername } from '@/utils/formatter';
-import { verticalListSortingStrategy } from '@dnd-kit/sortable';
+import React, { useEffect, useState } from 'react';
 const { Title } = Typography;
 
 const { Option } = Select;
@@ -173,7 +172,7 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
   );
 
   const tagRender = (props: any) => {
-    const { label, value, closable, onClose } = props;
+    const { value, closable, onClose } = props;
     const user = users.find(u => u.id === value);
     return (
       <div

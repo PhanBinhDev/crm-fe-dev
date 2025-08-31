@@ -1,11 +1,10 @@
-import { Layout, Space, Dropdown, Button, Avatar, Spin, MenuProps, Badge, Drawer } from 'antd';
-import { IconBell, IconClock, IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
-import styles from '@/styles/header.module.css';
-import { useAuth } from '@/hooks/useAuth';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
-import { useLogout } from '@refinedev/core';
-import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
+import { useLogout } from '@refinedev/core';
+import { IconBell, IconClock, IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
+import { Avatar, Badge, Button, Drawer, Dropdown, Layout, MenuProps, Space, Spin } from 'antd';
+import { useState } from 'react';
 
 const { Header } = Layout;
 export const AppHeader = () => {
@@ -90,7 +89,16 @@ export const AppHeader = () => {
             trigger={['click']}
             getPopupContainer={trigger => trigger.parentElement || document.body}
           >
-            <div className={styles.headerIcon}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '0 4px',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s',
+                borderRadius: 4,
+              }}
+            >
               <Badge count={2} size="small" offset={[-2, 2]} style={{ backgroundColor: '#ff4d4f' }}>
                 <Button
                   type="text"
@@ -122,12 +130,19 @@ export const AppHeader = () => {
           >
             <Button
               type="text"
-              className={styles.userAvatar}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                color: '#595959',
-                backgroundColor: 'transparent',
+                padding: 6,
+                cursor: 'pointer',
+                transition: 'background-color 0.3s',
+                borderRadius: 4,
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.04)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
               {isLoading ? (
@@ -140,7 +155,17 @@ export const AppHeader = () => {
                     icon={<IconUser size={18} />}
                     style={{ backgroundColor: '#1890ff', flexShrink: 0 }}
                   />
-                  <span className={styles.userName}>{user?.name}</span>
+                  <span
+                    style={{
+                      marginLeft: 6,
+                      fontSize: 14,
+                      fontWeight: 500,
+                      color: '#262626',
+                      height: 'fit-content',
+                    }}
+                  >
+                    {user?.name}
+                  </span>
                 </>
               )}
             </Button>

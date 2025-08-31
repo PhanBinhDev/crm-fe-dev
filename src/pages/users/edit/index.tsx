@@ -1,9 +1,9 @@
-import { Edit, useForm, RefreshButton } from '@refinedev/antd';
-import { Card } from 'antd';
-import { UserForm } from '@/pages/users/form/components/UserForm';
-import { IUser, User } from '@/common/types';
-import { useParams } from 'react-router-dom';
+import { IUser } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
+import { UserForm } from '@/pages/users/form/components/UserForm';
+import { Edit, RefreshButton, useForm } from '@refinedev/antd';
+import { Card } from 'antd';
+import { useParams } from 'react-router-dom';
 
 export const UserEdit = () => {
   const { formProps, saveButtonProps } = useForm<IUser>();
