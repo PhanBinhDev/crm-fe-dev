@@ -1,17 +1,21 @@
-import { FC } from 'react';
-import { Input, Select, Space, Button, InputNumber } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
-
+import { FC, useState } from "react";
+import {
+  Input,
+  Select,
+  Space,
+  Button,
+  Dropdown,
+  InputNumber,
+} from "antd";
+import { ReloadOutlined, FilterOutlined } from "@ant-design/icons";
 
 interface SemesterFiltersProps {
   searchValue?: string;
-  yearValue?: number | null; // <-- thêm null
+  yearValue?: number | null;
   statusValue?: string | null;
-  sortValue?: string;
   onSearch: (value: string) => void;
   onYearChange: (value: number | null) => void;
   onStatusChange: (value: string | null) => void;
-  onSortChange: (value: string) => void;
   onReset: () => void;
 }
 
@@ -19,66 +23,89 @@ const SemesterFilters: FC<SemesterFiltersProps> = ({
   searchValue,
   yearValue,
   statusValue,
-  // sortValue,
   onSearch,
   onYearChange,
   onStatusChange,
-  // onSortChange,
   onReset,
 }) => {
+  const [open, setOpen] = useState(false);
+
   return (
-    <Space wrap style={{ marginBottom: 16 }}>
-      <Input
+    <Space wrap>
+      {/* Search */}
+      <Input.Search
         placeholder="Tìm theo tên kỳ học"
         allowClear
         value={searchValue}
-        onChange={e => onSearch(e.target.value)}
-        style={{ width: 200 }}
+        onChange={(e) => onSearch(e.target.value)}
+        style={{ width: 220 }}
       />
 
-      {/* Lọc theo năm */}
-      <InputNumber
-        placeholder="Nhập năm"
-        style={{ width: 150 }}
-        value={yearValue ?? undefined}
-        onChange={onYearChange}
-        min={1900}
-        max={2100}
-      />
+      {/* Filter dropdown */}
+      <Dropdown
+        open={open}
+        onOpenChange={setOpen}
+        trigger={["click"]}
+        placement="bottomRight"
+        dropdownRender={() => (
+          <div
+            style={{
+              padding: 12,
+              background: "#fff",
+              borderRadius: 8,
+              boxShadow:
+                "0 6px 16px rgba(0,0,0,0.08), 0 3px 6px rgba(0,0,0,0.05)",
+              width: 260,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Space direction="vertical" size={10} style={{ width: "100%" }}>
+              <div style={{ fontWeight: 600 }}>Bộ lọc</div>
 
-      {/* Lọc theo trạng thái */}
-      <Select<string | undefined>
-        placeholder="Trạng thái"
-        allowClear
-        style={{ width: 200 }}
-        value={statusValue ?? undefined} // nhận string hoặc undefined
-        onChange={val => onStatusChange(val ?? null)} // ép undefined -> null
-        options={[
-          { label: 'Ongoing (Đang diễn ra)', value: 'Ongoing' },
-          { label: 'Completed (Đã hoàn thành)', value: 'Completed' },
-          { label: 'Upcoming (Sắp diễn ra)', value: 'Upcoming' },
-        ]}
-      /> 
+              {/* Lọc theo năm: cho nhập số */}
+              <InputNumber
+                placeholder="Nhập năm"
+                style={{ width: "100%" }}
+                value={yearValue ?? undefined}
+                onChange={(val) => onYearChange(val ?? null)}
+                min={1900}
+                max={2100}
+              />
 
-      {/* Sắp xếp */}
-      {/* <Select<string>
-        placeholder="Sắp xếp"
-        allowClear
-        style={{ width: 180 }}
-        value={sortValue}
-        onChange={onSortChange}
-        options={[
-          { label: 'Tên (A → Z)', value: 'nameAsc' },
-          { label: 'Tên (Z → A)', value: 'nameDesc' },
-          { label: 'Năm (Mới → Cũ)', value: 'yearDesc' },
-          { label: 'Năm (Cũ → Mới)', value: 'yearAsc' },
-        ]}
-      /> */}
+              {/* Lọc theo trạng thái */}
+              <Select<string>
+                allowClear
+                placeholder="Chọn trạng thái"
+                style={{ width: "100%" }}
+                value={statusValue ?? undefined}
+                onChange={(val) => onStatusChange(val ?? null)}
+                options={[
+                  { label: "Ongoing (Đang diễn ra)", value: "Ongoing" },
+                  { label: "Completed (Đã hoàn thành)", value: "Completed" },
+                  { label: "Upcoming (Sắp diễn ra)", value: "Upcoming" },
+                ]}
+              />
 
-      {/* Nút reset */}
-      <Button icon={<ReloadOutlined />} onClick={onReset}>
-        Đặt lại
-      </Button>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginTop: 4,
+                }}
+              >
+                <Button type="link" onClick={onReset} icon={<ReloadOutlined />}>
+                  Đặt lại
+                </Button>
+                <Button type="primary" onClick={() => setOpen(false)}>
+                  Áp dụng
+                </Button>
+              </div>
+            </Space>
+          </div>
+        )}
+      >
+        <Button icon={<FilterOutlined />}>Filter</Button>
+      </Dropdown>
     </Space>
   );
 };
