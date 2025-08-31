@@ -38,6 +38,7 @@
     "react-hook-form": "^7.45.0",
     "react-router-dom": "^6.8.1",
     "usehooks-ts": "^3.1.1",
+    "xlsx": "^0.18.5",
     "zustand": "^5.0.7"
   },
   "devDependencies": {
@@ -46,7 +47,7 @@
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
-    "@vitejs/plugin-react": "^4.0.3",
+    "@vitejs/plugin-react": "^5.0.2",
     "eslint": "^8.45.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",

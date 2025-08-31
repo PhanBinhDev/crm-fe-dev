@@ -4,16 +4,21 @@ import { IconPlus, IconUpload, IconDownload, IconChevronDown } from '@tabler/ico
 import { useNavigate } from 'react-router-dom';
 import { useCan } from '@refinedev/core';
 import { useAuth } from '@/hooks/useAuth';
+import { ModalExportUser } from './ModalExportUser';
+import { useTable } from '@refinedev/antd';
 
 export const UserActions: FC = () => {
   const navigate = useNavigate();
   const { user: identity } = useAuth();
-
   const { data: canCreate } = useCan({
     resource: 'users',
     action: 'create',
     params: { identity },
   });
+  const [openExport, setOpenExport] = useState(false);
+  // Lấy users từ useTable hook (dùng resource: 'users/all')
+  const { tableQueryResult } = useTable({ resource: 'users/all', pagination: { pageSize: 1000 } });
+  const users = tableQueryResult?.data?.data || [];
 
   if (!canCreate?.can) {
     return null;
@@ -30,16 +35,33 @@ export const UserActions: FC = () => {
       key: 'export',
       icon: <IconDownload size={16} color="#ff8000" />,
       label: 'Export',
-      onClick: () => navigate('/teachers/export'),
+      onClick: () => setOpenExport(true),
     },
   ];
 
   return (
-    <Space>
-      <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={['click']}>
+    <>
+      <Space>
+        <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={['click']}>
+          <Button
+            type="default"
+            icon={<IconChevronDown size={16} />}
+            style={{ borderRadius: 8, fontWeight: 500 }}
+            styles={{
+              icon: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+            }}
+          >
+            Import/Export
+          </Button>
+        </Dropdown>
         <Button
-          type="default"
-          icon={<IconChevronDown size={16} />}
+          type="primary"
+          icon={<IconPlus size={18} />}
+          onClick={() => navigate('/teachers/create')}
           style={{ borderRadius: 8, fontWeight: 500 }}
           styles={{
             icon: {
@@ -48,23 +70,9 @@ export const UserActions: FC = () => {
               justifyContent: 'center',
             },
           }}
-        >
-          Import/Export
-        </Button>
-      </Dropdown>
-      <Button
-        type="primary"
-        icon={<IconPlus size={18} />}
-        onClick={() => navigate('/teachers/create')}
-        style={{ borderRadius: 8, fontWeight: 500 }}
-        styles={{
-          icon: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          },
-        }}
-      />
-    </Space>
+        />
+      </Space>
+  <ModalExportUser open={openExport} onClose={() => setOpenExport(false)} users={users as any as import('@/common/types').IUser[]} />
+    </>
   );
 };
