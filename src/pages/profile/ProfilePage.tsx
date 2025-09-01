@@ -1,50 +1,64 @@
 'use client';
-
-import type React from 'react';
-
+import type { IFileUploadResponse, IUser } from '@/common/types';
+import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { useAuth } from '@/hooks/useAuth';
+import { useCustomMutation, useInvalidate, useOne, useUpdate } from '@refinedev/core';
 import {
-  Card,
-  Avatar,
-  Typography,
-  Space,
-  Button,
-  Spin,
-  Upload,
-  Input,
-  DatePicker,
-  message,
-  Result,
-  Skeleton,
-  Tabs,
-} from 'antd';
-import {
+  IconCalendar,
+  IconCamera,
+  IconCheck,
+  IconClock,
   IconEdit,
   IconMail,
   IconPhone,
   IconUser,
-  IconCalendar,
-  IconClock,
-  IconCamera,
   IconUserCircle,
   IconUserShield,
-  IconCheck,
   IconX,
 } from '@tabler/icons-react';
-import { useCustomMutation, useUpdate } from '@refinedev/core';
-import { AVATAR_PLACEHOLDER } from '@/constants/app';
-import { useEffect, useState } from 'react';
-import type { IFileUploadResponse, IUser } from '@/common/types';
-import type { UploadRequestOption } from 'rc-upload/lib/interface';
-import { useAuth } from '@/hooks/useAuth';
+import {
+  Avatar,
+  Button,
+  Card,
+  DatePicker,
+  Input,
+  message,
+  Result,
+  Skeleton,
+  Space,
+  Spin,
+  Tabs,
+  Typography,
+  Upload,
+} from 'antd';
 import dayjs from 'dayjs';
+import type { UploadRequestOption } from 'rc-upload/lib/interface';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
 const { Title, Text } = Typography;
 
 export const ProfilePage: React.FC = () => {
-  const { user: identity, isLoading } = useAuth();
+  const invalidate = useInvalidate();
+  const { user: authUser, isLoading: authLoading } = useAuth();
+
+  const {
+    data: userDetail,
+    isLoading: userLoading,
+    refetch,
+  } = useOne<IUser>({
+    resource: 'users',
+    id: authUser?.id || '',
+    queryOptions: {
+      enabled: !!authUser?.id,
+    },
+  });
+
+  const identity = userDetail?.data || authUser;
+  const isLoading = authLoading || userLoading;
 
   const [uploading, setUploading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(AVATAR_PLACEHOLDER);
+  const [avatarUrl, setAvatarUrl] = useState<string>(AVATAR_PLACEHOLDER);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
     phone: '',
@@ -58,8 +72,16 @@ export const ProfilePage: React.FC = () => {
 
   useEffect(() => {
     if (identity?.avatar) {
-      setAvatarUrl(identity.avatar);
+      console.log('Setting avatar URL:', identity.avatar);
+      const fullAvatarUrl = identity.avatar.startsWith('http')
+        ? identity.avatar
+        : `${import.meta.env.VITE_API_BASE_URL}${identity.avatar}`;
+      setAvatarUrl(fullAvatarUrl);
+    } else {
+      console.log('No avatar found, using placeholder');
+      setAvatarUrl(AVATAR_PLACEHOLDER);
     }
+
     if (identity) {
       setEditData({
         phone: identity.phone || '',
@@ -137,8 +159,12 @@ export const ProfilePage: React.FC = () => {
         onSuccess: () => {
           setIsEditing(false);
           message.success('Cập nhật thông tin thành công');
+
+          invalidate({ resource: 'users', invalidates: ['detail', 'list'] });
+          refetch();
         },
-        onError: () => {
+        onError: error => {
+          console.error('Update error:', error);
           message.error('Cập nhật thông tin thất bại');
         },
       },
@@ -153,7 +179,7 @@ export const ProfilePage: React.FC = () => {
   };
 
   const handleAvatarUpload = async (options: UploadRequestOption) => {
-    const { file, onSuccess } = options;
+    const { file, onSuccess, onError } = options;
     setUploading(true);
 
     const formData = new FormData();
@@ -171,7 +197,10 @@ export const ProfilePage: React.FC = () => {
       {
         onSuccess: res => {
           const newUrl = res.data.url;
-          const fullUrl = `${import.meta.env.VITE_API_BASE_URL}${newUrl}`;
+          const fullUrl = newUrl.startsWith('http')
+            ? newUrl
+            : `${import.meta.env.VITE_API_BASE_URL}${newUrl}`;
+
           updateUser(
             {
               resource: 'users',
@@ -183,14 +212,37 @@ export const ProfilePage: React.FC = () => {
                 setAvatarUrl(fullUrl);
                 onSuccess?.(res.data, file as any);
                 setUploading(false);
-                message.success('Cập nhật thông tin thành công');
+                message.success('Cập nhật ảnh đại diện thành công');
+
+                invalidate({ resource: 'users', invalidates: ['detail', 'list'] });
+                refetch();
+              },
+              onError: error => {
+                console.error('Update avatar error:', error);
+                setUploading(false);
+                onError?.(error as any);
+                message.error('Cập nhật ảnh đại diện thất bại');
               },
             },
           );
         },
+        onError: error => {
+          console.error('Upload error:', error);
+          setUploading(false);
+          onError?.(error as any);
+          message.error('Tải ảnh lên thất bại');
+        },
       },
     );
   };
+
+  const handleAvatarError = () => {
+    console.log('Avatar load failed, using placeholder');
+    setAvatarUrl(AVATAR_PLACEHOLDER);
+  };
+
+  console.log('Identity data:', identity);
+  console.log('avatar URL:', avatarUrl);
 
   return (
     <div
@@ -228,9 +280,13 @@ export const ProfilePage: React.FC = () => {
               <div style={{ position: 'relative', cursor: 'pointer' }}>
                 <Avatar
                   size={80}
-                  src={avatarUrl}
+                  src={avatarUrl !== AVATAR_PLACEHOLDER ? avatarUrl : undefined}
                   icon={<IconUser size={32} stroke={1.5} />}
                   style={{ backgroundColor: '#667EEA', border: '2px solid #fff' }}
+                  onError={() => {
+                    handleAvatarError();
+                    return false;
+                  }}
                 />
                 {uploading && (
                   <div
@@ -462,7 +518,7 @@ export const ProfilePage: React.FC = () => {
                               textDecoration: 'none',
                             }}
                           >
-                            {identity.phone}
+                            {identity.phone || '-'}
                           </a>
                         )}
                       </div>
