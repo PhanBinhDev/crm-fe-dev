@@ -1,9 +1,10 @@
-import { FC, useState } from 'react';
-import { Input, Select, Button, Popover, Space } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
 import { UserRole } from '@/common/enum/user';
 import { userStatusFilterOptions } from '@/constants/user';
+import { ReloadOutlined } from '@ant-design/icons';
 import { IconFilter2, IconUser, IconUserCog, IconUserStar } from '@tabler/icons-react';
+import { Button, Input, Popover, Select, Space } from 'antd';
+import { FC, useState } from 'react';
+import { ImportModal } from './ImportModal';
 
 const userRoleFilterOptionsWithLabel = [
   {
@@ -42,6 +43,7 @@ interface UserFiltersProps {
   onRoleFilter: (value: UserRole | undefined) => void;
   onStatusFilter: (value: boolean | undefined) => void;
   onReset: () => void;
+  onImportSuccess?: () => void;
 }
 
 export const UserFilters: FC<UserFiltersProps> = ({
@@ -52,7 +54,10 @@ export const UserFilters: FC<UserFiltersProps> = ({
   onRoleFilter,
   onStatusFilter,
   onReset,
+  onImportSuccess,
 }) => {
+  const [importModalVisible, setImportModalVisible] = useState(false);
+
   const [open, setOpen] = useState(false);
 
   const handleStatusChange = (value: string | undefined) => {
@@ -61,6 +66,13 @@ export const UserFilters: FC<UserFiltersProps> = ({
     } else {
       onStatusFilter(value === 'true');
     }
+  };
+
+  const handleImportSuccess = () => {
+    if (onImportSuccess) {
+      onImportSuccess();
+    }
+    setImportModalVisible(false);
   };
 
   const filterContent = (
@@ -124,6 +136,11 @@ export const UserFilters: FC<UserFiltersProps> = ({
           Filters
         </Button>
       </Popover>
+      <ImportModal
+        visible={importModalVisible}
+        onClose={() => setImportModalVisible(false)}
+        onSuccess={handleImportSuccess}
+      />
     </Space>
   );
 };

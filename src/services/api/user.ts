@@ -28,4 +28,29 @@ export const UserService = {
     const response = await axiosInstance.delete<ApiResponse<void>>(`/users/${id}`);
     return response.data;
   },
+
+  importUsers: async (formData: FormData) => {
+    try {
+      const response = await axiosInstance.post<ApiResponse<any>>('/users/import', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error importing users:', error);
+      throw error;
+    }
+  },
+
+  importUsersFromUrl: async (url: string) => {
+    try {
+      // Gọi endpoint riêng cho URL import
+      const response = await axiosInstance.post<ApiResponse<any>>('/users/import-url', { url });
+      return response.data;
+    } catch (error) {
+      console.error('Error importing users from URL:', error);
+      throw error;
+    }
+  },
 };
