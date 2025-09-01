@@ -25,7 +25,6 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
       key: `view-${user.id}`,
       icon: <IconEye size={18} />,
       label: 'Xem chi tiết',
-      // onClick: () => navigate(`/teachers/show/${user.id}`),
       onClick: () => setDrawerOpen(true), 
     },
   ];

@@ -196,3 +196,7 @@ body {
 .clickup-table .ant-table-cell {
   border-right: none !important;
 }
+
+.assignee-list-item:hover .assignee-profile-btn {
+  opacity: 1 !important;
+}

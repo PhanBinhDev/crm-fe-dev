@@ -1,13 +1,12 @@
+import { IUser } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
+import { useTable } from '@refinedev/antd';
 import { useCan } from '@refinedev/core';
 import { IconChevronDown, IconDownload, IconPlus, IconUpload } from '@tabler/icons-react';
 import { Button, Dropdown, Space } from 'antd';
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCan } from '@refinedev/core';
-import { useAuth } from '@/hooks/useAuth';
 import { ModalExportUser } from './ModalExportUser';
-import { useTable } from '@refinedev/antd';
 
 export const UserActions: FC = () => {
   const navigate = useNavigate();
@@ -18,8 +17,10 @@ export const UserActions: FC = () => {
     params: { identity },
   });
   const [openExport, setOpenExport] = useState(false);
-  // Lấy users từ useTable hook (dùng resource: 'users/all')
-  const { tableQueryResult } = useTable({ resource: 'users/all', pagination: { pageSize: 1000 } });
+  const { tableQueryResult } = useTable<IUser>({
+    resource: 'users/all',
+    pagination: { pageSize: 1000 },
+  });
   const users = tableQueryResult?.data?.data || [];
 
   if (!canCreate?.can) {
@@ -74,7 +75,7 @@ export const UserActions: FC = () => {
           }}
         />
       </Space>
-  <ModalExportUser open={openExport} onClose={() => setOpenExport(false)} users={users as any as import('@/common/types').IUser[]} />
+      <ModalExportUser open={openExport} onClose={() => setOpenExport(false)} users={users} />
     </>
   );
 };

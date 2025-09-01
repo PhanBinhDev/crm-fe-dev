@@ -6,12 +6,12 @@ import SettingsActivities from '@/pages/workspace/components/SettingsActivities'
 import KanbanView from '@/pages/workspace/views/KanbanView';
 import ListView from '@/pages/workspace/views/ListView';
 import { useList } from '@refinedev/core';
-import { IconCalendar, IconLayoutKanban, IconList, IconPlus } from '@tabler/icons-react';
+import { IconCalendar, IconLayoutKanban, IconList, IconPlus, IconTable } from '@tabler/icons-react';
 import { Button, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useState } from 'react';
 import CalendarView from '../views/CalendarView';
 
-type TabKey = 'kanban' | 'list' | 'calendar';
+type TabKey = 'kanban' | 'list' | 'calendar' | 'table';
 
 const KanbanWorkspaces = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('kanban');
@@ -81,7 +81,7 @@ const KanbanWorkspaces = () => {
                       transition: 'color 0.2s',
                     }}
                   />
-                  Bảng
+                  Bảng Kanban
                 </span>
               ),
             },
@@ -132,6 +132,32 @@ const KanbanWorkspaces = () => {
                     }}
                   />
                   Lịch
+                </span>
+              ),
+            },
+
+            {
+              key: 'table',
+              label: (
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontWeight: activeTab === 'table' ? 600 : 400,
+                    color: activeTab === 'table' ? '#1677ff' : '#888',
+                    transition: 'color 0.2s',
+                  }}
+                >
+                  <IconTable
+                    size={16}
+                    style={{
+                      marginRight: 2,
+                      color: activeTab === 'table' ? '#1677ff' : '#bfbfbf',
+                      transition: 'color 0.2s',
+                    }}
+                  />
+                  Bảng dữ liệu
                 </span>
               ),
             },

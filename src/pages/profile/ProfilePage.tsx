@@ -2,41 +2,41 @@
 
 import type React from 'react';
 
+import type { IFileUploadResponse, IUser } from '@/common/types';
+import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { useAuth } from '@/hooks/useAuth';
+import { useCustomMutation, useUpdate } from '@refinedev/core';
 import {
-  Card,
-  Avatar,
-  Typography,
-  Space,
-  Button,
-  Spin,
-  Upload,
-  Input,
-  DatePicker,
-  message,
-  Result,
-  Skeleton,
-  Tabs,
-} from 'antd';
-import {
+  IconCalendar,
+  IconCamera,
+  IconCheck,
+  IconClock,
   IconEdit,
   IconMail,
   IconPhone,
   IconUser,
-  IconCalendar,
-  IconClock,
-  IconCamera,
   IconUserCircle,
   IconUserShield,
-  IconCheck,
   IconX,
 } from '@tabler/icons-react';
-import { useCustomMutation, useUpdate } from '@refinedev/core';
-import { AVATAR_PLACEHOLDER } from '@/constants/app';
-import { useEffect, useState } from 'react';
-import type { IFileUploadResponse, IUser } from '@/common/types';
-import type { UploadRequestOption } from 'rc-upload/lib/interface';
-import { useAuth } from '@/hooks/useAuth';
+import {
+  Avatar,
+  Button,
+  Card,
+  DatePicker,
+  Input,
+  message,
+  Result,
+  Skeleton,
+  Space,
+  Spin,
+  Tabs,
+  Typography,
+  Upload,
+} from 'antd';
 import dayjs from 'dayjs';
+import type { UploadRequestOption } from 'rc-upload/lib/interface';
+import { useEffect, useState } from 'react';
 
 const { Title, Text } = Typography;
 
