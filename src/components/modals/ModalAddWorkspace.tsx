@@ -15,9 +15,12 @@ const ModalAddWorkspace = () => {
   const [copied, setCopied] = useState(false);
   const [inviteMembers, setInviteMembers] = useState<IUser[]>([]);
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+  const isModalOpen = type === 'ModalAddWorkspace' && isOpen;
+
   const { data: usersData, isLoading: usersLoading } = useList({
     resource: 'users/all',
     config: { pagination: { mode: 'off' } },
+    queryOptions: { enabled: isModalOpen },
   });
 
   const invalidate = useInvalidate();
@@ -71,7 +74,6 @@ const ModalAddWorkspace = () => {
     );
   };
 
-  const isModalOpen = type === 'ModalAddWorkspace' && isOpen;
   const isPrivateWorkspace = visibility === 'private';
 
   const shareLink = useMemo(() => {

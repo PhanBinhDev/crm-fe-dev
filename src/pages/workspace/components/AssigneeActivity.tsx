@@ -46,7 +46,6 @@ const AssigneeActivity = ({
 
   return (
     <Popover
-      // After open then focus on input
       afterOpenChange={open => {
         if (open) {
           setTimeout(() => {

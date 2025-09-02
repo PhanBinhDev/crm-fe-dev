@@ -1,33 +1,34 @@
 import { Authenticated, Refine } from '@refinedev/core';
 import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
-import { App as AntdApp, ConfigProvider } from 'antd';
-import viVN from 'antd/locale/vi_VN';
 import routerBindings, {
   DocumentTitleHandler,
   NavigateToResource,
   UnsavedChangesNotifier,
 } from '@refinedev/react-router-v6';
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { App as AntdApp, ConfigProvider } from 'antd';
+import viVN from 'antd/locale/vi_VN';
+import 'react-day-picker/style.css';
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
-import { authProvider } from '@/providers/AuthProvider';
+import { GoogleLoginPage } from '@/components/auth/GoogleLoginPage';
+import { CustomLayout } from '@/components/layout/custom-layout';
+import { queryClient } from '@/config/queryClient';
 import { resources } from '@/config/resources';
 import { antdTheme } from '@/config/theme';
-import { queryClient } from '@/config/queryClient';
-import '@/styles/globals.css';
-import { CustomLayout } from '@/components/layout/custom-layout';
-import { GoogleLoginPage } from '@/components/auth/GoogleLoginPage';
-import { standardDataProvider } from '@/providers/nestjs';
 import { API_URL } from '@/constants';
-import { WorkspaceProvider } from './contexts/workspaces';
-import { userRoutes } from '@/pages/users/routes';
 import { profileRoutes } from '@/pages/profile/routes';
 import { semesterRoutes } from '@/pages/semester/routes';
+import { userRoutes } from '@/pages/users/routes';
+import { authProvider } from '@/providers/AuthProvider';
+import { standardDataProvider } from '@/providers/nestjs';
+import '@/styles/globals.css';
 import { ErrorComponent } from './components/common/ErrorBoundary';
-import { accessControlProvider } from './providers/AccessControlProvider';
 import Modals from './components/modals';
+import { WorkspaceProvider } from './contexts/workspaces';
 import { workspaceRoutes } from './pages/workspace/routes';
 import { ActivitiesKanbanPage } from './pages/workspaces/list';
+import { accessControlProvider } from './providers/AccessControlProvider';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
