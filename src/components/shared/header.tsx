@@ -1,13 +1,26 @@
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
+import { onMessageListener, requestForToken } from '@/providers/fcmNotification/firebase';
 import { useLogout } from '@refinedev/core';
 import { IconBell, IconClock, IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
 import { Avatar, Badge, Button, Drawer, Dropdown, Layout, MenuProps, Space, Spin } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const { Header } = Layout;
 export const AppHeader = () => {
+  useEffect(() => {
+    // Lấy token
+    requestForToken();
+
+    // Lắng nghe message
+    onMessageListener()
+      .then((payload: any) => {
+        alert(`Thông báo mới: ${payload.notification?.title}`);
+      })
+      .catch(err => console.log('Lỗi lắng nghe message:', err));
+  }, []);
+
   const { user, isLoading } = useAuth();
   const { mutate: logout } = useLogout();
   const [profileTab, setProfileTab] = useState(false);
