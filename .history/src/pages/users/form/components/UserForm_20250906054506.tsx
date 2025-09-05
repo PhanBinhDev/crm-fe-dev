@@ -33,14 +33,14 @@ export const UserForm: FC<UserFormProps> = ({
   initialValues,
   onFinish,
   isEdit = false,
-  // isSelfEdit = false,
+  isSelfEdit = false,
   formProps,
 }) => {
   const { user: identity } = useAuth();
   // Nếu là edit và user hiện tại không phải CNBM thì chỉ cho xem (disabled)
   const isCNBM = identity?.role === UserRole.CNBM;
   const isEditViewOnly = isEdit && !isCNBM;
-  const [form] = Form.useForm(formProps?.form);
+  const [form] = Form.useForm();
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
@@ -106,20 +106,23 @@ export const UserForm: FC<UserFormProps> = ({
     return isJpgOrPng && isLt2M;
   };
 
-  // Gọi onFinish chuẩn, không debug
-  const handleFormFinish = (values: any) => {
+  // Debug: kiểm tra onFinish có được truyền đúng không
+  const debugOnFinish = (values: any) => {
+    console.log('UserForm onFinish called', values);
     if (onFinish) onFinish(values);
   };
 
   return (
     <Card
-     
+      title={isEdit ? 'Chỉnh sửa thông tin người dùng' : 'Thêm người dùng mới'}
+      className="user-form-card"
+      style={{ maxWidth: 800, margin: '0 auto' }}
     >
       <Form
         form={form}
         layout="vertical"
         initialValues={transformedInitialValues}
-        onFinish={handleFormFinish}
+        onFinish={debugOnFinish}
         key={initialValues?.id}
         size="large"
         {...formProps}

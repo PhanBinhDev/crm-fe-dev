@@ -113,7 +113,9 @@ export const UserForm: FC<UserFormProps> = ({
 
   return (
     <Card
-     
+      title={}
+      className="user-form-card"
+      style={{ maxWidth: 800, margin: '0 auto' }}
     >
       <Form
         form={form}

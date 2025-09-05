@@ -113,7 +113,9 @@ export const UserForm: FC<UserFormProps> = ({
 
   return (
     <Card
-     
+      title={isEdit ? 'Chỉnh sửa thông tin người dùng' : 'Thêm người dùng mới'}
+      className="user-form-card"
+      style={{ maxWidth: 800, margin: '0 auto' }}
     >
       <Form
         form={form}

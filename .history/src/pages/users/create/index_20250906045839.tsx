@@ -1,45 +1,44 @@
 
-
-import { Card, Form, message } from 'antd';
+import { Create, useForm } from '@refinedev/antd';
+import { Card, message } from 'antd';
 import { UserForm } from '@/pages/users/form/components/UserForm';
+import { IUser } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
 import { UserService } from '@/services/api/user';
 import { UserRole } from '@/common/enum/user';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 export const UserCreate = () => {
+  const { formProps, saveButtonProps } = useForm<IUser>();
   const { user: identity } = useAuth();
-  const [form] = Form.useForm();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const navigate = useNavigate();
 
+  // Chỉ CNBM mới được tạo user
   const isCNBM = identity?.role === UserRole.CNBM;
 
   const handleFinish = async (values: any) => {
-    if (isProcessing) return;
     if (!isCNBM) {
       message.error('Bạn không có quyền tạo người dùng mới!');
       return;
     }
-    setIsProcessing(true);
+
+    // Xử lý dữ liệu gửi lên đúng định dạng DTO
     const payload = {
       name: values.name,
-      username: values.username,
       email: values.email,
-      phone: values.phone,
-      major: values.major,
-      dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : undefined,
+      username: values.username,
       role: values.role,
+      phone: values.phone,
       isActive: values.isActive === true || values.isActive === 'true',
+      dateOfBirth: values.dateOfBirth ? (typeof values.dateOfBirth === 'string' ? values.dateOfBirth : values.dateOfBirth.format('YYYY-MM-DD')) : undefined,
       avatar: values.avatar,
+      major: values.major,
     };
+
     try {
       await UserService.createUser(payload);
-  message.success('Tạo người dùng thành công!');
-  form.resetFields();
-  navigate('/teachers');
+      message.success('Tạo người dùng thành công!');
+      if (formProps.form) formProps.form.resetFields();
     } catch (error: any) {
+      // Xử lý lỗi chi tiết từ BE
       const details = error?.response?.data?.details;
       if (details && Array.isArray(details)) {
         details.forEach((d: any) => {
@@ -50,22 +49,27 @@ export const UserCreate = () => {
       } else {
         message.error('Tạo người dùng thất bại!');
       }
-    } finally {
-      setIsProcessing(false);
     }
   };
 
   return (
-    <Card
-      title="Thêm người dùng mới"
-      style={{ maxWidth: 800, margin: '0 auto', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+    <Create
+      saveButtonProps={{
+        ...saveButtonProps,
+        children: 'Tạo mới',
+        disabled: !isCNBM,
+      }}
+      breadcrumb={false}
     >
-      <UserForm
-        onFinish={handleFinish}
-        isEdit={false}
-        isSelfEdit={false}
-        formProps={{ form }}
-      />
-    </Card>
+      <Card>
+        <UserForm
+          initialValues={undefined}
+          onFinish={handleFinish}
+          isEdit={false}
+          isSelfEdit={false}
+          formProps={formProps}
+        />
+      </Card>
+    </Create>
   );
 };

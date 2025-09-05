@@ -14,6 +14,7 @@ export const UserCreate = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
 
+  // Component cha cần xác định vai trò của người dùng hiện tại
   const isCNBM = identity?.role === UserRole.CNBM;
 
   const handleFinish = async (values: any) => {

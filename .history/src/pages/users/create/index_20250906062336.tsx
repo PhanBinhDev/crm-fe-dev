@@ -14,8 +14,10 @@ export const UserCreate = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
 
+  // Component cha cần xác định vai trò của người dùng hiện tại
   const isCNBM = identity?.role === UserRole.CNBM;
 
+  // Đây là hàm xử lý dữ liệu sau khi form được gửi thành công
   const handleFinish = async (values: any) => {
     if (isProcessing) return;
     if (!isCNBM) {
@@ -38,7 +40,7 @@ export const UserCreate = () => {
       await UserService.createUser(payload);
   message.success('Tạo người dùng thành công!');
   form.resetFields();
-  navigate('/teachers');
+  navigate('/users');
     } catch (error: any) {
       const details = error?.response?.data?.details;
       if (details && Array.isArray(details)) {
@@ -60,6 +62,7 @@ export const UserCreate = () => {
       title="Thêm người dùng mới"
       style={{ maxWidth: 800, margin: '0 auto', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
     >
+      {/* Truyền hàm xử lý và form instance vào component UserForm */}
       <UserForm
         onFinish={handleFinish}
         isEdit={false}

@@ -11,6 +11,7 @@ import {
   Row,
   Col,
   DatePicker,
+  message,
   Button,
 } from 'antd';
 import { IconUpload, IconUser } from '@tabler/icons-react';
@@ -33,14 +34,14 @@ export const UserForm: FC<UserFormProps> = ({
   initialValues,
   onFinish,
   isEdit = false,
-  // isSelfEdit = false,
+  isSelfEdit = false,
   formProps,
 }) => {
   const { user: identity } = useAuth();
   // Nếu là edit và user hiện tại không phải CNBM thì chỉ cho xem (disabled)
   const isCNBM = identity?.role === UserRole.CNBM;
   const isEditViewOnly = isEdit && !isCNBM;
-  const [form] = Form.useForm(formProps?.form);
+  const [form] = Form.useForm();
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
@@ -81,9 +82,13 @@ export const UserForm: FC<UserFormProps> = ({
       const url = info.file.response?.url || URL.createObjectURL(info.file.originFileObj!);
       setAvatarUrl(url);
       form.setFieldsValue({ avatar: url });
-      // Removed message.success('Tải ảnh lên thành công!');
+    if (info.file.status === 'done') {
+      const url = info.file.response?.url || URL.createObjectURL(info.file.originFileObj!);
+      setAvatarUrl(url);
+      form.setFieldsValue({ avatar: url });
+      message.success('Tải ảnh lên thành công!');
     } else if (info.file.status === 'error') {
-      // Removed message.error('Tải ảnh lên thất bại!');
+      message.error('Tải ảnh lên thất bại!');
     }
   };
 
@@ -97,29 +102,60 @@ export const UserForm: FC<UserFormProps> = ({
   const beforeUpload = (file: File) => {
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
     if (!isJpgOrPng) {
-      // Removed message.error('Chỉ có thể tải lên file JPG/PNG!');
+      message.error('Chỉ có thể tải lên file JPG/PNG!');
     }
     const isLt2M = file.size / 1024 / 1024 < 2;
     if (!isLt2M) {
-      // Removed message.error('Ảnh phải nhỏ hơn 2MB!');
+      message.error('Ảnh phải nhỏ hơn 2MB!');
     }
     return isJpgOrPng && isLt2M;
   };
 
-  // Gọi onFinish chuẩn, không debug
-  const handleFormFinish = (values: any) => {
-    if (onFinish) onFinish(values);
+
+  const [loading, setLoading] = useState(false);
+  const handleSubmit = async (values: any) => {
+    setLoading(true);
+    try {
+      await UserService.createUser({
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        role: values.role,
+        ...(values.username && { username: values.username }),
+        ...(values.isActive !== undefined && { isActive: values.isActive === true || values.isActive === 'true' }),
+        ...(values.dateOfBirth && { dateOfBirth: typeof values.dateOfBirth === 'string' ? values.dateOfBirth : values.dateOfBirth.format('YYYY-MM-DD') }),
+        ...(values.avatar && { avatar: values.avatar }),
+        ...(values.major && { major: values.major }),
+      });
+      message.success('Tạo người dùng thành công!');
+      navigate('/users');
+    } catch (error: any) {
+      const details = error?.response?.data?.details;
+      if (details && Array.isArray(details)) {
+        details.forEach((d: any) => {
+          message.error(`${d.field}: ${d.message}`);
+        });
+      } else if (error?.response?.data?.message) {
+        message.error(error.response.data.message);
+      } else {
+        message.error('Tạo người dùng thất bại!');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Card
-     
+      title={isEdit ? 'Chỉnh sửa thông tin người dùng' : 'Thêm người dùng mới'}
+      className="user-form-card"
+      style={{ maxWidth: 800, margin: '0 auto' }}
     >
       <Form
         form={form}
         layout="vertical"
         initialValues={transformedInitialValues}
-        onFinish={handleFormFinish}
+        onFinish={handleSubmit}
         key={initialValues?.id}
         size="large"
         {...formProps}
@@ -225,7 +261,6 @@ export const UserForm: FC<UserFormProps> = ({
             <Form.Item
               name="dateOfBirth"
               label={<span style={{ fontWeight: 600 }}>Ngày sinh</span>}
-              rules={[{ required: true, message: 'Vui lòng chọn ngày sinh' }]}
             >
               <DatePicker
                 placeholder="Chọn ngày sinh"
@@ -270,7 +305,7 @@ export const UserForm: FC<UserFormProps> = ({
 
       
         <Form.Item style={{ textAlign: 'right', marginTop: 24 }}>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={loading}>
             Lưu
           </Button>
         </Form.Item>
