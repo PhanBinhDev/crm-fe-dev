@@ -60,7 +60,6 @@ export const SemesterForm: React.FC<SemesterFormProps> = ({
   const today = dayjs();
   const currentYear = today.year();
 
-  // Watch
   const year = Form.useWatch("year", form) || currentYear;
   const semesters = Form.useWatch("semesters", form) || [];
 
