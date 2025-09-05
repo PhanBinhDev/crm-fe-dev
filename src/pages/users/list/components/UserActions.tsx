@@ -7,6 +7,7 @@ import { Button, Dropdown, Space } from 'antd';
 import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ModalExportUser } from './ModalExportUser';
+import { ImportModal } from './ImportModal';
 
 export const UserActions: FC = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export const UserActions: FC = () => {
     params: { identity },
   });
   const [openExport, setOpenExport] = useState(false);
+  const [openImport, setOpenImport] = useState(false);
   const { tableQueryResult } = useTable<IUser>({
     resource: 'users/all',
     pagination: { pageSize: 1000 },
@@ -27,12 +29,18 @@ export const UserActions: FC = () => {
     return null;
   }
 
+  const handleImportSuccess = () => {
+    setOpenImport(false);
+    // Refresh the table data
+    tableQueryResult?.refetch();
+  };
+
   const menuItems = [
     {
       key: 'import',
       icon: <IconUpload size={16} color="#0072bc" />,
       label: 'Import',
-      onClick: () => navigate('/teachers/import'),
+      onClick: () => setOpenImport(true),
     },
     {
       key: 'export',
@@ -76,6 +84,11 @@ export const UserActions: FC = () => {
         />
       </Space>
       <ModalExportUser open={openExport} onClose={() => setOpenExport(false)} users={users} />
+      <ImportModal 
+        visible={openImport} 
+        onClose={() => setOpenImport(false)} 
+        onSuccess={handleImportSuccess} 
+      />
     </>
   );
 };

@@ -8,7 +8,7 @@ import routerBindings, {
 import { QueryClientProvider } from '@tanstack/react-query';
 import { App as AntdApp, ConfigProvider } from 'antd';
 import viVN from 'antd/locale/vi_VN';
-import 'react-day-picker/style.css';
+import 'react-day-picker/dist/style.css';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
 import { GoogleLoginPage } from '@/components/auth/GoogleLoginPage';
@@ -28,7 +28,7 @@ import Modals from './components/modals';
 import { WorkspaceProvider } from './contexts/workspaces';
 import { workspaceRoutes } from './pages/workspace/routes';
 import { ActivitiesKanbanPage } from './pages/workspaces/list';
-import { accessControlProvider } from './providers/AccessControlProvider';
+import { accessControlProvider } from './providers/accessControlProvider';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
