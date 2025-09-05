@@ -8,7 +8,7 @@ import routerBindings, {
 import { QueryClientProvider } from '@tanstack/react-query';
 import { App as AntdApp, ConfigProvider } from 'antd';
 import viVN from 'antd/locale/vi_VN';
-import 'react-day-picker/dist/style.css';
+// import 'react-day-picker/dist/style.css';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
 import { GoogleLoginPage } from '@/components/auth/GoogleLoginPage';
