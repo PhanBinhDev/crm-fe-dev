@@ -80,7 +80,9 @@ return (
       <Button type="text" icon={<IconDots size={18} />} />
     </Dropdown>
 
-    <UserDrawer id={user.id} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+   {drawerOpen && (
+  <UserDrawer id={user.id} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+)}
   </>
 );
 };
