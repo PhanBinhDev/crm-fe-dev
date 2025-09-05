@@ -11,12 +11,12 @@ import { useAuth } from '@/hooks/useAuth';
 export const UserEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user: identity } = useAuth();
+
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
 
-
+  // CNBM có thể edit bất kỳ user nào
   useEffect(() => {
     const fetchUser = async () => {
       try {

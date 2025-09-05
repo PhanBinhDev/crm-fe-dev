@@ -1,10 +1,3 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useTable } from '@refinedev/antd';
-import { Card, Row, Col } from 'antd';
-import { UserFilters, UserTable, UserActions } from './components';
-import type { IUser } from '@/common/types';
-import { UserRole } from '@/common/enum/user';
-import { useLocation } from 'react-router-dom';
 
 export const UserList = () => {
   const [searchText, setSearchText] = useState('');
@@ -36,7 +29,7 @@ export const UserList = () => {
     return filterList;
   }, [searchText, filters.role, filters.isActive]);
 
-  const { tableProps, tableQueryResult } = useTable<IUser>({
+  const { tableProps } = useTable<IUser>({
     resource: 'users/all',
     pagination: {
       pageSize: pageSize,
@@ -63,11 +56,11 @@ export const UserList = () => {
   };
 
   useEffect(() => {
-    if (location.state?.reload && tableQueryResult?.refetch) {
-      tableQueryResult.refetch();
+    if (location.state?.reload && tableProps?.refetch) {
+      tableProps.refetch();
     }
-
-  }, [location.state, tableQueryResult]);
+    // eslint-disable-next-line
+  }, [location.state, tableProps]);
 
   return (
     <Card>

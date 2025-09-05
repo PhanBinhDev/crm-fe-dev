@@ -16,7 +16,7 @@ export const UserEdit = () => {
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
 
-
+  // CNBM có thể edit bất kỳ user nào
   useEffect(() => {
     const fetchUser = async () => {
       try {

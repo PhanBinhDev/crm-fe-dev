@@ -66,7 +66,7 @@ export const UserList = () => {
     if (location.state?.reload && tableQueryResult?.refetch) {
       tableQueryResult.refetch();
     }
-
+    // eslint-disable-next-line
   }, [location.state, tableQueryResult]);
 
   return (

@@ -1,7 +1,6 @@
 'use client';
 
 import { type FC, useEffect, useState } from 'react';
-import { message as antdMessage } from 'antd';
 import {
   Form,
   Input,
@@ -79,9 +78,9 @@ export const UserForm: FC<UserFormProps> = ({
       const url = info.file.response?.url || URL.createObjectURL(info.file.originFileObj!);
       setAvatarUrl(url);
       form.setFieldsValue({ avatar: url });
-      antdMessage.success('Tải ảnh lên thành công!');
+      // Removed message.success('Tải ảnh lên thành công!');
     } else if (info.file.status === 'error') {
-      antdMessage.error('Tải ảnh lên thất bại!');
+      // Removed message.error('Tải ảnh lên thất bại!');
     }
   };
 
@@ -95,39 +94,22 @@ export const UserForm: FC<UserFormProps> = ({
   const beforeUpload = (file: File) => {
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
     if (!isJpgOrPng) {
-      antdMessage.error('Chỉ có thể tải lên file JPG/PNG!');
     }
     const isLt2M = file.size / 1024 / 1024 < 2;
     if (!isLt2M) {
-      antdMessage.error('Ảnh phải nhỏ hơn 2MB!');
     }
     return isJpgOrPng && isLt2M;
   };
 
+  // Gọi onFinish chuẩn, không debug
   const handleFormFinish = (values: any) => {
     if (onFinish) onFinish(values);
   };
 
   return (
-    <Card>
-      {isEdit && (
-        <Row gutter={24} style={{ marginBottom: 8 }}>
-          <Col span={24} style={{ textAlign: 'right' }}>
-            <span style={{
-              display: 'inline-block',
-              padding: '4px 16px',
-              borderRadius: 8,
-              background: transformedInitialValues?.isActive ? '#f6ffed' : '#fff1f0',
-              color: transformedInitialValues?.isActive ? '#389e0d' : '#cf1322',
-              fontWeight: 600,
-              fontSize: 14,
-              marginBottom: 8,
-            }}>
-              {transformedInitialValues?.isActive ? 'Đang hoạt động' : 'Đã vô hiệu hóa'}
-            </span>
-          </Col>
-        </Row>
-      )}
+    <Card
+     
+    >
       <Form
         form={form}
         layout="vertical"
@@ -135,7 +117,6 @@ export const UserForm: FC<UserFormProps> = ({
         onFinish={handleFormFinish}
         size="large"
       >
-
 
         <Row gutter={24} style={{ marginBottom: 24 }}>
           <Col span={24} style={{ textAlign: 'center' }}>
@@ -173,6 +154,7 @@ export const UserForm: FC<UserFormProps> = ({
         </Row>
 
         <Row gutter={24}>
+
           <Col xs={24} md={12}>
             <Form.Item
               name="name"
@@ -196,6 +178,7 @@ export const UserForm: FC<UserFormProps> = ({
               <Input placeholder="Nhập tên đăng nhập" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
             </Form.Item>
           </Col>
+          
         </Row>
 
         <Row gutter={24}>

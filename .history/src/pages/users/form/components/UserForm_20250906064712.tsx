@@ -110,6 +110,7 @@ export const UserForm: FC<UserFormProps> = ({
 
   return (
     <Card>
+      {/* Hiển thị trạng thái hiện tại khi edit */}
       {isEdit && (
         <Row gutter={24} style={{ marginBottom: 8 }}>
           <Col span={24} style={{ textAlign: 'right' }}>
@@ -136,43 +137,8 @@ export const UserForm: FC<UserFormProps> = ({
         size="large"
       >
 
-
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col span={24} style={{ textAlign: 'center' }}>
-            <Form.Item name="avatar" label="Ảnh đại diện">
-              <div
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}
-              >
-                <Avatar
-                  size={120}
-                  src={avatarUrl}
-                  icon={<IconUser size={64} />}
-                  style={{
-                    border: '4px solid #f0f0f0',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  }}
-                />
-                <Upload
-                  name="avatar"
-                  listType="text"
-                  fileList={fileList}
-                  onChange={handleAvatarChange}
-                  beforeUpload={beforeUpload}
-                  customRequest={customRequest}
-                  maxCount={1}
-                  showUploadList={false}
-                  disabled={isEditViewOnly}
-                >
-                  <Button icon={<IconUpload size={20} />} type="dashed" disabled={isEditViewOnly}>
-                    Tải ảnh lên
-                  </Button>
-                </Upload>
-              </div>
-            </Form.Item>
-          </Col>
-        </Row>
-
         <Row gutter={24}>
+
           <Col xs={24} md={12}>
             <Form.Item
               name="name"
@@ -196,6 +162,7 @@ export const UserForm: FC<UserFormProps> = ({
               <Input placeholder="Nhập tên đăng nhập" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
             </Form.Item>
           </Col>
+          
         </Row>
 
         <Row gutter={24}>

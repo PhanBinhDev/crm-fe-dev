@@ -110,6 +110,7 @@ export const UserForm: FC<UserFormProps> = ({
 
   return (
     <Card>
+      {/* Hiển thị trạng thái hiện tại khi edit */}
       {isEdit && (
         <Row gutter={24} style={{ marginBottom: 8 }}>
           <Col span={24} style={{ textAlign: 'right' }}>
@@ -136,7 +137,7 @@ export const UserForm: FC<UserFormProps> = ({
         size="large"
       >
 
-
+        {/* Upload avatar luôn hiển thị đầu form */}
         <Row gutter={24} style={{ marginBottom: 24 }}>
           <Col span={24} style={{ textAlign: 'center' }}>
             <Form.Item name="avatar" label="Ảnh đại diện">

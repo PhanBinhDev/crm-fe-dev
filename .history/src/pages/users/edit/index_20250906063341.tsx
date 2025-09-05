@@ -5,7 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { UserForm } from '@/pages/users/form/components/UserForm';
 import { UserService } from '@/services/api/user';
 import { useAuth } from '@/hooks/useAuth';
-
+import { UserRole } from '@/common/enum/user';
 
 
 export const UserEdit = () => {
@@ -16,6 +16,7 @@ export const UserEdit = () => {
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const isCNBM = identity?.role === UserRole.CNBM;
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -33,6 +34,10 @@ export const UserEdit = () => {
 
   const handleFinish = async (values: any) => {
     if (isProcessing) return;
+    if (!isCNBM) {
+      message.error('Bạn không có quyền chỉnh sửa người dùng!');
+      return;
+    }
     setIsProcessing(true);
     const payload = {
       name: values.name,
@@ -48,7 +53,7 @@ export const UserEdit = () => {
     try {
       await UserService.updateUser(id!, payload);
       message.success('Cập nhật người dùng thành công!');
-  navigate('/teachers', { state: { reload: true } });
+      navigate('/users');
     } catch (error: any) {
       const details = error?.response?.data?.details;
       if (details && Array.isArray(details)) {

@@ -36,7 +36,7 @@ export const UserList = () => {
     return filterList;
   }, [searchText, filters.role, filters.isActive]);
 
-  const { tableProps, tableQueryResult } = useTable<IUser>({
+  const { tableProps } = useTable<IUser>({
     resource: 'users/all',
     pagination: {
       pageSize: pageSize,
@@ -63,11 +63,11 @@ export const UserList = () => {
   };
 
   useEffect(() => {
-    if (location.state?.reload && tableQueryResult?.refetch) {
-      tableQueryResult.refetch();
+    if (location.state?.reload && tableProps?.refetch) {
+      tableProps.refetch();
     }
-
-  }, [location.state, tableQueryResult]);
+    // eslint-disable-next-line
+  }, [location.state, tableProps]);
 
   return (
     <Card>

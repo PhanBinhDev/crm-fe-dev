@@ -110,6 +110,7 @@ export const UserForm: FC<UserFormProps> = ({
 
   return (
     <Card>
+      {/* Hiển thị trạng thái hiện tại khi edit */}
       {isEdit && (
         <Row gutter={24} style={{ marginBottom: 8 }}>
           <Col span={24} style={{ textAlign: 'right' }}>

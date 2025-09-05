@@ -89,7 +89,7 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
       <Dropdown menu={{ items: menuItems }} trigger={['click']} placement="bottomRight">
         <Button type="text" icon={<IconDots size={20} />} />
       </Dropdown>
-  <UserDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} id={user.id} />
+      <UserDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} user={user} />
     </>
   );
 };
