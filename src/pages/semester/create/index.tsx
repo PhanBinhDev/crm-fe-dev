@@ -8,8 +8,8 @@ import SemesterForm from '../components/form';
 interface ISemesterCreateDTO {
   name: string;
   year: number;
-  startDate: string;
-  endDate: string;
+  startDate: string; 
+  endDate: string;   
   status: 'Ongoing' | 'Completed' | 'Upcoming';
   description?: string;
   blocks?: { name: string }[];
@@ -30,30 +30,53 @@ export const SemesterCreatePage: React.FC = () => {
   const handleFinish = async (items: ISemesterCreateDTO[]) => {
     setServerError(null);
 
-    const invalids: string[] = [];
-    for (const i of items) {
-      if (!i.name) invalids.push('Tên kỳ học trống');
-      if (!i.year) invalids.push('Năm không hợp lệ');
-      if (!i.startDate || !i.endDate) invalids.push(`Kỳ ${i.name} thiếu ngày`);
-      if (!i.status) invalids.push(`Kỳ ${i.name} thiếu trạng thái`);
-    }
-
-    if (invalids.length > 0) {
-      notification.error({
-        message: 'Dữ liệu không hợp lệ',
-        description: invalids.join('; '),
-      });
-      return;
-    }
-
     try {
-      // gọi BE
-      for (const payload of items) {
-        await dataProvider.create({
-          resource: RESOURCE,
-          variables: payload,
-        });
+      await form.validateFields();
+
+      const invalids: string[] = [];
+      const currentYear = new Date().getFullYear();
+
+      if (!Array.isArray(items) || items.length === 0) {
+        invalids.push('Không có kỳ học nào để tạo');
       }
+
+      for (const i of items ?? []) {
+        if (!i?.name?.trim()) invalids.push('Tên kỳ học trống');
+        if (!Number.isInteger(i.year) || i.year < currentYear) {
+          invalids.push(`Năm không hợp lệ (phải ≥ ${currentYear})`);
+        }
+
+        if (!i.startDate || !i.endDate) {
+          invalids.push(`Kỳ ${i.name || '(không tên)'} thiếu ngày bắt đầu/kết thúc`);
+        } else {
+          const start = new Date(i.startDate).getTime();
+          const end = new Date(i.endDate).getTime();
+
+          if (Number.isNaN(start) || Number.isNaN(end)) {
+            invalids.push(`Kỳ ${i.name}: ngày không hợp lệ`);
+          } else {
+            if (end < start) {
+              invalids.push(`Kỳ ${i.name}: ngày kết thúc phải ≥ ngày bắt đầu`);
+            }    
+          }
+        }
+
+        if (!i.status) invalids.push(`Kỳ ${i.name || '(không tên)'} thiếu trạng thái`);
+      }
+
+      if (invalids.length > 0) {
+        notification.error({
+          message: 'Dữ liệu không hợp lệ',
+          description: invalids.join('; '),
+        });
+        return; 
+      }
+
+      await Promise.all(
+        items.map((payload) =>
+          dataProvider.create({ resource: RESOURCE, variables: payload })
+        )
+      );
 
       notification.success({
         message: 'Thêm mới thành công',
@@ -64,11 +87,12 @@ export const SemesterCreatePage: React.FC = () => {
       invalidate({ resource: RESOURCE, invalidates: ['list'] });
       navigate('/semesters/list');
     } catch (e: any) {
-      let msg = e?.message || 'Không thể tạo kỳ học';
-      const details = e?.errors?.details || e?.errors?.message || e?.errors;
-      if (Array.isArray(details) && details.length) {
-        msg = details.map((d: any) => d?.message).join('; ');
-      }
+      const msg =
+        e?.message ||
+        e?.errors?.message ||
+        (Array.isArray(e?.errors)
+          ? e.errors.map((d: any) => d?.message).join('; ')
+          : 'Không thể tạo kỳ học');
 
       notification.error({
         message: 'Thêm mới thất bại',
@@ -78,9 +102,12 @@ export const SemesterCreatePage: React.FC = () => {
       setServerError(msg);
     }
   };
+
   return (
     <Create breadcrumb={false} footerButtons={[]} title="Tạo Mới Kỳ Học">
-        <SemesterForm formProps={{ form, onFinish: handleFinish }} serverError={serverError} />
+      <SemesterForm formProps={{ form, onFinish: handleFinish }} serverError={serverError} />
     </Create>
   );
 };
+
+export default SemesterCreatePage;
