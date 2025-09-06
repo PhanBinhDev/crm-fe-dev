@@ -80,9 +80,7 @@ export const SemesterCreatePage: React.FC = () => {
   };
   return (
     <Create breadcrumb={false} footerButtons={[]} title="Tạo Mới Kỳ Học">
-      <Card>
         <SemesterForm formProps={{ form, onFinish: handleFinish }} serverError={serverError} />
-      </Card>
     </Create>
   );
 };
