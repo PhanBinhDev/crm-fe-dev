@@ -1,13 +1,10 @@
-
-import { FC, useState } from 'react';
-import { Dropdown, Button, MenuProps, message } from 'antd';
-import { IconDots, IconEye, IconEdit, IconUserExclamation } from '@tabler/icons-react';
-import { useNavigate } from 'react-router-dom';
 import { IUser } from '@/common/types';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
-import { useUpdate, useInvalidate } from '@refinedev/core';
-import { useAuth } from '@/hooks/useAuth';
-import { UserRole } from '@/common/enum/user';
+import { useInvalidate, useUpdate } from '@refinedev/core';
+import { IconDots, IconEdit, IconEye, IconUserExclamation } from '@tabler/icons-react';
+import { Button, Dropdown, MenuProps, message } from 'antd';
+import { FC, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UserDrawer } from './UserDrawer';
 
 interface UserRowActionsProps {
@@ -28,7 +25,7 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
       key: `view-${user.id}`,
       icon: <IconEye size={18} />,
       label: 'Xem chi tiết',
-      onClick: () => setDrawerOpen(true), 
+      onClick: () => setDrawerOpen(true),
     },
   ];
 
@@ -86,10 +83,12 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
 
   return (
     <>
-      <Dropdown menu={{ items: menuItems }} trigger={['click']} placement="bottomRight">
-        <Button type="text" icon={<IconDots size={20} />} />
+      <Dropdown menu={{ items: menuItems }} trigger={['click']}>
+        <Button type="text" icon={<IconDots size={18} />} />
       </Dropdown>
-  <UserDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} id={user.id} />
+      {drawerOpen && (
+        <UserDrawer id={user.id} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      )}
     </>
   );
 };
