@@ -6,7 +6,7 @@ export const useAuth = () => {
     queryOptions: {
       retry: false,
       refetchOnWindowFocus: false,
-      cacheTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 5 * 60 * 1000, 
     },
   });
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { type FC, useEffect, useState } from 'react';
+import { message as antdMessage } from 'antd';
 import {
   Form,
   Input,
@@ -11,15 +12,15 @@ import {
   Row,
   Col,
   DatePicker,
-  message,
   Button,
 } from 'antd';
 import { IconUpload, IconUser } from '@tabler/icons-react';
 import type { UploadProps, UploadFile } from 'antd';
 import type { IUser } from '@/common/types';
-import { useCreate, useUpdate } from '@refinedev/core';
 import { userStatusFilterOptions, userRoleFilterOptions } from '@/constants/user';
 import dayjs from 'dayjs';
+import { useAuth } from '@/hooks/useAuth';
+import { UserRole } from '@/common/enum/user';
 
 interface UserFormProps {
   initialValues?: IUser;
@@ -33,9 +34,10 @@ export const UserForm: FC<UserFormProps> = ({
   initialValues,
   onFinish,
   isEdit = false,
-  isSelfEdit = false,
-  formProps,
 }) => {
+  const { user: identity } = useAuth();
+  const isCNBM = identity?.role === UserRole.CNBM;
+  const isEditViewOnly = isEdit && !isCNBM;
   const [form] = Form.useForm();
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -63,7 +65,7 @@ export const UserForm: FC<UserFormProps> = ({
         ]);
       }
     }
-  }, [form, transformedInitialValues]);
+  }, [JSON.stringify(transformedInitialValues)]);
 
   const handleAvatarChange: UploadProps['onChange'] = info => {
     const { fileList: newFileList } = info;
@@ -77,9 +79,9 @@ export const UserForm: FC<UserFormProps> = ({
       const url = info.file.response?.url || URL.createObjectURL(info.file.originFileObj!);
       setAvatarUrl(url);
       form.setFieldsValue({ avatar: url });
-      message.success('Tải ảnh lên thành công!');
+      antdMessage.success('Tải ảnh lên thành công!');
     } else if (info.file.status === 'error') {
-      message.error('Tải ảnh lên thất bại!');
+      antdMessage.error('Tải ảnh lên thất bại!');
     }
   };
 
@@ -93,78 +95,48 @@ export const UserForm: FC<UserFormProps> = ({
   const beforeUpload = (file: File) => {
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
     if (!isJpgOrPng) {
-      message.error('Chỉ có thể tải lên file JPG/PNG!');
+      antdMessage.error('Chỉ có thể tải lên file JPG/PNG!');
     }
     const isLt2M = file.size / 1024 / 1024 < 2;
     if (!isLt2M) {
-      message.error('Ảnh phải nhỏ hơn 2MB!');
+      antdMessage.error('Ảnh phải nhỏ hơn 2MB!');
     }
     return isJpgOrPng && isLt2M;
   };
 
-  const { mutate: createUser } = useCreate();
-  const { mutate: updateUser } = useUpdate();
-
-  const handleSubmit = (values: any) => {
-    if (isEdit && initialValues?.id) {
-      updateUser(
-        {
-          resource: 'users',
-          id: initialValues.id,
-          values,
-          successNotification: false,
-          errorNotification: false,
-        },
-        {
-          onSuccess: () => {
-            form.resetFields();
-            if (onFinish) onFinish(values);
-            message.success('Cập nhật người dùng thành công!');
-          },
-          onError: error => {
-            message.error(error?.message || 'Có lỗi xảy ra!');
-          },
-        },
-      );
-      if (onFinish) onFinish(values);
-    } else {
-      createUser(
-        {
-          resource: 'users',
-          values,
-          successNotification: false,
-          errorNotification: false,
-          meta: {},
-        },
-        {
-          onSuccess: () => {
-            form.resetFields();
-            if (onFinish) onFinish(values);
-            message.success('Tạo người dùng thành công!');
-          },
-          onError: error => {
-            message.error(error?.message || 'Có lỗi xảy ra!');
-          },
-        },
-      );
-    }
+  const handleFormFinish = (values: any) => {
+    if (onFinish) onFinish(values);
   };
 
   return (
-    <Card
-      title={isEdit ? 'Chỉnh sửa thông tin người dùng' : 'Thêm người dùng mới'}
-      className="user-form-card"
-      style={{ maxWidth: 800, margin: '0 auto' }}
-    >
+    <Card>
+      {isEdit && (
+        <Row gutter={24} style={{ marginBottom: 8 }}>
+          <Col span={24} style={{ textAlign: 'right' }}>
+            <span style={{
+              display: 'inline-block',
+              padding: '4px 16px',
+              borderRadius: 8,
+              background: transformedInitialValues?.isActive ? '#f6ffed' : '#fff1f0',
+              color: transformedInitialValues?.isActive ? '#389e0d' : '#cf1322',
+              fontWeight: 600,
+              fontSize: 14,
+              marginBottom: 8,
+            }}>
+              {transformedInitialValues?.isActive ? 'Đang hoạt động' : 'Đã vô hiệu hóa'}
+            </span>
+          </Col>
+        </Row>
+      )}
       <Form
         form={form}
         layout="vertical"
         initialValues={transformedInitialValues}
-        onFinish={handleSubmit}
-        key={initialValues?.id}
+        onFinish={handleFormFinish}
         size="large"
-        {...formProps}
       >
+
+
         <Row gutter={24} style={{ marginBottom: 24 }}>
           <Col span={24} style={{ textAlign: 'center' }}>
             <Form.Item name="avatar" label="Ảnh đại diện">
@@ -189,8 +161,9 @@ export const UserForm: FC<UserFormProps> = ({
                   customRequest={customRequest}
                   maxCount={1}
                   showUploadList={false}
+                  disabled={isEditViewOnly}
                 >
-                  <Button icon={<IconUpload size={20} />} type="dashed">
+                  <Button icon={<IconUpload size={20} />} type="dashed" disabled={isEditViewOnly}>
                     Tải ảnh lên
                   </Button>
                 </Upload>
@@ -202,38 +175,42 @@ export const UserForm: FC<UserFormProps> = ({
         <Row gutter={24}>
           <Col xs={24} md={12}>
             <Form.Item
-              name="email"
-              label={
-                <span style={{ fontWeight: 600 }}>
-                  Email
-                  {isEdit && (
-                    <span style={{ color: '#999', fontSize: 12, marginLeft: 8, fontWeight: 400 }}>
-                      (Không thể thay đổi)
-                    </span>
-                  )}
-                </span>
-              }
-              rules={[
-                { required: true, message: 'Vui lòng nhập email' },
-                { type: 'email', message: 'Email không hợp lệ' },
-              ]}
-            >
-              <Input placeholder="Nhập email" disabled={isEdit} style={{ borderRadius: 8 }} />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} md={12}>
-            <Form.Item
               name="name"
               label={<span style={{ fontWeight: 600 }}>Họ và tên</span>}
               rules={[{ required: true, message: 'Vui lòng nhập họ và tên' }]}
             >
-              <Input placeholder="Nhập họ và tên" style={{ borderRadius: 8 }} />
+              <Input placeholder="Nhập họ và tên" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item
+              name="username"
+              label={<span style={{ fontWeight: 600 }}>Tên đăng nhập</span>}
+              rules={[
+                { required: true, message: 'Vui lòng nhập tên đăng nhập' },
+                { min: 4, message: 'Tên đăng nhập phải có ít nhất 4 ký tự' },
+                { max: 32, message: 'Tên đăng nhập tối đa 32 ký tự' },
+                { pattern: /^[a-zA-Z0-9_]+$/, message: 'Chỉ cho phép chữ, số và dấu gạch dưới' },
+              ]}
+            >
+              <Input placeholder="Nhập tên đăng nhập" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
             </Form.Item>
           </Col>
         </Row>
 
         <Row gutter={24}>
+          <Col xs={24} md={12}>
+            <Form.Item
+              name="email"
+              label={<span style={{ fontWeight: 600 }}>Email</span>}
+              rules={[
+                { required: true, message: 'Vui lòng nhập email' },
+                { type: 'email', message: 'Email không hợp lệ' },
+              ]}
+            >
+              <Input placeholder="Nhập email" disabled={isEditViewOnly} style={{ borderRadius: 8 }} />
+            </Form.Item>
+          </Col>
           <Col xs={24} md={12}>
             <Form.Item
               name="phone"
@@ -243,20 +220,7 @@ export const UserForm: FC<UserFormProps> = ({
                 { pattern: /^[0-9]{10,11}$/, message: 'Số điện thoại không hợp lệ' },
               ]}
             >
-              <Input placeholder="Nhập số điện thoại" style={{ borderRadius: 8 }} />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="dateOfBirth"
-              label={<span style={{ fontWeight: 600 }}>Ngày sinh</span>}
-            >
-              <DatePicker
-                placeholder="Chọn ngày sinh"
-                style={{ width: '100%', borderRadius: 8 }}
-                format="DD/MM/YYYY"
-              />
+              <Input placeholder="Nhập số điện thoại" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
             </Form.Item>
           </Col>
         </Row>
@@ -264,30 +228,20 @@ export const UserForm: FC<UserFormProps> = ({
         <Row gutter={24}>
           <Col xs={24} md={12}>
             <Form.Item name="major" label={<span style={{ fontWeight: 600 }}>Chuyên ngành</span>}>
-              <Input placeholder="Nhập chuyên ngành" style={{ borderRadius: 8 }} />
+              <Input placeholder="Nhập chuyên ngành" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
             </Form.Item>
           </Col>
-
           <Col xs={24} md={12}>
             <Form.Item
-              name="role"
-              label={
-                <span style={{ fontWeight: 600 }}>
-                  Vai trò
-                  {isSelfEdit && (
-                    <span style={{ color: '#999', fontSize: 12, marginLeft: 8, fontWeight: 400 }}>
-                      (Không thể tự thay đổi)
-                    </span>
-                  )}
-                </span>
-              }
-              rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
+              name="dateOfBirth"
+              label={<span style={{ fontWeight: 600 }}>Ngày sinh</span>}
+              rules={[{ required: true, message: 'Vui lòng chọn ngày sinh' }]}
             >
-              <Select
-                options={userRoleFilterOptions}
-                disabled={isSelfEdit}
-                placeholder="Chọn vai trò"
-                style={{ borderRadius: 8 }}
+              <DatePicker
+                placeholder="Chọn ngày sinh"
+                style={{ width: '100%', borderRadius: 8 }}
+                format="DD/MM/YYYY"
+                disabled={isEditViewOnly}
               />
             </Form.Item>
           </Col>
@@ -296,28 +250,40 @@ export const UserForm: FC<UserFormProps> = ({
         <Row gutter={24}>
           <Col xs={24} md={12}>
             <Form.Item
+              name="role"
+              label={<span style={{ fontWeight: 600 }}>Vai trò</span>}
+              rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
+            >
+              <Select
+                options={userRoleFilterOptions}
+                disabled={isEditViewOnly}
+                placeholder="Chọn vai trò"
+                style={{ borderRadius: 8 }}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item
               name="isActive"
-              label={
-                <span style={{ fontWeight: 600 }}>
-                  Trạng thái
-                  {isSelfEdit && (
-                    <span style={{ color: '#999', fontSize: 12, marginLeft: 8, fontWeight: 400 }}>
-                      (Không thể tự thay đổi)
-                    </span>
-                  )}
-                </span>
-              }
+              label={<span style={{ fontWeight: 600 }}>Trạng thái</span>}
               rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
             >
               <Select
                 options={userStatusFilterOptions}
-                disabled={isSelfEdit}
+                disabled={isEditViewOnly}
                 placeholder="Chọn trạng thái"
                 style={{ borderRadius: 8 }}
               />
             </Form.Item>
           </Col>
         </Row>
+
+      
+        <Form.Item style={{ textAlign: 'right', marginTop: 24 }}>
+          <Button type="primary" htmlType="submit">
+            Lưu
+          </Button>
+        </Form.Item>
       </Form>
     </Card>
   );

@@ -8,11 +8,14 @@ export interface UserFilters {
 
 export interface CreateUserDto {
   name: string;
+  username: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  phone: string;
+  major?: string;
+  dateOfBirth?: string;
   role: string;
-  phone?: string;
+  isActive?: boolean;
+  avatar?: string;
 }
 
 export interface UpdateUserDto extends Partial<CreateUserDto> {

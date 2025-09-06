@@ -1,10 +1,13 @@
+
 import { FC, useState } from 'react';
 import { Dropdown, Button, MenuProps, message } from 'antd';
 import { IconDots, IconEye, IconEdit, IconUserExclamation } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { IUser } from '@/common/types';
-import { useUpdate, useInvalidate } from '@refinedev/core';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { useUpdate, useInvalidate } from '@refinedev/core';
+import { useAuth } from '@/hooks/useAuth';
+import { UserRole } from '@/common/enum/user';
 import { UserDrawer } from './UserDrawer';
 
 interface UserRowActionsProps {
@@ -16,7 +19,7 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
   const { canEdit, canToggleStatus } = useUserPermissions(user);
   const { mutate: updateUser } = useUpdate();
   const invalidate = useInvalidate();
-
+  const { user: identity } = useAuth();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -29,7 +32,15 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
     },
   ];
 
-  if (canEdit) {
+  // Nếu là CNBM thì luôn hiển thị nút sửa cho mọi user
+  if (identity?.role === UserRole.CNBM) {
+    menuItems.push({
+      key: 'edit',
+      icon: <IconEdit size={18} />,
+      label: 'Chỉnh sửa',
+      onClick: () => navigate(`/teachers/edit/${user.id}`),
+    });
+  } else if (canEdit) {
     menuItems.push({
       key: 'edit',
       icon: <IconEdit size={18} />,
@@ -71,17 +82,15 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
         },
       },
     );
-  } 
+  }
 
-return (
-  <>
-    <Dropdown menu={{ items: menuItems }} trigger={['click']}>
-      <Button type="text" icon={<IconDots size={18} />} />
-    </Dropdown>
-
-   {drawerOpen && (
-  <UserDrawer id={user.id} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-)}
-  </>
-);
+  return (
+    <>
+      <Dropdown menu={{ items: menuItems }} trigger={['click']} placement="bottomRight">
+        <Button type="text" icon={<IconDots size={20} />} />
+      </Dropdown>
+  <UserDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} id={user.id} />
+    </>
+  );
 };
+
