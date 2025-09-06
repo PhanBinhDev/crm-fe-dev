@@ -1,10 +1,10 @@
-import { FC, useState } from 'react';
-import { Dropdown, Button, MenuProps, message } from 'antd';
-import { IconDots, IconEye, IconEdit, IconUserExclamation } from '@tabler/icons-react';
-import { useNavigate } from 'react-router-dom';
 import { IUser } from '@/common/types';
-import { useUpdate, useInvalidate } from '@refinedev/core';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { useInvalidate, useUpdate } from '@refinedev/core';
+import { IconDots, IconEdit, IconEye, IconUserExclamation } from '@tabler/icons-react';
+import { Button, Dropdown, MenuProps, message } from 'antd';
+import { FC, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UserDrawer } from './UserDrawer';
 
 interface UserRowActionsProps {
@@ -17,7 +17,6 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
   const { mutate: updateUser } = useUpdate();
   const invalidate = useInvalidate();
 
-
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const menuItems: MenuProps['items'] = [
@@ -25,7 +24,7 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
       key: `view-${user.id}`,
       icon: <IconEye size={18} />,
       label: 'Xem chi tiết',
-      onClick: () => setDrawerOpen(true), 
+      onClick: () => setDrawerOpen(true),
     },
   ];
 
@@ -71,17 +70,16 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
         },
       },
     );
-  } 
+  }
 
-return (
-  <>
-    <Dropdown menu={{ items: menuItems }} trigger={['click']}>
-      <Button type="text" icon={<IconDots size={18} />} />
-    </Dropdown>
-
-   {drawerOpen && (
-  <UserDrawer id={user.id} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-)}
-  </>
-);
+  return (
+    <>
+      <Dropdown menu={{ items: menuItems }} trigger={['click']}>
+        <Button type="text" icon={<IconDots size={18} />} />
+      </Dropdown>
+      {drawerOpen && (
+        <UserDrawer id={user.id} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      )}
+    </>
+  );
 };
