@@ -1,0 +1,6 @@
+.single-panel-range-picker .ant-picker-panels {
+  display: flex;
+}
+.single-panel-range-picker .ant-picker-panel:last-child {
+  display: none !important;
+}
