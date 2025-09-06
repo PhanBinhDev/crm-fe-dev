@@ -51,78 +51,10 @@ function CalendarDayButton({
   // Omit 'color' from props to avoid type error
   const { color, ...buttonProps } = props;
 
-  const getButtonStyle = () => {
-    // Màu chính
-    const primary = '#7c3aed';
-    const accent = '#e0e7ff';
-
-    // Range middle
-    if (modifiers.range_middle) {
-      return {
-        background: accent,
-        color: primary,
-        borderRadius: 0,
-      };
-    }
-    // Range start
-    if (modifiers.range_start) {
-      return {
-        background: primary,
-        color: '#fff',
-        borderRadius: '6px 0 0 6px',
-      };
-    }
-    // Range end
-    if (modifiers.range_end) {
-      return {
-        background: primary,
-        color: '#fff',
-        borderRadius: '0 6px 6px 0',
-      };
-    }
-    // Selected single
-    if (
-      modifiers.selected &&
-      !modifiers.range_start &&
-      !modifiers.range_end &&
-      !modifiers.range_middle
-    ) {
-      return {
-        background: primary,
-        color: '#fff',
-        borderRadius: 6,
-      };
-    }
-    // Today
-    if (modifiers.today) {
-      return {
-        border: `1px solid ${primary}`,
-      };
-    }
-    // Disabled
-    if (modifiers.disabled) {
-      return {
-        color: '#ccc',
-        cursor: 'not-allowed',
-      };
-    }
-    // Outside
-    if (modifiers.outside) {
-      return {
-        color: '#ccc',
-      };
-    }
-    // Default
-    return {
-      background: 'none',
-      color: '#222',
-      borderRadius: 6,
-    };
-  };
-
   return (
     <Button
       ref={ref}
+      size="small"
       data-day={day.date.toLocaleDateString()}
       data-selected-single={
         modifiers.selected &&
@@ -130,21 +62,10 @@ function CalendarDayButton({
         !modifiers.range_end &&
         !modifiers.range_middle
       }
-      style={{
-        width: 32,
-        height: 32,
-        minWidth: 32,
-        padding: 0,
-        fontSize: 15,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontWeight: 400,
-        ...getButtonStyle(),
-      }}
       data-range-start={modifiers.range_start}
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
+      className={defaultClassNames.day}
       {...buttonProps}
       type="text"
     >

@@ -1,9 +1,15 @@
-import { FC, useState } from 'react';
-import { Modal, Upload, Input, Button, Progress, message } from 'antd';
-import { IconUpload, IconDownload, IconX, IconFileSpreadsheet, IconLink } from '@tabler/icons-react';
-import { RcFile } from 'antd/es/upload';
 import { UserService } from '@/services/api/user';
 import { createUserImportTemplate } from '@/services/utils/exportUtils';
+import {
+  IconDownload,
+  IconFileSpreadsheet,
+  IconLink,
+  IconUpload,
+  IconX,
+} from '@tabler/icons-react';
+import { Button, Input, Modal, Progress, Upload, message } from 'antd';
+import { RcFile } from 'antd/es/upload';
+import { FC, useState } from 'react';
 
 interface ImportModalProps {
   visible: boolean;
@@ -14,13 +20,11 @@ interface ImportModalProps {
 export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess }) => {
   const [fileList, setFileList] = useState<any[]>([]);
   const [urlInput, setUrlInput] = useState('');
-  // const [inputError, setInputError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadMethod, setUploadMethod] = useState<'file' | 'url'>('file');
   const [fileProcessed, setFileProcessed] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
-  // Không cần các state phức tạp nữa
 
   const handleDownloadTemplate = () => {
     try {
@@ -33,25 +37,26 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
 
   const handleFileUpload = async (file: RcFile) => {
     if (urlInput.trim()) {
-  // setInputError('Chỉ chọn 1 trong 2: tải file hoặc nhập link.');
+      // setInputError('Chỉ chọn 1 trong 2: tải file hoặc nhập link.');
       message.error('Chỉ chọn 1 trong 2: tải file hoặc nhập link.');
       return false;
     }
-    const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
-                    file.type === 'application/vnd.ms-excel';
-    
+    const isExcel =
+      file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      file.type === 'application/vnd.ms-excel';
+
     if (!isExcel) {
       message.error('Chỉ chấp nhận file Excel (.xlsx, .xls)');
       return false;
     }
 
-  setFileList([file]);
-  // setInputError(null);
+    setFileList([file]);
+    // setInputError(null);
     setUploadMethod('file');
     setUploading(true);
     setUploadProgress(0);
     setFileProcessed(false);
-    
+
     // Simulate progress khi chọn file - chạy mượt và dừng khi xong
     const progressInterval = setInterval(() => {
       setUploadProgress(prev => {
@@ -68,7 +73,7 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
         return prev + 8; // Tăng chậm hơn để mượt
       });
     }, 80); // Interval nhỏ hơn để mượt hơn
-    
+
     return false; // Prevent default upload behavior
   };
 
@@ -81,40 +86,42 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
         const sheetId = match[1];
         console.log('Sheet ID extracted:', sheetId);
         console.log('Original URL:', url);
-        console.log('Converted URL:', `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=xlsx`);
+        console.log(
+          'Converted URL:',
+          `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=xlsx`,
+        );
         return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=xlsx`;
       }
     }
     return url;
   };
 
-     const validateUrl = (url: string): boolean => {
-     try {
-       const urlObj = new URL(url);
-       return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
-     } catch {
-       return false;
-     }
-   };
+  const validateUrl = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
 
-       // Không cần function xử lý lỗi phức tạp nữa
-
+  // Không cần function xử lý lỗi phức tạp nữa
 
   // Validate chỉ cho phép 1 trong 2: file hoặc url
   const validateInput = () => {
     if (fileList.length > 0 && urlInput.trim()) {
-  // setInputError('Chỉ chọn 1 trong 2: tải file hoặc nhập link.');
+      // setInputError('Chỉ chọn 1 trong 2: tải file hoặc nhập link.');
       message.error('Chỉ chọn 1 trong 2: tải file hoặc nhập link.');
       return false;
     }
-  // setInputError(null);
+    // setInputError(null);
     return true;
   };
 
   const handleFileSubmit = async () => {
     if (!validateInput()) return;
     if (fileList.length === 0 && !urlInput.trim()) {
-  // setInputError('Vui lòng chọn file hoặc nhập link Google Sheet/Excel.');
+      // setInputError('Vui lòng chọn file hoặc nhập link Google Sheet/Excel.');
       message.error('Vui lòng chọn file hoặc nhập link Google Sheet/Excel.');
       return;
     }
@@ -140,7 +147,9 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
         const { successCount, failureCount } = response.data;
         if (successCount > 0) {
           if (failureCount > 0) {
-            message.warning(`Import thành công ${successCount} người dùng, nhưng có ${failureCount} user thất bại.`);
+            message.warning(
+              `Import thành công ${successCount} người dùng, nhưng có ${failureCount} user thất bại.`,
+            );
           } else {
             message.success(`Import thành công! Đã import ${successCount} người dùng.`);
             onSuccess();
@@ -149,7 +158,9 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
         } else if (failureCount > 0) {
           message.error(`Import thất bại! ${failureCount} user không thể import.`);
         } else {
-          message.warning('File không có dữ liệu hợp lệ để import. Vui lòng kiểm tra lại cấu trúc file.');
+          message.warning(
+            'File không có dữ liệu hợp lệ để import. Vui lòng kiểm tra lại cấu trúc file.',
+          );
         }
       } else {
         message.error('Import thất bại. Vui lòng kiểm tra file hoặc link.');
@@ -168,7 +179,6 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
     setUploadProgress(0);
     setFileProcessed(false);
     setSubmitLoading(false);
-         // Không cần reset các state phức tạp
     onClose();
   };
 
@@ -190,27 +200,30 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
       open={visible}
       onCancel={handleCancel}
       footer={null}
-      width={600}
-  closeIcon={<IconX size={20} />} 
+      width={500}
+      closeIcon={<IconX size={20} />}
     >
       <div style={{ padding: '20px 0' }}>
-        {/* File Upload Section */}
         <div style={{ marginBottom: 16 }}>
-          <Upload.Dragger {...uploadProps} disabled={uploading} style={{ minHeight: 120, borderRadius: 8 }}>
+          <Upload.Dragger
+            {...uploadProps}
+            disabled={uploading}
+            style={{ minHeight: 120, borderRadius: 8 }}
+          >
             {uploading && uploadMethod === 'file' ? (
               <div style={{ textAlign: 'center' }}>
-                <Progress 
-                  type="circle" 
-                  percent={uploadProgress} 
-                  format={(percent) => `${percent}%`}
+                <Progress
+                  type="circle"
+                  percent={uploadProgress}
+                  format={percent => `${percent}%`}
                   width={60}
-                  status={fileProcessed ? "success" : "active"}
+                  status={fileProcessed ? 'success' : 'active'}
                 />
                 <div style={{ marginTop: 8, fontSize: 13 }}>
                   <div>{fileProcessed ? 'Đã xử lý xong!' : 'Đang xử lý...'}</div>
                   {!fileProcessed && (
-                    <Button 
-                      size="small" 
+                    <Button
+                      size="small"
                       onClick={() => {
                         setUploading(false);
                         setUploadProgress(0);
@@ -234,7 +247,6 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
           </Upload.Dragger>
         </div>
 
-
         <div style={{ marginBottom: 12 }}>
           <Input
             prefix={<IconLink size={16} color="#888" />}
@@ -242,7 +254,6 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
             value={urlInput}
             onChange={e => {
               setUrlInput(e.target.value);
-              // setInputError(null);
             }}
             disabled={uploading}
             size="small"
@@ -250,19 +261,17 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
             allowClear
           />
         </div>
-  {/* Không hiển thị lỗi inputError dưới input, chỉ dùng message.error */}
-
-
-
         {/* Footer */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          borderTop: '1px solid #f0f0f0',
-          paddingTop: 14
-        }}>
-          <div 
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderTop: '1px solid #f0f0f0',
+            paddingTop: 14,
+          }}
+        >
+          <div
             onClick={handleDownloadTemplate}
             style={{
               color: '#228be6',
@@ -272,35 +281,45 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
               alignItems: 'center',
               fontSize: 15,
               userSelect: 'none',
-              gap: 4
+              gap: 4,
             }}
             tabIndex={0}
-            onKeyPress={e => { if (e.key === 'Enter') handleDownloadTemplate(); }}
+            onKeyPress={e => {
+              if (e.key === 'Enter') handleDownloadTemplate();
+            }}
             title="Tải file mẫu import"
           >
             <IconDownload size={18} style={{ marginRight: 2 }} />
             <span>Tải file mẫu</span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <Button onClick={handleCancel} disabled={uploading} icon={<IconX size={16} />}
-              style={{ borderRadius: 6, height: 32, fontSize: 14 }}>
+            <Button
+              onClick={handleCancel}
+              disabled={uploading}
+              icon={<IconX size={16} />}
+              style={{ borderRadius: 6, height: 32, fontSize: 14 }}
+            >
               Hủy
             </Button>
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               onClick={handleFileSubmit}
               disabled={uploading}
               loading={submitLoading}
               icon={<IconUpload size={16} />}
-              style={{ borderRadius: 6, height: 32, fontSize: 14, background: '#228be6', borderColor: '#228be6' }}
+              style={{
+                borderRadius: 6,
+                height: 32,
+                fontSize: 14,
+                background: '#228be6',
+                borderColor: '#228be6',
+              }}
             >
               Hoàn tất
             </Button>
           </div>
         </div>
       </div>
-
-                            {/* Không cần modal phức tạp nữa */}
     </Modal>
   );
 };

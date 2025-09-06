@@ -28,7 +28,7 @@ import Modals from './components/modals';
 import { WorkspaceProvider } from './contexts/workspaces';
 import { workspaceRoutes } from './pages/workspace/routes';
 import { ActivitiesKanbanPage } from './pages/workspaces/list';
-import { accessControlProvider } from './providers/accessControlProvider';
+import { accessControlProvider } from './providers/AccessControlProvider';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
