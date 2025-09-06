@@ -136,11 +136,15 @@ export const resources: ResourceConfig[] = [
   },
   {
     name: 'subjects',
+    list: '/materials/list',
+    create: '/materials/create',
+    edit: '/materials/edit/:id',
+    show: '/materials/show/:id',
     meta: {
-      label: 'Môn học',
+      label: 'Tài liệu môn học',
       icon: <IconBook size={16} />,
       canDelete: true,
-      menuPath: '/subjects',
+      menuPath: '/materials',
     },
   },
   {

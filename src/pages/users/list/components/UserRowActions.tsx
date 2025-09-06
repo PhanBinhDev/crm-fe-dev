@@ -6,6 +6,8 @@ import { Button, Dropdown, MenuProps, message } from 'antd';
 import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserDrawer } from './UserDrawer';
+import { UserRole } from '@/common/enum/user';
+
 
 interface UserRowActionsProps {
   user: IUser;
@@ -92,4 +94,8 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
     </>
   );
 };
+function useAuth(): { user: any } {
+  const user = JSON.parse(localStorage.getItem('authUser') || 'null');
+  return { user };
+}
 
