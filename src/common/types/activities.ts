@@ -45,3 +45,9 @@ export interface ActivityFormValues {
   link?: string;
   file?: File;
 }
+
+export interface ActivityPriorityLevel {
+  label: string;
+  value: ActivityPriority;
+  color: string;
+}

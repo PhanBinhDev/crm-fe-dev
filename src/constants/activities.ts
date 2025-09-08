@@ -1,4 +1,5 @@
 import { ActivityPriority, ActivityStatus } from '@/common/enum/activity';
+import { ActivityPriorityLevel } from '@/common/types';
 
 export const activityStatusFilterOptions = [
   { label: 'Mới', value: ActivityStatus.NEW },
@@ -7,11 +8,11 @@ export const activityStatusFilterOptions = [
   { label: 'Quá hạn', value: ActivityStatus.OVERDUE },
 ];
 
-export const activityPriorityFilterOptions = [
-  { label: 'Thấp', value: ActivityPriority.LOW },
-  { label: 'Trung bình', value: ActivityPriority.MEDIUM },
-  { label: 'Cao', value: ActivityPriority.HIGH },
-  { label: 'Khẩn cấp', value: ActivityPriority.URGENT },
+export const activityPriorityFilterOptions: ActivityPriorityLevel[] = [
+  { label: 'Thấp', value: ActivityPriority.LOW, color: '#bdbdbd' },
+  { label: 'Trung bình', value: ActivityPriority.MEDIUM, color: '#1976d2' },
+  { label: 'Cao', value: ActivityPriority.HIGH, color: '#ffc107' },
+  { label: 'Khẩn cấp', value: ActivityPriority.URGENT, color: '#e53935' },
 ];
 
 // Helper functions

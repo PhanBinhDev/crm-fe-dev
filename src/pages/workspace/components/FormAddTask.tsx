@@ -35,7 +35,7 @@ const FormAddTask = ({ openUploader, btnStage }: FormAddTaskProps) => {
   };
 
   return (
-    <>
+    <Space direction="vertical" size={'middle'} style={{ width: '100%' }}>
       <TextArea
         placeholder="Task Name"
         size="middle"
@@ -76,15 +76,16 @@ const FormAddTask = ({ openUploader, btnStage }: FormAddTaskProps) => {
           {/* Stage */}
           {btnStage}
 
-          {/* Assignee */}
           <AssigneeActivity
             selectedUser={selectedAssignee}
             onToggleSelectUser={handleToggleSelectUser}
           />
-          {/* Due date */}
           <DuedateActivity />
-          {/* Priority */}
-          <PriorityActivity />
+          <PriorityActivity
+            onSelect={priority => {
+              console.log('Selected priority:', priority);
+            }}
+          />
           {showActions.timeEstimate && <TimeEstimateActivity />}
           {/* More */}
           <MoreActivity
@@ -104,7 +105,7 @@ const FormAddTask = ({ openUploader, btnStage }: FormAddTaskProps) => {
       {showActions.checklist && <ChecklistActivity />}
 
       {openUploader && <FileAttachments view="internal" />}
-    </>
+    </Space>
   );
 };
 

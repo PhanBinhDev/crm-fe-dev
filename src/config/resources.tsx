@@ -337,7 +337,7 @@ export const getResourcesByRole = (role: UserRole): ResourceConfig[] => {
     'subjects',
     'classes',
     'students',
-    'settings',
+    'teachers',
   ];
 
   switch (role) {
@@ -350,9 +350,7 @@ export const getResourcesByRole = (role: UserRole): ResourceConfig[] => {
       return resources.filter(
         resource =>
           baseResources.includes(resource.name) ||
-          ['activities', 'exams', 'teachers', 'reports', 'semester-management'].includes(
-            resource.name,
-          ),
+          ['exams', 'reports', 'semester-management'].includes(resource.name),
       );
 
     case UserRole.TM:

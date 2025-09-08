@@ -10,12 +10,11 @@ import {
   MoreOutlined,
   RightOutlined,
 } from '@ant-design/icons';
-import { Button, Checkbox, Dropdown, Form, Input, Select } from 'antd';
-import { FormInstance } from 'antd';
+import { Button, Checkbox, Dropdown, Form, FormInstance, Input, Select } from 'antd';
 const { Option } = Select;
 interface ChecklistsProps {
   form: FormInstance;
-  users: any;
+  users: IUser[];
 }
 
 const Checklists: React.FC<ChecklistsProps> = ({ form, users }) => {
@@ -329,14 +328,12 @@ const Checklists: React.FC<ChecklistsProps> = ({ form, users }) => {
                               type="text"
                               size="small"
                               onClick={() => {
-                                // Kiểm tra xem đã có item trống chưa
                                 const allItems =
                                   form.getFieldValue(['checklist', checklistIndex, 'items']) || [];
                                 const hasEmptyItem = allItems.some(
                                   (item: any) => !item?.text?.trim(),
                                 );
 
-                                // Chỉ thêm item mới nếu chưa có item trống
                                 if (!hasEmptyItem) {
                                   addItem({ text: '', completed: false, assignee: null });
                                 }

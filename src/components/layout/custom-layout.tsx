@@ -23,7 +23,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
   const location = useLocation();
 
   const resourcesByRole = useCallback(() => {
-    if (!user) return [];
+    if (!user || isLoading) return [];
     return getResourcesByRole(user?.role);
   }, [user?.role, isLoading, getResourcesByRole]);
 
@@ -130,7 +130,11 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
       };
     };
 
-    return resourcesByRole().map(generateMenuItem);
+    const res = resourcesByRole().map(generateMenuItem);
+
+    console.log('menuItems', res);
+
+    return res;
   }, [user?.role, isLoading, getResourcesByRole]);
 
   const breadcrumbItems = useMemo(() => {

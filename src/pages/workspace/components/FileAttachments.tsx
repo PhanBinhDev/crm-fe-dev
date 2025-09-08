@@ -20,18 +20,21 @@ const FileAttachments = ({ title = 'Tệp đính kèm', view }: FileAttachmentsP
         customRequest={({ file, onSuccess }) => {
           setTimeout(() => {
             onSuccess && onSuccess('ok');
-          }, 800); // giả lập upload
+          }, 800);
         }}
         fileList={fileList}
         style={{
           marginTop: 8,
-          minHeight: 40,
+          maxHeight: 40,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           padding: '0 16px',
           borderStyle: 'solid',
           backgroundColor: 'transparent',
         }}
       >
-        <div style={{ textAlign: 'center', color: '#838383' }}>
+        <div style={{ textAlign: 'center', color: '#838383', fontSize: 13 }}>
           Kéo thả tệp vào đây để đính kèm hoặc{' '}
           <span style={{ textDecoration: 'underline', cursor: 'pointer', color: '#333' }}>
             duyệt

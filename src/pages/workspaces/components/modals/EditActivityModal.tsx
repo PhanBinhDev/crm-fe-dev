@@ -1,4 +1,4 @@
-import { IActivity } from '@/common/types';
+import { IActivity, IUser } from '@/common/types';
 import Attachments from '@/pages/workspaces/components/activityModalComponents/Attachments';
 import Checklists from '@/pages/workspaces/components/activityModalComponents/Checklists';
 import Subtasks from '@/pages/workspaces/components/activityModalComponents/Subtasks';
@@ -73,7 +73,7 @@ export const EditActivityModal: React.FC<EditActivityModalProps> = ({
   });
 
   // Fetch users for selection
-  const { data: usersData } = useList({
+  const { data: usersData } = useList<IUser>({
     resource: 'users/all',
     pagination: { pageSize: 100 },
     sorters: [{ field: 'position', order: 'asc' }],
