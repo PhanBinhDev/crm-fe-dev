@@ -1,4 +1,4 @@
-import { IActivity, IStage } from '@/common/types';
+import { IActivity, IStage, IUser } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import FilterActivities from '@/pages/workspace/components/FilterActivities';
 import SearchActivities from '@/pages/workspace/components/SearchActivities';
@@ -10,6 +10,7 @@ import { IconCalendar, IconLayoutKanban, IconList, IconPlus, IconTable } from '@
 import { Button, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useState } from 'react';
 import CalendarView from '../views/CalendarView';
+import TableView from '../views/TableView';
 
 type TabKey = 'kanban' | 'list' | 'calendar' | 'table';
 
@@ -36,6 +37,12 @@ const KanbanWorkspaces = () => {
     filters: [
       /* filter từ search/filter ở cha */
     ],
+  });
+
+  const { data: users } = useList<IUser>({
+    resource: 'users/all',
+    pagination: { mode: 'off' },
+    sorters: [{ field: 'position', order: 'asc' }],
   });
 
   return (
@@ -223,6 +230,9 @@ const KanbanWorkspaces = () => {
       )}
       {activeTab === 'list' && <ListView />}
       {activeTab === 'calendar' && <CalendarView />}
+      {activeTab === 'table' && (
+        <TableView stages={stagesData?.data || []} activities={activitiesData?.data || []} />
+      )}
     </div>
   );
 };
