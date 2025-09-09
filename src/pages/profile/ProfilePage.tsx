@@ -567,16 +567,19 @@ export const ProfilePage: React.FC = () => {
                           <DatePicker
                             value={editData.dateOfBirth ? dayjs(editData.dateOfBirth) : null}
                             onChange={date =>
-                              handleInputChange('dateOfBirth', date ? date.toISOString() : '')
+                              handleInputChange(
+                                'dateOfBirth',
+                                date ? date.format('YYYY-MM-DD') : '',
+                              )
                             }
                             placeholder="Chọn ngày sinh"
                             style={{ width: '100%', fontSize: 15, fontWeight: 500 }}
-                            format="DD/MM/YYYY"
+                            format={'DD/MM/YYYY'}
                           />
                         ) : (
                           <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
                             {identity.dateOfBirth
-                              ? new Date(identity.dateOfBirth).toLocaleDateString('vi-VN')
+                              ? dayjs(identity.dateOfBirth).format('DD/MM/YYYY')
                               : '-'}
                           </Text>
                         )}
