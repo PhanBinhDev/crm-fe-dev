@@ -4,10 +4,11 @@ import { useTable } from '@refinedev/antd';
 import { useCan } from '@refinedev/core';
 import { IconChevronDown, IconDownload, IconPlus, IconUpload } from '@tabler/icons-react';
 import { Button, Dropdown, Space } from 'antd';
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ModalExportUser } from './ModalExportUser';
 import { ImportModal } from './ImportModal';
+import { UserRole } from '@/common/enum/user';
 
 export const UserActions: FC = () => {
   const navigate = useNavigate();
@@ -90,5 +91,49 @@ export const UserActions: FC = () => {
         onSuccess={handleImportSuccess} 
       />
     </>
+  );
+};
+
+export const UserActionDropdown: FC<{ user: IUser }> = ({ user }) => {
+  const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  const canEdit = useMemo(() => currentUser?.role === UserRole.CNBM || currentUser?.id === user.id, [currentUser, user]);
+  
+  const actionItems = useMemo(() => {
+    const items = [
+      {
+        key: 'view',
+        label: 'Xem chi tiết',
+        onClick: () => console.log(`Xem chi tiết user ${user.id}`),
+      },
+    ];
+
+    if (canEdit) {
+      items.push(
+        {
+          key: 'edit',
+          label: 'Chỉnh sửa',
+          onClick: () => navigate(`/teachers/${user.id}`),
+        },
+        {
+          key: 'disable',
+          label: user.isActive ? 'Vô hiệu hóa' : 'Kích hoạt',
+          onClick: () => console.log(`${user.isActive ? 'Vô hiệu hóa' : 'Kích hoạt'} user ${user.id}`),
+        }
+      );
+    }
+    
+    return items;
+  }, [canEdit, user, navigate]);
+
+  return (
+    <Dropdown
+      menu={{ items: actionItems }}
+      placement="bottomRight"
+      trigger={['click']}
+    >
+      <Button type="default">...</Button>
+    </Dropdown>
   );
 };

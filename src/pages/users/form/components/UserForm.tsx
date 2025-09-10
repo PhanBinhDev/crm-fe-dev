@@ -1,14 +1,13 @@
 'use client';
 
-import { type FC, useEffect, useState } from 'react';
-import { message as antdMessage } from 'antd';
+import { type FC, useEffect, useState, useMemo } from 'react';
+import { message as antdMessage, Spin } from 'antd';
 import {
   Form,
   Input,
   Select,
   Upload,
   Avatar,
-  Card,
   Row,
   Col,
   DatePicker,
@@ -26,8 +25,6 @@ interface UserFormProps {
   initialValues?: IUser;
   onFinish: (values: any) => void;
   isEdit?: boolean;
-  isSelfEdit?: boolean;
-  formProps?: any;
 }
 
 export const UserForm: FC<UserFormProps> = ({
@@ -41,6 +38,8 @@ export const UserForm: FC<UserFormProps> = ({
   const [form] = Form.useForm();
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const transformedInitialValues = initialValues
     ? {
@@ -72,6 +71,7 @@ export const UserForm: FC<UserFormProps> = ({
     setFileList(newFileList);
 
     if (info.file.status === 'uploading') {
+      setUploading(true);
       return;
     }
 
@@ -83,6 +83,7 @@ export const UserForm: FC<UserFormProps> = ({
     } else if (info.file.status === 'error') {
       antdMessage.error('Tải ảnh lên thất bại!');
     }
+    setUploading(false);
   };
 
   const customRequest = ({ file, onSuccess }: any) => {
@@ -104,187 +105,169 @@ export const UserForm: FC<UserFormProps> = ({
     return isJpgOrPng && isLt2M;
   };
 
-  const handleFormFinish = (values: any) => {
-    if (onFinish) onFinish(values);
+  const handleFormFinish = async (values: any) => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    try {
+      await onFinish(values);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
+  const canEdit = useMemo(() => {
+    if (identity?.role === 'CNBM') {
+      return true;
+    }
+    return isEdit ? identity?.id === initialValues?.id : false;
+  }, [identity, initialValues, isEdit]);
+
+  if (!canEdit) {
+    return <div>Bạn không có quyền chỉnh sửa người dùng này.</div>;
+  }
+
   return (
-    <Card>
-      {isEdit && (
-        <Row gutter={24} style={{ marginBottom: 8 }}>
-          <Col span={24} style={{ textAlign: 'right' }}>
-            <span style={{
-              display: 'inline-block',
-              padding: '4px 16px',
-              borderRadius: 8,
-              background: transformedInitialValues?.isActive ? '#f6ffed' : '#fff1f0',
-              color: transformedInitialValues?.isActive ? '#389e0d' : '#cf1322',
-              fontWeight: 600,
-              fontSize: 14,
-              marginBottom: 8,
-            }}>
-              {transformedInitialValues?.isActive ? 'Đang hoạt động' : 'Đã vô hiệu hóa'}
-            </span>
-          </Col>
-        </Row>
-      )}
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={transformedInitialValues}
-        onFinish={handleFormFinish}
-        size="large"
-      >
-
-
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col span={24} style={{ textAlign: 'center' }}>
-            <Form.Item name="avatar" label="Ảnh đại diện">
-              <div
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}
+    <Form
+      form={form}
+      layout="vertical"
+      initialValues={transformedInitialValues}
+      onFinish={handleFormFinish}
+      size="large"
+    >
+      <Row gutter={24}>
+        <Col span={24} style={{ textAlign: 'center' }}>
+          <Form.Item name="avatar" label="Ảnh đại diện">
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+              <Avatar
+                size={120}
+                src={avatarUrl}
+                icon={<IconUser size={64} />}
+                style={{ border: '4px solid #f0f0f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+              />
+              <Upload
+                name="avatar"
+                listType="text"
+                fileList={fileList}
+                onChange={handleAvatarChange}
+                beforeUpload={beforeUpload}
+                customRequest={customRequest}
+                maxCount={1}
+                showUploadList={false}
               >
-                <Avatar
-                  size={120}
-                  src={avatarUrl}
-                  icon={<IconUser size={64} />}
-                  style={{
-                    border: '4px solid #f0f0f0',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  }}
-                />
-                <Upload
-                  name="avatar"
-                  listType="text"
-                  fileList={fileList}
-                  onChange={handleAvatarChange}
-                  beforeUpload={beforeUpload}
-                  customRequest={customRequest}
-                  maxCount={1}
-                  showUploadList={false}
-                  disabled={isEditViewOnly}
-                >
-                  <Button icon={<IconUpload size={20} />} type="dashed" disabled={isEditViewOnly}>
-                    Tải ảnh lên
-                  </Button>
-                </Upload>
-              </div>
-            </Form.Item>
-          </Col>
-        </Row>
+                <Button icon={<IconUpload size={20} />} type="dashed">
+                  {uploading ? <Spin /> : 'Tải ảnh lên'}
+                </Button>
+              </Upload>
+            </div>
+          </Form.Item>
+        </Col>
+      </Row>
 
-        <Row gutter={24}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="name"
-              label={<span style={{ fontWeight: 600 }}>Họ và tên</span>}
-              rules={[{ required: true, message: 'Vui lòng nhập họ và tên' }]}
-            >
-              <Input placeholder="Nhập họ và tên" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="username"
-              label={<span style={{ fontWeight: 600 }}>Tên đăng nhập</span>}
-              rules={[
-                { required: true, message: 'Vui lòng nhập tên đăng nhập' },
-                { min: 4, message: 'Tên đăng nhập phải có ít nhất 4 ký tự' },
-                { max: 32, message: 'Tên đăng nhập tối đa 32 ký tự' },
-                { pattern: /^[a-zA-Z0-9_]+$/, message: 'Chỉ cho phép chữ, số và dấu gạch dưới' },
-              ]}
-            >
-              <Input placeholder="Nhập tên đăng nhập" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
-            </Form.Item>
-          </Col>
-        </Row>
+      <Row gutter={24}>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="name"
+            label="Họ và tên"
+            rules={[{ required: true, message: 'Vui lòng nhập họ và tên' }]}
+          >
+            <Input placeholder="Nhập họ và tên" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="username"
+            label="Tên đăng nhập"
+            rules={[
+              { required: true, message: 'Vui lòng nhập tên đăng nhập' },
+              { min: 4, message: 'Tên đăng nhập phải có ít nhất 4 ký tự' },
+              { max: 32, message: 'Tên đăng nhập tối đa 32 ký tự' },
+              { pattern: /^[a-zA-Z0-9_]+$/, message: 'Chỉ cho phép chữ, số và dấu gạch dưới' },
+            ]}
+          >
+            <Input placeholder="Nhập tên đăng nhập" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
+          </Form.Item>
+        </Col>
+      </Row>
 
-        <Row gutter={24}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="email"
-              label={<span style={{ fontWeight: 600 }}>Email</span>}
-              rules={[
-                { required: true, message: 'Vui lòng nhập email' },
-                { type: 'email', message: 'Email không hợp lệ' },
-              ]}
-            >
-              <Input placeholder="Nhập email" disabled={isEditViewOnly} style={{ borderRadius: 8 }} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="phone"
-              label={<span style={{ fontWeight: 600 }}>Số điện thoại</span>}
-              rules={[
-                { required: true, message: 'Vui lòng nhập số điện thoại' },
-                { pattern: /^[0-9]{10,11}$/, message: 'Số điện thoại không hợp lệ' },
-              ]}
-            >
-              <Input placeholder="Nhập số điện thoại" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
-            </Form.Item>
-          </Col>
-        </Row>
+      <Row gutter={24}>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[{ required: true, message: 'Vui lòng nhập email' }, { type: 'email', message: 'Email không hợp lệ' }]}
+          >
+            <Input placeholder="Nhập email" disabled={isEditViewOnly} style={{ borderRadius: 8 }} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="phone"
+            label="Số điện thoại"
+            rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }, { pattern: /^[0-9]{10,11}$/, message: 'Số điện thoại không hợp lệ' }]}
+          >
+            <Input placeholder="Nhập số điện thoại" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
+          </Form.Item>
+        </Col>
+      </Row>
 
-        <Row gutter={24}>
-          <Col xs={24} md={12}>
-            <Form.Item name="major" label={<span style={{ fontWeight: 600 }}>Chuyên ngành</span>}>
-              <Input placeholder="Nhập chuyên ngành" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="dateOfBirth"
-              label={<span style={{ fontWeight: 600 }}>Ngày sinh</span>}
-              rules={[{ required: true, message: 'Vui lòng chọn ngày sinh' }]}
-            >
-              <DatePicker
-                placeholder="Chọn ngày sinh"
-                style={{ width: '100%', borderRadius: 8 }}
-                format="DD/MM/YYYY"
-                disabled={isEditViewOnly}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
+      <Row gutter={24}>
+        <Col xs={24} md={12}>
+          <Form.Item name="major" label="Chuyên ngành">
+            <Input placeholder="Nhập chuyên ngành" style={{ borderRadius: 8 }} disabled={isEditViewOnly} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="dateOfBirth"
+            label="Ngày sinh"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày sinh' }]}
+          >
+            <DatePicker
+              placeholder="Chọn ngày sinh"
+              style={{ width: '100%', borderRadius: 8 }}
+              format="DD/MM/YYYY"
+              disabled={isEditViewOnly}
+            />
+          </Form.Item>
+        </Col>
+      </Row>
 
-        <Row gutter={24}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="role"
-              label={<span style={{ fontWeight: 600 }}>Vai trò</span>}
-              rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
-            >
-              <Select
-                options={userRoleFilterOptions}
-                disabled={isEditViewOnly}
-                placeholder="Chọn vai trò"
-                style={{ borderRadius: 8 }}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="isActive"
-              label={<span style={{ fontWeight: 600 }}>Trạng thái</span>}
-              rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
-            >
-              <Select
-                options={userStatusFilterOptions}
-                disabled={isEditViewOnly}
-                placeholder="Chọn trạng thái"
-                style={{ borderRadius: 8 }}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
+      <Row gutter={24}>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="role"
+            label="Vai trò"
+            rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
+          >
+            <Select
+              options={userRoleFilterOptions}
+              disabled={isEditViewOnly}
+              placeholder="Chọn vai trò"
+              style={{ borderRadius: 8 }}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="isActive"
+            label="Trạng thái"
+            rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+          >
+            <Select
+              options={userStatusFilterOptions}
+              disabled={isEditViewOnly}
+              placeholder="Chọn trạng thái"
+              style={{ borderRadius: 8 }}
+            />
+          </Form.Item>
+        </Col>
+      </Row>
 
-      
-        <Form.Item style={{ textAlign: 'right', marginTop: 24 }}>
-          <Button type="primary" htmlType="submit">
-            Lưu
-          </Button>
-        </Form.Item>
-      </Form>
-    </Card>
+      <Form.Item style={{ textAlign: 'right', marginTop: 24 }}>
+        <Button type="primary" htmlType="submit" disabled={isProcessing}>
+          {isProcessing ? <Spin /> : 'Lưu'}
+        </Button>
+      </Form.Item>
+    </Form>
   );
 };
