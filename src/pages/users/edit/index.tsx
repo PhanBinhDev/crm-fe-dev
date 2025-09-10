@@ -1,17 +1,14 @@
-
 import { useEffect, useState } from 'react';
-import { Card, message, Spin } from 'antd';
+import { message, Spin } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import { UserForm } from '@/pages/users/form/components/UserForm';
 import { UserService } from '@/services/api/user';
-import { useAuth } from '@/hooks/useAuth';
 
 
 
 export const UserEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user: identity } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -68,16 +65,13 @@ export const UserEdit = () => {
   if (loading) return <Spin style={{ display: 'block', margin: '80px auto' }} />;
 
   return (
-    <Card
-      title="Chỉnh sửa người dùng"
-      style={{ maxWidth: 800, margin: '0 auto', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-    >
+    <div style={{ maxWidth: 800, margin: '0 auto' }}>
+      {isProcessing && <Spin style={{ display: 'block', margin: '20px auto' }} />}
       <UserForm
         onFinish={handleFinish}
         initialValues={user}
         isEdit={true}
-        formProps={{}}
       />
-    </Card>
+    </div>
   );
 };
