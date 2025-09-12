@@ -2,12 +2,32 @@ import { ActivityPriority } from '@/common/enum/activity';
 import { IActivity, IStage } from '@/common/types';
 import { ColorPicker } from '@/components/shared/ColorPicker';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
-import { getActivityPriorityColor, getColorFromName, getInitials } from '@/utils/activity';
+import {
+  getActivityPriorityColor,
+  getActivityPriorityLabel,
+  getColorFromName,
+  getInitials,
+} from '@/utils/activity';
 import { CalendarOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Avatar, Space, Table, Tag, Tooltip, Typography } from 'antd';
-import { arrayMoveImmutable } from 'array-move';
 import { useState } from 'react';
-import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 
 const { Text } = Typography;
 
@@ -16,23 +36,143 @@ interface TableViewProps {
   activities: IActivity[];
 }
 
-//Drag drop icon
-const DragHandle = SortableHandle(() => <span className="drag-handle">⋮⋮</span>);
-
 const TableView = ({ stages, activities }: TableViewProps) => {
+  console.log(activities);
   const [dataSource, setDataSource] = useState<IActivity[]>(activities);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 1,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = dataSource.findIndex(item => item.id === active.id);
+      const newIndex = dataSource.findIndex(item => item.id === over.id);
+
+      setDataSource(arrayMove(dataSource, oldIndex, newIndex));
+    }
+  };
+
+  const SortableRow = ({ children, ...props }: any) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+      id: props['data-row-key'],
+    });
+
+    const style = {
+      ...props.style,
+      transform: CSS.Transform.toString(transform),
+      transition,
+      ...(isDragging
+        ? {
+            position: 'relative' as const,
+            zIndex: 9999,
+          }
+        : {}),
+    };
+
+    // Lấy thông tin activity để hiển thị khi drag
+    const activity = dataSource.find(item => item.id === props['data-row-key']);
+    const stage = stages.find(s => s.id === activity?.stageId);
+
+    if (isDragging && activity) {
+      return (
+        <tr ref={setNodeRef} style={style} {...props} className="row-dragging">
+          <td colSpan={6}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 12px',
+                backgroundColor: '#fff',
+                borderRadius: '6px',
+                border: `2px solid ${stage?.color || '#1890ff'}`,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
+                width: '30%',
+                minWidth: '250px',
+              }}
+            >
+              <span
+                className="drag-handle"
+                {...attributes}
+                {...listeners}
+                style={{ cursor: 'grabbing', color: '#8c8c8c', fontSize: '12px' }}
+              >
+                ⋮⋮
+              </span>
+              <div
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  backgroundColor: stage?.color || '#1890ff',
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                style={{
+                  fontWeight: 500,
+                  fontSize: 13,
+                  color: '#262626',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {activity.name}
+              </span>
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
+    return (
+      <tr ref={setNodeRef} style={style} {...props} className={props.className}>
+        {children?.map((child: any, index: number) => {
+          if (index === 0) {
+            return {
+              ...child,
+              props: {
+                ...child.props,
+                children: (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span
+                      className="drag-handle"
+                      {...attributes}
+                      {...listeners}
+                      style={{ cursor: 'grab' }}
+                    >
+                      ⋮⋮
+                    </span>
+                    <span style={{ color: '#8c8c8c', fontSize: 13 }}>
+                      {dataSource.findIndex(item => item.id === props['data-row-key']) + 1}
+                    </span>
+                  </div>
+                ),
+              },
+            };
+          }
+          return child;
+        })}
+      </tr>
+    );
+  };
 
   const tableColumns = [
     {
       title: 'STT',
       dataIndex: 'id',
       width: 60,
-      render: (_: any, __: any, index: number) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <DragHandle />
-          <span style={{ color: '#8c8c8c', fontSize: 13 }}>{index + 1}</span>
-        </div>
-      ),
     },
     {
       title: 'Task',
@@ -134,7 +274,7 @@ const TableView = ({ stages, activities }: TableViewProps) => {
           }}
           bordered={false}
         >
-          {priority || 'None'}
+          {getActivityPriorityLabel(priority) || 'None'}
         </Tag>
       ),
     },
@@ -146,7 +286,19 @@ const TableView = ({ stages, activities }: TableViewProps) => {
         date ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <CalendarOutlined style={{ color: '#8c8c8c', fontSize: 12 }} />
-            <span style={{ fontSize: 13 }}>{new Date(date).toLocaleDateString()}</span>
+            <span style={{ fontSize: 13, display: 'block' }}>
+              {new Date(date).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}
+            </span>
+            <span style={{ fontSize: 13, display: 'block' }}>
+              {new Date(date).toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
           </div>
         ) : (
           '-'
@@ -154,44 +306,26 @@ const TableView = ({ stages, activities }: TableViewProps) => {
     },
   ];
 
-  //Drag & drop
-  const SortableItem = SortableElement((props: any) => <tr {...props} />);
-  const SortableBody = SortableContainer((props: any) => <tbody {...props} />);
-
-  const DraggableContainer = (props: any) => (
-    <SortableBody
-      useDragHandle
-      disableAutoscroll
-      helperClass="row-dragging"
-      onSortEnd={({ oldIndex, newIndex }) => {
-        if (oldIndex !== newIndex) {
-          const newData = arrayMoveImmutable([...dataSource], oldIndex, newIndex);
-          setDataSource(newData);
-        }
-      }}
-      {...props}
-    />
-  );
-
-  const DraggableBodyRow = ({ className, style, ...restProps }: any) => {
-    const index = dataSource.findIndex(x => x.id === restProps['data-row-key']);
-    return <SortableItem index={index} {...restProps} />;
-  };
-
   return (
-    <Table
-      columns={tableColumns}
-      dataSource={dataSource}
-      rowKey="id"
-      tableLayout="fixed"
-      components={{
-        body: {
-          wrapper: DraggableContainer,
-          row: DraggableBodyRow,
-        },
-      }}
-      pagination={false}
-    />
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext
+        items={dataSource.map(item => item.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <Table
+          columns={tableColumns}
+          dataSource={dataSource}
+          rowKey="id"
+          tableLayout="fixed"
+          components={{
+            body: {
+              row: SortableRow,
+            },
+          }}
+          pagination={false}
+        />
+      </SortableContext>
+    </DndContext>
   );
 };
 

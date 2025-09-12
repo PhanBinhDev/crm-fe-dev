@@ -187,7 +187,7 @@ body {
   opacity: 1 !important;
 }
 
-/* Ẩn icon mặc định */
+/* Ẩn icon*/
 .drag-handle {
   opacity: 0;
   visibility: hidden;
@@ -195,29 +195,24 @@ body {
 }
 
 /* Hover row mới hiện icon */
-.ant-table-tbody>tr:hover .drag-handle {
+.ant-table-tbody > tr:hover .drag-handle {
   opacity: 1;
   visibility: visible;
   cursor: grab;
 }
 
-/* Ghost row khi đang kéo */
+/* Active state khi đang kéo */
+.drag-handle:active {
+  cursor: grabbing;
+}
+
 .row-dragging {
-  display: table !important;
-  width: 30% !important;
-  background: #fff !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  z-index: 9999;
+  background: transparent !important;
+  border: none !important;
 }
 
-/* Giữ nguyên style cho tất cả td */
 .row-dragging td {
-  background: #fff !important;
-  padding: 12px 8px !important;
-  border-bottom: 1px solid #f0f0f0 !important;
-}
-
-/* Ẩn tất cả cột từ cột thứ 3 trở đi */
-.row-dragging td:nth-child(n+3) {
-  display: none !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
 }
