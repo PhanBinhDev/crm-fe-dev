@@ -26,7 +26,7 @@ export const AppHeader = () => {
   const { mutate: logout } = useLogout();
   const [profileTab, setProfileTab] = useState(false);
 
-  const { data: notifications } = useList({
+  const { data: notifications, refetch } = useList({
     resource: 'notifications',
     pagination: { mode: 'off' },
     sorters: [{ field: 'createdAt', order: 'desc' }],
@@ -45,6 +45,7 @@ export const AppHeader = () => {
 
     setCountNotifications(0);
     await axiosInstance.patch('notifications/read-all');
+    refetch();
   };
 
   const notificationItems: MenuProps['items'] = useMemo(() => {
