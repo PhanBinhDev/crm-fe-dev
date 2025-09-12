@@ -1,14 +1,20 @@
-import { ActivityPriority } from '@/common/enum/activity';
+import { ActivityPriority, ActivityStatus } from '@/common/enum/activity';
 import { IActivity, IStage } from '@/common/types';
 import { ColorPicker } from '@/components/shared/ColorPicker';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import {
   getActivityPriorityColor,
   getActivityPriorityLabel,
+  getActivityStatusLabel,
   getColorFromName,
   getInitials,
 } from '@/utils/activity';
-import { CalendarOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  AppstoreAddOutlined,
+  CalendarOutlined,
+  FlagOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import {
   closestCenter,
   DndContext,
@@ -26,8 +32,8 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Avatar, Space, Table, Tag, Tooltip, Typography } from 'antd';
-import { useState } from 'react';
+import { Avatar, Button, Checkbox, Dropdown, Space, Table, Tag, Tooltip, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
 
 const { Text } = Typography;
 
@@ -37,7 +43,6 @@ interface TableViewProps {
 }
 
 const TableView = ({ stages, activities }: TableViewProps) => {
-  console.log(activities);
   const [dataSource, setDataSource] = useState<IActivity[]>(activities);
 
   const sensors = useSensors(
@@ -86,50 +91,51 @@ const TableView = ({ stages, activities }: TableViewProps) => {
     if (isDragging && activity) {
       return (
         <tr ref={setNodeRef} style={style} {...props} className="row-dragging">
-          <td colSpan={6}>
+          <td colSpan={3}>
             <div
+              className="dragging-item"
               style={{
+                padding: '5px 10px',
+                backgroundColor: '#fff',
+                border: `2px solid ${stage?.color || '#1890ff'}`,
+                borderRadius: '8px',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6,
-                padding: '8px 12px',
-                backgroundColor: '#fff',
-                borderRadius: '6px',
-                border: `2px solid ${stage?.color || '#1890ff'}`,
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
-                width: '30%',
-                minWidth: '250px',
+                gap: '12px',
+                cursor: 'grabbing',
               }}
             >
               <span
-                className="drag-handle"
+                className="drag-handle-dragging"
                 {...attributes}
                 {...listeners}
-                style={{ cursor: 'grabbing', color: '#8c8c8c', fontSize: '12px' }}
+                style={{
+                  color: '#8c8c8c',
+                  fontSize: '16px',
+                  cursor: 'grabbing',
+                  opacity: 1,
+                }}
               >
                 ⋮⋮
               </span>
               <div
+                className="stage-indicator"
                 style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
+                  width: '4px',
+                  height: '32px',
                   backgroundColor: stage?.color || '#1890ff',
-                  flexShrink: 0,
+                  borderRadius: '2px',
                 }}
               />
-              <span
-                style={{
-                  fontWeight: 500,
-                  fontSize: 13,
-                  color: '#262626',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {activity.name}
-              </span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: '14px', color: '#262626' }}>
+                  {activity.name}
+                </div>
+                <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '2px' }}>
+                  {stage ? getActivityStatusLabel(stage.title as ActivityStatus) : 'Chưa xác định'}
+                </div>
+              </div>
             </div>
           </td>
         </tr>
@@ -138,29 +144,29 @@ const TableView = ({ stages, activities }: TableViewProps) => {
 
     return (
       <tr ref={setNodeRef} style={style} {...props} className={props.className}>
-        {children?.map((child: any, index: number) => {
-          if (index === 0) {
-            return {
-              ...child,
-              props: {
-                ...child.props,
-                children: (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span
-                      className="drag-handle"
-                      {...attributes}
-                      {...listeners}
-                      style={{ cursor: 'grab' }}
-                    >
-                      ⋮⋮
-                    </span>
-                    <span style={{ color: '#8c8c8c', fontSize: 13 }}>
-                      {dataSource.findIndex(item => item.id === props['data-row-key']) + 1}
-                    </span>
-                  </div>
-                ),
-              },
-            };
+        {React.Children.map(children, (child, index) => {
+          if (index === 0 && React.isValidElement(child)) {
+            const rowNumber = dataSource.findIndex(item => item.id === props['data-row-key']) + 1;
+
+            const typedChild = child as React.ReactElement<any>;
+
+            return React.cloneElement(typedChild, {
+              ...typedChild.props,
+              children: (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span
+                    className="drag-handle"
+                    {...attributes}
+                    {...listeners}
+                    style={{ cursor: 'grab', fontSize: '14px', color: '#8c8c8c' }}
+                  >
+                    ⋮⋮
+                  </span>
+                  <span style={{ color: '#8c8c8c', fontSize: 13 }}>{rowNumber}</span>
+                  {typedChild.props.children}
+                </div>
+              ),
+            });
           }
           return child;
         })}
@@ -169,19 +175,26 @@ const TableView = ({ stages, activities }: TableViewProps) => {
   };
 
   const tableColumns = [
+    { key: 'stt', title: 'STT', dataIndex: 'id', width: 55, fixed: 'left' as const },
     {
-      title: 'STT',
-      dataIndex: 'id',
-      width: 60,
-    },
-    {
-      title: 'Task',
+      key: 'name',
+      title: 'Tên công việc',
       dataIndex: 'name',
-      width: 350,
+      width: 270,
+      fixed: 'left' as const,
       render: (text: string) => <div style={{ fontWeight: 500 }}>{text}</div>,
     },
     {
-      title: 'Assignee',
+      key: 'type',
+      title: 'Loại',
+      dataIndex: 'type',
+      width: 70,
+      fixed: 'left' as const,
+      render: (text: string) => <div style={{ fontWeight: 500 }}>{text}</div>,
+    },
+    {
+      key: 'assignees',
+      title: 'Người thực hiện',
       dataIndex: 'assignees',
       width: 160,
       render: (assignees: any[]) => (
@@ -229,9 +242,10 @@ const TableView = ({ stages, activities }: TableViewProps) => {
       ),
     },
     {
-      title: 'Status',
+      key: 'stageId',
+      title: 'Trạng thái',
       dataIndex: 'stageId',
-      width: 160,
+      width: 120,
       render: (stageId: string) => {
         const stage = stages.find(s => s.id === stageId);
         return (
@@ -248,7 +262,7 @@ const TableView = ({ stages, activities }: TableViewProps) => {
             >
               <ColorPicker value={stage?.color || ''} />
               <Text style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>
-                {stage?.title || ''}
+                {stage ? getActivityStatusLabel(stage.title as ActivityStatus) : 'Chưa xác định'}
               </Text>
             </div>
           </Space>
@@ -256,22 +270,15 @@ const TableView = ({ stages, activities }: TableViewProps) => {
       },
     },
     {
-      title: 'Priority',
+      key: 'priority',
+      title: 'Ưu tiên',
       dataIndex: 'priority',
-      width: 160,
+      width: 150,
       render: (priority: ActivityPriority) => (
         <Tag
           color={getActivityPriorityColor(priority)}
           icon={<FlagOutlined style={{ fontSize: 15 }} />}
-          style={{
-            display: 'flex',
-            gap: '4px',
-            alignItems: 'center',
-            padding: '3px 8px',
-            borderRadius: '6px',
-            fontWeight: 600,
-            fontSize: 13,
-          }}
+          className="priority-tag"
           bordered={false}
         >
           {getActivityPriorityLabel(priority) || 'None'}
@@ -279,7 +286,42 @@ const TableView = ({ stages, activities }: TableViewProps) => {
       ),
     },
     {
-      title: 'End Time',
+      key: 'estimateTime',
+      title: 'Ước tính thời gian',
+      dataIndex: 'estimateTime',
+      width: 100,
+      render: (time: number) => (time ? <span style={{ fontSize: 13 }}>{time} giờ</span> : '-'),
+    },
+    {
+      key: 'startTime',
+      title: 'Thời gian bắt đầu',
+      dataIndex: 'startTime',
+      width: 150,
+      render: (date: string) =>
+        date ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <CalendarOutlined style={{ color: '#8c8c8c', fontSize: 12 }} />
+            <span style={{ fontSize: 13, display: 'block' }}>
+              {new Date(date).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}
+            </span>
+            <span style={{ fontSize: 13, display: 'block' }}>
+              {new Date(date).toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
+          </div>
+        ) : (
+          '-'
+        ),
+    },
+    {
+      key: 'endTime',
+      title: 'Thời gian kết thúc',
       dataIndex: 'endTime',
       width: 150,
       render: (date: string) =>
@@ -304,28 +346,119 @@ const TableView = ({ stages, activities }: TableViewProps) => {
           '-'
         ),
     },
+    {
+      key: 'createdAt',
+      title: 'Ngày tạo',
+      dataIndex: 'createdAt',
+      width: 120,
+      render: (date: string) =>
+        date ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <CalendarOutlined style={{ color: '#8c8c8c', fontSize: 12 }} />
+            <span style={{ fontSize: 13 }}>
+              {new Date(date).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}
+            </span>
+          </div>
+        ) : (
+          '-'
+        ),
+    },
+    {
+      key: 'createdBy',
+      title: 'Người tạo',
+      dataIndex: 'createdBy',
+      width: 150,
+      render: (createdUser: any) => <div style={{ fontWeight: 500 }}>{createdUser?.name}</div>,
+    },
   ];
 
-  return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext
-        items={dataSource.map(item => item.id)}
-        strategy={verticalListSortingStrategy}
+  const defaultColumn = ['stt', 'name', 'assignees', 'stageId', 'priority', 'endTime'];
+
+  const loadVisibleColumns = (): string[] => {
+    try {
+      const saved = localStorage.getItem('tableView-visibleColumns');
+      return saved ? JSON.parse(saved) : defaultColumn;
+    } catch {
+      return defaultColumn;
+    }
+  };
+
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(loadVisibleColumns);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('tableView-visibleColumns', JSON.stringify(visibleColumns));
+    } catch (error) {
+      console.warn('Could not save column visibility to localStorage:', error);
+    }
+  }, [visibleColumns]);
+
+  const tbColumns = tableColumns.filter(col => visibleColumns.includes(col.key));
+
+  const menu = (
+    <div style={{ padding: 8 }}>
+      <Checkbox.Group
+        value={visibleColumns}
+        onChange={(checked: any) => setVisibleColumns(checked)}
       >
-        <Table
-          columns={tableColumns}
-          dataSource={dataSource}
-          rowKey="id"
-          tableLayout="fixed"
-          components={{
-            body: {
-              row: SortableRow,
-            },
-          }}
-          pagination={false}
-        />
-      </SortableContext>
-    </DndContext>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {tableColumns.map(col => (
+            <Checkbox
+              key={col.key}
+              value={col.key}
+              disabled={col.key === 'name' || col.key === 'stt'}
+            >
+              {col.title}
+            </Checkbox>
+          ))}
+        </div>
+      </Checkbox.Group>
+    </div>
+  );
+
+  return (
+    <>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext
+          items={dataSource.map(item => item.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div
+            style={{
+              marginBottom: 10,
+              display: 'flex',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <Dropdown
+              overlayClassName="dropdown-menu-overlay"
+              overlay={menu}
+              trigger={['click']}
+              placement="bottomRight"
+            >
+              <Button icon={<AppstoreAddOutlined />}>Cột hiển thị</Button>
+            </Dropdown>
+          </div>
+          <Table
+            columns={tbColumns}
+            dataSource={dataSource}
+            rowKey="id"
+            scroll={{ x: 1200 }}
+            tableLayout="fixed"
+            components={{
+              body: {
+                row: SortableRow,
+              },
+            }}
+            pagination={false}
+          />
+        </SortableContext>
+      </DndContext>
+    </>
   );
 };
 
