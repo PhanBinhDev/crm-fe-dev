@@ -1,8 +1,9 @@
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
+import { axiosInstance } from '@/lib/axios';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { onMessageListener, requestForToken } from '@/providers/fcmNotification/firebase';
-import { useCustomMutation, useList, useLogout } from '@refinedev/core';
+import { useList, useLogout } from '@refinedev/core';
 import { IconBell, IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
 import { Avatar, Badge, Button, Drawer, Dropdown, Layout, MenuProps, Space, Spin } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
@@ -31,25 +32,19 @@ export const AppHeader = () => {
     sorters: [{ field: 'createdAt', order: 'desc' }],
   });
 
-  const countUnread = useMemo(
-    () => notifications?.data.filter(n => !n.isRead).length || 0,
-    [notifications],
-  );
+  const [countNotifications, setCountNotifications] = useState(0);
 
-  const { mutate, mutation } = useCustomMutation();
+  useEffect(() => {
+    if (notifications?.data) {
+      setCountNotifications(notifications.data.filter(n => !n.isRead).length);
+    }
+  }, [notifications]);
 
-  const handleSetRead = (id: string) => {
-    mutate({
-      url: `${import.meta.env.VITE_API_BASE_URL}/notifications/read`,
-      method: 'patch',
-      values: {
-        isRead: true,
-      },
-      meta: {
-        resource: 'notifications',
-        invalidates: ['notifications'],
-      },
-    });
+  const handleReadNotifications = async () => {
+    if (countNotifications === 0) return;
+
+    setCountNotifications(0);
+    await axiosInstance.patch('notifications/read-all');
   };
 
   const notificationItems: MenuProps['items'] = useMemo(() => {
@@ -59,7 +54,7 @@ export const AppHeader = () => {
           key: notification.id,
           icon: <IconBell size={18} color="#1890ff" />,
           label: notification.title,
-          onClick: () => handleSetRead(String(notification.id)),
+          onClick: () => console.log('Click notification', notification.id),
           className: 'notification-item',
           type: 'item',
         };
@@ -137,9 +132,10 @@ export const AppHeader = () => {
                 transition: 'background-color 0.3s',
                 borderRadius: 4,
               }}
+              onClick={handleReadNotifications}
             >
               <Badge
-                count={countUnread}
+                count={countNotifications > 0 ? countNotifications : ''}
                 size="small"
                 offset={[-2, 2]}
                 style={{ backgroundColor: '#ff4d4f' }}
