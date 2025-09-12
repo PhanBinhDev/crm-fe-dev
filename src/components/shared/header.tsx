@@ -2,10 +2,10 @@ import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { onMessageListener, requestForToken } from '@/providers/fcmNotification/firebase';
-import { useLogout } from '@refinedev/core';
-import { IconBell, IconClock, IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
+import { useCustomMutation, useList, useLogout } from '@refinedev/core';
+import { IconBell, IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
 import { Avatar, Badge, Button, Drawer, Dropdown, Layout, MenuProps, Space, Spin } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const { Header } = Layout;
 export const AppHeader = () => {
@@ -25,22 +25,48 @@ export const AppHeader = () => {
   const { mutate: logout } = useLogout();
   const [profileTab, setProfileTab] = useState(false);
 
-  const notificationItems: MenuProps['items'] = [
-    {
-      key: '1',
-      icon: <IconBell size={18} color="#1890ff" />,
-      label: 'Bạn có một nhiệm vụ mới',
-      onClick: () => console.log('Click notification 1'),
-      className: 'notification-item',
-    },
-    {
-      key: '2',
-      icon: <IconClock size={18} color="#ff4d4f" />,
-      label: 'Deadline sắp đến hạn',
-      onClick: () => console.log('Click notification 2'),
-      className: 'notification-item',
-    },
-  ];
+  const { data: notifications } = useList({
+    resource: 'notifications',
+    pagination: { mode: 'off' },
+    sorters: [{ field: 'createdAt', order: 'desc' }],
+  });
+
+  const countUnread = useMemo(
+    () => notifications?.data.filter(n => !n.isRead).length || 0,
+    [notifications],
+  );
+
+  const { mutate, mutation } = useCustomMutation();
+
+  const handleSetRead = (id: string) => {
+    mutate({
+      url: `${import.meta.env.VITE_API_BASE_URL}/notifications/read`,
+      method: 'patch',
+      values: {
+        isRead: true,
+      },
+      meta: {
+        resource: 'notifications',
+        invalidates: ['notifications'],
+      },
+    });
+  };
+
+  const notificationItems: MenuProps['items'] = useMemo(() => {
+    return (
+      notifications?.data.map((notification): MenuProps['items'][number] => {
+        return {
+          key: notification.id,
+          icon: <IconBell size={18} color="#1890ff" />,
+          label: notification.title,
+          onClick: () => handleSetRead(String(notification.id)),
+          className: 'notification-item',
+          type: 'item',
+        };
+      }) || []
+    );
+  }, [notifications]);
+
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
@@ -112,7 +138,12 @@ export const AppHeader = () => {
                 borderRadius: 4,
               }}
             >
-              <Badge count={2} size="small" offset={[-2, 2]} style={{ backgroundColor: '#ff4d4f' }}>
+              <Badge
+                count={countUnread}
+                size="small"
+                offset={[-2, 2]}
+                style={{ backgroundColor: '#ff4d4f' }}
+              >
                 <Button
                   type="text"
                   icon={<IconBell size={18} color="#595959" />}
