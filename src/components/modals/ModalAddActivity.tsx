@@ -1,27 +1,42 @@
-import { IStage } from '@/common/types';
+import { FormAddActivityPayload, FormAddTaskData, ModalAction } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import FormAddEvent from '@/pages/workspace/components/FormAddEvent';
 import FormAddReminder from '@/pages/workspace/components/FormAddReminder';
 import FormAddTask from '@/pages/workspace/components/FormAddTask';
 import NotificationActivityBtn from '@/pages/workspace/components/NotificationActivityBtn';
+import { cleanPayload } from '@/utils/payload';
 import { DownOutlined } from '@ant-design/icons';
-import { useOne } from '@refinedev/core';
+import { useCreate, useInvalidate } from '@refinedev/core';
 import { IconArrowDownRight, IconPaperclip, IconX } from '@tabler/icons-react';
-import { Button, Dropdown, Modal, Space, Tabs, Tooltip } from 'antd';
-import { useMemo, useState } from 'react';
+import { Button, Dropdown, message, Modal, Space, Tabs, Tooltip } from 'antd';
+import { useCallback, useRef, useState } from 'react';
 
 const modalTabs = [
-  { key: 'task', label: 'Task' },
-  { key: 'event', label: 'Event' },
-  { key: 'reminder', label: 'Reminder' },
+  { key: 'task', label: 'Nhiệm vụ' },
+  { key: 'event', label: 'Sự kiện' },
+  { key: 'reminder', label: 'Nhắc nhở' },
 ] as const;
 
 type ModalTabKey = (typeof modalTabs)[number]['key'];
 
+export interface FormAddTaskRef {
+  submitForm: (action: ModalAction) => void;
+}
+
 const ModalAddActivity = () => {
-  const { isOpen, type, data, closeModal } = useModal();
+  const { isOpen, type, closeModal } = useModal();
   const isOpenModal = isOpen && type === 'ModalAddActivity';
-  const { stageId } = data ?? {};
+
+  const formRef = useRef<FormAddTaskRef>(null);
+
+  const invalidate = useInvalidate();
+  const { mutate: createActivity, isPending: isPendingCreateActivity } = useCreate<FormAddTaskData>(
+    {
+      mutationOptions: {
+        retry: false,
+      },
+    },
+  );
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ModalTabKey>('task');
@@ -32,34 +47,49 @@ const ModalAddActivity = () => {
     reminder: false,
   });
 
-  const { data: stageData, isLoading: isLoadingStage } = useOne<IStage>({
-    resource: 'stages',
-    id: stageId,
-    queryOptions: {
-      enabled: !!stageId && activeTab !== 'reminder',
+  const handleCreate = useCallback(
+    (action: ModalAction) => {
+      formRef.current?.submitForm(action);
     },
-  });
+    [formRef],
+  );
 
-  const btnStage = useMemo(() => {
-    return (
-      <button
-        style={{
-          backgroundColor: stageData?.data?.color ?? '#838383',
-          borderColor: stageData?.data?.color ?? '#838383',
-          minWidth: 50,
-          borderRadius: 6,
-          height: 24,
-          padding: '0 8px',
-          border: 'none',
-          outline: 'none',
-          color: '#fff',
-          cursor: isLoadingStage ? 'not-allowed' : 'pointer',
-        }}
-      >
-        {stageData?.data?.title ?? 'Chọn giai đoạn'}
-      </button>
-    );
-  }, [isLoadingStage, stageData]);
+  const handleFormSubmit = useCallback(
+    ({
+      data,
+      action,
+      callback,
+    }: {
+      data: FormAddActivityPayload;
+      action: ModalAction;
+      callback: () => void;
+    }) => {
+      switch (action) {
+        case 'create-action':
+          createActivity(
+            {
+              resource: 'activities',
+              values: cleanPayload(data),
+            },
+            {
+              onSuccess: () => {
+                callback();
+                invalidate({
+                  resource: 'activities',
+                  invalidates: ['list'],
+                });
+                message.success('Tạo hoạt động thành công');
+                closeModal();
+              },
+              onError: () => {
+                message.error('Tạo hoạt động thất bại, vui lòng thử lại');
+              },
+            },
+          );
+      }
+    },
+    [closeModal],
+  );
 
   return (
     <Modal
@@ -182,9 +212,8 @@ const ModalAddActivity = () => {
       }
       open={isOpenModal}
       onCancel={closeModal}
-      onOk={() => {}}
       destroyOnHidden
-      width={620}
+      width={640}
       closeIcon={null}
       styles={{
         content: {
@@ -202,6 +231,7 @@ const ModalAddActivity = () => {
         <Space style={{ gap: 6 }}>
           <Tooltip title="Đính kèm tập tin">
             <Button
+              disabled={isPendingCreateActivity}
               onClick={() => {
                 setOpenUploader(prev => ({ ...prev, [activeTab]: !prev[activeTab] }));
               }}
@@ -231,29 +261,24 @@ const ModalAddActivity = () => {
           {activeTab !== 'reminder' ? (
             <Dropdown.Button
               type="primary"
-              onClick={closeModal}
+              loading={isPendingCreateActivity}
+              onClick={() => handleCreate('create-action')}
               menu={{
                 items: [
                   {
                     key: 'create',
                     label: 'Tạo mới và mở',
-                    onClick: () => {
-                      closeModal();
-                    },
+                    onClick: () => handleCreate('create-open'),
                   },
                   {
                     key: 'create-another',
                     label: 'Tạo và tạo thêm',
-                    onClick: () => {
-                      closeModal();
-                    },
+                    onClick: () => handleCreate('create-another'),
                   },
                   {
                     key: 'duplicate',
                     label: 'Tạo và nhân bản',
-                    onClick: () => {
-                      closeModal();
-                    },
+                    onClick: () => handleCreate('create-duplicate'),
                   },
                 ],
               }}
@@ -283,10 +308,11 @@ const ModalAddActivity = () => {
           ) : (
             <Button
               type="primary"
-              onClick={closeModal}
+              onClick={() => handleCreate('create-action')}
               style={{
                 borderRadius: 8,
               }}
+              loading={isPendingCreateActivity}
             >
               Tạo nhắc nhở
             </Button>
@@ -294,7 +320,9 @@ const ModalAddActivity = () => {
         </Space>
       }
     >
-      {activeTab === 'task' && <FormAddTask openUploader={openUploader.task} btnStage={btnStage} />}
+      {activeTab === 'task' && (
+        <FormAddTask openUploader={openUploader.task} ref={formRef} onSubmit={handleFormSubmit} />
+      )}
       {activeTab === 'event' && <FormAddEvent openUploader={openUploader.event} />}
       {activeTab === 'reminder' && <FormAddReminder openUploader={openUploader.reminder} />}
     </Modal>

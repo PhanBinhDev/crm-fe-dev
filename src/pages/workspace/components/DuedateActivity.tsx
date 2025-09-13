@@ -1,3 +1,4 @@
+import { DateRange } from '@/common/types';
 import { IconCalendar, IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 import { Button, Calendar, Input, Popover, Space } from 'antd';
 
@@ -112,13 +113,15 @@ const PresetDateSelect = ({
   );
 };
 
-const DuedateActivity = () => {
-  const [dateRange, setDateRange] = useState<{
-    start: Dayjs | null;
-    end: Dayjs | null;
-  }>({
-    start: null,
-    end: null,
+interface DuedateActivityProps {
+  value: DateRange;
+  onChange: (dateRange: DateRange) => void;
+}
+
+const DuedateActivity = ({ value, onChange }: DuedateActivityProps) => {
+  const [dateRange, setDateRange] = useState<DateRange>({
+    start: value.start,
+    end: value.end,
   });
 
   const [selectedDate, setSelectedDate] = useState<Dayjs | undefined>(undefined);
@@ -129,6 +132,14 @@ const DuedateActivity = () => {
 
   const startInputRef = useRef<any>(null);
   const endInputRef = useRef<any>(null);
+
+  useEffect(() => {
+    setDateRange({
+      start: value.start,
+      end: value.end,
+    });
+    setSelectedDate(value.end ?? value.start ?? undefined);
+  }, [value.start, value.end]);
 
   // Format date for display in input
   const formatDateForInput = (date: Dayjs | null) => {
@@ -181,69 +192,68 @@ const DuedateActivity = () => {
     }
   }, [dateRange]);
 
-  // Handle preset selection - always set as end date (due date)
   const handlePresetSelect = (date: Dayjs) => {
-    // Preset selections are always treated as due dates (end date)
-    setDateRange(prev => ({ ...prev, end: date }));
+    setDateRange({ start: null, end: date });
     setSelectedDate(date);
-    // Clear start date when using preset to keep it simple
-    setDateRange(prev => ({ start: null, end: date }));
+    setSelectedPreset(null);
+    onChange?.({ start: null, end: date });
   };
 
-  // Handle calendar date selection
   const handleCalendarSelect = (date: Dayjs) => {
-    // Default to end of day for calendar selections
     const dateWithTime = date.hour(23).minute(59).second(59);
 
     if (focusedInput === 'start' || (!focusedInput && !dateRange.start)) {
       setDateRange(prev => ({ ...prev, start: dateWithTime }));
       setFocusedInput('end');
-      // Clear preset selection when using calendar
       setSelectedPreset(null);
-      // Auto focus to end input
       setTimeout(() => {
         endInputRef.current?.focus();
       }, 100);
+      onChange?.({ ...dateRange, start: dateWithTime });
     } else if (focusedInput === 'end' || !dateRange.end) {
       setDateRange(prev => ({ ...prev, end: dateWithTime }));
       setSelectedPreset(null);
+      onChange?.({ ...dateRange, end: dateWithTime });
     }
 
     setSelectedDate(dateWithTime);
   };
 
-  // Handle input change
   const handleInputChange = (value: string, type: 'start' | 'end') => {
-    console.log('changed', value, type)
-
     const parsedDate = parseDateFromInput(value);
 
     if (parsedDate) {
-      setSelectedPreset(null); // Clear preset when manually editing
+      setSelectedPreset(null);
 
       setDateRange(prev => {
+        let newRange;
         if (type === 'start') {
-          // Nếu nhập start mà lớn hơn end thì clear end
           if (prev.end && parsedDate.isAfter(prev.end)) {
-            return { start: parsedDate, end: null };
+            newRange = { start: parsedDate, end: null };
+          } else {
+            newRange = { ...prev, start: parsedDate };
           }
-          return { ...prev, start: parsedDate };
         } else {
-          // Nếu nhập end mà nhỏ hơn start thì clear start
           if (prev.start && parsedDate.isBefore(prev.start)) {
-            return { start: null, end: parsedDate };
+            newRange = { start: null, end: parsedDate };
+          } else {
+            newRange = { ...prev, end: parsedDate };
           }
-          return { ...prev, end: parsedDate };
         }
+        onChange?.(newRange);
+        return newRange;
       });
 
       setSelectedDate(parsedDate);
     } else if (value === '') {
-      setDateRange(prev => ({ ...prev, [type]: null }));
+      setDateRange(prev => {
+        const newRange = { ...prev, [type]: null };
+        onChange?.(newRange);
+        return newRange;
+      });
     }
   };
 
-  // Handle input focus
   const handleInputFocus = (type: 'start' | 'end') => {
     setFocusedInput(type);
     const currentDate = type === 'start' ? dateRange.start : dateRange.end;
@@ -255,7 +265,6 @@ const DuedateActivity = () => {
   const handlePopoverVisibleChange = (visible: boolean) => {
     setPopoverVisible(visible);
     if (visible) {
-      // Always focus on end input when opening (for due date)
       setTimeout(() => {
         endInputRef.current?.focus();
         setFocusedInput('end');
@@ -265,7 +274,6 @@ const DuedateActivity = () => {
     }
   };
 
-  // Handle input key press
   const handleInputKeyPress = (e: React.KeyboardEvent, type: 'start' | 'end') => {
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -281,12 +289,12 @@ const DuedateActivity = () => {
     }
   };
 
-  // Clear all selections
   const handleClear = () => {
     setDateRange({ start: null, end: null });
     setSelectedDate(undefined);
     setSelectedPreset(null);
     setFocusedInput(null);
+    onChange?.({ start: null, end: null });
   };
 
   const popoverContent = (

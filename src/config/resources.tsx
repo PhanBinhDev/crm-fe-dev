@@ -3,8 +3,6 @@ import {
   IconAlertCircle,
   IconAward,
   IconBan,
-  IconBook,
-  IconBookmark,
   IconBrandAsana,
   IconCalendar,
   IconCalendarCheck,
@@ -16,15 +14,12 @@ import {
   IconFileText,
   IconFolders,
   IconLayoutDashboard,
-  IconNotebook,
   IconPresentation,
   IconProgressCheck,
   IconReport,
   IconSettings,
   IconTarget,
   IconTrophy,
-  IconUserCheck,
-  IconUsers,
 } from '@tabler/icons-react';
 
 export interface ResourceConfig {
@@ -135,19 +130,6 @@ export const resources: ResourceConfig[] = [
     },
   },
   {
-    name: 'subjects',
-    list: '/materials/list',
-    create: '/materials/create',
-    edit: '/materials/edit/:id',
-    show: '/materials/show/:id',
-    meta: {
-      label: 'Tài liệu môn học',
-      icon: <IconBook size={16} />,
-      canDelete: true,
-      menuPath: '/materials',
-    },
-  },
-  {
     name: 'exams',
     meta: {
       label: 'Quản lý đề thi',
@@ -188,24 +170,6 @@ export const resources: ResourceConfig[] = [
         },
       },
     ],
-  },
-  {
-    name: 'classes',
-    meta: {
-      label: 'Lớp học',
-      icon: <IconUsers size={16} />,
-      canDelete: true,
-      menuPath: '/classes',
-    },
-  },
-  {
-    name: 'students',
-    meta: {
-      label: 'Học sinh',
-      icon: <IconUserCheck size={16} />,
-      canDelete: true,
-      menuPath: '/students',
-    },
   },
   {
     name: 'teachers',
@@ -268,53 +232,10 @@ export const resources: ResourceConfig[] = [
         name: 'activity-reports',
         identifier: 'reports/activities',
         meta: {
-          label: 'Báo cáo Activities',
+          label: 'Báo cáo hoạt động',
           icon: <IconBan size={14} />,
           parent: 'reports',
           menuPath: '/reports/activities',
-        },
-      },
-    ],
-  },
-  {
-    name: 'department-management',
-    meta: {
-      label: 'Quản lý bộ môn',
-      icon: <IconBookmark size={16} />,
-      menuPath: '/department',
-    },
-    children: [
-      {
-        name: 'department-activities',
-        identifier: 'department/activities',
-        meta: {
-          label: 'Hoạt động bộ môn',
-          icon: <IconCalendarEvent size={14} />,
-          parent: 'department-management',
-          canDelete: true,
-          menuPath: '/department/activities',
-        },
-      },
-      {
-        name: 'department-meetings',
-        identifier: 'department/meetings',
-        meta: {
-          label: 'Họp bộ môn',
-          icon: <IconUsers size={14} />,
-          parent: 'department-management',
-          canDelete: true,
-          menuPath: '/department/meetings',
-        },
-      },
-      {
-        name: 'curriculum',
-        identifier: 'department/curriculum',
-        meta: {
-          label: 'Chương trình giảng dạy',
-          icon: <IconNotebook size={14} />,
-          parent: 'department-management',
-          canDelete: true,
-          menuPath: '/department/curriculum',
         },
       },
     ],
@@ -330,27 +251,17 @@ export const resources: ResourceConfig[] = [
 ];
 
 export const getResourcesByRole = (role: UserRole): ResourceConfig[] => {
-  const baseResources = [
-    'dashboard',
-    'workspaces',
-    'my-work',
-    'subjects',
-    'classes',
-    'students',
-    'teachers',
-  ];
+  const baseResources = ['dashboard', 'workspaces', 'my-work', 'teachers'];
 
   switch (role) {
     case UserRole.GV:
-      return resources.filter(
-        resource => baseResources.includes(resource.name) || resource.name === 'exams',
-      );
+      return resources.filter(resource => baseResources.includes(resource.name));
 
     case UserRole.CNBM:
       return resources.filter(
         resource =>
           baseResources.includes(resource.name) ||
-          ['exams', 'reports', 'semester-management'].includes(resource.name),
+          ['reports', 'semester-management'].includes(resource.name),
       );
 
     case UserRole.TM:

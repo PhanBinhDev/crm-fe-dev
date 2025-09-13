@@ -7,6 +7,12 @@ export interface IFile extends IBase {
   activity: IActivity;
 }
 
+export interface Attachment {
+  file: File;
+  path: string;
+  name: string;
+}
+
 export interface IFileUploadResponse {
   url: string;
   originalName: string;

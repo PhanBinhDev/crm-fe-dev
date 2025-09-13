@@ -39,7 +39,7 @@ const MoreActivity = ({ showActions, onShowAction }: MoreActivityProps) => {
               label: (
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <IconGitBranch size={16} color="#838383" />
-                  Công việc con
+                  Công việc phụ
                 </span>
               ),
               onClick: () => onShowAction('subtasks'),

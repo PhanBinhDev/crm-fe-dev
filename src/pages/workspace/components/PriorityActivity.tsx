@@ -5,12 +5,12 @@ import { Button, List, Popover, Space, Typography } from 'antd';
 import { useState } from 'react';
 
 interface PriorityActivityProps {
-  onSelect: (option: ActivityPriorityLevel | null) => void;
+  value: ActivityPriorityLevel | null;
+  onChange: (option: ActivityPriorityLevel | null) => void;
 }
 
-const PriorityActivity = ({ onSelect }: PriorityActivityProps) => {
+const PriorityActivity = ({ value, onChange }: PriorityActivityProps) => {
   const [open, setOpen] = useState(false);
-  const [selectedPriority, setSelectedPriority] = useState<ActivityPriorityLevel | null>(null);
 
   const priorityContent = (
     <Space
@@ -43,9 +43,8 @@ const PriorityActivity = ({ onSelect }: PriorityActivityProps) => {
           >
             <List.Item
               onClick={() => {
-                setSelectedPriority(option);
                 setOpen(false);
-                onSelect(option);
+                onChange(option);
               }}
               style={{
                 width: '100%',
@@ -59,7 +58,7 @@ const PriorityActivity = ({ onSelect }: PriorityActivityProps) => {
                 alignItems: 'center',
                 gap: 2,
                 justifyContent: 'flex-start',
-                background: selectedPriority?.value === option.value ? '#f5f7fa' : 'transparent',
+                background: value?.value === option.value ? '#f5f7fa' : 'transparent',
               }}
               onMouseEnter={e => {
                 e.currentTarget.style.background = '#f1f1f1';
@@ -71,7 +70,7 @@ const PriorityActivity = ({ onSelect }: PriorityActivityProps) => {
               <IconFlagFilled size={16} style={{ marginRight: 8, color: option.color }} />
               {option.label}
 
-              {selectedPriority?.value === option.value && (
+              {value?.value === option.value && (
                 <IconCheck style={{ marginLeft: 'auto', color: '#202020' }} size={14} />
               )}
             </List.Item>
@@ -86,9 +85,8 @@ const PriorityActivity = ({ onSelect }: PriorityActivityProps) => {
       >
         <Button
           onClick={() => {
-            setSelectedPriority(null);
             setOpen(false);
-            onSelect(null);
+            onChange(null);
           }}
           type="text"
           size="small"
@@ -141,11 +139,9 @@ const PriorityActivity = ({ onSelect }: PriorityActivityProps) => {
             justifyContent: 'center',
           },
         }}
-        icon={
-          <IconFlagFilled size={12} color={selectedPriority ? selectedPriority.color : undefined} />
-        }
+        icon={<IconFlagFilled size={12} color={value ? value.color : undefined} />}
       >
-        {selectedPriority ? selectedPriority.label : 'Ưu tiên'}
+        {value ? value.label : 'Ưu tiên'}
       </Button>
     </Popover>
   );

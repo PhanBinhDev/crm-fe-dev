@@ -1,15 +1,35 @@
-import { Typography, Upload } from 'antd';
-import { useState } from 'react';
+import { Typography, Upload, UploadFile } from 'antd';
+import { UploadChangeParam } from 'antd/lib/upload';
+import { useMemo } from 'react';
 
 const { Dragger } = Upload;
 
 interface FileAttachmentsProps {
   title?: string;
-  view: 'list' | 'grid' | 'internal';
+  value?: File[];
+  onChange?: (files: File[]) => void;
 }
 
-const FileAttachments = ({ title = 'Tệp đính kèm', view }: FileAttachmentsProps) => {
-  const [fileList, setFileList] = useState([]);
+const FileAttachments = ({ title = 'Tệp đính kèm', value, onChange }: FileAttachmentsProps) => {
+  const fileLists = useMemo(() => {
+    return (value || []).map((file: File, idx) => ({
+      uid: file.name || `${idx}`,
+      originFileObj: file,
+      name: file.name,
+      status: 'done',
+      fileName: file.name,
+      size: file.size,
+      type: file.type,
+      url: URL.createObjectURL(file),
+    })) as UploadFile[];
+  }, [value, onChange]);
+
+  const handleChange = (info: UploadChangeParam<UploadFile>) => {
+    const newFileList = info.fileList;
+    const files: File[] = newFileList.map(f => f.originFileObj).filter(Boolean) as File[];
+
+    onChange?.(files);
+  };
 
   return (
     <div>
@@ -17,12 +37,10 @@ const FileAttachments = ({ title = 'Tệp đính kèm', view }: FileAttachmentsP
       <Dragger
         multiple
         showUploadList={true}
-        customRequest={({ file, onSuccess }) => {
-          setTimeout(() => {
-            onSuccess && onSuccess('ok');
-          }, 800);
-        }}
-        fileList={fileList}
+        progress={{ strokeColor: { '0%': '#108ee9', '100%': '#87d068' }, strokeWidth: 3 }}
+        beforeUpload={() => false}
+        onChange={handleChange}
+        fileList={fileLists}
         style={{
           marginTop: 8,
           maxHeight: 40,
@@ -33,6 +51,9 @@ const FileAttachments = ({ title = 'Tệp đính kèm', view }: FileAttachmentsP
           borderStyle: 'solid',
           backgroundColor: 'transparent',
         }}
+        pastable
+        listType="picture"
+        capture="user"
       >
         <div style={{ textAlign: 'center', color: '#838383', fontSize: 13 }}>
           Kéo thả tệp vào đây để đính kèm hoặc{' '}

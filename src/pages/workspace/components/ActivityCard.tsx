@@ -45,7 +45,22 @@ const ActivityCard = ({ activity }: ActivityCardProps) => {
   }, [transform, transition, isDragging]);
 
   return (
-    <Card style={styles} ref={setNodeRef} {...attributes} {...listeners}>
+    <Card
+      style={styles}
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      onMouseEnter={e => {
+        if (!isDragging) {
+          (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)';
+        }
+      }}
+      onMouseLeave={e => {
+        if (!isDragging) {
+          (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.03)';
+        }
+      }}
+    >
       <h4>{activity.name}</h4>
       <p>{activity.description}</p>
     </Card>

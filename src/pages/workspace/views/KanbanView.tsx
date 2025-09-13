@@ -222,7 +222,6 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
         targetStageId = overActivity.stageId;
       }
 
-      // Only update during drag over if moving to different stage
       if (targetStageId && activeActivity.stageId !== targetStageId) {
         setLocalActivities(prev =>
           prev.map(activity =>
@@ -246,6 +245,7 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
           overflowX: 'auto',
           overflowY: 'hidden',
           padding: '4px 4px 20px 4px',
+          height: 'calc(100vh - 250px)',
         }}
       >
         <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>

@@ -1,15 +1,31 @@
-import { IconPencil, IconPlus, IconSubtask, IconX } from '@tabler/icons-react';
+import { IconCircleCheck, IconPencil, IconPlus, IconX } from '@tabler/icons-react';
 import { Button, Input, Space, Typography } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const { Text } = Typography;
 
-const SubtaskActivity = () => {
-  const [subtasks, setSubtasks] = useState<string[]>(['']);
+interface SubtaskActivityProps {
+  value: string[];
+  onChange: (value: string[]) => void;
+}
+
+const SubtaskActivity = ({ value, onChange }: SubtaskActivityProps) => {
+  const [subtasks, setSubtasks] = useState<string[]>(value && value.length ? value : ['']);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
+  useEffect(() => {
+    if (JSON.stringify(value) !== JSON.stringify(subtasks)) {
+      setSubtasks(value && value.length ? value : ['']);
+    }
+  }, [value]);
+
+  useEffect(() => {
+    if (onChange) {
+      onChange(subtasks);
+    }
+  }, [subtasks]);
+
   const handleAddSubtask = () => {
-    // Chỉ thêm khi input cuối có giá trị
     if (subtasks[subtasks.length - 1].trim()) {
       setSubtasks([...subtasks, '']);
       setFocusedIndex(subtasks.length);
@@ -48,7 +64,7 @@ const SubtaskActivity = () => {
           width: '100%',
           margin: '0 auto',
           border: '1px solid #f0f0f0',
-          borderRadius: '8px',
+          borderRadius: 6,
         }}
       >
         {subtasks.map((text, idx) => (
@@ -68,16 +84,19 @@ const SubtaskActivity = () => {
               onChange={e => handleChangeSubtask(idx, e.target.value)}
               onKeyDown={e => handleKeyPress(e, idx)}
               placeholder="Nhập tên công việc phụ"
-              prefix={<IconSubtask size={14} style={{ color: '#838383', flexShrink: 0 }} />}
+              prefix={<IconCircleCheck size={14} style={{ color: '#838383', flexShrink: 0 }} />}
               variant="borderless"
               style={{
                 flex: 1,
                 boxShadow: 'none',
                 border: 'none',
-                opacity: 1,
+                opacity: '1 !important',
+                cursor: focusedIndex === idx ? 'text' : 'not-allowed',
+                fontSize: 14,
               }}
               autoFocus={focusedIndex === idx}
               onFocus={() => setFocusedIndex(idx)}
+              readOnly={focusedIndex !== idx && text.trim() !== ''}
               disabled={focusedIndex !== idx && text.trim() !== ''}
             />
             {text.trim() !== '' && focusedIndex !== idx && (
