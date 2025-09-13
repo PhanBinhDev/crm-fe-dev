@@ -231,7 +231,11 @@ const KanbanWorkspaces = () => {
       {activeTab === 'list' && <ListView />}
       {activeTab === 'calendar' && <CalendarView />}
       {activeTab === 'table' && (
-        <TableView stages={stagesData?.data || []} activities={activitiesData?.data || []} />
+        <TableView
+          stages={stagesData?.data || []}
+          activities={activitiesData?.data || []}
+          users={users?.data || []}
+        />
       )}
     </div>
   );

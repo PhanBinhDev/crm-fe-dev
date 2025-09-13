@@ -91,6 +91,7 @@ export const getActivityStatusColor = (status: ActivityStatus): string => {
   }
 };
 
+
 export const getActivityPriorityLabel = (priority: ActivityPriority): string => {
   switch (priority) {
     case ActivityPriority.LOW:

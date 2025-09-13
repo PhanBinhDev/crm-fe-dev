@@ -1,47 +1,201 @@
-import { ActivityPriority } from '@/common/enum/activity';
-import { IActivity, IStage } from '@/common/types';
+import { ActivityPriority, ActivityStatus } from '@/common/enum/activity';
+import { IActivity, IStage, IUser } from '@/common/types';
 import { ColorPicker } from '@/components/shared/ColorPicker';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
-import { getActivityPriorityColor, getColorFromName, getInitials } from '@/utils/activity';
-import { CalendarOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
-import { Avatar, Space, Table, Tag, Tooltip, Typography } from 'antd';
-import { arrayMoveImmutable } from 'array-move';
-import { useState } from 'react';
-import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
+import {
+  getActivityPriorityColor,
+  getActivityPriorityLabel,
+  getActivityStatusLabel,
+  getColorFromName,
+  getInitials,
+} from '@/utils/activity';
+import {
+  AppstoreAddOutlined,
+  CalendarOutlined,
+  FlagOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Avatar, Button, Checkbox, Dropdown, Space, Table, Tag, Tooltip, Typography } from 'antd';
+import React, { useEffect, useState } from 'react';
 
 const { Text } = Typography;
 
 interface TableViewProps {
   stages: IStage[];
   activities: IActivity[];
+  users: IUser[];
 }
 
-//Drag drop icon
-const DragHandle = SortableHandle(() => <span className="drag-handle">⋮⋮</span>);
-
-const TableView = ({ stages, activities }: TableViewProps) => {
+const TableView = ({ stages, activities, users }: TableViewProps) => {
   const [dataSource, setDataSource] = useState<IActivity[]>(activities);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 1,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = dataSource.findIndex(item => item.id === active.id);
+      const newIndex = dataSource.findIndex(item => item.id === over.id);
+
+      setDataSource(arrayMove(dataSource, oldIndex, newIndex));
+    }
+  };
+
+  const SortableRow = ({ children, ...props }: any) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+      id: props['data-row-key'],
+    });
+
+    const style = {
+      ...props.style,
+      transform: CSS.Transform.toString(transform),
+      transition,
+      ...(isDragging
+        ? {
+            position: 'relative' as const,
+            zIndex: 9999,
+          }
+        : {}),
+    };
+
+    // Lấy thông tin activity để hiển thị khi drag
+    const activity = dataSource.find(item => item.id === props['data-row-key']);
+    const stage = stages.find(s => s.id === activity?.stageId);
+
+    if (isDragging && activity) {
+      return (
+        <tr ref={setNodeRef} style={style} {...props} className="row-dragging">
+          <td colSpan={3}>
+            <div
+              className="dragging-item"
+              style={{
+                padding: '5px 10px',
+                backgroundColor: '#fff',
+                border: `2px solid ${stage?.color || '#1890ff'}`,
+                borderRadius: '8px',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                cursor: 'grabbing',
+              }}
+            >
+              <span
+                className="drag-handle-dragging"
+                {...attributes}
+                {...listeners}
+                style={{
+                  color: '#8c8c8c',
+                  fontSize: '16px',
+                  cursor: 'grabbing',
+                  opacity: 1,
+                }}
+              >
+                ⋮⋮
+              </span>
+              <div
+                className="stage-indicator"
+                style={{
+                  width: '4px',
+                  height: '32px',
+                  backgroundColor: stage?.color || '#1890ff',
+                  borderRadius: '2px',
+                }}
+              />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: '14px', color: '#262626' }}>
+                  {activity.name}
+                </div>
+                <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '2px' }}>
+                  {stage ? getActivityStatusLabel(stage.title as ActivityStatus) : 'Chưa xác định'}
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
+    return (
+      <tr ref={setNodeRef} style={style} {...props} className={props.className}>
+        {React.Children.map(children, (child, index) => {
+          if (index === 0 && React.isValidElement(child)) {
+            const rowNumber = dataSource.findIndex(item => item.id === props['data-row-key']) + 1;
+
+            const typedChild = child as React.ReactElement<any>;
+
+            return React.cloneElement(typedChild, {
+              ...typedChild.props,
+              children: (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span
+                    className="drag-handle"
+                    {...attributes}
+                    {...listeners}
+                    style={{ cursor: 'grab', fontSize: '14px', color: '#8c8c8c' }}
+                  >
+                    ⋮⋮
+                  </span>
+                  <span style={{ color: '#8c8c8c', fontSize: 13 }}>{rowNumber}</span>
+                  {typedChild.props.children}
+                </div>
+              ),
+            });
+          }
+          return child;
+        })}
+      </tr>
+    );
+  };
+
   const tableColumns = [
+    { key: 'stt', title: 'STT', dataIndex: 'id', width: 55, fixed: 'left' as const },
     {
-      title: 'STT',
-      dataIndex: 'id',
-      width: 60,
-      render: (_: any, __: any, index: number) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <DragHandle />
-          <span style={{ color: '#8c8c8c', fontSize: 13 }}>{index + 1}</span>
-        </div>
-      ),
-    },
-    {
-      title: 'Task',
+      key: 'name',
+      title: 'Tên công việc',
       dataIndex: 'name',
-      width: 350,
+      width: 270,
+      fixed: 'left' as const,
       render: (text: string) => <div style={{ fontWeight: 500 }}>{text}</div>,
     },
     {
-      title: 'Assignee',
+      key: 'type',
+      title: 'Loại',
+      dataIndex: 'type',
+      width: 70,
+      fixed: 'left' as const,
+      render: (text: string) => <div style={{ fontWeight: 500 }}>{text}</div>,
+    },
+    {
+      key: 'assignees',
+      title: 'Người thực hiện',
       dataIndex: 'assignees',
       width: 160,
       render: (assignees: any[]) => (
@@ -89,9 +243,10 @@ const TableView = ({ stages, activities }: TableViewProps) => {
       ),
     },
     {
-      title: 'Status',
+      key: 'stageId',
+      title: 'Trạng thái',
       dataIndex: 'stageId',
-      width: 160,
+      width: 120,
       render: (stageId: string) => {
         const stage = stages.find(s => s.id === stageId);
         return (
@@ -108,7 +263,7 @@ const TableView = ({ stages, activities }: TableViewProps) => {
             >
               <ColorPicker value={stage?.color || ''} />
               <Text style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>
-                {stage?.title || ''}
+                {stage ? getActivityStatusLabel(stage.title as ActivityStatus) : 'Chưa xác định'}
               </Text>
             </div>
           </Space>
@@ -116,82 +271,198 @@ const TableView = ({ stages, activities }: TableViewProps) => {
       },
     },
     {
-      title: 'Priority',
+      key: 'priority',
+      title: 'Ưu tiên',
       dataIndex: 'priority',
-      width: 160,
+      width: 150,
       render: (priority: ActivityPriority) => (
         <Tag
           color={getActivityPriorityColor(priority)}
           icon={<FlagOutlined style={{ fontSize: 15 }} />}
-          style={{
-            display: 'flex',
-            gap: '4px',
-            alignItems: 'center',
-            padding: '3px 8px',
-            borderRadius: '6px',
-            fontWeight: 600,
-            fontSize: 13,
-          }}
+          className="priority-tag"
           bordered={false}
         >
-          {priority || 'None'}
+          {getActivityPriorityLabel(priority) || 'None'}
         </Tag>
       ),
     },
     {
-      title: 'End Time',
+      key: 'estimateTime',
+      title: 'Ước tính thời gian',
+      dataIndex: 'estimateTime',
+      width: 100,
+      render: (time: number) => (time ? <span style={{ fontSize: 13 }}>{time} giờ</span> : '-'),
+    },
+    {
+      key: 'startTime',
+      title: 'Thời gian bắt đầu',
+      dataIndex: 'startTime',
+      width: 150,
+      render: (date: string) =>
+        date ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <CalendarOutlined style={{ color: '#8c8c8c', fontSize: 12 }} />
+            <span style={{ fontSize: 13, display: 'block' }}>
+              {new Date(date).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}
+            </span>
+            <span style={{ fontSize: 13, display: 'block' }}>
+              {new Date(date).toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
+          </div>
+        ) : (
+          '-'
+        ),
+    },
+    {
+      key: 'endTime',
+      title: 'Thời gian kết thúc',
       dataIndex: 'endTime',
       width: 150,
       render: (date: string) =>
         date ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <CalendarOutlined style={{ color: '#8c8c8c', fontSize: 12 }} />
-            <span style={{ fontSize: 13 }}>{new Date(date).toLocaleDateString()}</span>
+            <span style={{ fontSize: 13, display: 'block' }}>
+              {new Date(date).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}
+            </span>
+            <span style={{ fontSize: 13, display: 'block' }}>
+              {new Date(date).toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
           </div>
         ) : (
           '-'
         ),
     },
+    {
+      key: 'createdAt',
+      title: 'Ngày tạo',
+      dataIndex: 'createdAt',
+      width: 120,
+      render: (date: string) =>
+        date ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <CalendarOutlined style={{ color: '#8c8c8c', fontSize: 12 }} />
+            <span style={{ fontSize: 13 }}>
+              {new Date(date).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}
+            </span>
+          </div>
+        ) : (
+          '-'
+        ),
+    },
+    {
+      key: 'createdBy',
+      title: 'Người tạo',
+      dataIndex: 'createdBy',
+      width: 120,
+      render: (createdUserId: string) => {
+        const user = users.find(u => u.id === createdUserId);
+        return <div style={{ fontWeight: 500 }}>{user ? user.name : 'Không xác định'}</div>;
+      },
+    },
   ];
 
-  //Drag & drop
-  const SortableItem = SortableElement((props: any) => <tr {...props} />);
-  const SortableBody = SortableContainer((props: any) => <tbody {...props} />);
+  const defaultColumn = ['stt', 'name', 'assignees', 'stageId', 'priority', 'endTime'];
 
-  const DraggableContainer = (props: any) => (
-    <SortableBody
-      useDragHandle
-      disableAutoscroll
-      helperClass="row-dragging"
-      onSortEnd={({ oldIndex, newIndex }) => {
-        if (oldIndex !== newIndex) {
-          const newData = arrayMoveImmutable([...dataSource], oldIndex, newIndex);
-          setDataSource(newData);
-        }
-      }}
-      {...props}
-    />
-  );
-
-  const DraggableBodyRow = ({ className, style, ...restProps }: any) => {
-    const index = dataSource.findIndex(x => x.id === restProps['data-row-key']);
-    return <SortableItem index={index} {...restProps} />;
+  const loadVisibleColumns = (): string[] => {
+    try {
+      const saved = localStorage.getItem('tableView-visibleColumns');
+      return saved ? JSON.parse(saved) : defaultColumn;
+    } catch {
+      return defaultColumn;
+    }
   };
 
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(loadVisibleColumns);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('tableView-visibleColumns', JSON.stringify(visibleColumns));
+    } catch (error) {
+      console.warn('Could not save column visibility to localStorage:', error);
+    }
+  }, [visibleColumns]);
+
+  const tbColumns = tableColumns.filter(col => visibleColumns.includes(col.key));
+
+  const menu = (
+    <div style={{ padding: 8 }}>
+      <Checkbox.Group
+        value={visibleColumns}
+        onChange={(checked: any) => setVisibleColumns(checked)}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {tableColumns.map(col => (
+            <Checkbox
+              key={col.key}
+              value={col.key}
+              disabled={col.key === 'name' || col.key === 'stt'}
+            >
+              {col.title}
+            </Checkbox>
+          ))}
+        </div>
+      </Checkbox.Group>
+    </div>
+  );
+
   return (
-    <Table
-      columns={tableColumns}
-      dataSource={dataSource}
-      rowKey="id"
-      tableLayout="fixed"
-      components={{
-        body: {
-          wrapper: DraggableContainer,
-          row: DraggableBodyRow,
-        },
-      }}
-      pagination={false}
-    />
+    <>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext
+          items={dataSource.map(item => item.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div
+            style={{
+              marginBottom: 10,
+              display: 'flex',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <Dropdown
+              overlayClassName="dropdown-menu-overlay"
+              overlay={menu}
+              trigger={['click']}
+              placement="bottomRight"
+            >
+              <Button icon={<AppstoreAddOutlined />}>Cột hiển thị</Button>
+            </Dropdown>
+          </div>
+          <Table
+            columns={tbColumns}
+            dataSource={dataSource}
+            rowKey="id"
+            scroll={{ x: 1200 }}
+            tableLayout="fixed"
+            components={{
+              body: {
+                row: SortableRow,
+              },
+            }}
+            pagination={false}
+          />
+        </SortableContext>
+      </DndContext>
+    </>
   );
 };
 

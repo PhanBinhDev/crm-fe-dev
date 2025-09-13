@@ -59,7 +59,7 @@ body {
   .ant-table {
     font-size: 12px;
   }
-  
+
   .ant-form-item-label {
     font-size: 14px;
   }
@@ -139,7 +139,6 @@ body {
   font-size: 12px;
 }
 
-
 /* Empty State (No tasks)*/
 
 .stage-empty {
@@ -157,67 +156,133 @@ body {
 }
 
 /*table view*/
-.ant-table-thead>tr>th {
+.ant-table-thead > tr > th {
   border-right: 1px solid #f0f0f0;
   padding: 8px 12px !important;
 }
 
-.ant-table-thead>tr>th:last-child {
+.ant-table-thead > tr > th:last-child {
   border-right: none;
 }
 
-.ant-table-tbody>tr>td {
+.ant-table-tbody > tr > td {
   border-right: 1px solid #f0f0f0;
   padding: 5px 12px !important;
 }
 
-.ant-table-tbody>tr>td:last-child {
+.ant-table-tbody > tr > td:last-child {
   border-right: none;
 }
 
-.ant-table-tbody>tr {
+.ant-table-tbody > tr {
   transition: background-color 0.2s;
 }
 
-.ant-table-tbody>tr:hover {
+.ant-table-tbody > tr:hover {
   background-color: #fafafa !important;
 }
 
-.ant-table-tbody>tr>td:hover .edit-icon {
+.ant-table-tbody > tr > td:hover .edit-icon {
   opacity: 1 !important;
 }
 
-/* Ẩn icon mặc định */
+/* Ẩn drag handle mặc định */
 .drag-handle {
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-/* Hover row mới hiện icon */
-.ant-table-tbody>tr:hover .drag-handle {
+/* Hiện drag handle khi hover row */
+.ant-table-tbody > tr:hover .drag-handle {
   opacity: 1;
   visibility: visible;
-  cursor: grab;
 }
 
-/* Ghost row khi đang kéo */
+/* Active state khi đang kéo */
+.drag-handle:active,
+.drag-handle-dragging {
+  cursor: grabbing !important;
+}
+
+/* Styling cho row đang được kéo */
 .row-dragging {
-  display: table !important;
-  width: 30% !important;
-  background: #fff !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  z-index: 9999;
+  background: transparent !important;
+  border: none !important;
 }
 
-/* Giữ nguyên style cho tất cả td */
 .row-dragging td {
-  background: #fff !important;
-  padding: 12px 8px !important;
-  border-bottom: 1px solid #f0f0f0 !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 8px !important;
 }
 
-/* Ẩn tất cả cột từ cột thứ 3 trở đi */
-.row-dragging td:nth-child(n+3) {
-  display: none !important;
+/* Animation cho dragging item */
+.dragging-item {
+  animation: dragFloat 0.3s ease-out;
+}
+
+@keyframes dragFloat {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  100% {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+}
+
+/* Hover effect cho table rows */
+.ant-table-tbody > tr:hover {
+  background-color: #fafafa;
+  transition: background-color 0.2s ease;
+}
+
+/* scrollbar for dropdown */
+.dropdown-menu-overlay {
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: white !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  padding: 5px;
+}
+
+.dragging-item {
+  display: 'flex';
+  align-items: 'center';
+  gap: 6;
+  padding: '8px 12px';
+  background-color: '#fff';
+  border-radius: '6px';
+  box-sizing: '0 4px 12px rgba(0, 0, 0, 0.12)';
+  width: '30%';
+  min-width: '250px';
+}
+
+.priority-tag {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.dragging-item-name {
+  font-weight: 500;
+  font-size: 13;
+  color: '#262626';
+  overflow: 'hidden';
+  text-overflow: 'ellipsis';
+  white-space: 'nowrap';
+}
+
+.stage-tag {
+  width: 10;
+  height: 10;
+  border-radius: '50%';
+  flex-shrink: 0;
 }
