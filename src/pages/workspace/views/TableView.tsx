@@ -1,5 +1,5 @@
 import { ActivityPriority, ActivityStatus } from '@/common/enum/activity';
-import { IActivity, IStage } from '@/common/types';
+import { IActivity, IStage, IUser } from '@/common/types';
 import { ColorPicker } from '@/components/shared/ColorPicker';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import {
@@ -40,9 +40,10 @@ const { Text } = Typography;
 interface TableViewProps {
   stages: IStage[];
   activities: IActivity[];
+  users: IUser[];
 }
 
-const TableView = ({ stages, activities }: TableViewProps) => {
+const TableView = ({ stages, activities, users }: TableViewProps) => {
   const [dataSource, setDataSource] = useState<IActivity[]>(activities);
 
   const sensors = useSensors(
@@ -371,8 +372,11 @@ const TableView = ({ stages, activities }: TableViewProps) => {
       key: 'createdBy',
       title: 'Người tạo',
       dataIndex: 'createdBy',
-      width: 150,
-      render: (createdUser: any) => <div style={{ fontWeight: 500 }}>{createdUser?.name}</div>,
+      width: 120,
+      render: (createdUserId: string) => {
+        const user = users.find(u => u.id === createdUserId);
+        return <div style={{ fontWeight: 500 }}>{user ? user.name : 'Không xác định'}</div>;
+      },
     },
   ];
 
