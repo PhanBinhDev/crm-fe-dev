@@ -8,6 +8,14 @@ import { IconBell, IconLogout, IconSettings, IconUser } from '@tabler/icons-reac
 import { Avatar, Badge, Button, Drawer, Dropdown, Layout, MenuProps, Space, Spin } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 
+import { INotification } from '@/common/types/notification';
+import dayjs from 'dayjs';
+import 'dayjs/locale/vi';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
+dayjs.locale('vi');
+
 const { Header } = Layout;
 export const AppHeader = () => {
   useEffect(() => {
@@ -26,9 +34,15 @@ export const AppHeader = () => {
   const { mutate: logout } = useLogout();
   const [profileTab, setProfileTab] = useState(false);
 
-  const { data: notifications, refetch } = useList({
+  const [isMoreNotifications, setIsMoreNotifications] = useState(false);
+
+  const {
+    data: notifications,
+    refetch,
+    isLoading: isLoadingMoreNotifications,
+  } = useList({
     resource: 'notifications',
-    pagination: { mode: 'off' },
+    pagination: { pageSize: isMoreNotifications ? 999 : 10, current: 1 },
     sorters: [{ field: 'createdAt', order: 'desc' }],
   });
 
@@ -40,7 +54,7 @@ export const AppHeader = () => {
     }
   }, [notifications]);
 
-  const handleReadNotifications = async () => {
+  const handleReadAllNotifications = async () => {
     if (countNotifications === 0) return;
 
     setCountNotifications(0);
@@ -49,19 +63,82 @@ export const AppHeader = () => {
   };
 
   const notificationItems: MenuProps['items'] = useMemo(() => {
-    return (
-      notifications?.data.map((notification): MenuProps['items'][number] => {
-        return {
-          key: notification.id,
-          icon: <IconBell size={18} color="#1890ff" />,
-          label: notification.title,
-          onClick: () => console.log('Click notification', notification.id),
-          className: 'notification-item',
-          type: 'item',
-        };
-      }) || []
-    );
+    const headerMenuDropdown: MenuProps['items'][number] = {
+      key: 'headerMenuDropdown',
+      label: (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            width: '100%',
+            alignItems: 'center',
+            padding: '8px 12px',
+            borderBottom: '1px solid #f0f0f0',
+            backgroundColor: 'rgb(232 230 230)',
+          }}
+        >
+          <span style={{ fontWeight: 600, fontSize: 15, color: '#262626' }}>Thông báo</span>
+          <Button
+            type="link"
+            size="small"
+            style={{ padding: 0, fontSize: 13 }}
+            onClick={handleReadAllNotifications}
+          >
+            Đọc tất cả
+          </Button>
+        </div>
+      ),
+      type: 'item',
+      disabled: true,
+      className: 'dropdown-header',
+    };
+
+    const items = notifications?.data.map((notification): MenuProps['items'][number] => {
+      return {
+        key: notification.id,
+        icon: (
+          <div>
+            <span
+              style={{
+                display: 'inline-block',
+                width: '4px',
+                height: '4px',
+                backgroundColor: notification?.isRead ? 'transparent' : '#1890ff',
+                borderRadius: '50%',
+              }}
+            ></span>
+            <Avatar src={notification?.userId?.avatar || AVATAR_PLACEHOLDER} />
+          </div>
+        ),
+        label: (
+          <Space direction="vertical" size={0}>
+            <p>{notification?.message}</p>
+            <span style={{ fontSize: 12, color: '#8c8c8c' }}>
+              {dayjs(notification?.createdAt).fromNow()}
+            </span>
+          </Space>
+        ),
+        onClick: () => handleReadOneNotification(notification),
+        style: {
+          backgroundColor: notification.isRead ? 'none' : 'rgba(0, 0, 0, 0.04)',
+        },
+        className: 'notification-item',
+        type: 'item',
+      };
+    });
+
+    return [headerMenuDropdown, ...(items || [])];
   }, [notifications]);
+
+  const handleReadOneNotification = async (notification: INotification) => {
+    if (notification.isRead) return;
+    setCountNotifications(prev => (prev > 0 ? prev - 1 : 0));
+
+    await axiosInstance.patch(`notifications/read`, { notificationId: notification?.id });
+    refetch();
+  };
+
+  console.log(notifications);
 
   const userMenuItems: MenuProps['items'] = [
     {
@@ -109,16 +186,47 @@ export const AppHeader = () => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center' }} />
+
         <Space size={8} align="center">
           <Dropdown
             menu={{
               items: notificationItems,
               style: {
-                padding: '8px 6px',
-                minWidth: 200,
+                minWidth: 300,
+                padding: 0,
                 boxShadow:
                   '0 3px 6px -4px rgba(0,0,0,0.12), 0 6px 16px 0 rgba(0,0,0,0.08), 0 9px 28px 8px rgba(0,0,0,0.05)',
+                borderRadius: '8px 8px 0 0',
+                maxHeight: 800,
               },
+            }}
+            dropdownRender={menu => {
+              if (isMoreNotifications || (notifications?.data && notifications?.data?.length < 10))
+                return menu;
+
+              return (
+                <>
+                  {menu}
+
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '8px 12px',
+                      borderRadius: '0 0 8px 8px',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                      fontSize: 14,
+                      backgroundColor: 'rgb(232 230 230)',
+                    }}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setIsMoreNotifications(true);
+                    }}
+                  >
+                    Xem tất cả
+                  </div>
+                </>
+              );
             }}
             placement="bottomRight"
             trigger={['click']}
@@ -133,7 +241,6 @@ export const AppHeader = () => {
                 transition: 'background-color 0.3s',
                 borderRadius: 4,
               }}
-              onClick={handleReadNotifications}
             >
               <Badge
                 count={countNotifications > 0 ? countNotifications : ''}
