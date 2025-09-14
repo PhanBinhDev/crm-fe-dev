@@ -272,12 +272,6 @@ export const getResourcesByRole = (role: UserRole): ResourceConfig[] => {
   }
 };
 
-// Utility function để lấy workspace hiện tại
-export const getCurrentWorkspace = (): string | null => {
-  // Có thể lấy từ localStorage hoặc context
-  return localStorage.getItem('currentWorkspace') || null;
-};
-
 // Utility function để set workspace
 export const setCurrentWorkspace = (workspaceId: string): void => {
   localStorage.setItem('currentWorkspace', workspaceId);

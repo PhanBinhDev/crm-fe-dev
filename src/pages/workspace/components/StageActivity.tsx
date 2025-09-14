@@ -8,9 +8,10 @@ import { useEffect, useRef, useState } from 'react';
 interface StageActivityProps {
   value: IStage | null;
   onChange: (stage: IStage | null) => void;
+  error?: boolean;
 }
 
-const StageActivity = ({ value, onChange }: StageActivityProps) => {
+const StageActivity = ({ value, onChange, error }: StageActivityProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const userSelected = useRef(false);
   const { data: modalData } = useModal();
@@ -81,6 +82,7 @@ const StageActivity = ({ value, onChange }: StageActivityProps) => {
                     background: stage.color ?? '#838383',
                     marginRight: 8,
                     display: 'inline-block',
+                    fontSize: 14,
                   }}
                 />
                 {stage.title.toUpperCase()}
@@ -99,6 +101,7 @@ const StageActivity = ({ value, onChange }: StageActivityProps) => {
             setOpen(false);
             onChange(null);
           }}
+          disabled={!value}
           type="text"
           size="small"
           style={{
@@ -141,14 +144,21 @@ const StageActivity = ({ value, onChange }: StageActivityProps) => {
         style={{
           borderRadius: 6,
           gap: 4,
-          color: '#fff',
-          background: value?.color ?? '#838383',
-          minWidth: 50,
+          color: error && !value ? '#ff4d4f' : '#fff',
+          background: error && !value ? '#fff1f0' : (value?.color ?? '#838383'),
+          minWidth: 'fit-content',
           outline: 'none',
-          border: 'none',
+          border: error ? '1px solid #ff4d4f' : '1px solid transparent',
+          fontSize: 14,
         }}
       >
-        {value ? value.title.toUpperCase() : 'Chọn giai đoạn'}
+        {value ? (
+          value.title.toUpperCase()
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14 }}>
+            <span>Chọn giai đoạn</span>
+          </div>
+        )}
       </Button>
     </Popover>
   );

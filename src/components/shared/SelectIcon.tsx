@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Modal, Input, Button, Spin } from 'antd';
 import { IconCheck, IconPencil, IconTrash } from '@tabler/icons-react';
+import { Button, Input, Modal, Spin } from 'antd';
+import React, { useEffect, useMemo, useState } from 'react';
 
 type IconEntry = { key: string; Comp: React.FC<any> };
 

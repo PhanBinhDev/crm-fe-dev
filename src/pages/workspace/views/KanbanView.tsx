@@ -50,12 +50,20 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
 
   useEffect(() => {
     if (activities && !pendingUpdate) {
-      const newIds = activities.map(a => a.id);
-      if (newIds.length !== localActivities.length) {
+      const activitiesIds = activities
+        .map(a => a.id)
+        .sort()
+        .join(',');
+      const localActivitiesIds = localActivities
+        .map(a => a.id)
+        .sort()
+        .join(',');
+
+      if (activitiesIds !== localActivitiesIds) {
         setLocalActivities(activities);
       }
     }
-  }, [activities, pendingUpdate]);
+  }, [activities, pendingUpdate, localActivities]);
 
   const { mutate: update } = useUpdate();
 
@@ -244,7 +252,6 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
         style={{
           overflowX: 'auto',
           overflowY: 'hidden',
-          padding: '4px 4px 20px 4px',
           height: 'calc(100vh - 250px)',
         }}
       >
@@ -255,6 +262,7 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
               display: 'flex',
               flexWrap: 'nowrap',
               minWidth: '100%',
+              height: '100%',
             }}
           >
             {columnOrder.map(id => {
@@ -280,7 +288,7 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
               activities={localActivities.filter(activity => activity.stageId === activeColumn.id)}
             />
           )}
-          {activeCard && <ActivityCard activity={activeCard} />}
+          {activeCard && <ActivityCard activity={activeCard} isPortal />}
         </DragOverlay>,
         document.body,
       )}

@@ -7,6 +7,7 @@ export * from './file';
 export * from './participant';
 export * from './stage';
 export * from './users';
+export * from './workspaces';
 
 export interface IBase {
   id: string;

@@ -213,7 +213,7 @@ const ModalAddActivity = () => {
       open={isOpenModal}
       onCancel={closeModal}
       destroyOnHidden
-      width={640}
+      width={645}
       closeIcon={null}
       styles={{
         content: {

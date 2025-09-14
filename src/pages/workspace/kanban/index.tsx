@@ -3,27 +3,26 @@ import { useModal } from '@/hooks/useModal';
 import FilterActivities from '@/pages/workspace/components/FilterActivities';
 import SearchActivities from '@/pages/workspace/components/SearchActivities';
 import SettingsActivities from '@/pages/workspace/components/SettingsActivities';
+import CalendarView from '@/pages/workspace/views/CalendarView';
 import KanbanView from '@/pages/workspace/views/KanbanView';
 import ListView from '@/pages/workspace/views/ListView';
+import TableView from '@/pages/workspace/views/TableView';
 import { useList } from '@refinedev/core';
 import { IconCalendar, IconLayoutKanban, IconList, IconPlus, IconTable } from '@tabler/icons-react';
 import { Button, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useState } from 'react';
-import CalendarView from '../views/CalendarView';
-import TableView from '../views/TableView';
 
 type TabKey = 'kanban' | 'list' | 'calendar' | 'table';
 
 const KanbanWorkspaces = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('kanban');
+  const [searchValue, setSearchValue] = useState<string>('');
 
   const { openModal } = useModal();
 
   const onSearch = useCallback((value: string) => {
-    console.log('run with value', value);
+    setSearchValue(value);
   }, []);
-
-  // query
 
   const { data: stagesData } = useList<IStage>({
     resource: 'stages',
@@ -35,7 +34,11 @@ const KanbanWorkspaces = () => {
     resource: 'activities',
     pagination: { mode: 'off' },
     filters: [
-      /* filter từ search/filter ở cha */
+      {
+        field: 'q',
+        operator: 'eq',
+        value: searchValue,
+      },
     ],
   });
 

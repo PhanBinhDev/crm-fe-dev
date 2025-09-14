@@ -1,15 +1,14 @@
-import { UserRole } from '@/common/enum/user';
+import { StageGroup } from '@/common/enum/stage';
 import { IActivity, IStage } from '@/common/types';
 import ModalEditColumn from '@/components/modals/ModalEditColumn';
 import { ColorPicker } from '@/components/shared/ColorPicker';
 import { DragDropType } from '@/constants';
-import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useUpdate } from '@refinedev/core';
-import { IconChevronDown, IconGripVertical, IconPlus } from '@tabler/icons-react';
-import { Card, Col, message, Space, Tooltip, Typography } from 'antd';
+import { IconChevronDown, IconPlus } from '@tabler/icons-react';
+import { Button, Card, Col, message, Space, Tooltip, Typography } from 'antd';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ActivityCard from './ActivityCard';
 import MoreOptionColumn from './MoreOptionColumn';
@@ -29,20 +28,16 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [hoverHeader, setHoverHeader] = useState(false);
 
-  const { user, isLoading: isLoadingUser } = useAuth();
-
-  // Mutate
   const { mutate: updateStage } = useUpdate<IStage>();
 
   const { openModal } = useModal();
-  const { attributes, listeners, isDragging, setNodeRef, transition, transform, isOver } =
-    useSortable({
-      id,
-      data: {
-        type: DragDropType.KANBAN_COLUMN,
-        stage,
-      },
-    });
+  const { isDragging, setNodeRef, transition, transform, isOver } = useSortable({
+    id,
+    data: {
+      type: DragDropType.KANBAN_COLUMN,
+      stage,
+    },
+  });
 
   useEffect(() => {
     if (collapsed && isOver) {
@@ -97,28 +92,51 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
     setEditTitle(stage.title);
   }, [stage.title]);
 
-  const canDragColumn = useMemo(() => {
-    if (!user || isLoadingUser) return false;
-    return [UserRole.CNBM, UserRole.TM].includes(user.role);
-  }, [user?.role, isLoadingUser]);
-
   const isDirty = useMemo(() => {
     return editTitle !== stage.title || color !== stage.color;
   }, [editTitle, color, stage]);
 
+  const isCompletedStage = useMemo(() => {
+    return (
+      stage.title.toLowerCase() === 'complete' &&
+      stage.isBuiltIn &&
+      stage.stageGroup === StageGroup.CLOSED
+    );
+  }, [stage]);
+
   return (
-    <Col flex="0 0 280px" ref={setNodeRef}>
+    <Col
+      flex="0 0 280px"
+      ref={setNodeRef}
+      style={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        paddingBottom: 8,
+      }}
+    >
       <Card
         size="small"
-        style={style}
+        style={{
+          ...style,
+          display: 'flex',
+          flexDirection: 'column',
+          height: 'fit-content',
+          maxHeight: '100%',
+        }}
         styles={{
           header: {
-            padding: canDragColumn ? '0 6px 1px 4px' : '0 6px 1px 6px',
+            padding: '0 6px 1px 6px',
             borderBottomColor: collapsed ? 'transparent' : '#f0f0f0',
+            flexShrink: 0,
           },
           body: {
             padding: collapsed ? '0 0 1px' : '12px',
             minHeight: collapsed ? 'auto' : '200px',
+            flexGrow: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
           },
         }}
         title={
@@ -133,38 +151,6 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
             onMouseLeave={() => setHoverHeader(false)}
           >
             <Space size="small" style={{ flex: 1, gap: 4 }}>
-              {canDragColumn && (
-                <div
-                  {...attributes}
-                  {...listeners}
-                  style={{
-                    cursor: isDragging ? 'grabbing' : 'grab',
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: 'none',
-                    borderRadius: 6,
-                    padding: 4,
-                    minWidth: 28,
-                    height: 28,
-                    justifyContent: 'center',
-                    transition: 'all 0.2s ease',
-                    marginRight: 2,
-                    background: 'transparent',
-                    color: '#8c8c8c',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = '#f5f5f5';
-                    e.currentTarget.style.color = '#595959';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#8c8c8c';
-                  }}
-                >
-                  <IconGripVertical size={11} style={{ color: '#8c8c8c' }} />
-                </div>
-              )}
-
               <div
                 style={{
                   display: 'flex',
@@ -233,14 +219,63 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
       >
         {!collapsed && (
           <SortableContext items={rowOrder} strategy={verticalListSortingStrategy}>
-            <div className="activities-list">
+            <div
+              className="activities-list hidden-scrollbar"
+              style={{
+                overflowY: 'auto',
+                height: '100%',
+                flexGrow: 1,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
               {rowOrder.length > 0 ? (
-                rowOrder.map(id => {
-                  const activity = activities.find(activity => activity.id === id);
-                  if (!activity) return null;
+                <>
+                  {rowOrder.map(id => {
+                    const activity = activities.find(activity => activity.id === id);
+                    if (!activity) return null;
 
-                  return <ActivityCard key={activity.id} activity={activity} />;
-                })
+                    return (
+                      <ActivityCard
+                        key={activity.id}
+                        activity={activity}
+                        isCompletedStage={isCompletedStage}
+                      />
+                    );
+                  })}
+                  {/* Button addcard */}
+                  <Button
+                    onClick={() => openModal('ModalAddActivity', { stageId: stage.id })}
+                    style={{
+                      width: '100%',
+                      height: '36px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      gap: '6px',
+                      color: '#8c8c8c',
+                      fontSize: '13px',
+                      fontWeight: 400,
+                      border: 'none',
+                      background: 'transparent',
+                      padding: '8px 12px',
+                      transition: 'all 0.2s ease',
+                      borderRadius: '6px',
+                    }}
+                    type="text"
+                    icon={<IconPlus size={14} stroke={1.5} color="#8c8c8c" />}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#f5f5f5';
+                      e.currentTarget.style.color = '#595959';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = '#8c8c8c';
+                    }}
+                  >
+                    <span style={{ marginLeft: '2px' }}>Thêm hoạt động</span>
+                  </Button>
+                </>
               ) : (
                 <div
                   style={{

@@ -38,6 +38,13 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
   useImperativeHandle(ref, () => ({
     submitForm: (action: ModalAction) => {
       actionRef.current = action;
+
+      if (!stage) {
+        setStageError(true);
+      } else {
+        setStageError(false);
+      }
+
       form.submit();
     },
   }));
@@ -58,6 +65,8 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
   const [subtasks, setSubtasks] = useState<string[]>([]);
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
+
+  const [stageError, setStageError] = useState(false);
 
   const handleToggleSelectUser = (user: IUser) => {
     setSelectedAssignees(prev => {
@@ -124,6 +133,12 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
 
   const handleStateChange = useCallback(
     (stage: IStage | null) => {
+      if (stage) {
+        setStageError(false);
+      } else {
+        setStageError(true);
+      }
+
       setStage(stage);
       form.setFieldValue('stage', stage);
     },
@@ -145,11 +160,17 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
       subtasks: false,
       checklist: false,
     });
-    
   };
 
   const handleSubmit = async (values: any) => {
     try {
+      setStageError(false);
+
+      if (!values.stage.id) {
+        setStageError(true);
+        return;
+      }
+
       const formData: FormAddActivityPayload = {
         name: values.name?.trim(),
         description: values.description?.trim(),
@@ -255,7 +276,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
           }}
         >
           <Space wrap>
-            <StageActivity value={stage} onChange={handleStateChange} />
+            <StageActivity value={stage} onChange={handleStateChange} error={stageError} />
             <AssigneeActivity
               selectedUser={selectedAssignees}
               onToggleSelectUser={handleToggleSelectUser}

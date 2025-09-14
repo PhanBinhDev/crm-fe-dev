@@ -1,6 +1,7 @@
 import { AppHeader } from '@/components/shared/Header';
 import { getResourcesByRole, ResourceConfig } from '@/config/resources';
 import { useAuth } from '@/hooks/useAuth';
+import WorkspaceItemSelector from '@/pages/workspace/components/WorkspaceItemSelector';
 import styles from '@/styles/custom-layout.module.css';
 import { useNavigation } from '@refinedev/core';
 import type { MenuProps } from 'antd';
@@ -130,11 +131,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
       };
     };
 
-    const res = resourcesByRole().map(generateMenuItem);
-
-    console.log('menuItems', res);
-
-    return res;
+    return resourcesByRole().map(generateMenuItem);
   }, [user?.role, isLoading, getResourcesByRole]);
 
   const breadcrumbItems = useMemo(() => {
@@ -177,7 +174,6 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
         if (resourcePath.length > 0 && pathSegments[0] === resourcePath[0]) {
           currentResource = resource;
 
-          // Kiểm tra action
           if (pathSegments.length > 1) {
             const action = pathSegments[1];
             if (['show', 'edit', 'create'].includes(action)) {
@@ -242,13 +238,11 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
 
   const handleMenuClick: MenuProps['onClick'] = e => {
     const key = e.key;
-
     if (key === 'dashboard') {
-      push('/');
+      push('/dashboard');
       return;
     }
 
-    // Tìm resource config
     const findResourceConfig = (searchKey: string): ResourceConfig | null => {
       for (const res of resourcesByRole()) {
         if (res.name === searchKey) return res;
@@ -331,6 +325,8 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
             </span>
           )}
         </Link>
+
+        <WorkspaceItemSelector collapsed={collapsed} />
 
         <Menu
           theme="dark"
