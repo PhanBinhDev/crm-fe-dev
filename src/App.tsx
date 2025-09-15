@@ -79,7 +79,6 @@ function App() {
                     <Route index element={<NavigateToResource resource="dashboard" />} />
                     <Route path="/dashboard" element={<DashboardPage />} />
                     {userRoutes}
-                    {/* {activitiesRoutes} */}
                     {workspaceRoutes}
                     {profileRoutes}
                     {semesterRoutes}
