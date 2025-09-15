@@ -3,7 +3,7 @@ import { StageGroup } from '@/common/enum/stage';
 import { IActivity, IStage, IUser } from '@/common/types';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { getActivityPriorityColor, getActivityPriorityLabel } from '@/utils';
-import { getColorFromName, getInitials } from '@/utils/activity';
+import { getColorFromName, getInitials, useVisibleColumns } from '@/utils/activity';
 import {
   AppstoreAddOutlined,
   CalendarOutlined,
@@ -12,7 +12,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { Avatar, Button, Checkbox, Collapse, Dropdown, Table, Tag, Tooltip } from 'antd';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 const { Panel } = Collapse;
 
 interface ListViewProps {
@@ -69,6 +69,7 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
       dataIndex: 'id',
       key: 'stt',
       width: 60,
+      flex: 'none',
       fixed: 'left' as const,
       render: (_: any, __: any, index: number) => (
         <span style={{ color: '#8c8c8c', fontSize: 13 }}>{index + 1}</span>
@@ -250,25 +251,10 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
   ];
 
   const defaultColumn = ['stt', 'name', 'assignees', 'stageId', 'priority', 'endTime'];
-
-  const loadVisibleColumns = (): string[] => {
-    try {
-      const saved = localStorage.getItem('tableView-visibleColumns');
-      return saved ? JSON.parse(saved) : defaultColumn;
-    } catch {
-      return defaultColumn;
-    }
-  };
-
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(loadVisibleColumns);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('tableView-visibleColumns', JSON.stringify(visibleColumns));
-    } catch (error) {
-      console.warn('Could not save column visibility to localStorage:', error);
-    }
-  }, [visibleColumns]);
+  const { visibleColumns, setVisibleColumns } = useVisibleColumns(
+    'litView-visibleColumns',
+    defaultColumn,
+  );
 
   const tbColumns = getColumns().filter(col => visibleColumns.includes(col.key));
 
@@ -342,6 +328,7 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
       >
         <div>
           <Table
+            className="ant-table-striped"
             columns={tbColumns}
             dataSource={tasks || []}
             rowKey="id"

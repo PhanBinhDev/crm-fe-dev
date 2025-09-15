@@ -8,6 +8,7 @@ import {
   getActivityStatusLabel,
   getColorFromName,
   getInitials,
+  useVisibleColumns,
 } from '@/utils/activity';
 import {
   AppstoreAddOutlined,
@@ -33,7 +34,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Avatar, Button, Checkbox, Dropdown, Space, Table, Tag, Tooltip, Typography } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 const { Text } = Typography;
 
@@ -246,7 +247,7 @@ const TableView = ({ stages, activities, users }: TableViewProps) => {
       key: 'stageId',
       title: 'Trạng thái',
       dataIndex: 'stageId',
-      width: 120,
+      width: 150,
       render: (stageId: string) => {
         const stage = stages.find(s => s.id === stageId);
         return (
@@ -297,7 +298,7 @@ const TableView = ({ stages, activities, users }: TableViewProps) => {
       key: 'startTime',
       title: 'Thời gian bắt đầu',
       dataIndex: 'startTime',
-      width: 150,
+      width: 160,
       render: (date: string) =>
         date ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -324,7 +325,7 @@ const TableView = ({ stages, activities, users }: TableViewProps) => {
       key: 'endTime',
       title: 'Thời gian kết thúc',
       dataIndex: 'endTime',
-      width: 150,
+      width: 160,
       render: (date: string) =>
         date ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -381,25 +382,10 @@ const TableView = ({ stages, activities, users }: TableViewProps) => {
   ];
 
   const defaultColumn = ['stt', 'name', 'assignees', 'stageId', 'priority', 'endTime'];
-
-  const loadVisibleColumns = (): string[] => {
-    try {
-      const saved = localStorage.getItem('tableView-visibleColumns');
-      return saved ? JSON.parse(saved) : defaultColumn;
-    } catch {
-      return defaultColumn;
-    }
-  };
-
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(loadVisibleColumns);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('tableView-visibleColumns', JSON.stringify(visibleColumns));
-    } catch (error) {
-      console.warn('Could not save column visibility to localStorage:', error);
-    }
-  }, [visibleColumns]);
+  const { visibleColumns, setVisibleColumns } = useVisibleColumns(
+    'tableView-visibleColumns',
+    defaultColumn,
+  );
 
   const tbColumns = tableColumns.filter(col => visibleColumns.includes(col.key));
 

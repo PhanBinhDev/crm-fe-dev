@@ -6,6 +6,8 @@ import {
   ActivityType,
   ActivityCategory,
 } from '@/common/enum/activity';
+import { useEffect, useState } from "react";
+
 
 // Assignee utilities
 export const getAssigneeRoleLabel = (role: AssigneeRole): string => {
@@ -232,3 +234,32 @@ export const getInitials = (name: any) => {
     .substring(0, 2)
     .toUpperCase();
 };
+
+
+// useVisibleColumns.ts
+
+export function useVisibleColumns(
+  storageKey: string,
+  defaultColumns: string[]
+) {
+  const loadVisibleColumns = (): string[] => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? JSON.parse(saved) : defaultColumns;
+    } catch {
+      return defaultColumns;
+    }
+  };
+
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(loadVisibleColumns);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(visibleColumns));
+    } catch (error) {
+      console.warn("Could not save column visibility to localStorage:", error);
+    }
+  }, [storageKey, visibleColumns]);
+
+  return { visibleColumns, setVisibleColumns };
+}

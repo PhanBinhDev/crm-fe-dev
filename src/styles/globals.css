@@ -191,6 +191,19 @@ body {
   opacity: 1 !important;
 }
 
+.ant-table-striped .ant-table-cell {
+  border-right: none !important;
+}
+
+.ant-table-striped .ant-table-thead > tr > th {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+.ant-table-striped {
+  margin-top: -10px !important;
+  margin-bottom: 20px;
+}
+
 /* Ẩn drag handle mặc định */
 .drag-handle {
   opacity: 0;
