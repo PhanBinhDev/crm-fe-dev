@@ -1,6 +1,7 @@
 import { AppHeader } from '@/components/shared/Header';
 import { getResourcesByRole, ResourceConfig } from '@/config/resources';
 import { useAuth } from '@/hooks/useAuth';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
 import WorkspaceItemSelector from '@/pages/workspace/components/WorkspaceItemSelector';
 import styles from '@/styles/custom-layout.module.css';
 import { useNavigation } from '@refinedev/core';
@@ -22,6 +23,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
   const { user, isLoading } = useAuth();
   const { push } = useNavigation();
   const location = useLocation();
+  const { currentWorkspace } = useWorkspaces();
 
   const resourcesByRole = useCallback(() => {
     if (!user || isLoading) return [];
@@ -240,6 +242,12 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
     const key = e.key;
     if (key === 'dashboard') {
       push('/dashboard');
+      return;
+    }
+
+    if (key === 'workspaces') {
+      if (!currentWorkspace) return;
+      push(`/workspaces/${currentWorkspace?.id}`);
       return;
     }
 
