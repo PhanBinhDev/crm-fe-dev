@@ -174,6 +174,23 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
                   {stage.title.toLocaleUpperCase()}
                 </Text>
               </div>
+              <div
+                style={{
+                  minWidth: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  backgroundColor: '#ecececff',
+                  color: '#353636ff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  lineHeight: 1,
+                }}
+              >
+                {activities.length || 0}
+              </div>
             </Space>
             {hoverHeader && (
               <Tooltip title={collapsed ? 'Mở rộng' : 'Thu gọn nhóm'}>

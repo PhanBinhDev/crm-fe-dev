@@ -2,6 +2,7 @@ import { ActivityPriority, ActivityStatus } from '@/common/enum/activity';
 import { IActivity, IStage, IUser } from '@/common/types';
 import { ColorPicker } from '@/components/shared/ColorPicker';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import '@/styles/table-list.css';
 import {
   getActivityPriorityColor,
   getActivityPriorityLabel,
@@ -251,19 +252,27 @@ const TableView = ({ stages, activities, users }: TableViewProps) => {
       render: (stageId: string) => {
         const stage = stages.find(s => s.id === stageId);
         return (
-          <Space size="small">
+          <Space size="small" style={{ flex: 1, gap: 4 }}>
             <div
               style={{
                 display: 'flex',
                 gap: '4px',
                 alignItems: 'center',
-                padding: '3px 8px',
-                borderRadius: '6px',
                 backgroundColor: stage?.color || '#f5f5f5',
+                padding: '4px 8px 4px 6px',
+                borderRadius: '6px',
               }}
             >
-              <ColorPicker value={stage?.color || ''} />
-              <Text style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>
+              <ColorPicker value={stage?.color || ''} size={8} disabled />
+              <Text
+                style={{
+                  fontSize: 12,
+                  lineHeight: '13px',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
                 {stage ? getActivityStatusLabel(stage.title as ActivityStatus) : 'Chưa xác định'}
               </Text>
             </div>
@@ -434,6 +443,7 @@ const TableView = ({ stages, activities, users }: TableViewProps) => {
             </Dropdown>
           </div>
           <Table
+            className="table-view"
             columns={tbColumns}
             dataSource={dataSource}
             rowKey="id"

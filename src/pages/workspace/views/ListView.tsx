@@ -3,8 +3,10 @@ import { StageGroup } from '@/common/enum/stage';
 import { IActivity, IStage, IUser } from '@/common/types';
 import { ColorPicker } from '@/components/shared/ColorPicker';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import '@/styles/table-list.css';
 import { getActivityPriorityColor, getActivityPriorityLabel } from '@/utils';
 import { getColorFromName, getInitials, useVisibleColumns } from '@/utils/activity';
+
 import {
   AppstoreAddOutlined,
   CalendarOutlined,
@@ -59,9 +61,6 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
 
     return acc;
   }, {});
-
-  console.log('groupedTasks', groupedTasks);
-  console.log('stages', stages);
 
   const statusConfig = stages.reduce(
     (acc, stage) => {
@@ -310,7 +309,7 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
                 borderRadius: '6px',
               }}
             >
-              <ColorPicker value={config.bgColor} size={8} />
+              <ColorPicker value={config.bgColor} size={8} disabled />
               <Text
                 style={{
                   fontSize: 12,
@@ -323,6 +322,23 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
                 {config.label}
               </Text>
             </div>
+            <div
+              style={{
+                minWidth: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                backgroundColor: '#ecececff',
+                color: '#353636ff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: 600,
+                lineHeight: 1,
+              }}
+            >
+              {config.count}
+            </div>
           </Space>
         }
         key={status}
@@ -330,7 +346,7 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
       >
         <div>
           <Table
-            className="ant-table-striped"
+            className="ant-table-striped table-view"
             columns={tbColumns}
             dataSource={tasks || []}
             rowKey="id"
