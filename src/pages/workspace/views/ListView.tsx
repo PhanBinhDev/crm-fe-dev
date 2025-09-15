@@ -1,6 +1,7 @@
 import { ActivityPriority } from '@/common/enum/activity';
 import { StageGroup } from '@/common/enum/stage';
 import { IActivity, IStage, IUser } from '@/common/types';
+import { ColorPicker } from '@/components/shared/ColorPicker';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { getActivityPriorityColor, getActivityPriorityLabel } from '@/utils';
 import { getColorFromName, getInitials, useVisibleColumns } from '@/utils/activity';
@@ -11,9 +12,21 @@ import {
   FlagOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Avatar, Button, Checkbox, Collapse, Dropdown, Table, Tag, Tooltip } from 'antd';
+import {
+  Avatar,
+  Button,
+  Checkbox,
+  Collapse,
+  Dropdown,
+  Space,
+  Table,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd';
 import { useState } from 'react';
 const { Panel } = Collapse;
+const { Text } = Typography;
 
 interface ListViewProps {
   stages: IStage[];
@@ -286,42 +299,31 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
     return (
       <Panel
         header={
-          <div
-            style={{
-              width: '140px',
-              display: 'flex',
-              gap: '4px',
-              alignItems: 'center',
-              padding: '3px 8px',
-              borderRadius: '6px',
-              backgroundColor: config.bgColor,
-              color: '#fff',
-              fontWeight: 600,
-            }}
-          >
+          <Space size="small" style={{ flex: 1, gap: 4 }}>
             <div
               style={{
-                width: '13px',
-                height: '13px',
-                border: '1px solid white',
-                borderRadius: '10px',
                 display: 'flex',
+                gap: '4px',
                 alignItems: 'center',
-                justifyContent: 'center',
+                backgroundColor: config.bgColor,
+                padding: '4px 8px 4px 6px',
+                borderRadius: '6px',
               }}
             >
-              <div
+              <ColorPicker value={config.bgColor} size={8} />
+              <Text
                 style={{
-                  width: '8px',
-                  height: '8px',
-                  border: '2px solid white',
-                  borderRadius: '10px',
-                  backgroundColor: 'white',
+                  fontSize: 12,
+                  lineHeight: '13px',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
                 }}
-              />
+              >
+                {config.label}
+              </Text>
             </div>
-            {config.label}
-          </div>
+          </Space>
         }
         key={status}
         className="mb-4"
