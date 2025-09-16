@@ -1,5 +1,5 @@
 import { PRESET_COLORS } from '@/constants';
-import { Popover, ColorPicker as AntdColorPicker } from 'antd';
+import { ColorPicker as AntdColorPicker, Popover } from 'antd';
 import { useState } from 'react';
 import { useDebounceCallback } from 'usehooks-ts';
 
@@ -8,6 +8,7 @@ interface ColorPickerProps {
   onChange?: (color: string) => void;
   size?: number;
   radius?: number;
+  disabled?: boolean;
 }
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({
@@ -15,15 +16,18 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   onChange,
   size = 8,
   radius = 999,
+  disabled = false,
 }) => {
   const [open, setOpen] = useState(false);
 
   const handleColorSelect = (color: string) => {
+    if (disabled) return;
     onChange?.(color);
     setOpen(false);
   };
 
   const debouncedCustomColorChange = useDebounceCallback((color: any) => {
+    if (disabled) return;
     const hexColor = typeof color === 'string' ? color : color.toHexString();
     onChange?.(hexColor);
   }, 300);
@@ -51,14 +55,6 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
               border: value === color ? '2px solid #1890ff' : '1px solid #e5e7eb',
               transition: 'all 0.2s ease',
             }}
-            onMouseEnter={e => {
-              if (value !== color) {
-                e.currentTarget.style.transform = 'scale(1.1)';
-              }
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
           />
         ))}
       </div>
@@ -69,6 +65,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
         onChange={debouncedCustomColorChange}
         trigger="click"
         placement="right"
+        open={disabled ? false : undefined}
       >
         <div
           style={{
@@ -82,16 +79,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
             justifyContent: 'center',
             color: '#8c8c8c',
             fontSize: '12px',
-            transition: 'all 0.2s ease',
             textAlign: 'center',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.borderColor = '#1890ff';
-            e.currentTarget.style.backgroundColor = '#f0f9ff';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.borderColor = '#d9d9d9';
-            e.currentTarget.style.backgroundColor = 'transparent';
+            transition: 'all 0.2s ease',
           }}
         >
           Chọn màu tùy chỉnh
@@ -104,8 +93,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     <Popover
       content={ColorGrid}
       trigger="click"
-      open={open}
-      onOpenChange={setOpen}
+      open={disabled ? false : open}
+      onOpenChange={disabled ? undefined : setOpen}
       placement="bottomLeft"
       styles={{ root: { zIndex: 1060 } }}
     >
