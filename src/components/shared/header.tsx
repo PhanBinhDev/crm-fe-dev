@@ -4,8 +4,19 @@ import { axiosInstance } from '@/lib/axios';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { onMessageListener, requestForToken } from '@/providers/fcmNotification/firebase';
 import { useList, useLogout } from '@refinedev/core';
-import { IconBell, IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
-import { Avatar, Badge, Button, Drawer, Dropdown, Layout, MenuProps, Space, Spin } from 'antd';
+import { IconBell, IconChecks, IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
+import {
+  Avatar,
+  Badge,
+  Button,
+  Drawer,
+  Dropdown,
+  Layout,
+  MenuProps,
+  Space,
+  Spin,
+  Typography,
+} from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 
 import { INotification } from '@/common/types/notification';
@@ -79,10 +90,19 @@ export const AppHeader = () => {
         >
           <span style={{ fontWeight: 600, fontSize: 15, color: '#262626' }}>Thông báo</span>
           <Button
-            type="link"
             size="small"
-            style={{ padding: 0, fontSize: 13 }}
+            icon={<IconChecks size={18} color="#1890FF" />}
+            style={{
+              padding: 0,
+              fontSize: 13,
+              border: 'none',
+              boxShadow: 'none',
+              outline: 'none',
+              background: 'transparent',
+              color: '#1890FF',
+            }}
             onClick={handleReadAllNotifications}
+            className="btn-notification-read-all"
           >
             Đọc tất cả
           </Button>
@@ -96,27 +116,41 @@ export const AppHeader = () => {
     const items = notifications?.data.map((notification): MenuProps['items'][number] => {
       return {
         key: notification.id,
-        icon: (
-          <div>
-            <span
-              style={{
-                display: 'inline-block',
-                width: '4px',
-                height: '4px',
-                backgroundColor: notification?.isRead ? 'transparent' : '#1890ff',
-                borderRadius: '50%',
-              }}
-            ></span>
-            <Avatar src={notification?.userId?.avatar || AVATAR_PLACEHOLDER} />
-          </div>
-        ),
+        icon: <Avatar src={notification?.userId?.avatar || AVATAR_PLACEHOLDER} />,
         label: (
-          <Space direction="vertical" size={0}>
-            <p>{notification?.message}</p>
-            <span style={{ fontSize: 12, color: '#8c8c8c' }}>
-              {dayjs(notification?.createdAt).fromNow()}
-            </span>
-          </Space>
+          <div
+            style={{
+              position: 'relative',
+              padding: '2px 0',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <Space direction="vertical" size={0} style={{ padding: '2px 0' }}>
+              <Space size="small" style={{ padding: '2px 0' }}>
+                <Typography.Text strong>{notification?.userId?.name || 'Username'}</Typography.Text>
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  {dayjs(notification?.createdAt).fromNow()}
+                </Typography.Text>
+              </Space>
+              <Typography.Text>{notification?.message}</Typography.Text>
+            </Space>
+
+            {!notification?.isRead && (
+              <span
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '25%',
+                  transform: 'translateY(-50%)',
+                  width: 8,
+                  height: 8,
+                  backgroundColor: 'green',
+                  borderRadius: '50%',
+                }}
+              />
+            )}
+          </div>
         ),
         onClick: () => handleReadOneNotification(notification),
         style: {
@@ -196,8 +230,8 @@ export const AppHeader = () => {
                 padding: 0,
                 boxShadow:
                   '0 3px 6px -4px rgba(0,0,0,0.12), 0 6px 16px 0 rgba(0,0,0,0.08), 0 9px 28px 8px rgba(0,0,0,0.05)',
-                borderRadius: '8px 8px 0 0',
-                maxHeight: 800,
+                borderRadius: isMoreNotifications ? '8px 8px' : '8px 8px 0 0',
+                maxHeight: isMoreNotifications ? 550 : 500,
               },
             }}
             dropdownRender={menu => {
