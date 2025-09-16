@@ -3,6 +3,7 @@ import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { IconChevronDown, IconPencil, IconSettings, IconUsers } from '@tabler/icons-react';
 import { Avatar, Button, Card, Divider, List, Popover, Skeleton, Space, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
+import { useNavigation } from '@refinedev/core';
 
 interface WorkspaceItemSelectorProps {
   collapsed?: boolean;
@@ -10,6 +11,7 @@ interface WorkspaceItemSelectorProps {
 
 const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
   const [open, setOpen] = useState(false);
+  const { push } = useNavigation();
   const [tablerIcons, setTablerIcons] = useState<Record<string, React.FC<any>>>({});
 
   const { workspaces, currentWorkspace, isLoading, switchWorkspace } = useWorkspaces();
@@ -162,7 +164,10 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
                 justifyContent: 'center',
               },
             }}
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              push(`/workspaces/${currentWorkspace?.id}/settings`);
+            }}
             icon={<IconSettings size={14} />}
             onMouseEnter={e => {
               e.currentTarget.style.backgroundColor = '#d9d9d9';
@@ -211,7 +216,21 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
               {workspaces
                 .filter(workspace => workspace.id !== currentWorkspace?.id)
                 .map(workspace => (
-                  <List.Item key={workspace.id}>
+                  <List.Item
+                    key={workspace.id}
+                    onClick={() => handleWorkspaceSelect(workspace)}
+                    style={{
+                      padding: '6px 8px',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.backgroundColor = '#f5f5f5';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
                     <Space>
                       {renderWorkspaceAvatar(workspace, 24)}
                       <span>{workspace.name}</span>

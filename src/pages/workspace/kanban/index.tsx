@@ -11,16 +11,12 @@ import { useList } from '@refinedev/core';
 import { IconCalendar, IconLayoutKanban, IconList, IconPlus, IconTable } from '@tabler/icons-react';
 import { Button, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 
 type TabKey = 'kanban' | 'list' | 'calendar' | 'table';
 
 const KanbanWorkspaces = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('kanban');
   const [searchValue, setSearchValue] = useState<string>('');
-  const [searchParams] = useSearchParams();
-
-  console.log('Search params:', Object.fromEntries(searchParams.entries()));
 
   const { openModal } = useModal();
 

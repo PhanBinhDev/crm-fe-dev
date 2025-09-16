@@ -149,6 +149,28 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
       return items;
     }
 
+    if (pathname.startsWith('/workspaces/')) {
+      const segments = pathname.split('/').filter(Boolean);
+
+      items.push({
+        title: 'Workspaces',
+        href: `/workspaces/${segments[1]}`,
+      });
+
+      if (segments.length > 2) {
+        // For settings or any other workspace sub-path
+        const lastSegment = segments[segments.length - 1];
+
+        // Capitalize first letter for better presentation
+        const formattedSegment = lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1);
+        items.push({
+          title: formattedSegment,
+        });
+      }
+
+      return items;
+    }
+
     let currentResource = null;
     let parentResource = null;
 
@@ -246,8 +268,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
     }
 
     if (key === 'workspaces') {
-      if (!currentWorkspace) return;
-      push(`/workspaces/${currentWorkspace?.id}`);
+      push(`/workspaces/${currentWorkspace?.id || 'hashed-id'}`);
       return;
     }
 
