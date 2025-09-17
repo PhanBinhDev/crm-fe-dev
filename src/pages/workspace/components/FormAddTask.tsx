@@ -217,7 +217,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
           style={{ marginBottom: 0 }}
         >
           <TextArea
-            placeholder="Task Name"
+            placeholder="Nhập tên nhiệm vụ/hoạt động..."
             size="middle"
             variant="borderless"
             style={{

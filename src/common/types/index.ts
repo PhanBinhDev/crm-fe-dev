@@ -4,6 +4,7 @@ export * from './activities';
 export * from './auth';
 export * from './feedback';
 export * from './file';
+export * from './notification';
 export * from './participant';
 export * from './stage';
 export * from './users';

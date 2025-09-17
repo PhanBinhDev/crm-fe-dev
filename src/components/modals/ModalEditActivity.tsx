@@ -9,7 +9,6 @@ const { Header, Sider, Content } = Layout;
 
 const ModalEditActivity = () => {
   const { isOpen, type, closeModal, data } = useModal();
-  console.log('data', data);
   const isOpenModal = isOpen && type === 'ModalEditActivity';
   const [collapsedLeft, setCollapsedLeft] = useState(false);
   const [collapsedRight, setCollapsedRight] = useState(false);
@@ -20,6 +19,7 @@ const ModalEditActivity = () => {
       onCancel={closeModal}
       width="95vw"
       closeIcon={false}
+      destroyOnHidden
       centered
       className="modal-edit-activity"
     >
