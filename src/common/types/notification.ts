@@ -1,13 +1,18 @@
-export interface INotification {
+import { IBase } from '.';
+import { IUser } from './users';
+
+export interface INotification extends IBase {
   id: string;
-  title: string | null;
-  message: string | null;
-  type: string | null;
-  data: any | null;
-  userId: string | null;
+  title: string;
+  message: string;
+  type: string;
+  data: Record<string, any>;
+  userId: string;
+  user: IUser;
   senderId: string | null;
   isRead: boolean;
   isDeleted: boolean;
-  createdAt: string;
-  readAt: string | null;
+  readAt: Date | null;
 }
+
+export type NotificationTab = 'all' | 'unread' | 'mentions';
