@@ -1,9 +1,10 @@
 import { IWorkspace } from '@/common/types';
+import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { useNavigation } from '@refinedev/core';
 import { IconChevronDown, IconPencil, IconSettings, IconUsers } from '@tabler/icons-react';
 import { Avatar, Button, Card, Divider, List, Popover, Skeleton, Space, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
-import { useNavigation } from '@refinedev/core';
 
 interface WorkspaceItemSelectorProps {
   collapsed?: boolean;
@@ -11,6 +12,7 @@ interface WorkspaceItemSelectorProps {
 
 const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
   const [open, setOpen] = useState(false);
+  const { openModal } = useModal();
   const { push } = useNavigation();
   const [tablerIcons, setTablerIcons] = useState<Record<string, React.FC<any>>>({});
 
@@ -252,7 +254,13 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
             </div>
           )}
         </List>
-        <Button type="primary" style={{ width: '100%' }}>
+        <Button
+          type="primary"
+          style={{ width: '100%' }}
+          onClick={() => {
+            openModal('ModalAddWorkspace');
+          }}
+        >
           Tạo workspace mới
         </Button>
       </Space>
