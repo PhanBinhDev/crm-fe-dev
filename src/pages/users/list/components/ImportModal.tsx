@@ -7,7 +7,7 @@ import {
   IconUpload,
   IconX,
 } from '@tabler/icons-react';
-import { Button, Input, Modal, Progress, Upload, message } from 'antd';
+import { Button, Input, Modal, Upload, message } from 'antd';
 import { RcFile } from 'antd/es/upload';
 import { FC, useState } from 'react';
 
@@ -20,10 +20,6 @@ interface ImportModalProps {
 export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess }) => {
   const [fileList, setFileList] = useState<any[]>([]);
   const [urlInput, setUrlInput] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadMethod, setUploadMethod] = useState<'file' | 'url'>('file');
-  const [fileProcessed, setFileProcessed] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
 
   const handleDownloadTemplate = () => {
@@ -37,7 +33,6 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
 
   const handleFileUpload = async (file: RcFile) => {
     if (urlInput.trim()) {
-      // setInputError('Chỉ chọn 1 trong 2: tải file hoặc nhập link.');
       message.error('Chỉ chọn 1 trong 2: tải file hoặc nhập link.');
       return false;
     }
@@ -51,28 +46,6 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
     }
 
     setFileList([file]);
-    // setInputError(null);
-    setUploadMethod('file');
-    setUploading(true);
-    setUploadProgress(0);
-    setFileProcessed(false);
-
-    // Simulate progress khi chọn file - chạy mượt và dừng khi xong
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          // Dừng progress và hiển thị hoàn thành
-          setTimeout(() => {
-            setFileProcessed(true);
-            setUploading(false);
-            setUploadProgress(0);
-          }, 800); // Đợi 0.8s để user thấy 100% rõ ràng
-          return 100;
-        }
-        return prev + 8; // Tăng chậm hơn để mượt
-      });
-    }, 80); // Interval nhỏ hơn để mượt hơn
 
     return false; // Prevent default upload behavior
   };
@@ -175,9 +148,6 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
   const handleCancel = () => {
     setFileList([]);
     setUrlInput('');
-    setUploading(false);
-    setUploadProgress(0);
-    setFileProcessed(false);
     setSubmitLoading(false);
     onClose();
   };
@@ -207,43 +177,13 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
         <div style={{ marginBottom: 16 }}>
           <Upload.Dragger
             {...uploadProps}
-            disabled={uploading}
             style={{ minHeight: 120, borderRadius: 8 }}
           >
-            {uploading && uploadMethod === 'file' ? (
-              <div style={{ textAlign: 'center' }}>
-                <Progress
-                  type="circle"
-                  percent={uploadProgress}
-                  format={percent => `${percent}%`}
-                  width={60}
-                  status={fileProcessed ? 'success' : 'active'}
-                />
-                <div style={{ marginTop: 8, fontSize: 13 }}>
-                  <div>{fileProcessed ? 'Đã xử lý xong!' : 'Đang xử lý...'}</div>
-                  {!fileProcessed && (
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        setUploading(false);
-                        setUploadProgress(0);
-                        setFileList([]);
-                        setFileProcessed(false);
-                      }}
-                      style={{ marginTop: 4 }}
-                    >
-                      Hủy
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center' }}>
-                <IconFileSpreadsheet size={36} color="#228be6" style={{ marginBottom: 4 }} />
-                <div style={{ fontSize: 14, fontWeight: 500 }}>Kéo thả hoặc chọn tệp tin Excel</div>
-                <div style={{ fontSize: 12, color: '#888' }}>Chỉ hỗ trợ .xlsx, .xls</div>
-              </div>
-            )}
+            <div style={{ textAlign: 'center' }}>
+              <IconFileSpreadsheet size={36} color="#228be6" style={{ marginBottom: 4 }} />
+              <div style={{ fontSize: 14, fontWeight: 500 }}>Kéo thả hoặc chọn tệp tin Excel</div>
+              <div style={{ fontSize: 12, color: '#888' }}>Chỉ hỗ trợ .xlsx, .xls</div>
+            </div>
           </Upload.Dragger>
         </div>
 
@@ -255,7 +195,6 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
             onChange={e => {
               setUrlInput(e.target.value);
             }}
-            disabled={uploading}
             size="small"
             style={{ fontSize: 13, borderRadius: 6, padding: 4 }}
             allowClear
@@ -295,27 +234,28 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
           <div style={{ display: 'flex', gap: 8 }}>
             <Button
               onClick={handleCancel}
-              disabled={uploading}
-              icon={<IconX size={16} />}
-              style={{ borderRadius: 6, height: 32, fontSize: 14 }}
+              style={{ borderRadius: 6, height: 32, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}
             >
-              Hủy
+              <IconX size={16} style={{ display: 'flex', alignItems: 'center' }} />
+              <span style={{ display: 'flex', alignItems: 'center' }}>Hủy</span>
             </Button>
             <Button
               type="primary"
               onClick={handleFileSubmit}
-              disabled={uploading}
               loading={submitLoading}
-              icon={<IconUpload size={16} />}
               style={{
                 borderRadius: 6,
                 height: 32,
                 fontSize: 14,
                 background: '#228be6',
                 borderColor: '#228be6',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
               }}
             >
-              Hoàn tất
+              <IconUpload size={16} style={{ display: 'flex', alignItems: 'center' }} />
+              <span style={{ display: 'flex', alignItems: 'center' }}>Hoàn tất</span>
             </Button>
           </div>
         </div>
