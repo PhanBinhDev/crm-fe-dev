@@ -1,6 +1,7 @@
 import { IActivity } from '@/common/types';
-import { IconCheck, IconDots, IconPencil, IconPlus } from '@tabler/icons-react';
-import { Button, Popover, Tooltip } from 'antd';
+import { IconCheck, IconPencil, IconPlus } from '@tabler/icons-react';
+import { Button, Tooltip } from 'antd';
+import ToolbarMoreAction from './ToolbarMoreAction';
 
 interface ToolbarActivityCardProps {
   activity: IActivity;
@@ -67,40 +68,7 @@ const ToolbarActivityCard = ({ activity, isCompletedStage }: ToolbarActivityCard
           onClick={() => console.log('Edit', activity.id)}
         />
       </Tooltip>
-      <Popover
-        styles={{
-          body: {
-            padding: 0,
-            width: 256,
-          },
-        }}
-        trigger={['click']}
-        builtinPlacements={{
-          rightTop: {
-            points: ['cl', 'cr'],
-            offset: [4, 0],
-            overflow: {
-              adjustX: true,
-              adjustY: true,
-            },
-          },
-        }}
-        placement="bottomLeft"
-        arrow={false}
-        content={<div>Content</div>}
-      >
-        <Tooltip title="Thao tác khác">
-          <Button
-            size="small"
-            type="text"
-            icon={<IconDots size={14} />}
-            styles={{
-              icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
-            }}
-            onClick={() => console.log('Thao tác khác', activity.id)}
-          />
-        </Tooltip>
-      </Popover>
+      <ToolbarMoreAction activity={activity} />
     </div>
   );
 };

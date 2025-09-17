@@ -27,9 +27,9 @@ const FormAddReminder = ({ openUploader }: FormAddReminderProps) => {
   const [attachments, setAttachments] = useState<File[]>([]);
 
   const handleToggleUser = (user: IUser) => {
-    setAssignees((prev) => {
-      const exists = prev.some((u) => u.id === user.id);
-      return exists ? prev.filter((u) => u.id !== user.id) : [...prev, user];
+    setAssignees(prev => {
+      const exists = prev.some(u => u.id === user.id);
+      return exists ? prev.filter(u => u.id !== user.id) : [...prev, user];
     });
   };
 
@@ -45,32 +45,57 @@ const FormAddReminder = ({ openUploader }: FormAddReminderProps) => {
       {/* Nội dung nhắc nhở */}
       <TextArea
         placeholder="Nhập nội dung nhắc nhở..."
-        autoSize={{ minRows: 1, maxRows: 3 }}
+        size="middle"
+        variant="borderless"
         style={{
+          fontWeight: 600,
+          fontSize: 17,
           border: '1px solid transparent',
-          fontSize: 16,
-          fontWeight: 500,
           paddingLeft: 4,
         }}
+        autoSize={{ minRows: 1, maxRows: 4 }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = '#f0f0f0';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'transparent';
+        }}
+        onFocus={e => {
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.borderColor = '#f0f0f0';
+        }}
+        onBlur={e => {
+          e.currentTarget.style.borderColor = 'transparent';
+        }}
+        name="reminderContent"
       />
 
-      <Space size="middle" wrap>
+      <Space
+        size="middle"
+        wrap
+        styles={{
+          item: {
+            width: '100%',
+          },
+        }}
+      >
         {/* Hạn */}
-        <DuedateActivity value={{ start: null, end: dayjs() }} onChange={() => {}} />
+        <Space>
+          <DuedateActivity value={{ start: null, end: dayjs() }} onChange={() => {}} />
 
-        {/* Người phụ trách */}
-        <AssigneeActivity
-          selectedUser={assignees}
-          onToggleSelectUser={handleToggleUser}
-        />
+          {/* Người phụ trách */}
+          <AssigneeActivity
+            title={'Người nhận'}
+            selectedUser={assignees}
+            onToggleSelectUser={handleToggleUser}
+          />
 
-        {/* Thời gian nhắc nhở */}
-        <NotifyActivity value={notifyBefore} onChange={setNotifyBefore} />
+          {/* Thời gian nhắc nhở */}
+          <NotifyActivity value={notifyBefore} onChange={setNotifyBefore} />
+        </Space>
 
         {/* File đính kèm */}
-        {openUploader && (
-          <FileAttachments value={attachments} onChange={setAttachments} />
-        )}
+        {openUploader && <FileAttachments value={attachments} onChange={setAttachments} />}
       </Space>
     </div>
   );

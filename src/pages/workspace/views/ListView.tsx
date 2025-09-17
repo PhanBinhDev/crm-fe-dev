@@ -11,11 +11,10 @@ import { getColorFromName, getInitials, useVisibleColumns } from '@/utils/activi
 import {
   AppstoreAddOutlined,
   CalendarOutlined,
-  CaretRightOutlined,
   FlagOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { IconPlus } from '@tabler/icons-react';
+import { IconChevronRight, IconPlus } from '@tabler/icons-react';
 import {
   Avatar,
   Button,
@@ -348,28 +347,22 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
             >
               {config.count}
             </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 3,
-                border: 'none',
-                boxShadow: 'none',
-                backgroundColor: 'transparent',
-                padding: 0,
-                marginLeft: 8,
-              }}
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation();
-                openModal('ModalAddActivity', {
-                  stageId: stages.find(s => s.title === config.label)?.id,
-                });
-              }}
-            >
-              <IconPlus size={16} color="#9e9b9bff"></IconPlus>
-              <Text style={{ fontSize: '13px', color: '#959292ff' }}> Add Task</Text>
-            </div>
+            <Tooltip title="Thêm nhiệm vụ">
+              <Button
+                type="text"
+                style={{
+                  marginLeft: 4,
+                }}
+                size="small"
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  openModal('ModalAddActivity', {
+                    stageId: stages.find(s => s.title === config.label)?.id,
+                  });
+                }}
+                icon={<IconPlus size={14} color="#838383" />}
+              />
+            </Tooltip>
           </Space>
         }
         key={status}
@@ -415,9 +408,13 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
           activeKey={activeKeys}
           onChange={setActiveKeys}
           expandIcon={({ isActive }) => (
-            <CaretRightOutlined
-              rotate={isActive ? 90 : 0}
-              style={{ fontSize: '12px', color: '#8c8c8c' }}
+            <IconChevronRight
+              size={16}
+              style={{
+                transition: 'transform 0.2s',
+                transform: isActive ? 'rotate(90deg)' : 'rotate(0deg)',
+                color: '#8c8c8c',
+              }}
             />
           )}
           className="bg-transparent"

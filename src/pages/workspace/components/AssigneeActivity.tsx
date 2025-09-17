@@ -8,6 +8,7 @@ import { useDebounceValue } from 'usehooks-ts';
 interface AssigneeActivityProps {
   children?: React.ReactNode;
   selectedUser: IUser[];
+  title?: string;
   onToggleSelectUser: (user: IUser) => void;
 }
 
@@ -17,6 +18,7 @@ const AssigneeActivity = ({
   children,
   selectedUser,
   onToggleSelectUser,
+  title = 'Phụ trách',
 }: AssigneeActivityProps) => {
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch] = useDebounceValue(search, 400);
@@ -282,7 +284,7 @@ const AssigneeActivity = ({
               }}
               icon={<IconUsers size={12} />}
             >
-              Phụ trách
+              {title}
             </Button>
           )}
         </>
