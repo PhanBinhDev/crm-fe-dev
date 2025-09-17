@@ -27,7 +27,7 @@ import Modals from './components/modals';
 import { materialRoutes } from './pages/course-materials/routes';
 import { DashboardPage } from './pages/dashboard';
 import { workspaceRoutes } from './pages/workspace/routes';
-import { accessControlProvider } from './providers/AccessControlProvider';
+import { accessControlProvider } from './providers/accessControlProvider';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);
