@@ -3,6 +3,7 @@ import { StageGroup } from '@/common/enum/stage';
 import { IActivity, IStage, IUser } from '@/common/types';
 import { ColorPicker } from '@/components/shared/ColorPicker';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { useModal } from '@/hooks/useModal';
 import '@/styles/table-list.css';
 import { getActivityPriorityColor, getActivityPriorityLabel } from '@/utils';
 import { getColorFromName, getInitials, useVisibleColumns } from '@/utils/activity';
@@ -14,6 +15,7 @@ import {
   FlagOutlined,
   UserOutlined,
 } from '@ant-design/icons';
+import { IconPlus } from '@tabler/icons-react';
 import {
   Avatar,
   Button,
@@ -43,6 +45,7 @@ interface StatusItem {
 }
 
 const ListView = ({ stages, activities, users }: ListViewProps) => {
+  const { openModal } = useModal();
   const [activeKeys, setActiveKeys] = useState(['TO DO', 'IN PROGRESS']);
 
   const stageMap = stages.reduce<Record<string, string>>((acc, stage) => {
@@ -298,7 +301,13 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
     return (
       <Panel
         header={
-          <Space size="small" style={{ flex: 1, gap: 4 }}>
+          <Space
+            size="small"
+            style={{
+              flex: 1,
+              gap: 4,
+            }}
+          >
             <div
               style={{
                 display: 'flex',
@@ -338,6 +347,28 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
               }}
             >
               {config.count}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 3,
+                border: 'none',
+                boxShadow: 'none',
+                backgroundColor: 'transparent',
+                padding: 0,
+                marginLeft: 8,
+              }}
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation();
+                openModal('ModalAddActivity', {
+                  stageId: stages.find(s => s.title === config.label)?.id,
+                });
+              }}
+            >
+              <IconPlus size={16} color="#9e9b9bff"></IconPlus>
+              <Text style={{ fontSize: '13px', color: '#959292ff' }}> Add Task</Text>
             </div>
           </Space>
         }

@@ -1,5 +1,6 @@
 import { IActivity } from '@/common/types';
 import { DragDropType } from '@/constants';
+import { useModal } from '@/hooks/useModal';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card } from 'antd';
@@ -13,6 +14,7 @@ interface ActivityCardProps {
 }
 
 const ActivityCard = ({ activity, isPortal, isCompletedStage }: ActivityCardProps) => {
+  const { openModal } = useModal();
   const [isHovered, setIsHovered] = useState(false);
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } =
@@ -57,6 +59,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage }: ActivityCardProp
 
   return (
     <Card
+      onClick={() => openModal('ModalEditActivity', { activity })}
       style={styles}
       styles={{
         body: {
