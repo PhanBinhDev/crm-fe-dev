@@ -1,5 +1,5 @@
 import { IActivity, IStage } from '@/common/types';
-import { ColorPicker } from '@/components/shared/ColorPicker';
+import { IconPlayerRecordFilled } from '@tabler/icons-react';
 import { Calendar, Space, Typography } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 const { Text } = Typography;
@@ -31,11 +31,7 @@ const CalendarView = ({ stages, activities }: CalendarViewProps) => {
                   borderRadius: '6px',
                 }}
               >
-                <ColorPicker
-                  value={stages.find(s => s.id === task.stageId)?.color || 'blue'}
-                  size={8}
-                  disabled
-                />
+                <IconPlayerRecordFilled size={7} color="#fff" />
                 <Text
                   style={{
                     fontSize: 12,
