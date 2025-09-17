@@ -11,6 +11,7 @@ const { Option } = Select;
 const ModalAddWorkspace = () => {
   const { type, isOpen, closeModal } = useModal();
 
+  
   const [form] = Form.useForm();
   const [copied, setCopied] = useState(false);
   const [inviteMembers, setInviteMembers] = useState<IUser[]>([]);
