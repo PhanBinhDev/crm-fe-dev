@@ -1,1 +1,1 @@
-export type ModalType = 'ModalAddWorkspace' | 'ModalAddIcon' | 'ModalUserForm' | 'ModalAddActivity';
+export type ModalType = 'ModalAddWorkspace' | 'ModalAddIcon' | 'ModalUserForm' | 'ModalAddActivity'| 'ModalEditActivity';
