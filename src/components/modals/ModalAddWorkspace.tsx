@@ -1,7 +1,7 @@
 import { IUser } from '@/common/types';
 import SelectIcon from '@/components/shared/SelectIcon';
 import { useModal } from '@/hooks/useModal';
-import { useCreate, useInvalidate, useList } from '@refinedev/core';
+import { useCreate, useList } from '@refinedev/core';
 import { IconCopy, IconCopyCheckFilled, IconLink, IconTrash } from '@tabler/icons-react';
 import { Avatar, Button, Form, Input, message, Modal, Select, Switch, Tooltip } from 'antd';
 import { useMemo, useState } from 'react';
@@ -23,7 +23,7 @@ const ModalAddWorkspace = () => {
     queryOptions: { enabled: isModalOpen },
   });
 
-  const invalidate = useInvalidate();
+  console.log('usersData', usersData);
 
   const { mutate: createWorkspace, isPending: creating } = useCreate();
 
@@ -52,10 +52,6 @@ const ModalAddWorkspace = () => {
           closeModal();
           form.resetFields();
           setInviteMembers([]);
-          invalidate({
-            resource: 'workspaces/mine',
-            invalidates: ['list'],
-          });
         },
         onError: (err: any) => {
           message.error(err?.message || 'Có lỗi xảy ra');
