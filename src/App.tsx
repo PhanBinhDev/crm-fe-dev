@@ -28,7 +28,7 @@ import { DisplayConfigProvider } from './contexts/DisplayConfig';
 import { materialRoutes } from './pages/course-materials/routes';
 import { DashboardPage } from './pages/dashboard';
 import { workspaceRoutes } from './pages/workspace/routes';
-import { accessControlProvider } from './providers/accessControlProvider';
+import { accessControlProvider } from './providers/AccessControlProvider';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);

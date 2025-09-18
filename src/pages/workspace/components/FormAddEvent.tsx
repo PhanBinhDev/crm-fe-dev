@@ -2,7 +2,7 @@ interface FormAddEventProps {
   openUploader: boolean;
 }
 
-const FormAddEvent = ({ openUploader }: FormAddEventProps) => {
+const FormAddEvent = ({}: FormAddEventProps) => {
   return <>Add event</>;
 };
 

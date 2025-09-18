@@ -4,7 +4,7 @@ import React from 'react';
 import { DayButton, DayPicker, DayPickerProps, getDefaultClassNames } from 'react-day-picker';
 
 const CustomCalendar = (props: DayPickerProps) => {
-  const defaultClassNames = getDefaultClassNames();
+  // const defaultClassNames = getDefaultClassNames();
 
   return (
     <DayPicker
