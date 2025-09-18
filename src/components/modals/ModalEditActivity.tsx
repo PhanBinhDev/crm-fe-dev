@@ -76,7 +76,7 @@ const ModalEditActivity = () => {
             justifyContent: 'space-between',
           }}
         >
-          <Tooltip title={collapsedLeft ? 'Mở sidebar trái' : 'Ẩn sidebar trái'}>
+          <Tooltip title={collapsedLeft ? 'Mở subtask sidebar' : 'Ẩn subtask sidebar'}>
             <Button
               type="text"
               icon={
@@ -194,6 +194,33 @@ const ModalEditActivity = () => {
           </Content>
 
           {/* Right Sidebar*/}
+          <Sider
+            collapsed={collapsedRight}
+            collapsible
+            trigger={null}
+            width={300}
+            collapsedWidth={0}
+            style={{
+              background: '#fff',
+              borderLeft: '1px solid #f0f0f0',
+              overflow: 'hidden',
+              ...(isOverlay
+                ? {
+                    position: 'absolute',
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    zIndex: 10,
+                    transition: 'all 0.2s ease',
+                    transform: collapsedRight ? 'translateX(100%)' : 'translateX(0)',
+                    boxShadow: collapsedRight ? 'none' : '-4px 0 8px rgba(0,0,0,0.06)',
+                  }
+                : {
+                    position: 'relative',
+                    transition: 'width 0.2s ease',
+                  }),
+            }}
+          />
           <div
             style={{
               display: 'flex',
@@ -201,7 +228,7 @@ const ModalEditActivity = () => {
               borderLeft: !collapsedRight ? '1px solid #f0f0f0' : 'none',
             }}
           >
-            <Tooltip title={collapsedRight ? 'Mở sidebar phải' : 'Ẩn sidebar phải'}>
+            <Tooltip title={collapsedRight ? 'Mở sidebar' : 'Ẩn sidebar'}>
               <Button
                 type="text"
                 icon={
