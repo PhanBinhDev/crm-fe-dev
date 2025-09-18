@@ -36,7 +36,6 @@ const FormAddReminder = ({ openUploader }: FormAddReminderProps) => {
   return (
     <div
       style={{
-        padding: 5,
         display: 'flex',
         flexDirection: 'column',
         gap: 16,
