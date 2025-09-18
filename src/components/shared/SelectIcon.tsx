@@ -1,5 +1,5 @@
-import { IconCheck, IconPencil, IconTrash } from '@tabler/icons-react';
-import { Button, Input, Modal, Spin } from 'antd';
+import { IconCheck } from '@tabler/icons-react';
+import { Input, Modal, Spin } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 
 type IconEntry = { key: string; Comp: React.FC<any> };
@@ -7,15 +7,13 @@ type IconEntry = { key: string; Comp: React.FC<any> };
 interface SelectIconProps {
   value?: string;
   onChange?: (key: string) => void;
-  allowClear?: boolean;
   size?: number;
 }
 
 const SelectIcon: React.FC<SelectIconProps> = ({
   value,
   onChange,
-  allowClear = true,
-  size = 18,
+  size = 24,
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -26,7 +24,6 @@ const SelectIcon: React.FC<SelectIconProps> = ({
     if (value !== undefined) setSelected(value);
   }, [value]);
 
-  // load icons dynamically once when modal first opens (or on mount)
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -36,8 +33,6 @@ const SelectIcon: React.FC<SelectIconProps> = ({
         const entries = Object.entries(mod)
           .filter(([k, v]) => {
             if (!k.startsWith('Icon')) return false;
-
-            // Tabler export can be a function or a forwardRef object (has $$typeof / render)
             const isComponent =
               typeof v === 'function' || (typeof v === 'object' && v !== null && 'render' in v);
             return isComponent;
@@ -72,12 +67,6 @@ const SelectIcon: React.FC<SelectIconProps> = ({
     setOpen(false);
   };
 
-  const clear = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setSelected('');
-    onChange?.('');
-  };
-
   const SelectedComp = useMemo(() => {
     if (!icons) return null;
     return icons.find(i => i.key === selected)?.Comp ?? null;
@@ -85,66 +74,25 @@ const SelectIcon: React.FC<SelectIconProps> = ({
 
   return (
     <>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => setOpen(true)}
-          onKeyDown={e => e.key === 'Enter' && setOpen(true)}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '8px 12px',
-            borderRadius: 8,
-            border: '1px solid #e8e8e8',
-            background: '#fff',
-            cursor: 'pointer',
-            minWidth: 160,
-            width: '100%',
-          }}
-        >
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 8,
-              background: '#f5f5f5',
-            }}
-          >
-            {SelectedComp ? (
-              <SelectedComp size={size} />
-            ) : (
-              <div style={{ width: size, height: size }} />
-            )}
-          </div>
-          <div style={{ flex: 1, fontSize: 14, color: '#111' }}>
-            {selected ? selected.replace(/^Icon/, '') : 'Chọn icon'}
-          </div>
-
-          <div style={{ display: 'flex', gap: 8 }}>
-            {allowClear && selected && (
-              <Button
-                color="danger"
-                size="small"
-                variant="text"
-                onClick={clear}
-                icon={<IconTrash size={14} />}
-                aria-label="Xóa"
-              />
-            )}
-            <Button
-              size="small"
-              variant="text"
-              onClick={() => setOpen(true)}
-              icon={<IconPencil size={14} />}
-              aria-label="Thay đổi"
-            />
-          </div>
-        </div>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setOpen(true)}
+        onKeyDown={e => e.key === 'Enter' && setOpen(true)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 6,
+          background: '#fff',
+          cursor: 'pointer',
+        }}
+      >
+        {SelectedComp ? (
+          <SelectedComp size={size} />
+        ) : (
+          <div style={{ width: size, height: size, border: '1px solid #e8e8e8', borderRadius: '50%' }} />
+        )}
       </div>
 
       <Modal
@@ -153,7 +101,7 @@ const SelectIcon: React.FC<SelectIconProps> = ({
         onCancel={() => setOpen(false)}
         footer={null}
         centered
-        destroyOnHidden
+        destroyOnClose
         width={520}
         styles={{ body: { paddingBottom: 12 } }}
       >
@@ -173,7 +121,6 @@ const SelectIcon: React.FC<SelectIconProps> = ({
                 autoFocus
               />
             </div>
-
             <div
               style={{
                 display: 'grid',

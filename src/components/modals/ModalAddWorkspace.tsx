@@ -1,353 +1,212 @@
-import { IUser } from '@/common/types';
-import SelectIcon from '@/components/shared/SelectIcon';
-import { useModal } from '@/hooks/useModal';
-import { useCreate, useList } from '@refinedev/core';
-import { IconCopy, IconCopyCheckFilled, IconLink, IconTrash } from '@tabler/icons-react';
-import { Avatar, Button, Form, Input, message, Modal, Select, Switch, Tooltip } from 'antd';
-import { useMemo, useState } from 'react';
+import React, { useState } from "react";
+import SelectIcon from "../shared/SelectIcon";
+import { Modal, Form, Input, Select, Switch, Tooltip, Button, Typography } from "antd";
+import { InfoCircleOutlined } from "@ant-design/icons";
+import { IUser } from "../../common/types/users";
+import { UserRole } from "../../common/enum/user";
+import { useModal } from "@/hooks/useModal";
+import { useList } from "@refinedev/core";
+import { message } from "antd";
 
-const { Option } = Select;
+  const ModalAddWorkspace: React.FC = () => {
+    const { type, isOpen, closeModal } = useModal();
+    const isModalOpen = type === "ModalAddWorkspace" && isOpen;
+    const { Text } = Typography;
 
-const ModalAddWorkspace = () => {
-  const { type, isOpen, closeModal } = useModal();
-  
-  const [form] = Form.useForm();
-  const [copied, setCopied] = useState(false);
-  const [inviteMembers, setInviteMembers] = useState<IUser[]>([]);
-  const [visibility, setVisibility] = useState<'public' | 'private'>('public');
-  const isModalOpen = type === 'ModalAddWorkspace' && isOpen;
+    const { data: usersData } = useList({
+      resource: "users/all",
+      config: { pagination: { mode: "off" } },
+      queryOptions: { enabled: isModalOpen },
+    });
+    const [form] = Form.useForm();
+    const [isPrivate, setIsPrivate] = useState(false);
+    const [inviteMembers, setInviteMembers] = useState<IUser[]>([]);
 
-  const { data: usersData, isLoading: usersLoading } = useList({
-    resource: 'users/all',
-    config: { pagination: { mode: 'off' } },
-    queryOptions: { enabled: isModalOpen },
-  });
-
-  console.log('usersData', usersData);
-
-  const { mutate: createWorkspace, isPending: creating } = useCreate();
-
-  const handleCopy = () => {
-    if (copied) return;
-
-    navigator.clipboard.writeText(shareLink);
-    setCopied(true);
-    message.success('Đã sao chép link!');
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  const handleFinish = (values: any) => {
-    const finalValues = {
-      ...values,
-      inviteMembers: form.getFieldValue('visibility') === 'private' ? inviteMembers : [],
-    };
-    createWorkspace(
-      {
-        resource: 'workspaces',
-        values: finalValues,
-      },
-      {
-        onSuccess: () => {
-          message.success('Tạo workspace thành công!');
-          closeModal();
+    const handleSubmit = () => {
+      form
+        .validateFields()
+        .then((values) => {
+          message.success("Tạo workspace thành công!");
           form.resetFields();
           setInviteMembers([]);
-        },
-        onError: (err: any) => {
-          message.error(err?.message || 'Có lỗi xảy ra');
-        },
-      },
-    );
-  };
+          setIsPrivate(false);
+          closeModal();
+        })
+        .catch(() => {});
+    };
 
-  const removeInviteMember = (id: string) => {
-    setInviteMembers(inviteMembers.filter(member => member.id !== id));
-  };
+    const handleTogglePrivate = (checked: boolean) => {
+      setIsPrivate(checked);
+      form.setFieldsValue({ isPrivate: checked });
+    };
 
-  const updateInviteMember = (id: string, field: keyof IUser, value: string) => {
-    setInviteMembers(
-      inviteMembers.map(member => (member.id === id ? { ...member, [field]: value } : member)),
-    );
-  };
-
-  const isPrivateWorkspace = visibility === 'private';
-
-  const shareLink = useMemo(() => {
-    const name = form.getFieldValue('name') || 'workspace';
-    if (visibility === 'public') {
-      return `https://crm.example.com/join/${encodeURIComponent(name)}`;
-    }
-    return `https://crm.example.com/invite/${encodeURIComponent(name)}`;
-  }, [form.getFieldValue('name'), visibility]);
-
-  return (
-    <Modal
-      open={isModalOpen}
-      onCancel={closeModal}
-      confirmLoading={creating}
-      title="Thêm workspace mới"
-      onOk={() => form.submit()}
-      destroyOnHidden
-      width={600}
-      style={{
-        top: 20,
-        right: 'calc(-100% + 620px)',
-        margin: 0,
-      }}
-      styles={{
-        body: {
-          maxHeight: '90vh',
-        },
-      }}
-    >
-      <Form
-        layout="vertical"
-        form={form}
-        initialValues={{ icon: 'IconApps', visibility: 'public' }}
-        onFinish={handleFinish}
+    return (
+      <Modal
+        title="Tạo Space mới"
+        open={isModalOpen}
+        onCancel={closeModal}
+        footer={[
+          <Button key="cancel" onClick={closeModal}>
+            Hủy
+          </Button>,
+          <Button key="create" type="primary" onClick={handleSubmit}>
+            Tạo Space
+          </Button>,
+        ]}
+        width={600}
+        centered
+        destroyOnClose
       >
-        <Form.Item label="Icon" name="icon">
-          <SelectIcon />
-        </Form.Item>
-        <Form.Item
-          label="Tên workspace"
-          name="name"
-          rules={[{ required: true, message: 'Vui lòng nhập tên workspace' }]}
-        >
-          <Input placeholder="VD: Công ty A" />
-        </Form.Item>
+        <div style={{ marginBottom: 24, color: "#8c8c8c" }}>
+          <Text>Một Space đại diện cho các nhóm, phòng ban hoặc các nhóm khác, mỗi nhóm có Danh sách, quy trình làm việc và cài đặt riêng.</Text>
+        </div>
 
-        <Form.Item name="visibility" style={{ marginBottom: 24, padding: 0 }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: '#fafafa',
-              borderRadius: 8,
-              padding: '12px 20px',
-              border: '1px solid #f0f0f0',
-            }}
+        <Form layout="vertical" form={form} initialValues={{ permission: "full" }}>
+          <Form.Item
+            label={
+              <span>
+                <span style={{ color: "red" }}>*</span> Tên Space
+              </span>
+            }
+            style={{ marginBottom: 24 }}
           >
-            <div style={{ flex: 1, paddingRight: 24 }}>
-              <div style={{ fontWeight: 600, fontSize: 15 }}>Visibility</div>
-              <div style={{ color: '#888', fontSize: 12 }}>
-                {visibility === 'public'
-                  ? 'Workspace công khai: mọi thành viên đều có thể xem và tham gia.'
-                  : 'Workspace riêng tư: chỉ những người được mời mới có thể truy cập.'}
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', marginLeft: 16 }}>
-              <Switch
-                checked={visibility === 'public'}
-                onChange={checked => {
-                  const newVisibility = checked ? 'public' : 'private';
-                  setVisibility(newVisibility);
-                  form.setFieldsValue({ visibility: newVisibility });
-                  if (checked) {
-                    setInviteMembers([]);
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </Form.Item>
-
-        {/* Member Invitation Section - Only show for private workspaces */}
-        {isPrivateWorkspace && (
-          <Form.Item label="Mời thành viên" style={{ marginBottom: 24 }}>
-            <div
-              style={{
-                background: '#fafafa',
-                borderRadius: 8,
-                padding: '16px',
-                border: '1px solid #f0f0f0',
-              }}
-            >
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>
-                  Thêm thành viên vào workspace
-                </div>
-                <div style={{ color: '#888', fontSize: 12 }}>
-                  Bạn sẽ là owner của workspace. Mời các thành viên khác với role admin hoặc member.
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'flex-start' }}>
-                <Select
-                  showSearch
-                  placeholder="Tìm email thành viên"
-                  style={{ flex: 1 }}
-                  loading={usersLoading}
-                  filterOption={(input, option) =>
-                    (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ||
-                    (option?.value as string)?.toLowerCase().includes(input.toLowerCase())
-                  }
-                  options={
-                    usersData?.data
-                      ?.filter((u: any) => !inviteMembers.some(m => m.email === u.email))
-                      .map((user: any) => ({
-                        label: `${user.email} (${user.name || ''})`,
-                        value: user.email,
-                      })) || []
-                  }
-                  value={inviteMembers.map(m => m.email)}
-                  onChange={(values: string[]) => {
-                    const map = new Map(inviteMembers.map(m => [m.email, m]));
-                    const next = values.map(
-                      (email, idx) =>
-                        map.get(email) ?? {
-                          id: Date.now().toString() + idx,
-                          email,
-                          role: 'member',
-                        },
-                    );
-                    setInviteMembers(next as typeof inviteMembers);
-                  }}
-                  mode="multiple"
-                  maxTagCount={1}
-                  maxTagPlaceholder={omittedValues => (
-                    <span style={{ color: '#1890ff', fontWeight: 600 }}>
-                      +{omittedValues.length}
-                    </span>
-                  )}
-                  maxTagTextLength={20}
-                />
-              </div>
-
-              <div
-                style={{
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <Form.Item name="icon" noStyle style={{ marginBottom: 0 }}>
+                <div style={{
+                  height: 40,
+                  width: 56,
+                  minWidth: 56,
+                  border: '1px solid #e0e0e0',
+                  borderRadius: 8,
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8,
-                  maxHeight: 190,
-                  overflowY: 'auto',
-                  marginBottom: 4,
-                }}
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 0
+                }}>
+                  <SelectIcon
+                    value={form.getFieldValue("icon")}
+                    onChange={(icon: string) => form.setFieldsValue({ icon })}
+                    size={28}
+                  />
+                </div>
+              </Form.Item>
+              <Form.Item
+                name="name"
+                rules={[{ required: true, message: "Vui lòng nhập tên Space" }]}
+                style={{ marginBottom: 0, width: '100%' }}
               >
-                {inviteMembers.length === 0 ? (
-                  <div style={{ color: '#aaa', fontSize: 13 }}>
-                    Chưa có thành viên nào được mời.
-                  </div>
-                ) : (
-                  inviteMembers.map(member => (
-                    <div
-                      key={member.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        padding: '8px 12px',
-                        borderRadius: 8,
-                        background: '#fff',
-                        border: '1px solid #f0f0f0',
-                      }}
-                    >
-                      <Avatar style={{ background: '#1890ff' }} src={member.avatar}>
-                        {member.email ? member.email.charAt(0).toUpperCase() : '?'}
-                      </Avatar>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontWeight: 600,
-                            fontSize: 13,
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {member.email}
-                        </div>
-                        <div style={{ color: '#888', fontSize: 12 }}>Invited</div>
-                      </div>
-
-                      <Select
-                        value={member.role}
-                        onChange={value => updateInviteMember(member.id, 'role', value)}
-                        style={{ width: 110 }}
-                        size="small"
-                      >
-                        <Option value="admin">Admin</Option>
-                        <Option value="member">Member</Option>
-                      </Select>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Tooltip title="Xóa">
-                          <Button
-                            type="text"
-                            danger
-                            icon={<IconTrash size={16} />}
-                            onClick={() => removeInviteMember(member.id)}
-                          />
-                        </Tooltip>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                <Input placeholder="VD: Marketing, Kỹ thuật, HR" style={{ height: 44, fontSize: 16, borderRadius: 8, background: '#fff', border: '1px solid #e0e0e0' }} />
+              </Form.Item>
             </div>
           </Form.Item>
-        )}
 
-        <Form.Item label="Share link" style={{ marginBottom: 0 }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: '#f5f5f5',
-              border: '1px solid #e0e0e0',
-              borderRadius: 8,
-              padding: '6px 12px',
-              gap: 8,
-            }}
-          >
-            <IconLink size={18} color="#1890ff" />
-            <Input
-              value={shareLink}
-              readOnly
-              style={{
-                background: 'transparent',
-                border: 'none',
-                fontWeight: 500,
-                color: '#555',
-                boxShadow: 'none',
-                paddingLeft: 0,
-              }}
-            />
-            <Tooltip title="Sao chép link">
-              <Button
-                type="text"
-                icon={
-                  copied ? (
-                    <IconCopyCheckFilled
-                      size={18}
-                      color="#52c41a"
-                      style={{ transition: 'color 0.2s' }}
-                    />
-                  ) : (
-                    <IconCopy size={18} color="#1890ff" />
-                  )
+          <Form.Item label="Mô tả (tùy chọn)" name="description" style={{ marginBottom: 24 }}>
+            <Input.TextArea rows={2} placeholder="Nhập mô tả cho Space (không bắt buộc)" />
+          </Form.Item>
+
+          {!isPrivate && (
+            <Form.Item style={{ marginBottom: 24 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                <span style={{ fontWeight: 500, fontSize: 16 }}>
+                  Quyền mặc định
+                  <Tooltip
+                    title={
+                      <div>
+                        <p>
+                          <strong>Toàn quyền chỉnh sửa</strong>
+                          <br />
+                          Có thể tạo và chỉnh sửa các thực thể trong Space này. Chủ sở hữu và quản trị viên có thể quản lý cài đặt Space.
+                        </p>
+                        <p>
+                          <strong>Chỉnh sửa</strong>
+                          <br />
+                          Có thể tạo và chỉnh sửa các thực thể trong Space này. Không thể quản lý cài đặt Space hoặc xóa các thực thể.
+                        </p>
+                        <p>
+                          <strong>Bình luận</strong>
+                          <br />
+                          Có thể bình luận về các thực thể trong Space này. Không thể quản lý cài đặt Space hoặc chỉnh sửa các thực thể.
+                        </p>
+                        <p>
+                          <strong>Chỉ xem</strong>
+                          <br />
+                          Chỉ đọc. Không thể chỉnh sửa hoặc bình luận về các thực thể trong Space này ngoài Chat. Có thể cộng tác trong Chat.
+                        </p>
+                      </div>
+                    }
+                  >
+                    <InfoCircleOutlined style={{ marginLeft: 4, color: "#8c8c8c" }} />
+                  </Tooltip>
+                </span>
+                <Form.Item name="permission" noStyle>
+                  <Select
+                    style={{ width: 150 }}
+                    options={[
+                      { value: "full", label: "Toàn quyền chỉnh sửa" },
+                      { value: "edit", label: "Chỉnh sửa" },
+                      { value: "comment", label: "Bình luận" },
+                      { value: "view", label: "Chỉ xem" },
+                    ]}
+                  />
+                </Form.Item>
+              </div>
+            </Form.Item>
+          )}
+
+          <Form.Item style={{ marginBottom: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <Text strong>Tạo Space riêng tư</Text>
+                <br />
+                <Text type="secondary">Chỉ bạn và các thành viên được mời có quyền truy cập</Text>
+              </div>
+              <Switch checked={isPrivate} onChange={handleTogglePrivate} />
+            </div>
+          </Form.Item>
+
+          {isPrivate && (
+            <Form.Item
+              label="Chia sẻ chỉ với:"
+              name="inviteMembers"
+              style={{ marginTop: 12 }}
+            >
+              <Select
+                mode="multiple"
+                style={{ width: "100%" }}
+                placeholder="Nhập email thành viên để mời"
+                value={inviteMembers.map((m) => m.email)}
+                onChange={(emails) => {
+                  const newMembers = emails.map((email) => ({
+                    id: email,
+                    email: email,
+                    name: "",
+                    username: "",
+                    phone: "",
+                    role: UserRole.CNBM,
+                    dateOfBirth: "",
+                    avatar: "",
+                    major: "",
+                    isActive: true,
+                    assignedActivities: [],
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  }));
+                  setInviteMembers(newMembers);
+                }}
+                options={
+                  Array.isArray(usersData?.data)
+                    ? (usersData.data as IUser[]).map((u) => ({
+                        value: u.email,
+                        label: u.email,
+                      }))
+                    : []
                 }
-                onClick={handleCopy}
-                style={{
-                  color: copied ? '#52c41a' : '#1890ff',
-                  fontWeight: 600,
-                  marginLeft: 4,
-                }}
-                styles={{
-                  icon: {
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  },
-                }}
               />
-            </Tooltip>
-          </div>
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
-};
+            </Form.Item>
+          )}
+        </Form>
+      </Modal>
+    );
+  };
 
-export default ModalAddWorkspace;
+  export default ModalAddWorkspace;
