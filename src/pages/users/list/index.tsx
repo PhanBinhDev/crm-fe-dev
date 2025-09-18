@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useTable } from '@refinedev/antd';
-import { Card, Row, Col } from 'antd';
-import { UserFilters, UserTable, UserActions } from './components';
-import type { IUser } from '@/common/types';
 import { UserRole } from '@/common/enum/user';
+import type { IUser } from '@/common/types';
+import { useTable } from '@refinedev/antd';
+import { Card, Col, Row } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { UserActions, UserFilters, UserTable } from './components';
 
 export const UserList = () => {
   const [searchText, setSearchText] = useState('');
@@ -66,7 +66,6 @@ export const UserList = () => {
     if (location.state?.reload && tableQueryResult?.refetch) {
       tableQueryResult.refetch();
     }
-
   }, [location.state, tableQueryResult]);
 
   return (
