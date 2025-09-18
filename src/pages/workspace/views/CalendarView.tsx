@@ -1,4 +1,5 @@
 import { IActivity, IStage } from '@/common/types';
+import { useModal } from '@/hooks/useModal';
 import { IconPlayerRecordFilled } from '@tabler/icons-react';
 import { Calendar, Space, Typography } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
@@ -10,6 +11,7 @@ interface CalendarViewProps {
 }
 
 const CalendarView = ({ stages, activities }: CalendarViewProps) => {
+  const { openModal } = useModal();
   const dateCellRender = (value: Dayjs) => {
     const date = value.format('YYYY-MM-DD');
     const dayTasks = activities.filter(
@@ -24,21 +26,32 @@ const CalendarView = ({ stages, activities }: CalendarViewProps) => {
               <div
                 style={{
                   display: 'flex',
-                  gap: '4px',
                   alignItems: 'center',
+                  gap: '4px',
                   backgroundColor: stages.find(s => s.id === task.stageId)?.color || 'blue',
-                  padding: '4px 8px 4px 6px',
+                  padding: '2px 5px',
                   borderRadius: '6px',
+                  maxWidth: '100%',
                 }}
+                onClick={() => openModal('ModalEditActivity', { activity: task })}
               >
-                <IconPlayerRecordFilled size={7} color="#fff" />
+                <IconPlayerRecordFilled size={10} color="#fff" />
                 <Text
                   style={{
                     fontSize: 12,
-                    lineHeight: '13px',
                     color: '#fff',
                     fontWeight: 600,
                     cursor: 'pointer',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 1,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'normal',
+                    lineHeight: '1.4em',
+                    maxHeight: '1.4em',
+                    flex: 1,
+                    minWidth: 0,
                   }}
                 >
                   {task.name}

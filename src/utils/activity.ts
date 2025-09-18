@@ -237,29 +237,29 @@ export const getInitials = (name: any) => {
 
 
 // useVisibleColumns.ts
-
-export function useVisibleColumns(
+export function useLocalStorageState<T>(
   storageKey: string,
-  defaultColumns: string[]
+  defaultValue: T
 ) {
-  const loadVisibleColumns = (): string[] => {
+  const loadValue = (): T => {
     try {
       const saved = localStorage.getItem(storageKey);
-      return saved ? JSON.parse(saved) : defaultColumns;
+      return saved ? JSON.parse(saved) : defaultValue;
     } catch {
-      return defaultColumns;
+      return defaultValue;
     }
   };
 
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(loadVisibleColumns);
+  const [value, setValue] = useState<T>(loadValue);
 
   useEffect(() => {
     try {
-      localStorage.setItem(storageKey, JSON.stringify(visibleColumns));
+      localStorage.setItem(storageKey, JSON.stringify(value));
     } catch (error) {
-      console.warn("Could not save column visibility to localStorage:", error);
+      console.warn("Could not save setting to localStorage:", error);
     }
-  }, [storageKey, visibleColumns]);
+  }, [storageKey, value]);
 
-  return { visibleColumns, setVisibleColumns };
+  return { value, setValue };
 }
+

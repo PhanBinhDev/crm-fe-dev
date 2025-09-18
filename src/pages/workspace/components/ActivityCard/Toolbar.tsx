@@ -28,6 +28,7 @@ const ToolbarActivityCard = ({ activity, isCompletedStage }: ToolbarActivityCard
         alignItems: 'center',
         justifyContent: 'center',
       }}
+      onClick={e => e.stopPropagation()}
       onMouseDown={e => e.stopPropagation()}
       onPointerDown={e => e.stopPropagation()}
     >
