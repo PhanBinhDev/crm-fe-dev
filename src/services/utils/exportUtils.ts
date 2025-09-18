@@ -2,7 +2,7 @@ import { IUser } from '@/common/types';
 import * as XLSX from 'xlsx';
 
 // Định nghĩa các trường đúng thứ tự backend yêu cầu
-const USER_IMPORT_FIELDS = [
+export const USER_IMPORT_FIELDS = [
   { key: 'name', label: 'Name', example: 'Nguyen Van A' },
   { key: 'username', label: 'Username', example: 'nguyenvana' },
   { key: 'email', label: 'Email', example: 'nguyenvana@example.com' },

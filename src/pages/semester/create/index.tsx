@@ -1,6 +1,6 @@
 import { Create } from '@refinedev/antd';
 import { useDataProvider, useInvalidate } from '@refinedev/core';
-import { App, Card, Form } from 'antd';
+import { App, Form } from 'antd';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SemesterForm from '../components/form';
@@ -8,8 +8,8 @@ import SemesterForm from '../components/form';
 interface ISemesterCreateDTO {
   name: string;
   year: number;
-  startDate: string; 
-  endDate: string;   
+  startDate: string;
+  endDate: string;
   status: 'Ongoing' | 'Completed' | 'Upcoming';
   description?: string;
   blocks?: { name: string }[];
@@ -57,7 +57,7 @@ export const SemesterCreatePage: React.FC = () => {
           } else {
             if (end < start) {
               invalids.push(`Kỳ ${i.name}: ngày kết thúc phải ≥ ngày bắt đầu`);
-            }    
+            }
           }
         }
 
@@ -69,13 +69,11 @@ export const SemesterCreatePage: React.FC = () => {
           message: 'Dữ liệu không hợp lệ',
           description: invalids.join('; '),
         });
-        return; 
+        return;
       }
 
       await Promise.all(
-        items.map((payload) =>
-          dataProvider.create({ resource: RESOURCE, variables: payload })
-        )
+        items.map(payload => dataProvider.create({ resource: RESOURCE, variables: payload })),
       );
 
       notification.success({
