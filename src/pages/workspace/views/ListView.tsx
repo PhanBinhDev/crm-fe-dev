@@ -6,7 +6,7 @@ import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useModal } from '@/hooks/useModal';
 import '@/styles/table-list.css';
 import { getActivityPriorityColor, getActivityPriorityLabel } from '@/utils';
-import { getColorFromName, getInitials, useVisibleColumns } from '@/utils/activity';
+import { getColorFromName, getInitials, useLocalStorageState } from '@/utils/activity';
 
 import {
   AppstoreAddOutlined,
@@ -265,7 +265,7 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
   ];
 
   const defaultColumn = ['stt', 'name', 'assignees', 'stageId', 'priority', 'endTime'];
-  const { visibleColumns, setVisibleColumns } = useVisibleColumns(
+  const { value: visibleColumns, setValue: setVisibleColumns } = useLocalStorageState(
     'litView-visibleColumns',
     defaultColumn,
   );
@@ -377,6 +377,13 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
             scroll={{ x: 1200 }}
             tableLayout="fixed"
             pagination={false}
+            onRow={record => {
+              return {
+                onClick: () => {
+                  openModal('ModalEditActivity', { activity: record });
+                },
+              };
+            }}
           />
           {tasks && tasks.length > 0 && (
             <div className="px-6 py-3 bg-white border-t border-gray-100"></div>
