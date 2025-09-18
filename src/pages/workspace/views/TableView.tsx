@@ -2,6 +2,7 @@ import { ActivityPriority, ActivityStatus } from '@/common/enum/activity';
 import { IActivity, IStage, IUser } from '@/common/types';
 import { ColorPicker } from '@/components/shared/ColorPicker';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { useModal } from '@/hooks/useModal';
 import '@/styles/table-list.css';
 import {
   getActivityPriorityColor,
@@ -9,7 +10,7 @@ import {
   getActivityStatusLabel,
   getColorFromName,
   getInitials,
-  useVisibleColumns,
+  useLocalStorageState,
 } from '@/utils/activity';
 import {
   AppstoreAddOutlined,
@@ -46,6 +47,7 @@ interface TableViewProps {
 }
 
 const TableView = ({ stages, activities, users }: TableViewProps) => {
+  const { openModal } = useModal();
   const [dataSource, setDataSource] = useState<IActivity[]>(activities);
 
   const sensors = useSensors(
@@ -391,7 +393,7 @@ const TableView = ({ stages, activities, users }: TableViewProps) => {
   ];
 
   const defaultColumn = ['stt', 'name', 'assignees', 'stageId', 'priority', 'endTime'];
-  const { visibleColumns, setVisibleColumns } = useVisibleColumns(
+  const { value: visibleColumns, setValue: setVisibleColumns } = useLocalStorageState(
     'tableView-visibleColumns',
     defaultColumn,
   );
@@ -455,6 +457,13 @@ const TableView = ({ stages, activities, users }: TableViewProps) => {
               },
             }}
             pagination={false}
+            onRow={record => {
+              return {
+                onClick: () => {
+                  openModal('ModalEditActivity', { activity: record });
+                },
+              };
+            }}
           />
         </SortableContext>
       </DndContext>
