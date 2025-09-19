@@ -1,5 +1,3 @@
-import { Modal, Form, Input, Select, DatePicker, InputNumber, message, Space, Button, Tooltip } from 'antd';
-import { useEffect } from 'react';
 import { useModal } from '@/hooks/useModal';
 import {
   IconLayoutSidebarLeftCollapse,
@@ -12,11 +10,11 @@ import {
 import { Button, Layout, Modal, Space, Tooltip, Typography } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 
-const { Option } = Select;
-const { TextArea } = Input;
+const { Text } = Typography;
+const { Header, Sider, Content } = Layout;
 
 const ModalEditActivity = () => {
-  const { isOpen, type, closeModal } = useModal();
+  const { isOpen, type, closeModal, data } = useModal();
   const isOpenModal = isOpen && type === 'ModalEditActivity';
   const [collapsedLeft, setCollapsedLeft] = useState(false);
   const [collapsedRight, setCollapsedRight] = useState(false);

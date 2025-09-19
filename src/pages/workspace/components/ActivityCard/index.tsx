@@ -221,10 +221,10 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage }: ActivityCardProp
       )} */}
 
       {showActions && (
-        <ToolbarActivityCard 
-          activity={activity} 
-          isCompletedStage={!!isCompletedStage} 
-          stages={stages}
+        <ToolbarActivityCard
+          activity={activity}
+          isCompletedStage={!!isCompletedStage}
+          stages={[]}
         />
       )}
     </Card>
