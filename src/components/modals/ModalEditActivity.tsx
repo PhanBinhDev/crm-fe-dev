@@ -1,4 +1,6 @@
+import { IActivity } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
+import ActivityDetailSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailSidebar';
 import {
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftCollapseFilled,
@@ -20,6 +22,8 @@ const ModalEditActivity = () => {
   const [collapsedRight, setCollapsedRight] = useState(false);
   const layoutRef = useRef<HTMLDivElement>(null);
   const [isOverlay, setIsOverlay] = useState(false);
+
+  const { activity } = (data as { activity: IActivity }) || {};
 
   useEffect(() => {
     const checkWidth = () => {
@@ -144,12 +148,11 @@ const ModalEditActivity = () => {
             minHeight: 0,
           }}
         >
-          {/* Left Sidebar */}
           <Sider
             collapsed={collapsedLeft}
             collapsible
             trigger={null}
-            width={200}
+            width={300}
             collapsedWidth={0}
             style={{
               background: '#fff',
@@ -171,7 +174,9 @@ const ModalEditActivity = () => {
                     transition: 'width 0.2s ease',
                   }),
             }}
-          />
+          >
+            <ActivityDetailSidebar activity={activity} />
+          </Sider>
 
           {/* Main Content */}
           <Content
