@@ -12,6 +12,7 @@ import { Button, Card, Col, message, Space, Tooltip, Typography } from 'antd';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ActivityCard from './ActivityCard';
 import MoreOptionColumn from './MoreOptionColumn';
+import ModalEditStatuses from './ModalEditStatuses';
 
 const { Text } = Typography;
 
@@ -27,6 +28,8 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
   const [editTitle, setEditTitle] = useState(stage.title);
   const [collapsed, setCollapsed] = useState(false);
   const [hoverHeader, setHoverHeader] = useState(false);
+
+  const [editStatusesOpen, setEditStatusesOpen] = useState(false);
 
   const { mutate: updateStage } = useUpdate<IStage>();
 
@@ -230,6 +233,11 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
               collapsed={collapsed}
               onCollapseGroup={() => setCollapsed(v => !v)}
               onAddActivity={() => openModal('ModalAddActivity', { stageId: stage.id })}
+              onEditStatuses={() => setEditStatusesOpen(true)}
+            />
+            <ModalEditStatuses
+              open={editStatusesOpen}
+              onCancel={() => setEditStatusesOpen(false)}
             />
           </div>
         }

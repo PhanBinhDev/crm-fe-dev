@@ -7,6 +7,7 @@ interface MoreOptionColumnProps {
   collapsed: boolean;
   onCollapseGroup: () => void;
   onAddActivity: () => void;
+  onEditStatuses: () => void;
 }
 
 const MoreOptionColumn = ({
@@ -14,6 +15,7 @@ const MoreOptionColumn = ({
   onEditColumn,
   onCollapseGroup,
   onAddActivity,
+  onEditStatuses,
 }: MoreOptionColumnProps) => {
   const [open, setOpen] = useState(false);
 
@@ -90,6 +92,27 @@ const MoreOptionColumn = ({
       >
         <IconPlus size={14} color="#8c8c8c" />
         Thêm hoạt động
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          padding: '4px 8px',
+          cursor: 'pointer',
+          borderRadius: 5,
+          fontSize: 14,
+          transition: 'background 0.2s',
+        }}
+        onClick={() => {
+          onEditStatuses?.(); 
+          setOpen(false);
+        }}
+        onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f5')}
+        onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+      >
+        <IconPencil size={14} color="#8c8c8c" />
+        Chỉnh sửa trạng thái
       </div>
     </div>
   );
