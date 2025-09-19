@@ -1,14 +1,87 @@
-import { IActivity } from '@/common/types';
-import { IconCheck, IconPencil, IconPlus } from '@tabler/icons-react';
-import { Button, Tooltip } from 'antd';
+import { IActivity, IStage } from '@/common/types';
+import { IconCheck } from '@tabler/icons-react';
+import { Button, Tooltip, App } from 'antd';
 import ToolbarMoreAction from './ToolbarMoreAction';
+import { ActivityService } from '@/services/api/activity';
+import { useKanbanContext } from '@/contexts/kanban/KanbanContext';
 
 interface ToolbarActivityCardProps {
   activity: IActivity;
   isCompletedStage: boolean;
+  stages?: IStage[];
 }
 
-const ToolbarActivityCard = ({ activity, isCompletedStage }: ToolbarActivityCardProps) => {
+const ToolbarActivityCard = ({ activity, isCompletedStage, stages = [] }: ToolbarActivityCardProps) => {
+  const { message } = App.useApp();
+  
+  // Chỉ sử dụng context khi available
+  let updateLocalActivity: any = null;
+  try {
+    const context = useKanbanContext();
+    updateLocalActivity = context.updateLocalActivity;
+  } catch (error) {
+    // Context không available, không làm gì
+  }
+
+  const handleMarkComplete = async () => {
+    try {
+      console.log('Starting mark complete for activity:', activity.id);
+      
+      // Tìm cột Complete (cột cuối cùng)
+      const sortedStages = [...stages].sort((a, b) => (a.position || 0) - (b.position || 0));
+      const completedStage = sortedStages[sortedStages.length - 1];
+      
+      console.log('Found completed stage:', completedStage);
+
+      // OPTIMISTIC UPDATE: Cập nhật UI ngay lập tức (chỉ khi có context)
+      if (updateLocalActivity) {
+        if (completedStage) {
+          updateLocalActivity(activity.id, {
+            stageId: completedStage.id,
+            status: 'completed'
+          });
+          console.log('Optimistically updated to stage:', completedStage.id, completedStage.title);
+        } else {
+          updateLocalActivity(activity.id, {
+            status: 'completed'
+          });
+        }
+      }
+
+      // API call trong background
+      if (completedStage) {
+        await ActivityService.updateActivity(activity.id, {
+          stageId: completedStage.id
+        } as any);
+        
+        await ActivityService.updateStatus(activity.id, 'completed');
+      } else {
+        await ActivityService.markComplete(activity.id);
+      }
+    } catch (error) {
+      console.error('Mark complete error:', error);
+      
+      // Rollback optimistic update nếu API thất bại (chỉ khi có context)
+      if (updateLocalActivity) {
+        const sortedStages = [...stages].sort((a, b) => (a.position || 0) - (b.position || 0));
+        const completedStage = sortedStages[sortedStages.length - 1];
+        
+        if (completedStage) {
+          updateLocalActivity(activity.id, {
+            stageId: activity.stageId,
+            status: activity.status
+          });
+        } else {
+          updateLocalActivity(activity.id, {
+            status: activity.status
+          });
+        }
+      }
+      
+      message.error('Đánh dấu hoàn thành thất bại');
+    }
+  };
+
   return (
     <div
       style={{
@@ -40,34 +113,14 @@ const ToolbarActivityCard = ({ activity, isCompletedStage }: ToolbarActivityCard
             styles={{
               icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
             }}
-            onClick={() => console.log('Mark complete', activity.id)}
+            onClick={(e) => {
+              console.log('Button clicked!');
+              e.stopPropagation();
+              handleMarkComplete();
+            }}
           />
         </Tooltip>
       )}
-
-      <Tooltip title="Tạo hoạt động phụ">
-        <Button
-          size="small"
-          type="text"
-          icon={<IconPlus size={14} />}
-          styles={{
-            icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
-          }}
-          onClick={() => console.log('Edit', activity.id)}
-        />
-      </Tooltip>
-
-      <Tooltip title="Chỉnh sửa">
-        <Button
-          size="small"
-          type="text"
-          icon={<IconPencil size={14} />}
-          styles={{
-            icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
-          }}
-          onClick={() => console.log('Edit', activity.id)}
-        />
-      </Tooltip>
       <ToolbarMoreAction activity={activity} />
     </div>
   );

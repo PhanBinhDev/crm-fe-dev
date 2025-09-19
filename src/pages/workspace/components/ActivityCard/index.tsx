@@ -1,6 +1,6 @@
-import { IActivity } from '@/common/types';
+import { IActivity, IStage } from '@/common/types';
 import { DragDropType } from '@/constants';
-import { useModal } from '@/hooks/useModal';
+import { useKanbanContext } from '@/contexts/kanban/KanbanContext';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card } from 'antd';
@@ -11,10 +11,10 @@ interface ActivityCardProps {
   activity: IActivity;
   isPortal?: boolean;
   isCompletedStage?: boolean;
+  stages?: IStage[];
 }
 
-const ActivityCard = ({ activity, isPortal, isCompletedStage }: ActivityCardProps) => {
-  const { openModal } = useModal();
+const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: ActivityCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } =
@@ -59,7 +59,6 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage }: ActivityCardProp
 
   return (
     <Card
-      onClick={() => openModal('ModalEditActivity', { activity })}
       style={styles}
       styles={{
         body: {
@@ -85,7 +84,11 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage }: ActivityCardProp
       <h4>{activity.name}</h4>
       <p>{activity.description}</p>
       {showActions && (
-        <ToolbarActivityCard activity={activity} isCompletedStage={!!isCompletedStage} />
+        <ToolbarActivityCard 
+          activity={activity} 
+          isCompletedStage={!!isCompletedStage} 
+          stages={stages}
+        />
       )}
     </Card>
   );

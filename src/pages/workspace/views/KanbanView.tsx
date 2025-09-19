@@ -2,6 +2,7 @@ import { IActivity, IStage } from '@/common/types';
 import { DragDropType } from '@/constants';
 import ActivityCard from '@/pages/workspace/components/ActivityCard';
 import KanbanColumn from '@/pages/workspace/components/KanbanColumn';
+import { KanbanProvider } from '@/contexts/kanban/KanbanContext';
 import {
   DndContext,
   DragEndEvent,
@@ -66,6 +67,31 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
   }, [activities, pendingUpdate, localActivities]);
 
   const { mutate: update } = useUpdate();
+
+  // Context functions để ActivityCard có thể cập nhật localActivities
+  const updateLocalActivity = useCallback((activityId: string, updates: Partial<IActivity>) => {
+    setLocalActivities(prev => 
+      prev.map(activity => 
+        activity.id === activityId 
+          ? { ...activity, ...updates }
+          : activity
+      )
+    );
+  }, []);
+
+  const removeLocalActivity = useCallback((activityId: string) => {
+    setLocalActivities(prev => prev.filter(activity => activity.id !== activityId));
+  }, []);
+
+  const addLocalActivity = useCallback((activity: IActivity) => {
+    setLocalActivities(prev => [...prev, activity]);
+  }, []);
+
+  const kanbanContextValue = {
+    updateLocalActivity,
+    removeLocalActivity,
+    addLocalActivity,
+  };
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -242,12 +268,13 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
   );
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragEnd={handleDragEnd}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-    >
+    <KanbanProvider value={kanbanContextValue}>
+      <DndContext
+        sensors={sensors}
+        onDragEnd={handleDragEnd}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+      >
       <div
         style={{
           overflowX: 'auto',
@@ -273,7 +300,7 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
                 .filter(activity => activity.stageId === stage.id)
                 .sort((a, b) => a.position - b.position);
 
-              return <KanbanColumn key={id} id={id} stage={stage} activities={activityByStage} />;
+              return <KanbanColumn key={id} id={id} stage={stage} activities={activityByStage} allStages={stages} />;
             })}
           </Row>
         </SortableContext>
@@ -286,13 +313,15 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
               id={activeColumn.id}
               stage={activeColumn}
               activities={localActivities.filter(activity => activity.stageId === activeColumn.id)}
+              allStages={stages}
             />
           )}
           {activeCard && <ActivityCard activity={activeCard} isPortal />}
         </DragOverlay>,
         document.body,
       )}
-    </DndContext>
+      </DndContext>
+    </KanbanProvider>
   );
 };
 

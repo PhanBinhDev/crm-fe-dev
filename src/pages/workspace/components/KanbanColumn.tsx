@@ -19,9 +19,10 @@ interface KanbanColumnProps {
   id: string;
   stage: IStage;
   activities: IActivity[];
+  allStages?: IStage[];
 }
 
-const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
+const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnProps) => {
   const [color, setColor] = useState<string | undefined>(stage.color);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editTitle, setEditTitle] = useState(stage.title);
@@ -257,6 +258,7 @@ const KanbanColumn = ({ id, stage, activities }: KanbanColumnProps) => {
                         key={activity.id}
                         activity={activity}
                         isCompletedStage={isCompletedStage}
+                        stages={allStages}
                       />
                     );
                   })}
