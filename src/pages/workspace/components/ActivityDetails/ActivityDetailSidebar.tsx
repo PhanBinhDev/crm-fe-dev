@@ -5,8 +5,6 @@ interface ActivityDetailSidebarProps {
 }
 
 const ActivityDetailSidebar = ({ activity }: ActivityDetailSidebarProps) => {
-  // 
-
   return <div>{activity.name}</div>;
 };
 

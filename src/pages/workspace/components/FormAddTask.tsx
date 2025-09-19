@@ -8,6 +8,7 @@ import {
   IUser,
   ModalAction,
 } from '@/common/types';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { Form, Input, Space } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import AssigneeActivity from './AssigneeActivity';
@@ -34,6 +35,7 @@ interface FormAddTaskProps {
 const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, ref) => {
   const [form] = Form.useForm();
   const actionRef = useRef<ModalAction>();
+  const { currentWorkspace } = useWorkspaces();
 
   useImperativeHandle(ref, () => ({
     submitForm: (action: ModalAction) => {
@@ -184,6 +186,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
         files: attachments,
         subtask: subtasks.filter(task => task.trim()),
         checklist: checklists,
+        workspaceId: currentWorkspace?.id || '',
       };
 
       onSubmit?.({

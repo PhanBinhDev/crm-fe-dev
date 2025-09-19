@@ -64,6 +64,7 @@ export interface FormAddActivityPayload {
   stageId?: string;
   subtask?: string[];
   checklist?: Checklist[];
+  workspaceId: string;
 }
 
 export interface ActivityPriorityLevel {

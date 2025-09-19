@@ -1,5 +1,6 @@
 import { FormAddActivityPayload, FormAddTaskData, ModalAction } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
+import { useWorkspaceStore } from '@/hooks/useWorkspaces';
 import FormAddEvent from '@/pages/workspace/components/FormAddEvent';
 import FormAddReminder from '@/pages/workspace/components/FormAddReminder';
 import FormAddTask from '@/pages/workspace/components/FormAddTask';
@@ -25,6 +26,7 @@ export interface FormAddTaskRef {
 
 const ModalAddActivity = () => {
   const { isOpen, type, closeModal } = useModal();
+  const { currentWorkspace } = useWorkspaceStore();
   const isOpenModal = isOpen && type === 'ModalAddActivity';
 
   const formRef = useRef<FormAddTaskRef>(null);
