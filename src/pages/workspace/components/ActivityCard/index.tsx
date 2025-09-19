@@ -1,4 +1,4 @@
-import { IActivity } from '@/common/types';
+import { IActivity, IStage } from '@/common/types';
 import { DragDropType } from '@/constants';
 import { useDisplayConfig } from '@/contexts/DisplayConfig';
 import { useModal } from '@/hooks/useModal';
@@ -18,6 +18,7 @@ interface ActivityCardProps {
   activity: IActivity;
   isPortal?: boolean;
   isCompletedStage?: boolean;
+  stages?: IStage[];
 }
 
 const ActivityCard = ({ activity, isPortal, isCompletedStage }: ActivityCardProps) => {
@@ -220,7 +221,11 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage }: ActivityCardProp
       )} */}
 
       {showActions && (
-        <ToolbarActivityCard activity={activity} isCompletedStage={!!isCompletedStage} />
+        <ToolbarActivityCard 
+          activity={activity} 
+          isCompletedStage={!!isCompletedStage} 
+          stages={stages}
+        />
       )}
     </Card>
   );

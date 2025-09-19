@@ -234,7 +234,15 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
           <div style={{ display: 'flex', gap: 8 }}>
             <Button
               onClick={handleCancel}
-              style={{ borderRadius: 6, height: 32, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}
+              icon={<IconX size={16} style={{ marginTop: 2 }} />}
+              style={{ 
+                borderRadius: 6, 
+                height: 32, 
+                fontSize: 14,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4
+              }}
             >
               <IconX size={16} style={{ display: 'flex', alignItems: 'center' }} />
               <span style={{ display: 'flex', alignItems: 'center' }}>Hủy</span>
@@ -251,7 +259,7 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
                 borderColor: '#228be6',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6,
+                gap: 4
               }}
             >
               <IconUpload size={16} style={{ display: 'flex', alignItems: 'center' }} />

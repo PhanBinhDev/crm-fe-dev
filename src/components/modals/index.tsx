@@ -1,6 +1,7 @@
 import ModalAddActivity from './ModalAddActivity';
 import ModalAddWorkspace from './ModalAddWorkspace';
 import ModalEditActivity from './ModalEditActivity';
+import ModalRenameActivity from './ModalRenameActivity';
 
 const Modals = () => {
   return (
@@ -8,6 +9,7 @@ const Modals = () => {
       <ModalAddWorkspace />
       <ModalAddActivity />
       <ModalEditActivity />
+      <ModalRenameActivity />
     </>
   );
 };
