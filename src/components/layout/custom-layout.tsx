@@ -1,4 +1,3 @@
-import { AppHeader } from '@/components/shared/Header';
 import { getResourcesByRole, ResourceConfig } from '@/config/resources';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
@@ -9,6 +8,7 @@ import type { MenuProps } from 'antd';
 import { Breadcrumb, Layout, Menu, theme } from 'antd';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { AppHeader } from '../shared/header';
 
 const { Content, Sider } = Layout;
 

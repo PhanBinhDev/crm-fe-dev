@@ -13,7 +13,7 @@ const ModalEditStatuses = ({ open, onCancel }: ModalEditStatusesProps) => {
       open={open}
       onCancel={onCancel}
       footer={null}
-      width={800}
+      width={550}
       destroyOnClose
     >
       <StageSettings />

@@ -90,13 +90,13 @@ export const StageSettings: React.FC = () => {
   };
 
   return (
-    <div style={{ height: '100%' }}>
+    <div style={{ height: '100%'}}>
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '20px',
+          marginBottom: '12px',
         }}
       >
         <div>
