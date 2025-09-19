@@ -204,21 +204,8 @@ const ModalEditActivity = () => {
               background: '#fff',
               borderLeft: '1px solid #f0f0f0',
               overflow: 'hidden',
-              ...(isOverlay
-                ? {
-                    position: 'absolute',
-                    right: 0,
-                    top: 0,
-                    bottom: 0,
-                    zIndex: 10,
-                    transition: 'all 0.2s ease',
-                    transform: collapsedRight ? 'translateX(100%)' : 'translateX(0)',
-                    boxShadow: collapsedRight ? 'none' : '-4px 0 8px rgba(0,0,0,0.06)',
-                  }
-                : {
-                    position: 'relative',
-                    transition: 'width 0.2s ease',
-                  }),
+              position: 'relative',
+              transition: 'width 0.2s ease',
             }}
           />
           <div
@@ -228,7 +215,7 @@ const ModalEditActivity = () => {
               borderLeft: !collapsedRight ? '1px solid #f0f0f0' : 'none',
             }}
           >
-            <Tooltip title={collapsedRight ? 'Mở sidebar' : 'Ẩn sidebar'}>
+            <Tooltip title={collapsedRight ? 'Mở hoạt động' : 'Ẩn hoạt động'}>
               <Button
                 type="text"
                 icon={
