@@ -1,5 +1,5 @@
 import { IActivity, IStage } from '@/common/types';
-import { DragDropType } from '@/constants';
+import { DragDropType, getPriorityLabel } from '@/constants';
 import { useDisplayConfig } from '@/contexts/DisplayConfig';
 import { useModal } from '@/hooks/useModal';
 import { getActivityPriorityColor } from '@/utils';
@@ -7,7 +7,7 @@ import { CalendarOutlined, HourglassOutlined, UserOutlined } from '@ant-design/i
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { IconLabelFilled } from '@tabler/icons-react';
-import { Avatar, Card, Tooltip, Typography } from 'antd';
+import { Avatar, Card, Progress, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import ToolbarActivityCard from './Toolbar';
@@ -90,17 +90,19 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage }: ActivityCardProp
     >
       <div style={{ width: '100%', position: 'relative', marginBottom: 3 }}>
         {config.showPriority && activity.priority ? (
-          <div
-            style={{
-              position: 'absolute',
-              top: -12,
-              left: -15,
-              // transform: 'rotate(90deg)',
-              // transformOrigin: 'center',
-            }}
-          >
-            <IconLabelFilled color={getActivityPriorityColor(activity.priority)} size={20} />
-          </div>
+          <Tooltip title={getPriorityLabel(activity.priority)}>
+            <div
+              style={{
+                position: 'absolute',
+                top: -18,
+                left: -16,
+                transform: 'rotate(90deg)',
+                transformOrigin: 'center',
+              }}
+            >
+              <IconLabelFilled color={getActivityPriorityColor(activity.priority)} size={20} />
+            </div>
+          </Tooltip>
         ) : (
           ''
         )}
@@ -216,9 +218,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage }: ActivityCardProp
       )}
 
       {/* Progress */}
-      {/* {config.showProgress && (
-        <Progress percent={activity.progress || 0} size="small" style={{ marginBottom: 8 }} />
-      )} */}
+      {config.showProgress && <Progress percent={activity.progress || 0} size="small" />}
 
       {showActions && (
         <ToolbarActivityCard

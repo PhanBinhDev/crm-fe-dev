@@ -39,6 +39,11 @@ const KanbanWorkspaces = () => {
         operator: 'eq',
         value: searchValue,
       },
+      // {
+      //   field: 'includeSubtasks',
+      //   operator: 'eq',
+      //   value: true,
+      // },
     ],
   });
 

@@ -6,7 +6,7 @@ import {
   PercentageOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Divider, Radio, Slider, Switch, Typography } from 'antd';
+import { Switch, Typography } from 'antd';
 import React from 'react';
 
 const { Text, Title } = Typography;
@@ -58,7 +58,7 @@ export const DisplaySettings: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '20px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+    <div style={{ padding: '20px', maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
       {/* Card Fields */}
       <div style={{ marginBottom: '24px' }}>
         <Title level={5} style={{ margin: '0 0 16px 0', fontSize: '14px', fontWeight: 600 }}>
@@ -98,45 +98,6 @@ export const DisplaySettings: React.FC = () => {
             </div>
           </div>
         ))}
-      </div>
-
-      <Divider style={{ margin: '24px 0' }} />
-
-      {/* Card Layout */}
-      <div style={{ marginBottom: '24px' }}>
-        <Title level={5} style={{ margin: '0 0 16px 0', fontSize: '14px', fontWeight: 600 }}>
-          Kích thước card
-        </Title>
-        <Radio.Group
-          value={config.cardSize}
-          onChange={e => handleConfigChange('cardSize', e.target.value)}
-          style={{ width: '100%' }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Radio value="small">Compact</Radio>
-            <Radio value="medium">Bình thường</Radio>
-            <Radio value="large">Chi tiết</Radio>
-          </div>
-        </Radio.Group>
-      </div>
-
-      <Divider style={{ margin: '24px 0' }} />
-
-      {/* Cards per column */}
-      <div>
-        <Title level={5} style={{ margin: '0 0 16px 0', fontSize: '14px', fontWeight: 600 }}>
-          Số card tối đa mỗi cột
-        </Title>
-        <div style={{ padding: '0 8px' }}>
-          <Slider
-            min={5}
-            max={50}
-            value={config.cardsPerColumn}
-            onChange={value => handleConfigChange('cardsPerColumn', value)}
-            marks={{ 5: '5', 10: '10', 20: '20', 50: '50+' }}
-            tooltip={{ formatter: value => `${value} cards` }}
-          />
-        </div>
       </div>
     </div>
   );

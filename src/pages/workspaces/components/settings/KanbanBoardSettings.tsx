@@ -1,14 +1,6 @@
-import React, { useState } from 'react';
+import { EyeOutlined, UserOutlined } from '@ant-design/icons';
 import { Tabs } from 'antd';
-import {
-  AppstoreOutlined,
-  EyeOutlined,
-  FilterOutlined,
-  TagsOutlined,
-  UserOutlined,
-  BellOutlined,
-} from '@ant-design/icons';
-import { StageSettings } from './stages/StageSettings';
+import React, { useState } from 'react';
 import { DisplaySettings } from './DisplaySettings';
 
 export const KanbanBoardSettings: React.FC = () => {
@@ -34,16 +26,6 @@ export const KanbanBoardSettings: React.FC = () => {
 
   const tabItems = [
     {
-      key: 'stages',
-      label: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
-          <AppstoreOutlined style={{ fontSize: '14px' }} />
-          Trạng thái
-        </span>
-      ),
-      children: <StageSettings />,
-    },
-    {
       key: 'fields',
       label: (
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
@@ -54,26 +36,6 @@ export const KanbanBoardSettings: React.FC = () => {
       children: <DisplaySettings />,
     },
     {
-      key: 'filters',
-      label: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
-          <FilterOutlined style={{ fontSize: '14px' }} />
-          Bộ lọc
-        </span>
-      ),
-      children: comingSoonContent(<FilterOutlined />, 'Cài đặt bộ lọc sẽ có sớm...'),
-    },
-    {
-      key: 'labels',
-      label: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
-          <TagsOutlined style={{ fontSize: '14px' }} />
-          Nhãn
-        </span>
-      ),
-      children: comingSoonContent(<TagsOutlined />, 'Quản lý nhãn sẽ có sớm...'),
-    },
-    {
       key: 'permissions',
       label: (
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
@@ -82,16 +44,6 @@ export const KanbanBoardSettings: React.FC = () => {
         </span>
       ),
       children: comingSoonContent(<UserOutlined />, 'Cài đặt phân quyền sẽ có sớm...'),
-    },
-    {
-      key: 'automation',
-      label: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
-          <BellOutlined style={{ fontSize: '14px' }} />
-          Tự động
-        </span>
-      ),
-      children: comingSoonContent(<BellOutlined />, 'Tự động hóa sẽ có sớm...'),
     },
   ];
 

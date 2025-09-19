@@ -30,7 +30,7 @@ const SettingsActivities = () => {
 
       <Drawer
         title="Cài đặt Kanban Board"
-        width={550}
+        width={450}
         open={settingsDrawerVisible}
         onClose={() => setSettingsDrawerVisible(false)}
         mask={true}
@@ -38,7 +38,7 @@ const SettingsActivities = () => {
         styles={{
           body: {
             padding: 0,
-            height: '100%',
+            height: 'fit-content',
           },
           mask: {
             backgroundColor: 'rgba(0, 0, 0, 0.45)',
