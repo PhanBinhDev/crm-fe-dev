@@ -8,7 +8,7 @@ export interface DisplayConfig {
   showPriority: boolean;
   showDescription: boolean;
   showProgress: boolean;
-  cardSize: 'compact' | 'normal' | 'detailed';
+  cardSize: 'small' | 'medium' | 'large';
   cardsPerColumn: number;
 }
 
@@ -19,7 +19,7 @@ export const defaultConfig: DisplayConfig = {
   showPriority: true,
   showDescription: false,
   showProgress: false,
-  cardSize: 'normal',
+  cardSize: 'medium',
   cardsPerColumn: 10,
 };
 

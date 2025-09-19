@@ -113,9 +113,9 @@ export const DisplaySettings: React.FC = () => {
           style={{ width: '100%' }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Radio value="compact">Compact</Radio>
-            <Radio value="normal">Bình thường</Radio>
-            <Radio value="detailed">Chi tiết</Radio>
+            <Radio value="small">Compact</Radio>
+            <Radio value="medium">Bình thường</Radio>
+            <Radio value="large">Chi tiết</Radio>
           </div>
         </Radio.Group>
       </div>
