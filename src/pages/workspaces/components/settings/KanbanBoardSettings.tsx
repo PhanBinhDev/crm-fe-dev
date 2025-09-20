@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { DisplaySettings } from './DisplaySettings';
 
 export const KanbanBoardSettings: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('stages');
+  const [activeTab, setActiveTab] = useState('fields');
 
   const comingSoonContent = (icon: React.ReactNode, text: string) => (
     <div

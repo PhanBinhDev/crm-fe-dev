@@ -1,4 +1,4 @@
-import { IActivity, IStage, IUser } from '@/common/types';
+import { IActivity, IStage, IUser, IWorkspace } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import FilterActivities from '@/pages/workspace/components/FilterActivities';
 import SearchActivities from '@/pages/workspace/components/SearchActivities';
@@ -7,10 +7,11 @@ import CalendarView from '@/pages/workspace/views/CalendarView';
 import KanbanView from '@/pages/workspace/views/KanbanView';
 import ListView from '@/pages/workspace/views/ListView';
 import TableView from '@/pages/workspace/views/TableView';
-import { useList } from '@refinedev/core';
+import { useList, useOne } from '@refinedev/core';
 import { IconCalendar, IconLayoutKanban, IconList, IconPlus, IconTable } from '@tabler/icons-react';
-import { Button, Space, Tabs, Tooltip } from 'antd';
+import { Button, Space, Spin, Tabs, Tooltip } from 'antd';
 import { useCallback, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 type TabKey = 'kanban' | 'list' | 'calendar' | 'table';
 
@@ -18,16 +19,27 @@ const KanbanWorkspaces = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('kanban');
   const [searchValue, setSearchValue] = useState<string>('');
 
+  const { workspaceId } = useParams();
+
   const { openModal } = useModal();
 
   const onSearch = useCallback((value: string) => {
     setSearchValue(value);
   }, []);
 
+  const { data: workspaceData, isLoading: isLoadingWorkspace } = useOne<IWorkspace>({
+    resource: 'workspaces',
+    id: workspaceId || '',
+    queryOptions: { enabled: !!workspaceId },
+  });
+
   const { data: stagesData } = useList<IStage>({
     resource: 'stages',
     pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
+    queryOptions: {
+      enabled: !!workspaceData?.data.id,
+    },
   });
 
   const { data: activitiesData } = useList<IActivity>({
@@ -39,19 +51,38 @@ const KanbanWorkspaces = () => {
         operator: 'eq',
         value: searchValue,
       },
-      // {
-      //   field: 'includeSubtasks',
-      //   operator: 'eq',
-      //   value: true,
-      // },
+      {
+        field: 'includeSubTasks',
+        operator: 'eq',
+        value: true,
+      },
+      {
+        field: 'workspaceId',
+        operator: 'eq',
+        value: workspaceData?.data.id,
+      },
     ],
+    queryOptions: {
+      enabled: !!workspaceData?.data.id,
+    },
   });
 
   const { data: users } = useList<IUser>({
     resource: 'users/all',
     pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
+    queryOptions: {
+      enabled: !!workspaceData?.data.id,
+    },
   });
+
+  if (isLoadingWorkspace) {
+    return <Spin />;
+  }
+
+  if (!workspaceData) {
+    return <></>;
+  }
 
   return (
     <div
