@@ -31,6 +31,7 @@ export interface IActivity extends IBase {
   feedbacks?: IFeedback[];
   assignees?: IAssignee[];
   progress?: number;
+  subActivities?: IActivity[];
 }
 
 export interface FormAddTaskData {

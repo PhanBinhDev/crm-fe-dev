@@ -159,3 +159,25 @@ body {
   margin-bottom: 4px;
   font-size: 13px;
 }
+
+.custom-menu .ant-menu-item,
+.custom-menu .ant-menu-submenu-title {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+  margin: 0 !important;
+  color: #262626 !important;
+  width: 100% !important;
+  border-radius: 0% !important;
+}
+
+.custom-menu .ant-menu-item:hover,
+.custom-menu .ant-menu-submenu-title:hover {
+  background-color: #f0f0f0 !important;
+  font-weight: 600 !important;
+}
+
+.custom-menu .ant-menu-item-selected {
+  background-color: #e6e6e6 !important;
+  color: #000 !important;
+  font-weight: 600 !important;
+}

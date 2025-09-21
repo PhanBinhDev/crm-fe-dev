@@ -21,7 +21,7 @@ interface ActivityCardProps {
   stages?: IStage[];
 }
 
-const ActivityCard = ({ activity, isPortal, isCompletedStage }: ActivityCardProps) => {
+const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: ActivityCardProps) => {
   const { config } = useDisplayConfig();
   const { openModal } = useModal();
   const [isHovered, setIsHovered] = useState(false);
@@ -69,7 +69,12 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage }: ActivityCardProp
 
   return (
     <Card
-      onClick={() => openModal('ModalEditActivity', { activity })}
+      onClick={() =>
+        openModal('ModalEditActivity', {
+          activity,
+          stage: stages?.find(s => s.id === activity.stageId),
+        })
+      }
       style={{ ...styles }}
       styles={{ body: { padding: '10px 12px' } }}
       ref={setNodeRef}

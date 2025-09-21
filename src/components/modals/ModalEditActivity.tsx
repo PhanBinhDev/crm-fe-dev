@@ -1,4 +1,4 @@
-import { IActivity } from '@/common/types';
+import { IActivity, IStage } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import ActivityDetailSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailSidebar';
 import {
@@ -24,6 +24,8 @@ const ModalEditActivity = () => {
   const [isOverlay, setIsOverlay] = useState(false);
 
   const { activity } = (data as { activity: IActivity }) || {};
+  const { stage } = (data as { stage: IStage }) || {};
+  console.log('stage in modal', stage);
 
   useEffect(() => {
     const checkWidth = () => {
@@ -112,7 +114,23 @@ const ModalEditActivity = () => {
               },
             }}
           >
-            <Text>Ngày tạo: 10/10/2023 - 10:00 AM</Text>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {/* <CalendarOutlined style={{ color: '#8c8c8c', fontSize: 12 }} /> */}
+              <Text style={{ fontSize: 13, display: 'block' }}>
+                Ngày tạo:{' '}
+                {new Date(activity?.createdAt).toLocaleDateString('vi-VN', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}
+              </Text>
+              <Text style={{ fontSize: 13, display: 'block' }}>
+                {new Date(activity?.createdAt).toLocaleTimeString('vi-VN', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </Text>
+            </div>
 
             <Button
               styles={{
@@ -175,7 +193,7 @@ const ModalEditActivity = () => {
                   }),
             }}
           >
-            <ActivityDetailSidebar activity={activity} />
+            <ActivityDetailSidebar activity={activity} stage={stage} />
           </Sider>
 
           {/* Main Content */}

@@ -34,10 +34,15 @@ const NotificationBtn = () => {
     useInfiniteList<INotification>({
       resource: 'notifications',
       pagination: { pageSize: 10 },
-      sorters: [{ field: 'createdAt', order: 'desc' }], 
+      sorters: [{ field: 'createdAt', order: 'desc' }],
       queryOptions: {
         getNextPageParam: lastPage => {
-          return lastPage.data[lastPage.data.length - 1]?.id ?? undefined;
+          console.log('lastPage', lastPage);
+
+          return lastPage.pagination.afterCursor;
+        },
+        getPreviousPageParam: firstPage => {
+          return firstPage.pagination.beforeCursor;
         },
       },
     });

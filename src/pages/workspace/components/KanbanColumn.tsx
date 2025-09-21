@@ -11,8 +11,8 @@ import { IconChevronDown, IconPlus } from '@tabler/icons-react';
 import { Button, Card, Col, message, Space, Tooltip, Typography } from 'antd';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ActivityCard from './ActivityCard';
-import MoreOptionColumn from './MoreOptionColumn';
 import ModalEditStatuses from './ModalEditStatuses';
+import MoreOptionColumn from './MoreOptionColumn';
 
 const { Text } = Typography;
 
