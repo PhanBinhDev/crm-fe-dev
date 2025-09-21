@@ -1,7 +1,6 @@
 import { FormAddActivityPayload, FormAddTaskData, ModalAction } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaceStore } from '@/hooks/useWorkspaces';
-import FormAddEvent from '@/pages/workspace/components/FormAddEvent';
 import FormAddReminder from '@/pages/workspace/components/FormAddReminder';
 import FormAddTask from '@/pages/workspace/components/FormAddTask';
 import NotificationActivityBtn from '@/pages/workspace/components/NotificationActivityBtn';
@@ -13,8 +12,7 @@ import { Button, Dropdown, message, Modal, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useRef, useState } from 'react';
 
 const modalTabs = [
-  { key: 'task', label: 'Nhiệm vụ' },
-  { key: 'event', label: 'Sự kiện' },
+  { key: 'task', label: 'Nhiệm vụ/Sự kiện' },
   { key: 'reminder', label: 'Nhắc nhở' },
 ] as const;
 
@@ -28,10 +26,14 @@ const ModalAddActivity = () => {
   const { isOpen, type, closeModal } = useModal();
   const { currentWorkspace } = useWorkspaceStore();
   const isOpenModal = isOpen && type === 'ModalAddActivity';
+  const [taskOrEvent, setTaskOrEvent] = useState<string | 'task' | 'event'>('task');
+
+  console.log(taskOrEvent);
 
   const formRef = useRef<FormAddTaskRef>(null);
 
   const invalidate = useInvalidate();
+
   const { mutate: createActivity, isPending: isPendingCreateActivity } = useCreate<FormAddTaskData>(
     {
       mutationOptions: {
@@ -62,7 +64,7 @@ const ModalAddActivity = () => {
       action,
       callback,
     }: {
-      data: FormAddActivityPayload;
+      data: FormAddActivityPayload | FormData;
       action: ModalAction;
       callback: () => void;
     }) => {
@@ -71,7 +73,7 @@ const ModalAddActivity = () => {
           createActivity(
             {
               resource: 'activities',
-              values: cleanPayload(data),
+              values: data instanceof FormData ? data : cleanPayload(data),
             },
             {
               onSuccess: () => {
@@ -81,6 +83,7 @@ const ModalAddActivity = () => {
                   invalidates: ['list'],
                 });
                 message.success('Tạo hoạt động thành công');
+                setTaskOrEvent('task');
                 closeModal();
               },
               onError: () => {
@@ -182,7 +185,10 @@ const ModalAddActivity = () => {
                 marginBottom: 2,
                 background: '#0000000a',
               }}
-              onClick={closeModal}
+              onClick={() => {
+                closeModal();
+                setTaskOrEvent('task');
+              }}
               styles={{
                 icon: {
                   display: 'flex',
@@ -213,7 +219,10 @@ const ModalAddActivity = () => {
         </div>
       }
       open={isOpenModal}
-      onCancel={closeModal}
+      onCancel={() => {
+        closeModal();
+        setTaskOrEvent('task');
+      }}
       destroyOnHidden
       width={645}
       closeIcon={null}
@@ -305,7 +314,11 @@ const ModalAddActivity = () => {
               onOpenChange={setMenuOpen}
             >
               Tạo{' '}
-              {activeTab === 'task' ? 'công việc' : activeTab === 'event' ? 'sự kiện' : 'nhắc nhở'}
+              {activeTab === 'task' && taskOrEvent === 'task'
+                ? 'công việc'
+                : activeTab === 'task' && taskOrEvent === 'event'
+                  ? 'sự kiện'
+                  : 'nhắc nhở'}
             </Dropdown.Button>
           ) : (
             <Button
@@ -323,9 +336,13 @@ const ModalAddActivity = () => {
       }
     >
       {activeTab === 'task' && (
-        <FormAddTask openUploader={openUploader.task} ref={formRef} onSubmit={handleFormSubmit} />
+        <FormAddTask
+          onChangeType={setTaskOrEvent}
+          openUploader={openUploader.task}
+          ref={formRef}
+          onSubmit={handleFormSubmit}
+        />
       )}
-      {activeTab === 'event' && <FormAddEvent openUploader={openUploader.event} />}
       {activeTab === 'reminder' && <FormAddReminder openUploader={openUploader.reminder} />}
     </Modal>
   );

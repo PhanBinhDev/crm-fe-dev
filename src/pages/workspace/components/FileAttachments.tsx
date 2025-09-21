@@ -28,7 +28,11 @@ const FileAttachments = ({ title = 'Tệp đính kèm', value, onChange }: FileA
     const newFileList = info.fileList;
     const files: File[] = newFileList.map(f => f.originFileObj).filter(Boolean) as File[];
 
-    onChange?.(files);
+    console.log('child', files);
+
+    if (onChange) {
+      onChange(files);
+    }
   };
 
   return (
