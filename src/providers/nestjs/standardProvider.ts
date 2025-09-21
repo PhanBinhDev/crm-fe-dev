@@ -1,9 +1,9 @@
+import { axiosInstance } from '@/lib/axios';
 import { DataProvider, HttpError } from '@refinedev/core';
 import { AxiosInstance } from 'axios';
 import stringify from 'query-string';
-import { axiosInstance } from '@/lib/axios';
-import { buildStandardQuery } from './utils/handleStandardQuery';
 import { transformHttpError } from './utils';
+import { buildStandardQuery } from './utils/handleStandardQuery';
 
 export const standardDataProvider = (
   apiUrl: string,
@@ -25,16 +25,19 @@ export const standardDataProvider = (
       return {
         data: data.data,
         total: data.pagination.totalRecords,
+        pagination: data.pagination,
       };
     } else if (data.data) {
       return {
         data: Array.isArray(data.data) ? data.data : [data.data],
         total: Array.isArray(data.data) ? data.data.length : 1,
+        pagination: data.pagination,
       };
     } else {
       return {
         data: Array.isArray(data) ? data : [data],
         total: Array.isArray(data) ? data.length : 1,
+        pagination: data.pagination,
       };
     }
   },
@@ -58,14 +61,17 @@ export const standardDataProvider = (
     if (data.pagination) {
       return {
         data: data.data,
+        pagination: data.pagination,
       };
     } else if (data.data) {
       return {
         data: Array.isArray(data.data) ? data.data : [data.data],
+        pagination: data.pagination,
       };
     } else {
       return {
         data: Array.isArray(data) ? data : [data],
+        pagination: data.pagination,
       };
     }
   },
@@ -222,7 +228,6 @@ export const standardDataProvider = (
 
     const { data } = axiosResponse;
 
-    // Handle backend ResponseDto structure for custom requests
     return Promise.resolve({
       data: data.data || data,
     });

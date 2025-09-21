@@ -1,4 +1,4 @@
-import { CrudFilters, Pagination, CrudSorting } from '@refinedev/core';
+import { CrudFilters, CrudSorting, Pagination } from '@refinedev/core';
 
 // Convert Refine filters to standard query params
 export const handleStandardFilters = (filters?: CrudFilters): Record<string, any> => {
@@ -17,12 +17,10 @@ export const handleStandardFilters = (filters?: CrudFilters): Record<string, any
 
       switch (field) {
         case 'q':
-          // Search query - pass as is
           params.q = value;
           break;
 
         case 'role':
-          // Role filter - handle both single and multiple
           if (Array.isArray(value)) {
             params.role = value;
           } else {
@@ -36,7 +34,6 @@ export const handleStandardFilters = (filters?: CrudFilters): Record<string, any
           break;
 
         default:
-          // Other filters - handle by operator
           switch (operator) {
             case 'eq':
               params[field] = value;
