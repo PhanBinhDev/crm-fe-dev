@@ -1,6 +1,5 @@
 import { FormAddActivityPayload, FormAddTaskData, ModalAction } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
-import { useWorkspaceStore } from '@/hooks/useWorkspaces';
 import FormAddReminder from '@/pages/workspace/components/FormAddReminder';
 import FormAddTask from '@/pages/workspace/components/FormAddTask';
 import NotificationActivityBtn from '@/pages/workspace/components/NotificationActivityBtn';
@@ -12,7 +11,7 @@ import { Button, Dropdown, message, Modal, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useRef, useState } from 'react';
 
 const modalTabs = [
-  { key: 'task', label: 'Nhiệm vụ/Sự kiện' },
+  { key: 'task', label: 'Hoạt động' },
   { key: 'reminder', label: 'Nhắc nhở' },
 ] as const;
 
@@ -24,11 +23,8 @@ export interface FormAddTaskRef {
 
 const ModalAddActivity = () => {
   const { isOpen, type, closeModal } = useModal();
-  const { currentWorkspace } = useWorkspaceStore();
   const isOpenModal = isOpen && type === 'ModalAddActivity';
   const [taskOrEvent, setTaskOrEvent] = useState<string | 'task' | 'event'>('task');
-
-  console.log(taskOrEvent);
 
   const formRef = useRef<FormAddTaskRef>(null);
 
