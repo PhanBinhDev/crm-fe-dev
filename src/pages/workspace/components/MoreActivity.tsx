@@ -1,9 +1,4 @@
-import {
-  IconDotsVertical,
-  IconGitBranch,
-  IconHourglassEmpty,
-  IconListCheck,
-} from '@tabler/icons-react';
+import { IconDotsVertical, IconGitBranch, IconListCheck } from '@tabler/icons-react';
 import { Button, Dropdown } from 'antd';
 
 interface MoreActivityProps {
@@ -22,18 +17,6 @@ const MoreActivity = ({ showActions, onShowAction }: MoreActivityProps) => {
         trigger={['click']}
         menu={{
           items: [
-            !showActions.timeEstimate
-              ? {
-                  key: 'timeEstimate',
-                  label: (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <IconHourglassEmpty size={16} color="#838383" />
-                      Ước lượng thời gian
-                    </span>
-                  ),
-                  onClick: () => onShowAction('timeEstimate'),
-                }
-              : null,
             {
               key: 'subtasks',
               label: (
