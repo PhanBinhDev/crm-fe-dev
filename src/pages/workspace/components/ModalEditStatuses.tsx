@@ -1,5 +1,5 @@
-import { Modal } from "antd";
-import { StageSettings } from "@/pages/workspaces/components/settings/stages/StageSettings";
+import { StageSettings } from '@/pages/workspaces/components/settings/stages/StageSettings';
+import { Modal } from 'antd';
 
 interface ModalEditStatusesProps {
   open: boolean;
@@ -8,14 +8,7 @@ interface ModalEditStatusesProps {
 
 const ModalEditStatuses = ({ open, onCancel }: ModalEditStatusesProps) => {
   return (
-    <Modal
-    //   title="Chỉnh sửa trạng thái"
-      open={open}
-      onCancel={onCancel}
-      footer={null}
-      width={550}
-      destroyOnClose
-    >
+    <Modal open={open} onCancel={onCancel} footer={null} width={550} destroyOnClose>
       <StageSettings />
     </Modal>
   );

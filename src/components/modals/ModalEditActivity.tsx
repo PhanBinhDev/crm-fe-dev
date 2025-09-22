@@ -1,11 +1,11 @@
 import { IActivity, IStage } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
+import ActivityDetailRightSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailRightSidebar';
 import ActivityDetailSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailSidebar';
 import {
+  IconCalendar,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftCollapseFilled,
-  IconLayoutSidebarRightCollapse,
-  IconLayoutSidebarRightCollapseFilled,
   IconShare,
   IconX,
 } from '@tabler/icons-react';
@@ -19,7 +19,6 @@ const ModalEditActivity = () => {
   const { isOpen, type, closeModal, data } = useModal();
   const isOpenModal = isOpen && type === 'ModalEditActivity';
   const [collapsedLeft, setCollapsedLeft] = useState(false);
-  const [collapsedRight, setCollapsedRight] = useState(false);
   const layoutRef = useRef<HTMLDivElement>(null);
   const [isOverlay, setIsOverlay] = useState(false);
 
@@ -115,7 +114,7 @@ const ModalEditActivity = () => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              {/* <CalendarOutlined style={{ color: '#8c8c8c', fontSize: 12 }} /> */}
+              <IconCalendar style={{ color: '#8c8c8c', fontSize: 12 }} size={12} />
               <Text style={{ fontSize: 13, display: 'block' }}>
                 Ngày tạo:{' '}
                 {new Date(activity?.createdAt).toLocaleDateString('vi-VN', {
@@ -216,42 +215,7 @@ const ModalEditActivity = () => {
             <div style={{ padding: 20, height: '100%' }}>Content</div>
           </Content>
 
-          {/* Right Sidebar*/}
-          <Sider
-            collapsed={collapsedRight}
-            collapsible
-            trigger={null}
-            width={300}
-            collapsedWidth={0}
-            style={{
-              background: '#fff',
-              borderLeft: '1px solid #f0f0f0',
-              overflow: 'hidden',
-              position: 'relative',
-              transition: 'width 0.2s ease',
-            }}
-          />
-          <div
-            style={{
-              display: 'flex',
-              padding: 8,
-              borderLeft: !collapsedRight ? '1px solid #f0f0f0' : 'none',
-            }}
-          >
-            <Tooltip title={collapsedRight ? 'Mở hoạt động' : 'Ẩn hoạt động'}>
-              <Button
-                type="text"
-                icon={
-                  collapsedRight ? (
-                    <IconLayoutSidebarRightCollapse size={16} stroke={1.5} color="#838383" />
-                  ) : (
-                    <IconLayoutSidebarRightCollapseFilled size={16} stroke={1.5} color="#838383" />
-                  )
-                }
-                onClick={() => setCollapsedRight(!collapsedRight)}
-              />
-            </Tooltip>
-          </div>
+          <ActivityDetailRightSidebar />
         </Layout>
       </Layout>
     </Modal>

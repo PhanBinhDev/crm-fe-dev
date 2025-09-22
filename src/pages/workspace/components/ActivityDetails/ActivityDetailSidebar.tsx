@@ -1,6 +1,6 @@
 import { IActivity, IStage } from '@/common/types';
-import { PlusOutlined } from '@ant-design/icons';
-import { IconCircleCheckFilled, IconCircleDashed, IconShare } from '@tabler/icons-react';
+import { ColorPicker } from '@/components/shared/ColorPicker';
+import { IconCircleCheckFilled, IconPlus, IconShare } from '@tabler/icons-react';
 import { Button, Input, Menu, type MenuProps, Tooltip, Typography } from 'antd';
 import { useState } from 'react';
 
@@ -33,7 +33,7 @@ const ActivityDetailSidebar = ({
     activity?.subActivities?.map(sub => ({
       key: sub.id,
       label: <span style={{ fontSize: 12 }}>{sub.name}</span>,
-      icon: <IconCircleDashed size={13} />,
+      icon: <ColorPicker value="#838383" />,
     })) || [];
 
   if (addingSub) {
@@ -47,7 +47,7 @@ const ActivityDetailSidebar = ({
             gap: 8,
           }}
         >
-          <IconCircleDashed size={13} />
+          <ColorPicker value="#838383" size={30} />
           <Input
             size="small"
             autoFocus
@@ -92,14 +92,24 @@ const ActivityDetailSidebar = ({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <IconShare size={15} />
-          <Text style={{ fontWeight: 600 }}>Subtasks</Text>
+          <Text style={{ fontWeight: 600 }}>Hoạt động phụ</Text>
         </div>
-        <Tooltip title="Thêm Subtask">
+        <Tooltip title="Thêm hoạt động phụ">
           <Button
             type="text"
             size="small"
-            icon={<PlusOutlined />}
+            icon={<IconPlus size={14} color="#838383" />}
             onClick={() => setAddingSub(true)}
+            style={{
+              borderRadius: 6,
+            }}
+            styles={{
+              icon: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+            }}
           />
         </Tooltip>
       </div>
