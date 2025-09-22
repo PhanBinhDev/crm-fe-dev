@@ -1,4 +1,4 @@
-import { ActivityPriority, ActivityStatus } from '@/common/enum/activity';
+import { ActivityPriority, ActivityStatus, ActivityType } from '@/common/enum/activity';
 import { ActivityPriorityLevel } from '@/common/types';
 
 export const activityStatusFilterOptions = [
@@ -101,4 +101,15 @@ export const PRESET_COLORS = [
 export const DragDropType = {
   KANBAN_COLUMN: 'kanban-column',
   KANBAN_CARD: 'kanban-card',
+};
+
+export const getActivityLabel = (type: ActivityType): string => {
+  switch (type) {
+    case ActivityType.TASK:
+      return 'Công việc';
+    case ActivityType.EVENT:
+      return 'Sự kiện';
+    default:
+      return type;
+  }
 };

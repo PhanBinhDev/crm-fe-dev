@@ -4,6 +4,14 @@
   margin: 0;
   padding: 0;
 }
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
 
 html,
 body {
@@ -35,7 +43,7 @@ body {
 }
 
 /* Custom scrollbar */
-::-webkit-scrollbar {
+/* ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
@@ -52,12 +60,7 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
-}
-
-.hidden-scrollbar {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-}
+} */
 
 /* Responsive utilities */
 @media (max-width: 768px) {
@@ -180,4 +183,8 @@ body {
   background-color: #e6e6e6 !important;
   color: #000 !important;
   font-weight: 600 !important;
+}
+
+.ant-progress-circle-path {
+  stroke-linecap: round !important; /* làm đầu stroke tròn */
 }

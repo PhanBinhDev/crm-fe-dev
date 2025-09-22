@@ -1,43 +1,42 @@
-import { Card, Col, Row, Typography } from 'antd';
+import { IStage } from '@/common/types';
+import { useList } from '@refinedev/core';
+import { Card, Col, Row } from 'antd';
 import React from 'react';
 import AssignedTask from './components/AssignedTask';
 import { Chart } from './components/Chart';
 import Overview from './components/Overview';
 import TodayTask from './components/TodayTask';
 
-const { Title } = Typography;
-
 export const DashboardPage: React.FC = () => {
-  // Fetch dashboard stats
-  // const { data: statsData } = useCustom({
-  //   url: `${apiUrl}/dashboard/stats`,
-  //   method: 'get',
-  // });
+  const { data: stagesData } = useList({
+    resource: 'stages',
+  });
+  console.log('stagesData', stagesData);
 
   return (
     <div style={{ padding: '24px' }}>
-      <Title level={2}>Dashboard</Title>
-
+      {/* Hàng 1 */}
       <Row gutter={[16, 16]}>
-        <Col span={12}>
-          <Card title="Tổng quan">
-            <Overview />
+        <Col xs={24} md={12}>
+          <Card title="Tổng quan" style={{ height: 300 }}>
+            <Overview stage={(stagesData?.data as IStage[]) ?? []} />
           </Card>
         </Col>
-        <Col span={12}>
-          <Card title="Biểu đồ tiến độ công việc">
+        <Col xs={24} md={12}>
+          <Card title="Biểu đồ tiến độ công việc" style={{ height: 300 }}>
             <Chart />
           </Card>
         </Col>
       </Row>
 
+      {/* Hàng 2 */}
       <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
-        <Col span={12}>
+        <Col xs={24} md={12}>
           <Card title="Nhiệm vụ hôm nay" style={{ height: 400 }}>
             <TodayTask />
           </Card>
         </Col>
-        <Col span={12}>
+        <Col xs={24} md={12}>
           <Card title="Công việc được giao" style={{ height: 400 }}>
             <AssignedTask />
           </Card>
