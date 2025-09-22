@@ -283,7 +283,6 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
                       color: '#8c8c8c',
                       fontSize: '13px',
                       fontWeight: 400,
-                      border: '1px solid #dfddddff',
                       backgroundColor: '#fff',
                       padding: '8px 12px',
                       transition: 'all 0.2s ease',
@@ -292,11 +291,11 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
                     type="text"
                     icon={<IconPlus size={14} stroke={1.5} color="#8c8c8c" />}
                     onMouseEnter={e => {
-                      e.currentTarget.style.background = '#fff';
+                      e.currentTarget.style.background = '#f0f0f0';
                       e.currentTarget.style.color = '#595959';
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.background = '#fff';
+                      e.currentTarget.style.background = 'transparent';
                       e.currentTarget.style.color = '#8c8c8c';
                     }}
                   >

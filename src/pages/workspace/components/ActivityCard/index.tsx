@@ -5,18 +5,11 @@ import { useDisplayConfig } from '@/contexts/DisplayConfig';
 import { useModal } from '@/hooks/useModal';
 import { getActivityPriorityColor } from '@/utils';
 import { getColorFromName, getInitials } from '@/utils/activity';
-import { hexToRgba } from '@/utils/formatter';
 import { CalendarOutlined, HourglassOutlined, UserOutlined } from '@ant-design/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import {
-  IconCategory,
-  IconChevronDown,
-  IconChevronRight,
-  IconFlagFilled,
-  IconShare,
-} from '@tabler/icons-react';
-import { Avatar, Card, Progress, Tooltip, Typography } from 'antd';
+import { IconCaretDownFilled, IconCategory, IconFlagFilled } from '@tabler/icons-react';
+import { Avatar, Button, Card, Progress, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import ToolbarActivityCard from './Toolbar';
@@ -85,7 +78,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
     <>
       <Card
         style={{ ...styles }}
-        styles={{ body: { padding: '10px 12px' } }}
+        styles={{ body: { padding: '10px 8px 8px' } }}
         ref={setNodeRef}
         {...attributes}
         {...listeners}
@@ -101,36 +94,16 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
             (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.03)';
           }
         }}
+        onClick={() =>
+          openModal('ModalEditActivity', {
+            activity,
+            stage: stages?.find(s => s.id === activity.stageId),
+          })
+        }
       >
-        {/* <div style={{ width: '100%', position: 'relative', marginBottom: 3 }}>
-          {config.showPriority && activity.priority ? (
-            <Tooltip title={getPriorityLabel(activity.priority)} placement="left">
-              <div
-                style={{
-                  position: 'absolute',
-                  top: -18,
-                  left: -16,
-                  transform: 'rotate(90deg)',
-                  transformOrigin: 'center',
-                }}
-              >
-                <IconLabelFilled color={getActivityPriorityColor(activity.priority)} size={20} />
-              </div>
-            </Tooltip>
-          ) : (
-            ''
-          )}
-        </div> */}
-
         {/* Tiêu đề */}
         <div style={{ width: '100%', position: 'relative', marginBottom: 6 }}>
           <Text
-            onClick={() =>
-              openModal('ModalEditActivity', {
-                activity,
-                stage: stages?.find(s => s.id === activity.stageId),
-              })
-            }
             strong
             style={{
               fontSize: 14,
@@ -143,6 +116,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
               whiteSpace: 'normal',
               lineHeight: '1.4em',
               maxHeight: '2.8em',
+              padding: '0 2px',
             }}
           >
             {activity.name}
@@ -159,54 +133,54 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
             marginBottom: 5,
           }}
         >
-          <div>
-            {config.showType && activity.type ? (
-              <Tooltip title="Loại công việc" placement="right">
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    fontSize: 12,
-                    border: '1px solid #e0dfdfff',
-                    padding: '1px 4px',
-                    borderRadius: 4,
-                    width: 'fit-content',
-                  }}
-                >
-                  <IconCategory size={14} />
-                  <p>{getActivityLabel(activity.type)}</p>
-                </div>
-              </Tooltip>
-            ) : (
-              ''
-            )}
-          </div>
+          {config.showType && activity.type ? (
+            <Tooltip title="Loại công việc" placement="right">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 12,
+                  border: '1px solid #e0dfdfff',
+                  padding: '1px 4px',
+                  borderRadius: 4,
+                  width: 'fit-content',
+                }}
+              >
+                <IconCategory size={14} />
+                <p>{getActivityLabel(activity.type)}</p>
+              </div>
+            </Tooltip>
+          ) : (
+            ''
+          )}
 
-          <div>
-            {config.showPriority && activity.priority ? (
-              <Tooltip title="Ưu tiên" placement="left">
-                <div
-                  style={{
+          {config.showPriority && activity.priority ? (
+            <Tooltip title={`Ưu tiên: ${getPriorityLabel(activity.priority)}`} placement="left">
+              <Button
+                size="small"
+                style={{
+                  borderRadius: 6,
+                  gap: 4,
+                  color: '#838383',
+                }}
+                styles={{
+                  icon: {
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 4,
-                    fontSize: 12,
-                    border: `1px solid ${getActivityPriorityColor(activity.priority)}`,
-                    backgroundColor: `${hexToRgba(getActivityPriorityColor(activity.priority), 0.5)}`,
-                    padding: '1px 4px',
-                    borderRadius: 4,
-                    width: 'fit-content',
-                  }}
-                >
-                  <IconFlagFilled color={getActivityPriorityColor(activity.priority)} size={14} />
-                  <p>{getPriorityLabel(activity.priority)}</p>
-                </div>
-              </Tooltip>
-            ) : (
-              ''
-            )}
-          </div>
+                    justifyContent: 'center',
+                  },
+                }}
+                icon={
+                  <IconFlagFilled size={12} color={getActivityPriorityColor(activity.priority)} />
+                }
+              >
+                {getPriorityLabel(activity.priority)}
+              </Button>
+            </Tooltip>
+          ) : (
+            ''
+          )}
         </div>
 
         {/* Assignees */}
@@ -357,40 +331,43 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
 
         {/* Subtask */}
         {config.showSubtask && activity.subActivities && activity.subActivities.length > 0 ? (
-          <>
+          <Button
+            type="text"
+            size="small"
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderRadius: 6,
+              cursor: 'pointer',
+              background: isHovered ? '#f5f5f5' : 'transparent',
+            }}
+            onClick={e => {
+              e.stopPropagation();
+              toggleOpen();
+            }}
+            icon={
+              isOpen ? (
+                <IconCaretDownFilled size={14} color="#838383" />
+              ) : isHovered ? (
+                <IconCaretDownFilled size={14} color="#595959" />
+              ) : (
+                <IconCaretDownFilled size={14} color="#8c8c8c" />
+              )
+            }
+          >
             <div
               style={{
-                width: '100%',
+                fontSize: 12,
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: '2px',
-                borderRadius: 6,
-                cursor: 'pointer',
+                gap: 4,
               }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLDivElement).style.background = '#f5f5f5';
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLDivElement).style.background = 'transparent';
-              }}
-              onClick={toggleOpen}
             >
-              <div
-                style={{
-                  fontSize: 12,
-
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <IconShare size={13} />
-                <p style={{ fontSize: 13 }}>{activity.subActivities.length} Nhiệm vụ con</p>
-              </div>
-              <div>{isOpen ? <IconChevronDown size={15} /> : <IconChevronRight size={15} />}</div>
+              <p style={{ fontSize: 13 }}>{activity.subActivities.length} Nhiệm vụ con</p>
             </div>
-          </>
+          </Button>
         ) : (
           ''
         )}
