@@ -9,15 +9,17 @@ import {
 } from '@/common/types';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { DownOutlined } from '@ant-design/icons';
-import { IconCalendarEvent, IconCircles, IconLocation, IconUser } from '@tabler/icons-react';
-import { Button, Form, Input, List, Popover, Space, Typography } from 'antd';
+import { IconCalendarEvent, IconCircles } from '@tabler/icons-react';
+import { Form, Input, List, Popover, Space } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import AssigneeActivity from './AssigneeActivity';
 import ChecklistActivity from './ChecklistActivity';
 import DuedateActivity from './DuedateActivity';
 import FileAttachments from './FileAttachments';
+import LocationActivity from './LocationActivity';
 import MoreActivity from './MoreActivity';
 import PriorityActivity from './PriorityActivity';
+import QuantityParticipants from './QuantityParticipants';
 import StageActivity from './StageActivity';
 import SubtaskActivity from './SubtaskActivity';
 import TimeEstimateActivity from './TimeEstimateActivity';
@@ -69,6 +71,8 @@ const FormAddTask = forwardRef(
       end: null,
     });
     const [timeEstimate, setTimeEstimate] = useState<string>('');
+    const [location, setLocation] = useState<string>('');
+    const [quantityParticipants, setQuantityParticipants] = useState<number>(0);
     const [selectedPriority, setSelectedPriority] = useState<ActivityPriorityLevel | null>(null);
     const [subtasks, setSubtasks] = useState<string[]>([]);
     const [checklists, setChecklists] = useState<Checklist[]>([]);
@@ -107,6 +111,21 @@ const FormAddTask = forwardRef(
       (estimate: string) => {
         setTimeEstimate(estimate);
         form.setFieldValue('timeEstimate', estimate);
+      },
+      [form],
+    );
+    const handleLocationChange = useCallback(
+      (loc: string) => {
+        setLocation(loc);
+        form.setFieldValue('location', loc);
+      },
+      [form],
+    );
+
+    const handleQuantityParticipantsChange = useCallback(
+      (participant: string) => {
+        setQuantityParticipants(Number(participant));
+        form.setFieldValue('participants', participant);
       },
       [form],
     );
@@ -167,6 +186,7 @@ const FormAddTask = forwardRef(
         subtasks: false,
         checklist: false,
       });
+      (setLocation(''), setQuantityParticipants(0));
     };
 
     const handleSubmit = async (values: any) => {
@@ -248,6 +268,8 @@ const FormAddTask = forwardRef(
           attachments: [],
           timeEstimate: '',
           stage: undefined,
+          location: '',
+          quantityParticipants: 0,
         }}
       >
         <Space direction="vertical" size={'middle'} style={{ width: '100%' }}>
@@ -382,145 +404,14 @@ const FormAddTask = forwardRef(
                 />
               </div>
               <div>
-                <Form.Item name="quantityParticipants" style={{ marginBottom: 0 }}>
-                  <Popover
-                    open={openParticipant}
-                    onOpenChange={setOpenParticipant}
-                    styles={{
-                      body: {
-                        padding: '12px 0',
-                        width: 210,
-                      },
-                    }}
-                    trigger={['click']}
-                    placement="bottomLeft"
-                    arrow={false}
-                    content={
-                      <Space
-                        direction="vertical"
-                        style={{
-                          width: '100%',
-                        }}
-                      >
-                        <Typography
-                          style={{
-                            padding: '0 12px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          Số lượng người tham gia<p> (không bắt buộc)</p>
-                        </Typography>
-
-                        {/* Input */}
-                        <div
-                          style={{
-                            width: '200px',
-                            padding: '0 12px 8px',
-                            borderBottom: '1px solid #f0f0f0',
-                          }}
-                        >
-                          <Input
-                            placeholder='vd: "100"'
-                            value={form.getFieldValue('quantityParticipants')}
-                            onChange={e => form.setFieldsValue({ location: e.target.value })}
-                            autoFocus
-                          />
-                        </div>
-                      </Space>
-                    }
-                  >
-                    <Button
-                      size="small"
-                      style={{
-                        borderRadius: 6,
-                        gap: 4,
-                      }}
-                      styles={{
-                        icon: {
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        },
-                      }}
-                      icon={<IconUser size={12} />}
-                    >
-                      {form.getFieldValue('quantityParticipants') || 'Người tham gia'}
-                    </Button>
-                  </Popover>
-                </Form.Item>
+                <QuantityParticipants
+                  value={quantityParticipants}
+                  onChange={handleQuantityParticipantsChange}
+                />
               </div>
               <div>
                 {taskOrEvent === 'event' && (
-                  <Form.Item
-                    name={'location'}
-                    rules={[{ required: true, message: 'Vui lòng nhập địa điểm tổ chức sự kiện' }]}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Popover
-                      open={openLocation}
-                      onOpenChange={setOpenLocation}
-                      styles={{
-                        body: {
-                          padding: '12px 0',
-                          width: 210,
-                        },
-                      }}
-                      trigger={['click']}
-                      placement="bottomLeft"
-                      arrow={false}
-                      content={
-                        <Space
-                          direction="vertical"
-                          style={{
-                            width: '100%',
-                          }}
-                        >
-                          <Typography
-                            style={{
-                              padding: '0 12px',
-                              fontWeight: 600,
-                            }}
-                          >
-                            Địa điểm tổ chức
-                          </Typography>
-
-                          {/* Input */}
-                          <div
-                            style={{
-                              width: '200px',
-                              padding: '0 12px 8px',
-                              borderBottom: '1px solid #f0f0f0',
-                            }}
-                          >
-                            <Input
-                              placeholder='vd: "100"'
-                              value={form.getFieldValue('location')}
-                              onChange={e => form.setFieldsValue({ location: e.target.value })}
-                              autoFocus
-                            />
-                          </div>
-                        </Space>
-                      }
-                    >
-                      <Button
-                        size="small"
-                        style={{
-                          borderRadius: 6,
-                          gap: 4,
-                        }}
-                        styles={{
-                          icon: {
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          },
-                        }}
-                        icon={<IconLocation size={12} />}
-                      >
-                        {form.getFieldValue('location') || 'Địa điểm'}
-                      </Button>
-                    </Popover>
-                  </Form.Item>
+                  <LocationActivity value={location} onChange={handleLocationChange} />
                 )}
               </div>
             </div>
@@ -595,6 +486,13 @@ const FormAddTask = forwardRef(
         </Form.Item>
 
         <Form.Item name="stage" hidden>
+          <Input />
+        </Form.Item>
+
+        <Form.Item name="location" hidden>
+          <Input />
+        </Form.Item>
+        <Form.Item name="quantityParticipants" hidden>
           <Input />
         </Form.Item>
       </Form>
