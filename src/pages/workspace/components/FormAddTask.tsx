@@ -123,7 +123,7 @@ const FormAddTask = forwardRef(
     );
 
     const handleQuantityParticipantsChange = useCallback(
-      (participant: string) => {
+      (participant: number) => {
         setQuantityParticipants(Number(participant));
         form.setFieldValue('participants', participant);
       },
