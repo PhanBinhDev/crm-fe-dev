@@ -55,7 +55,7 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
     transform: CSS.Transform.toString(transform),
     transition,
     background: '#fff',
-    border: '1px solid #f0f0f0',
+    border: '1px solid #eeeaeaff',
     borderRadius: 8,
     opacity: isDragging ? 0.5 : 1,
     userSelect: 'none',
@@ -131,7 +131,7 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
         styles={{
           header: {
             padding: '0 6px 1px 6px',
-            borderBottomColor: collapsed ? 'transparent' : '#f0f0f0',
+            borderBottomColor: collapsed ? 'transparent' : '#dfddddff',
             flexShrink: 0,
           },
           body: {
@@ -283,8 +283,8 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
                       color: '#8c8c8c',
                       fontSize: '13px',
                       fontWeight: 400,
-                      border: 'none',
-                      background: 'transparent',
+                      border: '1px solid #dfddddff',
+                      backgroundColor: '#fff',
                       padding: '8px 12px',
                       transition: 'all 0.2s ease',
                       borderRadius: '6px',
@@ -292,11 +292,11 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
                     type="text"
                     icon={<IconPlus size={14} stroke={1.5} color="#8c8c8c" />}
                     onMouseEnter={e => {
-                      e.currentTarget.style.background = '#f5f5f5';
+                      e.currentTarget.style.background = '#fff';
                       e.currentTarget.style.color = '#595959';
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.background = '#fff';
                       e.currentTarget.style.color = '#8c8c8c';
                     }}
                   >

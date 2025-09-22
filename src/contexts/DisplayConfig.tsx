@@ -8,8 +8,7 @@ export interface DisplayConfig {
   showPriority: boolean;
   showDescription: boolean;
   showProgress: boolean;
-  cardSize: 'small' | 'medium' | 'large';
-  cardsPerColumn: number;
+  showSubtask: boolean;
 }
 
 export const defaultConfig: DisplayConfig = {
@@ -19,8 +18,7 @@ export const defaultConfig: DisplayConfig = {
   showPriority: true,
   showDescription: false,
   showProgress: false,
-  cardSize: 'medium',
-  cardsPerColumn: 10,
+  showSubtask: false,
 };
 
 interface DisplayConfigContextType {

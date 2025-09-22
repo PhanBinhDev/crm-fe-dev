@@ -55,6 +55,12 @@ export const DisplaySettings: React.FC = () => {
       icon: <PercentageOutlined />,
       description: 'Hiển thị thanh progress bar',
     },
+    {
+      key: 'showSubtask',
+      label: 'Subtask',
+      icon: <PercentageOutlined />,
+      description: 'Hiển thị nhiệm vụ con',
+    },
   ];
 
   return (
