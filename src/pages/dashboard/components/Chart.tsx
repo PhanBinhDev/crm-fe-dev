@@ -20,7 +20,7 @@ const data = [
 
 export const Chart: React.FC = () => {
   return (
-    <ResponsiveContainer width="100%" height={200}>
+    <ResponsiveContainer width="100%" height={210}>
       <ComposedChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="period" />
