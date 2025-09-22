@@ -1,8 +1,10 @@
 import { IActivity, IStage } from '@/common/types';
 import { DragDropType, getActivityLabel, getPriorityLabel } from '@/constants';
+import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useDisplayConfig } from '@/contexts/DisplayConfig';
 import { useModal } from '@/hooks/useModal';
 import { getActivityPriorityColor } from '@/utils';
+import { getColorFromName, getInitials } from '@/utils/activity';
 import { hexToRgba } from '@/utils/formatter';
 import { CalendarOutlined, HourglassOutlined, UserOutlined } from '@ant-design/icons';
 import { useSortable } from '@dnd-kit/sortable';
@@ -208,24 +210,58 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
         </div>
 
         {/* Assignees */}
-        {config.showAssignee && activity.assignees ? (
-          activity.assignees.length > 0 ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 5 }}>
-              {activity.assignees.map(assignee => (
-                <Tooltip title={assignee.user?.name || ''} key={assignee.id}>
-                  <Avatar icon={<UserOutlined />} />
-                </Tooltip>
-              ))}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 5 }}>
-              <Tooltip title="Chưa có người được giao" placement="right">
-                <Avatar size={20} icon={<UserOutlined />} />
+        {config.showAssignee && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {activity.assignees && activity.assignees.length > 0 ? (
+              <>
+                {activity.assignees.slice(0, 3).map((assignee, index) => (
+                  <Tooltip key={index} title={assignee.user.name} placement="top">
+                    {assignee.user.avatar ? (
+                      <Avatar
+                        size="small"
+                        src={assignee.user.avatar}
+                        style={{ marginLeft: index > 0 ? -8 : 0 }}
+                      />
+                    ) : (
+                      <Avatar
+                        size="small"
+                        style={{
+                          backgroundColor: getColorFromName(
+                            assignee.user.name || AVATAR_PLACEHOLDER,
+                          ),
+                          color: '#fff',
+                          fontWeight: 'bold',
+                          marginLeft: index > 0 ? -8 : 0,
+                        }}
+                      >
+                        {getInitials(assignee.user.name)}
+                      </Avatar>
+                    )}
+                  </Tooltip>
+                ))}
+
+                {/* Hiển thị số lượng còn lại nếu có nhiều hơn 3 assignees */}
+                {activity.assignees.length > 3 && (
+                  <Avatar
+                    size="small"
+                    style={{
+                      backgroundColor: '#f5f5f5',
+                      color: '#999',
+                      marginLeft: -8,
+                    }}
+                  >
+                    +{activity.assignees.length - 3}
+                  </Avatar>
+                )}
+              </>
+            ) : (
+              <Tooltip title="Chưa có người thực hiện" placement="top">
+                <Avatar size="small" style={{ backgroundColor: '#f5f5f5', color: '#8c8c8c' }}>
+                  <UserOutlined />
+                </Avatar>
               </Tooltip>
-            </div>
-          )
-        ) : (
-          ''
+            )}
+          </div>
         )}
 
         {/* info */}
