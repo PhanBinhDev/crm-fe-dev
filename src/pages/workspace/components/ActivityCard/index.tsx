@@ -8,7 +8,7 @@ import { getColorFromName, getInitials } from '@/utils/activity';
 import { CalendarOutlined, HourglassOutlined, UserOutlined } from '@ant-design/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { IconCaretDownFilled, IconCategory, IconFlagFilled } from '@tabler/icons-react';
+import { IconCaretDownFilled, IconCategory, IconFlagFilled, IconShare } from '@tabler/icons-react';
 import { Avatar, Button, Card, Progress, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
@@ -330,18 +330,20 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
         )}
 
         {/* Subtask */}
-        {config.showSubtask && activity.subActivities && activity.subActivities.length > 0 ? (
+        {config.showSubtask && activity.subActivities && activity.subActivities.length > 0 && (
           <Button
             type="text"
-            size="small"
             style={{
               width: '100%',
               display: 'flex',
-              justifyContent: 'space-between',
+              justifyContent: 'flex-start',
               alignItems: 'center',
               borderRadius: 6,
+              padding: '0 8px',
               cursor: 'pointer',
               background: isHovered ? '#f5f5f5' : 'transparent',
+              fontSize: 13,
+              color: '#595959',
             }}
             onClick={e => {
               e.stopPropagation();
@@ -351,25 +353,20 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
               isOpen ? (
                 <IconCaretDownFilled size={14} color="#838383" />
               ) : isHovered ? (
-                <IconCaretDownFilled size={14} color="#595959" />
+                <IconCaretDownFilled
+                  size={14}
+                  color="#838383"
+                  style={{
+                    transform: 'rotate(-90deg)',
+                  }}
+                />
               ) : (
-                <IconCaretDownFilled size={14} color="#8c8c8c" />
+                <IconShare size={14} color="#8c8c8c" />
               )
             }
           >
-            <div
-              style={{
-                fontSize: 12,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              <p style={{ fontSize: 13 }}>{activity.subActivities.length} Nhiệm vụ con</p>
-            </div>
+            {activity.subActivities.length} Nhiệm vụ con
           </Button>
-        ) : (
-          ''
         )}
 
         {showActions && (

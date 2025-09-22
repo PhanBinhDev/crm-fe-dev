@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 
 const ActivityLogTab = () => {
   const [showSearch, setShowSearch] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
   const inputRef = useRef<InputRef>(null);
 
   const handleSearchClick = () => {
@@ -60,6 +61,9 @@ const ActivityLogTab = () => {
           <Popover
             placement="bottomRight"
             arrow={false}
+            open={showFilter}
+            trigger={['click']}
+            onOpenChange={setShowFilter}
             content={<div style={{ padding: 8 }}>Filter options here</div>}
           >
             <Button
