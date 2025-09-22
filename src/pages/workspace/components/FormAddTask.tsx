@@ -9,7 +9,8 @@ import {
 } from '@/common/types';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { DownOutlined } from '@ant-design/icons';
-import { Form, Input, List, Popover, Space } from 'antd';
+import { IconCalendarEvent, IconCircles, IconLocation, IconUser } from '@tabler/icons-react';
+import { Button, Form, Input, List, Popover, Space, Typography } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import AssigneeActivity from './AssigneeActivity';
 import ChecklistActivity from './ChecklistActivity';
@@ -39,6 +40,8 @@ const FormAddTask = forwardRef(
     const actionRef = useRef<ModalAction>();
     const { currentWorkspace } = useWorkspaces();
     const [taskOrEvent, setTaskOrEvent] = useState<string | 'task' | 'event'>('task');
+    const [openParticipant, setOpenParticipant] = useState(false);
+    const [openLocation, setOpenLocation] = useState(false);
 
     useImperativeHandle(ref, () => ({
       submitForm: (action: ModalAction) => {
@@ -226,8 +229,8 @@ const FormAddTask = forwardRef(
     };
 
     const typeOptions = [
-      { label: 'Nhiệm vụ', value: 'task' },
-      { label: 'Sự kiện', value: 'event' },
+      { label: 'Nhiệm vụ', value: 'task', icon: <IconCircles size={15} /> },
+      { label: 'Sự kiện', value: 'event', icon: <IconCalendarEvent size={15} /> },
     ];
     const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -254,6 +257,11 @@ const FormAddTask = forwardRef(
               placement="bottomLeft"
               open={popoverOpen}
               onOpenChange={setPopoverOpen}
+              styles={{
+                body: {
+                  padding: '10px 0',
+                },
+              }}
               content={
                 <List
                   size="small"
@@ -261,6 +269,10 @@ const FormAddTask = forwardRef(
                   renderItem={item => (
                     <List.Item
                       style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 5,
+                        padding: '2px 15px',
                         cursor: 'pointer',
                         fontWeight: item.value === taskOrEvent ? 600 : 400,
                         color: item.value === taskOrEvent ? '#1677ff' : undefined,
@@ -272,7 +284,8 @@ const FormAddTask = forwardRef(
                         setPopoverOpen(false);
                       }}
                     >
-                      {item.label}
+                      <span>{item.icon}</span>
+                      <span>{item.label}</span>
                     </List.Item>
                   )}
                 />
@@ -357,90 +370,193 @@ const FormAddTask = forwardRef(
             />
           </Form.Item>
 
-          <Form.Item name="quantityParticipants" style={{ marginBottom: 0 }}>
-            <Input
-              placeholder="Số người tham gia (không bắt buộc)"
-              variant="borderless"
-              type="number"
+          <div style={{ marginTop: 12 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <div>
+                <StageActivity value={stage} onChange={handleStateChange} error={stageError} />
+              </div>
+              <div>
+                <AssigneeActivity
+                  selectedUser={selectedAssignees}
+                  onToggleSelectUser={handleToggleSelectUser}
+                />
+              </div>
+              <div>
+                <Form.Item name="quantityParticipants" style={{ marginBottom: 0 }}>
+                  <Popover
+                    open={openParticipant}
+                    onOpenChange={setOpenParticipant}
+                    styles={{
+                      body: {
+                        padding: '12px 0',
+                        width: 210,
+                      },
+                    }}
+                    trigger={['click']}
+                    placement="bottomLeft"
+                    arrow={false}
+                    content={
+                      <Space
+                        direction="vertical"
+                        style={{
+                          width: '100%',
+                        }}
+                      >
+                        <Typography
+                          style={{
+                            padding: '0 12px',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Số lượng người tham gia<p> (không bắt buộc)</p>
+                        </Typography>
+
+                        {/* Input */}
+                        <div
+                          style={{
+                            width: '200px',
+                            padding: '0 12px 8px',
+                            borderBottom: '1px solid #f0f0f0',
+                          }}
+                        >
+                          <Input
+                            placeholder='vd: "100"'
+                            value={form.getFieldValue('quantityParticipants')}
+                            onChange={e => form.setFieldsValue({ location: e.target.value })}
+                            autoFocus
+                          />
+                        </div>
+                      </Space>
+                    }
+                  >
+                    <Button
+                      size="small"
+                      style={{
+                        borderRadius: 6,
+                        gap: 4,
+                      }}
+                      styles={{
+                        icon: {
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        },
+                      }}
+                      icon={<IconUser size={12} />}
+                    >
+                      {form.getFieldValue('quantityParticipants') || 'Người tham gia'}
+                    </Button>
+                  </Popover>
+                </Form.Item>
+              </div>
+              <div>
+                {taskOrEvent === 'event' && (
+                  <Form.Item
+                    name={'location'}
+                    rules={[{ required: true, message: 'Vui lòng nhập địa điểm tổ chức sự kiện' }]}
+                    style={{ marginBottom: 0 }}
+                  >
+                    <Popover
+                      open={openLocation}
+                      onOpenChange={setOpenLocation}
+                      styles={{
+                        body: {
+                          padding: '12px 0',
+                          width: 210,
+                        },
+                      }}
+                      trigger={['click']}
+                      placement="bottomLeft"
+                      arrow={false}
+                      content={
+                        <Space
+                          direction="vertical"
+                          style={{
+                            width: '100%',
+                          }}
+                        >
+                          <Typography
+                            style={{
+                              padding: '0 12px',
+                              fontWeight: 600,
+                            }}
+                          >
+                            Địa điểm tổ chức
+                          </Typography>
+
+                          {/* Input */}
+                          <div
+                            style={{
+                              width: '200px',
+                              padding: '0 12px 8px',
+                              borderBottom: '1px solid #f0f0f0',
+                            }}
+                          >
+                            <Input
+                              placeholder='vd: "100"'
+                              value={form.getFieldValue('location')}
+                              onChange={e => form.setFieldsValue({ location: e.target.value })}
+                              autoFocus
+                            />
+                          </div>
+                        </Space>
+                      }
+                    >
+                      <Button
+                        size="small"
+                        style={{
+                          borderRadius: 6,
+                          gap: 4,
+                        }}
+                        styles={{
+                          icon: {
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          },
+                        }}
+                        icon={<IconLocation size={12} />}
+                      >
+                        {form.getFieldValue('location') || 'Địa điểm'}
+                      </Button>
+                    </Popover>
+                  </Form.Item>
+                )}
+              </div>
+            </div>
+
+            <div
               style={{
-                fontSize: 14,
-                border: '1px solid transparent',
-                paddingLeft: 4,
+                display: 'flex',
+                gap: 8,
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                marginTop: 5,
               }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = '#f0f0f0';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'transparent';
-              }}
-              onFocus={e => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.borderColor = '#f0f0f0';
-              }}
-              onBlur={e => {
-                e.currentTarget.style.borderColor = 'transparent';
-              }}
-            />
-          </Form.Item>
-
-          {taskOrEvent === 'event' && (
-            <Form.Item
-              name={'location'}
-              rules={[{ required: true, message: 'Vui lòng nhập địa điểm tổ chức sự kiện' }]}
-              style={{ marginBottom: 0 }}
             >
-              <TextArea
-                placeholder="Địa điểm tổ chức sự kiện (bắt buộc)"
-                variant="borderless"
-                style={{
-                  fontSize: 14,
-                  border: '1px solid transparent',
-                  paddingLeft: 4,
-                }}
-                autoSize={{ minRows: 1, maxRows: 3 }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = '#f0f0f0';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
-                onFocus={e => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.borderColor = '#f0f0f0';
-                }}
-                onBlur={e => {
-                  e.currentTarget.style.borderColor = 'transparent';
-                }}
-              />
-            </Form.Item>
-          )}
-
-          <div
-            style={{
-              marginTop: 12,
-            }}
-          >
-            <Space wrap>
-              <StageActivity value={stage} onChange={handleStateChange} error={stageError} />
-              <AssigneeActivity
-                selectedUser={selectedAssignees}
-                onToggleSelectUser={handleToggleSelectUser}
-              />
-              <DuedateActivity value={dateRange} onChange={handleDateRangeChange} />
-              <PriorityActivity value={selectedPriority} onChange={handlePrioritySelect} />
-              {showActions.timeEstimate && (
-                <TimeEstimateActivity value={timeEstimate} onChange={handleTimeEstimateChange} />
-              )}
-              <MoreActivity
-                showActions={showActions}
-                onShowAction={action =>
-                  setShowActions(prev => ({
-                    ...prev,
-                    [action]: !prev[action],
-                  }))
-                }
-              />
-            </Space>
+              <div>
+                <DuedateActivity value={dateRange} onChange={handleDateRangeChange} />
+              </div>
+              <div>
+                <PriorityActivity value={selectedPriority} onChange={handlePrioritySelect} />
+              </div>
+              <div>
+                {showActions.timeEstimate && (
+                  <TimeEstimateActivity value={timeEstimate} onChange={handleTimeEstimateChange} />
+                )}
+              </div>
+              <div>
+                <MoreActivity
+                  showActions={showActions}
+                  onShowAction={action =>
+                    setShowActions(prev => ({
+                      ...prev,
+                      [action]: !prev[action],
+                    }))
+                  }
+                />
+              </div>
+            </div>
           </div>
 
           {showActions.subtasks && (

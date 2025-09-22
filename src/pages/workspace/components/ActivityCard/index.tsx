@@ -277,7 +277,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
               >
                 <HourglassOutlined size={13} />
                 <div>
-                  <span>{activity.estimateTime} phút</span>
+                  <span>{activity.estimateTime} giờ</span>
                 </div>
               </div>
             </Tooltip>
@@ -371,22 +371,23 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
         activity.subActivities &&
         activity.subActivities.length > 0 &&
         isOpen && (
-          <div
-            style={{
-              border: isHovered ? '1px solid #cecece' : '1px solid #e0dfdfff',
-              borderRadius: 5,
-              margin: '-5px 0 8px 15px',
-              padding: '5px 10px',
-              background: '#fff',
-            }}
-          >
-            {activity.subActivities.map((sub, i) => (
-              <div key={i}>
+          <>
+            {activity.subActivities.map((sub: IActivity, i: number) => (
+              <div
+                key={i}
+                style={{
+                  border: isHovered ? '1px solid #cecece' : '1px solid #e0dfdfff',
+                  borderRadius: 5,
+                  margin: '-5px 0 8px 15px',
+                  padding: '5px 10px',
+                  background: '#fff',
+                }}
+              >
                 <div style={{ fontSize: 11, opacity: 0.8 }}> {activity.name}</div>
                 <div style={{ fontSize: 12, fontWeight: 600 }}>{sub.name}</div>
               </div>
             ))}
-          </div>
+          </>
         )}
     </>
   );
