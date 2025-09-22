@@ -7,6 +7,7 @@ import { UserRole } from "../../common/enum/user";
 import { useModal } from "@/hooks/useModal";
 import { useList } from "@refinedev/core";
 import { message } from "antd";
+import { createWorkspace } from '@/services/api/workspace';
 
   const ModalAddWorkspace: React.FC = () => {
     const { type, isOpen, closeModal } = useModal();
@@ -22,17 +23,29 @@ import { message } from "antd";
     const [isPrivate, setIsPrivate] = useState(false);
     const [inviteMembers, setInviteMembers] = useState<IUser[]>([]);
 
-    const handleSubmit = () => {
-      form
-        .validateFields()
-        .then((values) => {
-          message.success("Tạo workspace thành công!");
-          form.resetFields();
-          setInviteMembers([]);
-          setIsPrivate(false);
-          closeModal();
-        })
-        .catch(() => {});
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async () => {
+      try {
+        const values = await form.validateFields();
+        setLoading(true);
+        await createWorkspace({
+          name: values.name,
+          description: values.description || '',
+          icon: values.icon || '',
+          visibility: isPrivate ? 'private' : 'public',
+          avatar: '', 
+        });
+        message.success('Tạo workspace thành công!');
+        form.resetFields();
+        setInviteMembers([]);
+        setIsPrivate(false);
+        closeModal();
+      } catch (err) {
+        message.error('Tạo workspace thất bại!');
+      } finally {
+        setLoading(false);
+      }
     };
 
     const handleTogglePrivate = (checked: boolean) => {
@@ -42,29 +55,26 @@ import { message } from "antd";
 
     return (
       <Modal
-        title="Tạo Space mới"
+        title={
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+            <span style={{ fontSize: 23, fontWeight: 600, color: '#000000ff', letterSpacing: 0.1 }}>Tạo Workspace mới</span>
+          </div>
+        }
         open={isModalOpen}
         onCancel={closeModal}
-        footer={[
-          <Button key="cancel" onClick={closeModal}>
-            Hủy
-          </Button>,
-          <Button key="create" type="primary" onClick={handleSubmit}>
-            Tạo Space
-          </Button>,
-        ]}
+        footer={null}
         width={600}
         centered
         destroyOnClose
       >
-        <div style={{ marginBottom: 24, color: "#8c8c8c" }}>
-          <Text>Một Space đại diện cho các nhóm, phòng ban hoặc các nhóm khác, mỗi nhóm có Danh sách, quy trình làm việc và cài đặt riêng.</Text>
+        <div style={{ marginBottom: 24, color: '#555', fontSize: 15, fontWeight: 400 }}>
+          Tạo Space cho các nhóm làm việc, phòng ban hoặc các dự án riêng.
         </div>
 
         <Form layout="vertical" form={form} initialValues={{ permission: "full" }}>
           <Form.Item
             label={
-              <span>
+              <span style={{ fontWeight: 600, fontSize: 15 }}>
                 <span style={{ color: "red" }}>*</span> Tên Space
               </span>
             }
@@ -73,9 +83,9 @@ import { message } from "antd";
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <Form.Item name="icon" noStyle style={{ marginBottom: 0 }}>
                 <div style={{
-                  height: 40,
-                  width: 56,
-                  minWidth: 56,
+                  height: 44,
+                  width: 50,
+                  minWidth: 50,
                   border: '1px solid #e0e0e0',
                   borderRadius: 8,
                   display: 'flex',
@@ -95,25 +105,25 @@ import { message } from "antd";
                 rules={[{ required: true, message: "Vui lòng nhập tên Space" }]}
                 style={{ marginBottom: 0, width: '100%' }}
               >
-                <Input placeholder="VD: Marketing, Kỹ thuật, HR" style={{ height: 44, fontSize: 16, borderRadius: 8, background: '#fff', border: '1px solid #e0e0e0' }} />
+                <Input placeholder="VD: Marketing, Kỹ thuật, Nhân sự" style={{ height: 44, fontSize: 14, borderRadius: 8, background: '#fff', border: '1px solid #e0e0e0', fontWeight: 400 }} />
               </Form.Item>
             </div>
           </Form.Item>
 
-          <Form.Item label="Mô tả (tùy chọn)" name="description" style={{ marginBottom: 24 }}>
-            <Input.TextArea rows={2} placeholder="Nhập mô tả cho Space (không bắt buộc)" />
+          <Form.Item label={<span style={{ fontWeight: 600, fontSize: 15 }}>Mô tả <span style={{ fontWeight: 400, fontSize: 14 }}>( tùy chọn )</span></span>} name="description" style={{ marginBottom: 24 }}>
+            <Input.TextArea rows={2} placeholder="Nhập mô tả cho Space (không bắt buộc)" style={{ fontSize: 14, fontWeight: 400 }} />
           </Form.Item>
 
           {!isPrivate && (
             <Form.Item style={{ marginBottom: 24 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-                <span style={{ fontWeight: 500, fontSize: 16 }}>
-                  Quyền mặc định
+                <span style={{ fontWeight: 600, fontSize: 15 }}>
+                  Phân quyền mặc định
                   <Tooltip
                     title={
                       <div>
                         <p>
-                          <strong>Toàn quyền chỉnh sửa</strong>
+                          <strong>Toàn quyền sửa</strong>
                           <br />
                           Có thể tạo và chỉnh sửa các thực thể trong Space này. Chủ sở hữu và quản trị viên có thể quản lý cài đặt Space.
                         </p>
@@ -135,14 +145,14 @@ import { message } from "antd";
                       </div>
                     }
                   >
-                    <InfoCircleOutlined style={{ marginLeft: 4, color: "#8c8c8c" }} />
+                    <InfoCircleOutlined style={{ marginLeft: 4, color: "#8c8c8c",  }} />
                   </Tooltip>
                 </span>
                 <Form.Item name="permission" noStyle>
                   <Select
-                    style={{ width: 150 }}
+                    style={{ width: 180, fontSize: 14, fontWeight: 400 }}
                     options={[
-                      { value: "full", label: "Toàn quyền chỉnh sửa" },
+                      { value: "full", label: "Toàn quyền sửa" },
                       { value: "edit", label: "Chỉnh sửa" },
                       { value: "comment", label: "Bình luận" },
                       { value: "view", label: "Chỉ xem" },
@@ -156,9 +166,9 @@ import { message } from "antd";
           <Form.Item style={{ marginBottom: 24 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <Text strong>Tạo Space riêng tư</Text>
+                <span style={{ fontWeight: 600, fontSize: 15 }}>Tạo Space riêng tư</span>
                 <br />
-                <Text type="secondary">Chỉ bạn và các thành viên được mời có quyền truy cập</Text>
+                <span style={{ fontSize: 14, color: '#888', fontWeight: 400 }}>Chỉ bạn và các thành viên được mời mới có quyền truy cập.</span>
               </div>
               <Switch checked={isPrivate} onChange={handleTogglePrivate} />
             </div>
@@ -205,6 +215,11 @@ import { message } from "antd";
             </Form.Item>
           )}
         </Form>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 32 }}>
+          <Button type="primary" onClick={handleSubmit} loading={loading} style={{ minWidth: 120, background: '#1890ff', borderColor: '#1890ff', fontWeight: 600, fontSize: 15 }}>
+            Tiếp tục
+          </Button>
+        </div>
       </Modal>
     );
   };
