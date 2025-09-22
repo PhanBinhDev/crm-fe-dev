@@ -8,7 +8,8 @@ import {
   ModalAction,
 } from '@/common/types';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { Form, Input, Select, Space } from 'antd';
+import { DownOutlined } from '@ant-design/icons';
+import { Form, Input, List, Popover, Space } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import AssigneeActivity from './AssigneeActivity';
 import ChecklistActivity from './ChecklistActivity';
@@ -173,7 +174,31 @@ const FormAddTask = forwardRef(
           setStageError(true);
           return;
         }
-
+        const attachmentsWithMeta = attachments.map(file => {
+          if ('originFileObj' in file && file.originFileObj) {
+            const origin = (file as any).originFileObj || file;
+            return {
+              uid: 'uid' in file ? (file as any).uid : undefined,
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              lastModified:
+                file.originFileObj &&
+                typeof file.originFileObj === 'object' &&
+                'lastModified' in file.originFileObj
+                  ? file.originFileObj.lastModified
+                  : undefined,
+              url: (file as any).url || URL.createObjectURL(origin),
+            };
+          }
+          return {
+            uid: (file as any).uid || undefined,
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            lastModified: file.lastModified,
+          };
+        });
         const formData: FormAddActivityPayload = {
           name: values.name?.trim(),
           description: values.description?.trim(),
@@ -184,7 +209,7 @@ const FormAddTask = forwardRef(
           type: values.type,
           startTime: dateRange.start?.toDate(),
           endTime: dateRange.end?.toDate(),
-          files: attachments,
+          files: attachmentsWithMeta,
           subtask: subtasks.filter(task => task.trim()),
           checklist: checklists,
           workspaceId: currentWorkspace?.id || '',
@@ -199,6 +224,12 @@ const FormAddTask = forwardRef(
         });
       } catch (error) {}
     };
+
+    const typeOptions = [
+      { label: 'Nhiệm vụ', value: 'task' },
+      { label: 'Sự kiện', value: 'event' },
+    ];
+    const [popoverOpen, setPopoverOpen] = useState(false);
 
     return (
       <Form
@@ -218,18 +249,54 @@ const FormAddTask = forwardRef(
       >
         <Space direction="vertical" size={'middle'} style={{ width: '100%' }}>
           <Form.Item name="type" initialValue="task" style={{ marginBottom: 0 }}>
-            <Select
-              options={[
-                { label: 'Nhiệm vụ', value: 'task' },
-                { label: 'Sự kiện', value: 'event' },
-              ]}
-              style={{ width: '25%' }}
-              size="middle"
-              onChange={value => {
-                onChangeType(value);
-                setTaskOrEvent(value);
-              }}
-            />
+            <Popover
+              trigger="click"
+              placement="bottomLeft"
+              open={popoverOpen}
+              onOpenChange={setPopoverOpen}
+              content={
+                <List
+                  size="small"
+                  dataSource={typeOptions}
+                  renderItem={item => (
+                    <List.Item
+                      style={{
+                        cursor: 'pointer',
+                        fontWeight: item.value === taskOrEvent ? 600 : 400,
+                        color: item.value === taskOrEvent ? '#1677ff' : undefined,
+                      }}
+                      onClick={() => {
+                        onChangeType(item.value);
+                        setTaskOrEvent(item.value);
+                        form.setFieldValue('type', item.value);
+                        setPopoverOpen(false);
+                      }}
+                    >
+                      {item.label}
+                    </List.Item>
+                  )}
+                />
+              }
+            >
+              <Space
+                align="center"
+                style={{
+                  width: 120,
+                  cursor: 'pointer',
+                  border: '1px solid #d9d9d9',
+                  borderRadius: 6,
+                  padding: '0 8px',
+                  background: '#fff',
+                  height: 32,
+                }}
+                onClick={() => setPopoverOpen(true)}
+              >
+                <span style={{ flex: 1 }}>
+                  {typeOptions.find(opt => opt.value === taskOrEvent)?.label}
+                </span>
+                <DownOutlined style={{ fontSize: 12, marginLeft: '10px', color: '#888' }} />
+              </Space>
+            </Popover>
           </Form.Item>
           <Form.Item
             name="name"
