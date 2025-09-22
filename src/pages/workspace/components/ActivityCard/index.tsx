@@ -1,12 +1,19 @@
 import { IActivity, IStage } from '@/common/types';
-import { DragDropType, getPriorityLabel } from '@/constants';
+import { DragDropType, getActivityLabel, getPriorityLabel } from '@/constants';
 import { useDisplayConfig } from '@/contexts/DisplayConfig';
 import { useModal } from '@/hooks/useModal';
 import { getActivityPriorityColor } from '@/utils';
+import { hexToRgba } from '@/utils/formatter';
 import { CalendarOutlined, HourglassOutlined, UserOutlined } from '@ant-design/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { IconChevronDown, IconChevronRight, IconLabelFilled, IconShare } from '@tabler/icons-react';
+import {
+  IconCategory,
+  IconChevronDown,
+  IconChevronRight,
+  IconFlagFilled,
+  IconShare,
+} from '@tabler/icons-react';
 import { Avatar, Card, Progress, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
@@ -93,7 +100,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
           }
         }}
       >
-        <div style={{ width: '100%', position: 'relative', marginBottom: 3 }}>
+        {/* <div style={{ width: '100%', position: 'relative', marginBottom: 3 }}>
           {config.showPriority && activity.priority ? (
             <Tooltip title={getPriorityLabel(activity.priority)} placement="left">
               <div
@@ -111,7 +118,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
           ) : (
             ''
           )}
-        </div>
+        </div> */}
 
         {/* Tiêu đề */}
         <div style={{ width: '100%', position: 'relative', marginBottom: 6 }}>
@@ -140,10 +147,70 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
           </Text>
         </div>
 
+        {/* type - priority */}
+        <div
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            marginBottom: 5,
+          }}
+        >
+          <div>
+            {config.showType && activity.type ? (
+              <Tooltip title="Loại công việc" placement="right">
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: 12,
+                    border: '1px solid #e0dfdfff',
+                    padding: '1px 4px',
+                    borderRadius: 4,
+                    width: 'fit-content',
+                  }}
+                >
+                  <IconCategory size={14} />
+                  <p>{getActivityLabel(activity.type)}</p>
+                </div>
+              </Tooltip>
+            ) : (
+              ''
+            )}
+          </div>
+
+          <div>
+            {config.showPriority && activity.priority ? (
+              <Tooltip title="Ưu tiên" placement="left">
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: 12,
+                    border: `1px solid ${getActivityPriorityColor(activity.priority)}`,
+                    backgroundColor: `${hexToRgba(getActivityPriorityColor(activity.priority), 0.5)}`,
+                    padding: '1px 4px',
+                    borderRadius: 4,
+                    width: 'fit-content',
+                  }}
+                >
+                  <IconFlagFilled color={getActivityPriorityColor(activity.priority)} size={14} />
+                  <p>{getPriorityLabel(activity.priority)}</p>
+                </div>
+              </Tooltip>
+            ) : (
+              ''
+            )}
+          </div>
+        </div>
+
         {/* Assignees */}
         {config.showAssignee && activity.assignees ? (
           activity.assignees.length > 0 ? (
-            <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 5 }}>
               {activity.assignees.map(assignee => (
                 <Tooltip title={assignee.user?.name || ''} key={assignee.id}>
                   <Avatar icon={<UserOutlined />} />
@@ -151,9 +218,11 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
               ))}
             </div>
           ) : (
-            <Tooltip title="Chưa có người được giao" placement="right">
-              <Avatar size={20} icon={<UserOutlined />} style={{ marginBottom: 6 }} />
-            </Tooltip>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 5 }}>
+              <Tooltip title="Chưa có người được giao" placement="right">
+                <Avatar size={20} icon={<UserOutlined />} />
+              </Tooltip>
+            </div>
           )
         ) : (
           ''
@@ -162,11 +231,12 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
         {/* info */}
         <div
           style={{
+            width: '100%',
             display: 'flex',
             alignItems: 'center',
             gap: 15,
-            marginBottom: 6,
-            // justifyContent: 'space-between',
+            marginBottom: 5,
+            justifyContent: 'space-between',
           }}
         >
           {config.showEndTime && activity.endTime ? (
@@ -207,7 +277,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
               >
                 <HourglassOutlined size={13} />
                 <div>
-                  <span>{activity.estimateTime}</span>
+                  <span>{activity.estimateTime} phút</span>
                 </div>
               </div>
             </Tooltip>
@@ -227,7 +297,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
-                marginBottom: 8,
+                marginBottom: 5,
                 whiteSpace: 'normal',
                 lineHeight: '1.4em',
                 maxHeight: '2.8em',
@@ -241,7 +311,13 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
         )}
 
         {/* Progress */}
-        {config.showProgress && <Progress percent={activity.progress || 0} size="small" />}
+        {config.showProgress && (
+          <div style={{ width: '100%', marginBottom: 5 }}>
+            <Tooltip title="Tiến độ" placement="left">
+              <Progress percent={activity.progress || 0} size="small" style={{ margin: 0 }} />
+            </Tooltip>
+          </div>
+        )}
 
         {/* Subtask */}
         {config.showSubtask && activity.subActivities && activity.subActivities.length > 0 ? (
@@ -252,7 +328,6 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginTop: 10,
                 padding: '2px',
                 borderRadius: 6,
                 cursor: 'pointer',

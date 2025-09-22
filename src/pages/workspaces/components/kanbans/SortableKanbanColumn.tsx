@@ -1,13 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IActivity, IStage } from '@/common/types';
-import { PlusOutlined, DragOutlined } from '@ant-design/icons';
+import { hexToRgba } from '@/utils/formatter';
+import { DragOutlined, PlusOutlined } from '@ant-design/icons';
 import { useDroppable } from '@dnd-kit/core';
-import { useSortable } from '@dnd-kit/sortable';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Button, Card, Space, Typography, Badge, ColorPicker, message } from 'antd';
-import { SortableActivityCard } from './SortableActivityCard';
 import { useUpdate } from '@refinedev/core';
+import { Badge, Button, Card, ColorPicker, message, Space, Typography } from 'antd';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { SortableActivityCard } from './SortableActivityCard';
 const { Text } = Typography;
 
 interface SortableKanbanColumnProps {
@@ -138,12 +138,6 @@ export const SortableKanbanColumn: React.FC<SortableKanbanColumnProps> = ({
     opacity: isColumnDragging ? 0.5 : 1,
     cursor: isColumnDragging ? 'grabbing' : 'default',
   };
-  function hexToRgba(hex: any, alpha: any) {
-    let r = parseInt(hex.slice(1, 3), 16);
-    let g = parseInt(hex.slice(3, 5), 16);
-    let b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
 
   return (
     <Card

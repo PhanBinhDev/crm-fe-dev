@@ -9,6 +9,7 @@ export interface DisplayConfig {
   showDescription: boolean;
   showProgress: boolean;
   showSubtask: boolean;
+  showType: boolean;
 }
 
 export const defaultConfig: DisplayConfig = {
@@ -19,6 +20,7 @@ export const defaultConfig: DisplayConfig = {
   showDescription: false,
   showProgress: false,
   showSubtask: false,
+  showType: false,
 };
 
 interface DisplayConfigContextType {

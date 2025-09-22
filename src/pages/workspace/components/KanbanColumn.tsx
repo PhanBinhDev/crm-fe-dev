@@ -4,6 +4,7 @@ import ModalEditColumn from '@/components/modals/ModalEditColumn';
 import { ColorPicker } from '@/components/shared/ColorPicker';
 import { DragDropType } from '@/constants';
 import { useModal } from '@/hooks/useModal';
+import { hexToRgba } from '@/utils/formatter';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useUpdate } from '@refinedev/core';
@@ -54,7 +55,7 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    background: '#fff',
+    background: stage.color ? hexToRgba(stage.color, 0.1) : '#fafafa',
     border: '1px solid #eeeaeaff',
     borderRadius: 8,
     opacity: isDragging ? 0.5 : 1,
