@@ -8,7 +8,15 @@ import {
   ModalAction,
 } from '@/common/types';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { IconCalendarEvent, IconChevronRight, IconCircles } from '@tabler/icons-react';
+import {
+  IconBook,
+  IconBrandHipchat,
+  IconCalendarEvent,
+  IconCheck,
+  IconChevronRight,
+  IconCircles,
+  IconTable,
+} from '@tabler/icons-react';
 import { Form, Input, List, Popover, Space } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import AssigneeActivity from './AssigneeActivity';
@@ -41,6 +49,7 @@ const FormAddTask = forwardRef(
     const actionRef = useRef<ModalAction>();
     const { currentWorkspace } = useWorkspaces();
     const [taskOrEvent, setTaskOrEvent] = useState<string | 'task' | 'event'>('task');
+    const [category, setCategory] = useState<string | 'seminar' | 'workshop' | 'tutor'>('tutor');
 
     useImperativeHandle(ref, () => ({
       submitForm: (action: ModalAction) => {
@@ -227,6 +236,7 @@ const FormAddTask = forwardRef(
           estimateTime: parseFloat(timeEstimate) || 0,
           stageId: values.stage.id,
           type: values.type,
+          category: values.category,
           startTime: dateRange.start?.toDate(),
           endTime: dateRange.end?.toDate(),
           files: attachmentsWithMeta,
@@ -251,6 +261,13 @@ const FormAddTask = forwardRef(
     ];
     const [popoverOpen, setPopoverOpen] = useState(false);
 
+    const typeCategories = [
+      { label: 'Seminar', value: 'seminar', icon: <IconTable size={15} /> },
+      { label: 'Workshop', value: 'workshop', icon: <IconBrandHipchat size={15} /> },
+      { label: 'Tutor', value: 'tutor', icon: <IconBook size={15} /> },
+    ];
+    const [categoryOpen, setCategoryOpen] = useState(false);
+
     return (
       <Form
         form={form}
@@ -270,147 +287,292 @@ const FormAddTask = forwardRef(
         }}
       >
         <Space direction="vertical" size={'middle'} style={{ width: '100%' }}>
-          <Form.Item name="type" initialValue="task" style={{ marginBottom: 0 }}>
-            <Popover
-              trigger="click"
-              placement="bottomLeft"
-              open={popoverOpen}
-              onOpenChange={setPopoverOpen}
-              styles={{
-                body: {
-                  padding: 0,
-                },
-              }}
-              content={
-                <div style={{ width: 200, padding: 5 }}>
-                  <List
-                    size="small"
-                    dataSource={typeOptions}
-                    renderItem={item => (
-                      <List.Item
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 12,
-                          padding: '5px 7px',
-                          cursor: 'pointer',
-                          fontWeight: 400,
-                          fontSize: 14,
-                          color: '#333',
-                          backgroundColor: item.value === taskOrEvent ? '#f0f6ff' : 'transparent',
-                          borderRadius: 6,
-                          margin: '2px 4px',
-                          border: 'none',
-                          position: 'relative',
-                        }}
-                        onMouseEnter={e => {
-                          if (item.value !== taskOrEvent) {
-                            (e.target as HTMLElement).style.backgroundColor = '#f5f5f5';
-                          }
-                        }}
-                        onMouseLeave={e => {
-                          if (item.value !== taskOrEvent) {
-                            (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                          }
-                        }}
-                        onClick={() => {
-                          onChangeType(item.value);
-                          setTaskOrEvent(item.value);
-                          form.setFieldValue('type', item.value);
-                          setPopoverOpen(false);
-                        }}
-                      >
-                        <span
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <Form.Item name="type" initialValue="task" style={{ marginBottom: 0 }}>
+              <Popover
+                trigger="click"
+                placement="bottomLeft"
+                open={popoverOpen}
+                onOpenChange={setPopoverOpen}
+                styles={{
+                  body: {
+                    padding: 0,
+                  },
+                }}
+                content={
+                  <div style={{ width: 200, padding: 5 }}>
+                    <List
+                      size="small"
+                      dataSource={typeOptions}
+                      renderItem={item => (
+                        <List.Item
                           style={{
-                            fontSize: 16,
-                            color: item.value === taskOrEvent ? '#1677ff' : '#666',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 12,
+                            padding: '5px 7px',
+                            cursor: 'pointer',
+                            fontWeight: 400,
+                            fontSize: 14,
+                            color: '#333',
+                            backgroundColor: item.value === taskOrEvent ? '#f0f6ff' : 'transparent',
+                            borderRadius: 6,
+                            margin: '2px 4px',
+                            border: 'none',
+                            position: 'relative',
+                          }}
+                          onMouseEnter={e => {
+                            if (item.value !== taskOrEvent) {
+                              (e.target as HTMLElement).style.backgroundColor = '#f5f5f5';
+                            }
+                          }}
+                          onMouseLeave={e => {
+                            if (item.value !== taskOrEvent) {
+                              (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                            }
+                          }}
+                          onClick={() => {
+                            onChangeType(item.value);
+                            setTaskOrEvent(item.value);
+                            form.setFieldValue('type', item.value);
+                            setPopoverOpen(false);
                           }}
                         >
-                          {item.icon}
-                        </span>
-                        <span
-                          style={{
-                            flex: 1,
-                            color: item.value === taskOrEvent ? '#1677ff' : '#333',
-                          }}
-                        >
-                          {item.label}
-                        </span>
-
-                        {item.value === taskOrEvent && (
                           <span
                             style={{
-                              color: '#1677ff',
                               fontSize: 16,
-                              fontWeight: 600,
+                              color: item.value === taskOrEvent ? '#1677ff' : '#666',
                             }}
                           >
-                            ✓
+                            {item.icon}
                           </span>
-                        )}
-                      </List.Item>
-                    )}
-                  />
-                </div>
-              }
-            >
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  cursor: 'pointer',
-                  border: '1px solid #e4e4e4ff',
-                  borderRadius: 6,
-                  padding: '4px 8px',
-                  background: '#fff',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: '#24292f',
-                  minWidth: 'auto',
-                  height: 28,
-                  transition: 'all 0.2s ease',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-                }}
-                onClick={() => setPopoverOpen(!popoverOpen)}
+                          <span
+                            style={{
+                              flex: 1,
+                              color: item.value === taskOrEvent ? '#1677ff' : '#333',
+                            }}
+                          >
+                            {item.label}
+                          </span>
+
+                          {item.value === taskOrEvent && (
+                            <span
+                              style={{
+                                color: '#1677ff',
+                                fontSize: 16,
+                                fontWeight: 600,
+                              }}
+                            >
+                              <IconCheck />
+                            </span>
+                          )}
+                        </List.Item>
+                      )}
+                    />
+                  </div>
+                }
               >
-                <span
+                <div
                   style={{
-                    fontSize: 14,
-                    color: '#656d76',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    lineHeight: 1,
-                  }}
-                >
-                  {typeOptions.find(opt => opt.value === taskOrEvent)?.icon}
-                </span>
-                <span
-                  style={{
-                    color: '#24292f',
+                    gap: 6,
+                    cursor: 'pointer',
+                    border: '1px solid #e4e4e4ff',
+                    borderRadius: 6,
+                    padding: '4px 8px',
+                    background: '#fff',
                     fontSize: 13,
                     fontWeight: 500,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    lineHeight: 1,
+                    color: '#24292f',
+                    minWidth: 'auto',
+                    height: 28,
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                   }}
+                  onClick={() => setPopoverOpen(!popoverOpen)}
                 >
-                  {typeOptions.find(opt => opt.value === taskOrEvent)?.label}
-                </span>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    lineHeight: 1,
-                    transform: popoverOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.2s ease',
+                  <span
+                    style={{
+                      fontSize: 14,
+                      color: '#656d76',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {typeOptions.find(opt => opt.value === taskOrEvent)?.icon}
+                  </span>
+                  <span
+                    style={{
+                      color: '#24292f',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {typeOptions.find(opt => opt.value === taskOrEvent)?.label}
+                  </span>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      lineHeight: 1,
+                      transform: popoverOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                    }}
+                  >
+                    <IconChevronRight size={14} />
+                  </span>
+                </div>
+              </Popover>
+            </Form.Item>
+            {taskOrEvent === 'event' && (
+              <Form.Item name="category" initialValue="tutor" style={{ marginBottom: 0 }}>
+                <Popover
+                  trigger="click"
+                  placement="bottomLeft"
+                  open={categoryOpen}
+                  onOpenChange={setCategoryOpen}
+                  styles={{
+                    body: {
+                      padding: 0,
+                    },
                   }}
+                  content={
+                    <div style={{ width: 200, padding: 5 }}>
+                      <List
+                        size="small"
+                        dataSource={typeCategories}
+                        renderItem={item => (
+                          <List.Item
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 12,
+                              padding: '5px 7px',
+                              cursor: 'pointer',
+                              fontWeight: 400,
+                              fontSize: 14,
+                              color: '#333',
+                              backgroundColor: item.value === category ? '#f0f6ff' : 'transparent',
+                              borderRadius: 6,
+                              margin: '2px 4px',
+                              border: 'none',
+                              position: 'relative',
+                            }}
+                            onMouseEnter={e => {
+                              if (item.value !== category) {
+                                (e.target as HTMLElement).style.backgroundColor = '#f5f5f5';
+                              }
+                            }}
+                            onMouseLeave={e => {
+                              if (item.value !== category) {
+                                (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                              }
+                            }}
+                            onClick={() => {
+                              onChangeType(item.value);
+                              setCategory(item.value);
+                              form.setFieldValue('category', item.value);
+                              setCategoryOpen(false);
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: 16,
+                                color: item.value === category ? '#1677ff' : '#666',
+                              }}
+                            >
+                              {item.icon}
+                            </span>
+                            <span
+                              style={{
+                                flex: 1,
+                                color: item.value === category ? '#1677ff' : '#333',
+                              }}
+                            >
+                              {item.label}
+                            </span>
+
+                            {item.value === category && (
+                              <span
+                                style={{
+                                  color: '#1677ff',
+                                  fontSize: 16,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                <IconCheck />
+                              </span>
+                            )}
+                          </List.Item>
+                        )}
+                      />
+                    </div>
+                  }
                 >
-                  <IconChevronRight size={14} />
-                </span>
-              </div>
-            </Popover>
-          </Form.Item>
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      cursor: 'pointer',
+                      border: '1px solid #e4e4e4ff',
+                      borderRadius: 6,
+                      padding: '4px 8px',
+                      background: '#fff',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: '#24292f',
+                      minWidth: 'auto',
+                      height: 28,
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                    }}
+                    onClick={() => setCategoryOpen(!categoryOpen)}
+                  >
+                    <span
+                      style={{
+                        fontSize: 14,
+                        color: '#656d76',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {typeCategories.find(opt => opt.value === category)?.icon}
+                    </span>
+                    <span
+                      style={{
+                        color: '#24292f',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {typeCategories.find(opt => opt.value === category)?.label}
+                    </span>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        lineHeight: 1,
+                        transform: popoverOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                      }}
+                    >
+                      <IconChevronRight size={14} />
+                    </span>
+                  </div>
+                </Popover>
+              </Form.Item>
+            )}
+          </div>
           <Form.Item
             name="name"
             rules={[{ required: true, message: 'Vui lòng nhập tên task' }]}

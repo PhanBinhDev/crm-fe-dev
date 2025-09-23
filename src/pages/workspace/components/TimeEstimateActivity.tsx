@@ -341,7 +341,7 @@ const TimeEstimateActivity = ({ value, onChange }: TimeEstimateActivityProps) =>
         },
       }}
       trigger={['click']}
-      placement="bottomLeft"
+      placement="bottom"
       arrow={false}
       content={timeEstimateContent}
     >
