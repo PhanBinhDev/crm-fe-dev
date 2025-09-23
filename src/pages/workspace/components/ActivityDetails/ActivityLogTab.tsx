@@ -1,6 +1,7 @@
-import { IconBell, IconFilter2, IconSearch } from '@tabler/icons-react';
-import { Button, Input, InputRef, Popover, Space, Typography } from 'antd';
+import { IconBell, IconSearch } from '@tabler/icons-react';
+import { Button, Input, InputRef, Space, Typography } from 'antd';
 import { useRef, useState } from 'react';
+import ActivityDetailFilterLog from './ActivityDetailFilterLog';
 
 const ActivityLogTab = () => {
   const [showSearch, setShowSearch] = useState(false);
@@ -58,25 +59,7 @@ const ActivityLogTab = () => {
             <IconBell size={16} stroke={1.5} color="#646464" />
             <span style={{ fontSize: 14, color: '#646464', fontWeight: 500 }}>4</span>
           </Button>
-          <Popover
-            placement="bottomRight"
-            arrow={false}
-            open={showFilter}
-            trigger={['click']}
-            onOpenChange={setShowFilter}
-            content={<div style={{ padding: 8 }}>Filter options here</div>}
-          >
-            <Button
-              type="text"
-              icon={<IconFilter2 size={16} stroke={1.5} color="#646464" />}
-              styles={{
-                icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
-              }}
-              style={{
-                borderRadius: 8,
-              }}
-            />
-          </Popover>
+          <ActivityDetailFilterLog />
         </Space>
 
         {showSearch && (
