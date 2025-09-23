@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import SelectIcon from "../shared/SelectIcon";
 import { Modal, Form, Input, Select, Switch, Tooltip, Button, Typography } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { IUser } from "../../common/types/users";
 import { UserRole } from "../../common/enum/user";
 import { useModal } from "@/hooks/useModal";
+import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { useList } from "@refinedev/core";
 import { message } from "antd";
 import { createWorkspace } from '@/services/api/workspace';
@@ -12,6 +13,14 @@ import { createWorkspace } from '@/services/api/workspace';
   const ModalAddWorkspace: React.FC = () => {
     const { type, isOpen, closeModal } = useModal();
     const isModalOpen = type === "ModalAddWorkspace" && isOpen;
+    const { refreshWorkspaces } = useWorkspaces();
+
+    useEffect(() => {
+      if (isModalOpen) {
+        const evt = new CustomEvent('close-workspace-popover');
+        window.dispatchEvent(evt);
+      }
+    }, [isModalOpen]);
     const { Text } = Typography;
 
     const { data: usersData } = useList({
@@ -37,6 +46,7 @@ import { createWorkspace } from '@/services/api/workspace';
           avatar: '', 
         });
         message.success('Tạo workspace thành công!');
+        refreshWorkspaces(); 
         form.resetFields();
         setInviteMembers([]);
         setIsPrivate(false);
@@ -83,9 +93,9 @@ import { createWorkspace } from '@/services/api/workspace';
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <Form.Item name="icon" noStyle style={{ marginBottom: 0 }}>
                 <div style={{
-                  height: 44,
-                  width: 50,
-                  minWidth: 50,
+                  height: 36,
+                  width: 36,
+                  minWidth: 36,
                   border: '1px solid #e0e0e0',
                   borderRadius: 8,
                   display: 'flex',
@@ -96,7 +106,7 @@ import { createWorkspace } from '@/services/api/workspace';
                   <SelectIcon
                     value={form.getFieldValue("icon")}
                     onChange={(icon: string) => form.setFieldsValue({ icon })}
-                    size={28}
+                    size={22}
                   />
                 </div>
               </Form.Item>
@@ -105,13 +115,13 @@ import { createWorkspace } from '@/services/api/workspace';
                 rules={[{ required: true, message: "Vui lòng nhập tên Space" }]}
                 style={{ marginBottom: 0, width: '100%' }}
               >
-                <Input placeholder="VD: Marketing, Kỹ thuật, Nhân sự" style={{ height: 44, fontSize: 14, borderRadius: 8, background: '#fff', border: '1px solid #e0e0e0', fontWeight: 400 }} />
+                <Input placeholder="VD: Marketing, Kỹ thuật, Nhân sự" style={{ height: 36, fontSize: 14, borderRadius: 8, background: '#fff', border: '1px solid #e0e0e0', fontWeight: 400 }} />
               </Form.Item>
             </div>
           </Form.Item>
 
           <Form.Item label={<span style={{ fontWeight: 600, fontSize: 15 }}>Mô tả <span style={{ fontWeight: 400, fontSize: 14 }}>( tùy chọn )</span></span>} name="description" style={{ marginBottom: 24 }}>
-            <Input.TextArea rows={2} placeholder="Nhập mô tả cho Space (không bắt buộc)" style={{ fontSize: 14, fontWeight: 400 }} />
+            <Input.TextArea rows={2} placeholder="Nhập mô tả cho Space (không bắt buộc)" style={{ fontSize: 14, fontWeight: 400, height: 36, minHeight: 36, borderRadius: 8, background: '#fff', border: '1px solid #e0e0e0' }} />
           </Form.Item>
 
           {!isPrivate && (
@@ -216,7 +226,7 @@ import { createWorkspace } from '@/services/api/workspace';
           )}
         </Form>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 32 }}>
-          <Button type="primary" onClick={handleSubmit} loading={loading} style={{ minWidth: 120, background: '#1890ff', borderColor: '#1890ff', fontWeight: 600, fontSize: 15 }}>
+          <Button type="primary" onClick={handleSubmit} loading={loading} style={{ minWidth: 120, background: '#1890ff', borderColor: '#1890ff', fontWeight: 500, fontSize: 15 }}>
             Tiếp tục
           </Button>
         </div>
