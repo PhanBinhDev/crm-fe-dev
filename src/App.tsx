@@ -27,6 +27,7 @@ import Modals from './components/modals';
 import { DisplayConfigProvider } from './contexts/DisplayConfig';
 import { materialRoutes } from './pages/course-materials/routes';
 import { DashboardPage } from './pages/dashboard';
+import { feedbackRoutes } from './pages/feedbacks/routes';
 import { workspaceRoutes } from './pages/workspace/routes';
 import { accessControlProvider } from './providers/AccessControlProvider';
 
@@ -85,6 +86,7 @@ function App() {
                       {profileRoutes}
                       {semesterRoutes}
                       {materialRoutes}
+                      {feedbackRoutes}
                       <Route path="*" element={<ErrorComponent />} />
                     </Route>
 
