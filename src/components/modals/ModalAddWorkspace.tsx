@@ -109,14 +109,14 @@ import { createWorkspace } from '@/services/api/workspace';
                   size={22}
                 />
               </div>
-              <Form.Item
-                name="name"
-                rules={[{ required: true, message: "Vui lòng nhập tên Space" }]}
-                style={{ marginBottom: 0, width: '100%' }}
-                noStyle
-              >
-                <Input placeholder="VD: Marketing, Kỹ thuật, Nhân sự" style={{ height: 36, fontSize: 14, borderRadius: 8, background: '#fff', border: '1px solid #e0e0e0', fontWeight: 400 }} />
-              </Form.Item>
+                <Form.Item
+                  name="name"
+                  rules={[{ required: true, message: <span style={{ display: 'inline-block', marginLeft: 50 }}>Vui lòng nhập tên Space</span> }]}
+                  style={{ marginBottom: 0, width: '100%' }}
+                  noStyle
+                >
+                  <Input placeholder="VD: Marketing, Kỹ thuật, Nhân sự" style={{ height: 36, fontSize: 14, borderRadius: 8, background: '#fff', border: '1px solid #e0e0e0', fontWeight: 400 }} />
+                </Form.Item>
             </div>
           </Form.Item>
 
