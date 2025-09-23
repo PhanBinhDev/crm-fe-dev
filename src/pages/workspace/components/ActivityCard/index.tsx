@@ -185,7 +185,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
 
         {/* Assignees */}
         {config.showAssignee && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 5 }}>
             {activity.assignees && activity.assignees.length > 0 ? (
               <>
                 {activity.assignees.slice(0, 3).map((assignee, index) => (
@@ -250,7 +250,10 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
           }}
         >
           {config.showEndTime && activity.endTime ? (
-            <Tooltip title="Thời gian bắt đầu - kết thúc" placement="left">
+            <Tooltip
+              title={activity.startTime && activity.endTime ? 'Thời gian bắt đầu - kết thúc' : ''}
+              placement="left"
+            >
               <div
                 style={{
                   display: 'flex',
@@ -263,9 +266,13 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <CalendarOutlined size={13} />
                   <div>
-                    <span>{dayjs(activity.endTime).format('DD/MM/YY')}</span>
-                    {' - '}
-                    <span>{dayjs(activity.endTime).format('DD/MM/YY')}</span>
+                    <Tooltip title={activity.startTime ? 'Thời gian bắt đầu' : ''} placement="left">
+                      {activity.startTime ? dayjs(activity.startTime).format('DD/MM/YY') : ''}
+                    </Tooltip>
+
+                    <Tooltip title={activity.endTime ? 'Thời gian kết thúc' : ''} placement="right">
+                      {dayjs(activity.endTime).format('DD/MM/YY')}
+                    </Tooltip>
                   </div>
                 </div>
               </div>
