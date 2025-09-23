@@ -1,3 +1,4 @@
+import { AppHeader } from '@/components/shared/Header';
 import { getResourcesByRole, ResourceConfig } from '@/config/resources';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
@@ -5,10 +6,9 @@ import WorkspaceItemSelector from '@/pages/workspace/components/WorkspaceItemSel
 import styles from '@/styles/custom-layout.module.css';
 import { useNavigation } from '@refinedev/core';
 import type { MenuProps } from 'antd';
-import { Breadcrumb, Layout, Menu, theme } from 'antd';
+import { Layout, Menu, theme } from 'antd';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { AppHeader } from '../shared/header';
 
 const { Content, Sider } = Layout;
 
@@ -135,115 +135,6 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
 
     return resourcesByRole().map(generateMenuItem);
   }, [user?.role, isLoading, getResourcesByRole]);
-
-  const breadcrumbItems = useMemo(() => {
-    const items: {
-      title: string;
-      href?: string;
-    }[] = [{ title: 'Trang chủ', href: '/' }];
-
-    const pathname = location.pathname;
-
-    if (pathname === '/profile') {
-      items.push({ title: 'Hồ sơ cá nhân' });
-      return items;
-    }
-
-    if (pathname.startsWith('/workspaces/')) {
-      const segments = pathname.split('/').filter(Boolean);
-
-      items.push({
-        title: 'Workspaces',
-        href: `/workspaces/${segments[1]}`,
-      });
-
-      if (segments.length > 2) {
-        // For settings or any other workspace sub-path
-        const lastSegment = segments[segments.length - 1];
-
-        // Capitalize first letter for better presentation
-        const formattedSegment = lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1);
-        items.push({
-          title: formattedSegment,
-        });
-      }
-
-      return items;
-    }
-
-    let currentResource = null;
-    let parentResource = null;
-
-    for (const resource of resourcesByRole()) {
-      if (resource.meta?.menuPath === pathname) {
-        currentResource = resource;
-        break;
-      }
-
-      if (resource.children) {
-        const child = resource.children.find(c => c.meta?.menuPath === pathname);
-        if (child) {
-          parentResource = resource;
-          currentResource = child;
-          break;
-        }
-      }
-    }
-
-    if (!currentResource) {
-      const pathSegments = pathname.split('/').filter(Boolean);
-
-      for (const resource of resourcesByRole()) {
-        const resourcePath = resource.meta?.menuPath?.split('/').filter(Boolean) || [];
-        if (resourcePath.length > 0 && pathSegments[0] === resourcePath[0]) {
-          currentResource = resource;
-
-          if (pathSegments.length > 1) {
-            const action = pathSegments[1];
-            if (['show', 'edit', 'create'].includes(action)) {
-              items.push({
-                title: resource.meta?.label || resource.name,
-                href: resource.meta?.menuPath,
-              });
-
-              let actionTitle = action;
-              switch (action) {
-                case 'show':
-                  actionTitle = 'Chi tiết';
-                  break;
-                case 'create':
-                  actionTitle = 'Tạo mới';
-                  break;
-                case 'edit':
-                  actionTitle = 'Chỉnh sửa';
-                  break;
-              }
-
-              items.push({ title: actionTitle });
-              return items;
-            }
-          }
-          break;
-        }
-      }
-    }
-
-    if (currentResource) {
-      if (parentResource) {
-        items.push({
-          title: parentResource.meta?.label || parentResource.name,
-          href: parentResource.meta?.menuPath,
-        });
-      }
-
-      items.push({
-        title: currentResource.meta?.label || currentResource.name,
-        href: currentResource.meta?.menuPath,
-      });
-    }
-
-    return items;
-  }, [location.pathname, resourcesByRole]);
 
   const selectedKeys = useMemo(() => {
     return getSelectedKeyFromPath(location.pathname);
@@ -376,11 +267,11 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
           backgroundColor: '#f0f2f5',
         }}
       >
-        <AppHeader />
+        <AppHeader collapsed={collapsed} />
         <Content
           style={{
             margin: '24px 16px',
-            padding: '24px',
+            padding: '20px',
             minHeight: 280,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
@@ -389,37 +280,6 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
             marginTop: 80,
           }}
         >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              position: 'relative',
-              marginBottom: 16,
-            }}
-          >
-            <Breadcrumb
-              itemRender={(route, _, routes) => {
-                const isLast = routes.indexOf(route) === routes.length - 1;
-                return isLast ? (
-                  <span>{route.title}</span>
-                ) : (
-                  <a
-                    href={route.href}
-                    onClick={e => {
-                      e.preventDefault();
-                      if (route.href) {
-                        push(route.href);
-                      }
-                    }}
-                  >
-                    {route.title}
-                  </a>
-                );
-              }}
-              items={breadcrumbItems}
-            />
-          </div>
           <div
             style={{
               minHeight: 'calc(100vh - 280px)',

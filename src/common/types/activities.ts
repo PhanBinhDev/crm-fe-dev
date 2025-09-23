@@ -4,7 +4,7 @@ import {
   ActivityStatus,
   ActivityType,
 } from '@/common/enum/activity';
-import { DateRange, IBase, IFeedback, IFile, IParticipant, IUser } from '@/common/types';
+import { DateRange, IBase, IFeedback, IFile, IParticipant, IStage, IUser } from '@/common/types';
 
 import { IAssignee } from './assignee';
 import { ISemester } from './semester';
@@ -15,6 +15,7 @@ export interface IActivity extends IBase {
   description?: string;
   priority?: ActivityPriority;
   stageId?: string;
+  stage: IStage;
   startTime?: Date;
   endTime?: Date;
   location?: string;

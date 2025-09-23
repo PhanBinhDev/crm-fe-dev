@@ -1,0 +1,15 @@
+.custom-collapse .ant-collapse-content-box {
+  padding: 0 !important;
+}
+
+.custom-collapse-header {
+  border-radius: 6px !important;
+  position: relative;
+}
+.custom-collapse-header.active {
+  background-color: #f2f2f2;
+}
+
+.custom-collapse-header:hover {
+  background-color: #f5f5f5;
+}

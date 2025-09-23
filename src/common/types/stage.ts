@@ -5,7 +5,7 @@ export interface IStage extends IBase {
   id: string;
   title: string;
   position: number;
-  color?: string;
+  color: string;
   stageGroup: StageGroup;
   groupPosition: number;
   isBuiltIn: boolean;

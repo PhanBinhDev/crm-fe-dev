@@ -15,16 +15,32 @@ import { useEffect, useRef, useState } from 'react';
 const { Text } = Typography;
 const { Header, Sider, Content } = Layout;
 
+export type ActivityItemType = 'activity' | 'subactivity';
+
+export type SelectedActivityItem = {
+  type: ActivityItemType;
+  data: IActivity;
+};
+
 const ModalEditActivity = () => {
   const { isOpen, type, closeModal, data } = useModal();
   const isOpenModal = isOpen && type === 'ModalEditActivity';
-  const [collapsedLeft, setCollapsedLeft] = useState(false);
+  const [collapsedLeft, setCollapsedLeft] = useState(true);
   const layoutRef = useRef<HTMLDivElement>(null);
   const [isOverlay, setIsOverlay] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<SelectedActivityItem | null>(null);
 
   const { activity } = (data as { activity: IActivity }) || {};
   const { stage } = (data as { stage: IStage }) || {};
-  console.log('stage in modal', stage);
+
+  useEffect(() => {
+    if (activity && isOpenModal) {
+      setSelectedItem({
+        type: 'activity',
+        data: activity,
+      });
+    }
+  }, [activity, isOpenModal]);
 
   useEffect(() => {
     const checkWidth = () => {
@@ -39,6 +55,30 @@ const ModalEditActivity = () => {
 
     return () => window.removeEventListener('resize', checkWidth);
   }, []);
+
+  const handleSelectItem = (item: { type: ActivityItemType; data: IActivity }) => {
+    setSelectedItem(item);
+  };
+
+  const renderContent = () => {
+    if (!selectedItem) {
+      return <div style={{ padding: 20 }}>No item selected</div>;
+    }
+
+    const { type, data: itemData } = selectedItem;
+    const isMainActivity = type === 'activity';
+
+    return (
+      <div
+        style={{
+          padding: 20,
+          height: '100%',
+        }}
+      >
+        Hello Guys {itemData.name}
+      </div>
+    );
+  };
 
   return (
     <Modal
@@ -55,8 +95,8 @@ const ModalEditActivity = () => {
       }}
       styles={{
         body: {
-          height: '80vh',
-          maxHeight: '80vh',
+          height: '90vh',
+          maxHeight: '95vh',
           padding: 0,
           overflow: 'hidden',
         },
@@ -161,7 +201,7 @@ const ModalEditActivity = () => {
             flex: 1,
             overflow: 'hidden',
             position: 'relative',
-            height: '100%',
+            maxHeight: 'calc(90vh - 48px)',
             minHeight: 0,
           }}
         >
@@ -172,7 +212,7 @@ const ModalEditActivity = () => {
             width={300}
             collapsedWidth={0}
             style={{
-              background: '#fff',
+              background: '#f9f9f9',
               borderRight: '1px solid #f0f0f0',
               overflow: 'hidden',
               ...(isOverlay
@@ -184,7 +224,9 @@ const ModalEditActivity = () => {
                     zIndex: 10,
                     transition: 'all 0.2s ease',
                     transform: collapsedLeft ? 'translateX(-100%)' : 'translateX(0)',
-                    boxShadow: collapsedLeft ? 'none' : '4px 0 8px rgba(0,0,0,0.06)',
+                    boxShadow: collapsedLeft
+                      ? 'none'
+                      : '0 10px 15px -3px rgba(0, 0, 0, .106), 0 4px 6px -4px rgba(0, 0, 0, .106)',
                   }
                 : {
                     position: 'relative',
@@ -192,7 +234,13 @@ const ModalEditActivity = () => {
                   }),
             }}
           >
-            <ActivityDetailSidebar activity={activity} stage={stage} />
+            <ActivityDetailSidebar
+              activity={activity}
+              selectedItem={selectedItem}
+              onSelectItem={item => {
+                handleSelectItem(item);
+              }}
+            />
           </Sider>
 
           {/* Main Content */}
@@ -202,19 +250,18 @@ const ModalEditActivity = () => {
               minHeight: 120,
               lineHeight: '120px',
               color: '#000',
-              background: '#fafafa',
+              background: '#fff',
               overflow: 'auto',
-              flex: 1,
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
               marginLeft: 0,
               transition: 'margin 0.2s ease',
+              maxHeight: '100%',
             }}
             className="hide-scrollbar"
           >
-            <div style={{ padding: 20, height: '100%' }}>Content</div>
+            {renderContent()}
           </Content>
-
           <ActivityDetailRightSidebar />
         </Layout>
       </Layout>

@@ -5,11 +5,16 @@ import { useLogout } from '@refinedev/core';
 import { IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
 import { Avatar, Button, Drawer, Dropdown, Layout, MenuProps, Skeleton, Space } from 'antd';
 import { useState } from 'react';
+import CustomBreadcrumb from './CustomBreadcrumb';
 import NotificationBtn from './NotificationBtn';
 
 const { Header } = Layout;
 
-export const AppHeader = () => {
+interface AppHeaderProps {
+  collapsed: boolean;
+}
+
+export const AppHeader = ({ collapsed }: AppHeaderProps) => {
   const { user, isLoading } = useAuth();
   const { mutate: logout } = useLogout();
   const [profileTab, setProfileTab] = useState(false);
@@ -54,14 +59,25 @@ export const AppHeader = () => {
           position: 'fixed',
           top: 0,
           right: 0,
-          left: 0,
+          left: collapsed ? 72 : 240,
           zIndex: 10,
           height: 64,
+          transition: 'all 0.2s',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center' }} />
+        <CustomBreadcrumb />
 
-        <Space size={8} align="center">
+        <Space
+          size={8}
+          align="center"
+          styles={{
+            item: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+          }}
+        >
           <NotificationBtn />
           <Dropdown
             menu={{

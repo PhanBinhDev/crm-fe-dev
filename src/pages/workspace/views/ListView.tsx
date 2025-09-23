@@ -370,6 +370,10 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
       >
         <div>
           <Table
+            style={{
+              border: '1px solid #f0f0f0',
+              padding: 0,
+            }}
             className="ant-table-striped table-view"
             columns={tbColumns}
             dataSource={tasks || []}
