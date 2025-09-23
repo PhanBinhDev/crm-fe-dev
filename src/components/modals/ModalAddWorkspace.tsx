@@ -85,35 +85,35 @@ import { createWorkspace } from '@/services/api/workspace';
           <Form.Item
             label={
               <span style={{ fontWeight: 600, fontSize: 15 }}>
-                <span style={{ color: "red" }}>*</span> Tên Space
+                <span style={{ color: "red" }}></span> Tên Workspace
               </span>
             }
             style={{ marginBottom: 24 }}
+            required
           >
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <Form.Item name="icon" noStyle style={{ marginBottom: 0 }}>
-                <div style={{
-                  height: 36,
-                  width: 36,
-                  minWidth: 36,
-                  border: '1px solid #e0e0e0',
-                  borderRadius: 8,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 0
-                }}>
-                  <SelectIcon
-                    value={form.getFieldValue("icon")}
-                    onChange={(icon: string) => form.setFieldsValue({ icon })}
-                    size={22}
-                  />
-                </div>
-              </Form.Item>
+              <div style={{
+                height: 36,
+                width: 36,
+                minWidth: 36,
+                border: '1px solid #e0e0e0',
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 0
+              }}>
+                <SelectIcon
+                  value={form.getFieldValue("icon")}
+                  onChange={(icon: string) => form.setFieldsValue({ icon })}
+                  size={22}
+                />
+              </div>
               <Form.Item
                 name="name"
                 rules={[{ required: true, message: "Vui lòng nhập tên Space" }]}
                 style={{ marginBottom: 0, width: '100%' }}
+                noStyle
               >
                 <Input placeholder="VD: Marketing, Kỹ thuật, Nhân sự" style={{ height: 36, fontSize: 14, borderRadius: 8, background: '#fff', border: '1px solid #e0e0e0', fontWeight: 400 }} />
               </Form.Item>
