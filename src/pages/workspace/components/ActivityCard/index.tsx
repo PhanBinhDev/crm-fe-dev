@@ -1,14 +1,13 @@
 import { IActivity, IStage } from '@/common/types';
-import { DragDropType, getActivityLabel, getPriorityLabel } from '@/constants';
+import { DragDropType, getActivityLabel, getPriorityColor, getPriorityLabel } from '@/constants';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useDisplayConfig } from '@/contexts/DisplayConfig';
 import { useModal } from '@/hooks/useModal';
-import { getActivityPriorityColor } from '@/utils';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { CalendarOutlined, HourglassOutlined, UserOutlined } from '@ant-design/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { IconCaretDownFilled, IconCategory, IconFlagFilled, IconShare } from '@tabler/icons-react';
+import { IconCaretDownFilled, IconCategory, IconShare } from '@tabler/icons-react';
 import { Avatar, Button, Card, Progress, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
@@ -134,7 +133,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
           }}
         >
           {config.showType && activity.type ? (
-            <Tooltip title="Loại công việc" placement="right">
+            <Tooltip title="Loại công việc" placement="left">
               <div
                 style={{
                   display: 'flex',
@@ -156,27 +155,22 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
           )}
 
           {config.showPriority && activity.priority ? (
-            <Tooltip title={`Ưu tiên: ${getPriorityLabel(activity.priority)}`} placement="left">
-              <Button
-                size="small"
+            <Tooltip title={`Ưu tiên: ${getPriorityLabel(activity.priority)}`} placement="right">
+              <div
                 style={{
-                  borderRadius: 6,
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 4,
-                  color: '#838383',
+                  fontSize: 12,
+                  border: `1px solid ${getPriorityColor(activity.priority)}`,
+                  padding: '1px 4px',
+                  borderRadius: 4,
+                  width: 'fit-content',
                 }}
-                styles={{
-                  icon: {
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  },
-                }}
-                icon={
-                  <IconFlagFilled size={12} color={getActivityPriorityColor(activity.priority)} />
-                }
               >
-                {getPriorityLabel(activity.priority)}
-              </Button>
+                <IconCategory size={14} color={getPriorityColor(activity.priority)} />
+                <p>{getPriorityLabel(activity.priority)}</p>
+              </div>
             </Tooltip>
           ) : (
             ''
@@ -246,7 +240,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
             alignItems: 'center',
             gap: 15,
             marginBottom: 5,
-            justifyContent: 'space-between',
+            // justifyContent: 'space-between',
           }}
         >
           {config.showEndTime && activity.endTime ? (

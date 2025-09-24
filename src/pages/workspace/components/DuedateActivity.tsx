@@ -469,7 +469,7 @@ const DuedateActivity = ({ value, onChange }: DuedateActivityProps) => {
       }}
       content={popoverContent}
       trigger={['click']}
-      placement="bottomLeft"
+      placement="center"
       arrow={false}
       open={popoverVisible}
       onOpenChange={handlePopoverVisibleChange}
