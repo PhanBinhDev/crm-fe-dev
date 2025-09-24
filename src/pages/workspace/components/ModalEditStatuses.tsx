@@ -8,7 +8,7 @@ interface ModalEditStatusesProps {
 
 const ModalEditStatuses = ({ open, onCancel }: ModalEditStatusesProps) => {
   return (
-    <Modal open={open} onCancel={onCancel} footer={null} width={550} destroyOnClose>
+    <Modal open={open} onCancel={onCancel} footer={null} width={550} destroyOnHidden>
       <StageSettings />
     </Modal>
   );
