@@ -10,11 +10,7 @@ interface SelectIconProps {
   size?: number;
 }
 
-const SelectIcon: React.FC<SelectIconProps> = ({
-  value,
-  onChange,
-  size = 24,
-}) => {
+const SelectIcon: React.FC<SelectIconProps> = ({ value, onChange, size = 24 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [icons, setIcons] = useState<IconEntry[] | null>(null);
@@ -91,7 +87,9 @@ const SelectIcon: React.FC<SelectIconProps> = ({
         {SelectedComp ? (
           <SelectedComp size={size} />
         ) : (
-          <div style={{ width: size, height: size, border: '1px solid #e8e8e8', borderRadius: '50%' }} />
+          <div
+            style={{ width: size, height: size, border: '1px solid #e8e8e8', borderRadius: '50%' }}
+          />
         )}
       </div>
 
@@ -101,7 +99,7 @@ const SelectIcon: React.FC<SelectIconProps> = ({
         onCancel={() => setOpen(false)}
         footer={null}
         centered
-        destroyOnClose
+        destroyOnHidden
         width={520}
         styles={{ body: { paddingBottom: 12 } }}
       >

@@ -327,13 +327,7 @@ const StageSettings: React.FC = () => {
 // =================== ModalEditStatuses (export) ===================
 const ModalEditStatuses = ({ open, onCancel }: ModalEditStatusesProps) => {
   return (
-    <Modal
-      open={open}
-      onCancel={onCancel}
-      footer={null}
-      width={500}
-      destroyOnClose
-    >
+    <Modal open={open} onCancel={onCancel} footer={null} width={550} destroyOnHidden>
       <StageSettings />
     </Modal>
   );

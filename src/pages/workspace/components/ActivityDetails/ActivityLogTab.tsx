@@ -1,7 +1,8 @@
-import { IconBell, IconSearch } from '@tabler/icons-react';
+import { IconSearch } from '@tabler/icons-react';
 import { Button, Input, InputRef, Space, Typography } from 'antd';
 import { useRef, useState } from 'react';
 import ActivityDetailFilterLog from './ActivityDetailFilterLog';
+import ActivityDetailFollowLog from './ActivityDetailFollowLog';
 
 const ActivityLogTab = () => {
   const [showSearch, setShowSearch] = useState(false);
@@ -47,18 +48,7 @@ const ActivityLogTab = () => {
               borderRadius: 8,
             }}
           />
-          <Button
-            type="text"
-            style={{
-              borderRadius: 8,
-              justifyContent: 'flex-start',
-              gap: 4,
-              padding: '0 8px',
-            }}
-          >
-            <IconBell size={16} stroke={1.5} color="#646464" />
-            <span style={{ fontSize: 14, color: '#646464', fontWeight: 500 }}>4</span>
-          </Button>
+          <ActivityDetailFollowLog />
           <ActivityDetailFilterLog />
         </Space>
 

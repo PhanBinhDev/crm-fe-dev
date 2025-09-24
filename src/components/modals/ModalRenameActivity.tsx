@@ -1,7 +1,7 @@
-import { Modal, Input, message } from 'antd';
-import { useState, useEffect } from 'react';
 import { useModal } from '@/hooks/useModal';
 import { ActivityService } from '@/services/api/activity';
+import { Input, message, Modal } from 'antd';
+import { useEffect, useState } from 'react';
 
 const ModalRenameActivity = () => {
   const { data, isOpen, type, closeModal } = useModal();
@@ -25,10 +25,10 @@ const ModalRenameActivity = () => {
       if (updateLocalActivity) {
         updateLocalActivity(activity.id, { name: newName.trim() });
       }
-      
+
       // API call trong background
       await ActivityService.updateActivity(activity.id, { name: newName.trim() } as any);
-      
+
       closeModal();
     } catch (error) {
       // Rollback: Khôi phục tên cũ nếu API thất bại
@@ -54,11 +54,11 @@ const ModalRenameActivity = () => {
       okText="Lưu"
       cancelText="Hủy"
       maskClosable={true}
-      destroyOnClose
+      destroyOnHidden
     >
       <Input
         value={newName}
-        onChange={(e) => setNewName(e.target.value)}
+        onChange={e => setNewName(e.target.value)}
         placeholder="Nhập tên mới cho hoạt động"
         onPressEnter={handleOk}
         autoFocus
