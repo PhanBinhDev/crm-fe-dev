@@ -1,8 +1,8 @@
 import { IActivity, IStage } from '@/common/types';
 import { DragDropType } from '@/constants';
+import { KanbanProvider } from '@/contexts/kanban/KanbanContext';
 import ActivityCard from '@/pages/workspace/components/ActivityCard';
 import KanbanColumn from '@/pages/workspace/components/KanbanColumn';
-import { KanbanProvider } from '@/contexts/kanban/KanbanContext';
 import {
   DndContext,
   DragEndEvent,
@@ -16,7 +16,7 @@ import {
 import { arrayMove, horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { useUpdate } from '@refinedev/core';
 import { Row } from 'antd';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 interface KanbanViewProps {
@@ -70,12 +70,8 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
 
   // Context functions để ActivityCard có thể cập nhật localActivities
   const updateLocalActivity = useCallback((activityId: string, updates: Partial<IActivity>) => {
-    setLocalActivities(prev => 
-      prev.map(activity => 
-        activity.id === activityId 
-          ? { ...activity, ...updates }
-          : activity
-      )
+    setLocalActivities(prev =>
+      prev.map(activity => (activity.id === activityId ? { ...activity, ...updates } : activity)),
     );
   }, []);
 
@@ -266,6 +262,39 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
     },
     [localActivities],
   );
+  // kéo sang trái phải
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    isDragging.current = true;
+    scrollRef.current.style.cursor = 'grabbing';
+    startX.current = e.pageX - scrollRef.current.offsetLeft;
+    scrollLeft.current = scrollRef.current.scrollLeft;
+  };
+
+  const handleMouseLeave = () => {
+    if (!scrollRef.current) return;
+    isDragging.current = false;
+    scrollRef.current.style.cursor = 'grab';
+  };
+
+  const handleMouseUp = () => {
+    if (!scrollRef.current) return;
+    isDragging.current = false;
+    scrollRef.current.style.cursor = 'grab';
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1; // tốc độ kéo
+    scrollRef.current.scrollLeft = scrollLeft.current - walk;
+  };
 
   return (
     <KanbanProvider value={kanbanContextValue}>
@@ -275,51 +304,69 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
       >
-      <div
-        style={{
-          overflowX: 'auto',
-          overflowY: 'hidden',
-          height: 'calc(100vh - 250px)',
-        }}
-      >
-        <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
-          <Row
-            gutter={16}
-            style={{
-              display: 'flex',
-              flexWrap: 'nowrap',
-              minWidth: '100%',
-              height: '100%',
-            }}
-          >
-            {columnOrder.map(id => {
-              const stage = stages.find(col => col.id === id);
-              if (!stage) return null;
+        <div
+          ref={scrollRef}
+          style={{
+            overflowX: "auto",
+            overflowY: "hidden",
+            height: "calc(100vh - 250px)",
+            cursor: "grab",
+          }}
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+        >
+          <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
+            <Row
+              gutter={16}
+              style={{
+                display: 'flex',
+                flexWrap: 'nowrap',
+                // gap: 16,
+                minWidth: '100%',
+                height: '100%',
+              }}
+            >
+              {columnOrder.map(id => {
+                const stage = stages.find(col => col.id === id);
+                if (!stage) return null;
 
-              const activityByStage = localActivities
-                .filter(activity => activity.stageId === stage.id)
-                .sort((a, b) => a.position - b.position);
+                const activityByStage = localActivities
+                  .filter(activity => activity.stageId === stage.id)
+                  .sort((a, b) => a.position - b.position);
 
-              return <KanbanColumn key={id} id={id} stage={stage} activities={activityByStage} allStages={stages} />;
-            })}
-          </Row>
-        </SortableContext>
-      </div>
+                return (
+                  <div key={id} style={{ minWidth: 300, flexShrink: 0 }}>
+                    <KanbanColumn
+                      id={id}
+                      stage={stage}
+                      activities={activityByStage}
+                      allStages={stages}
+                    />
+                  </div>
+                );
+              })}
+            </Row>
+          </SortableContext>
+        </div>
 
-      {createPortal(
-        <DragOverlay>
-          {activeColumn && (
-            <KanbanColumn
-              id={activeColumn.id}
-              stage={activeColumn}
-              activities={localActivities.filter(activity => activity.stageId === activeColumn.id)}
-              allStages={stages}
-            />
-          )}
-          {activeCard && <ActivityCard activity={activeCard} isPortal />}
-        </DragOverlay>,
-        document.body,
-      )}
+        {createPortal(
+          <DragOverlay>
+            {activeColumn && (
+              <KanbanColumn
+                id={activeColumn.id}
+                stage={activeColumn}
+                activities={localActivities.filter(
+                  activity => activity.stageId === activeColumn.id,
+                )}
+                allStages={stages}
+              />
+            )}
+            {activeCard && <ActivityCard activity={activeCard} isPortal />}
+          </DragOverlay>,
+          document.body,
+        )}
       </DndContext>
     </KanbanProvider>
   );
