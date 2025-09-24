@@ -1,6 +1,6 @@
 import { IActivity, IStage, IUser, IWorkspace } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
-import FilterActivities from '@/pages/workspace/components/FilterActivities';
+import FilterActivities, { FilterParams } from '@/pages/workspace/components/FilterActivities';
 import SearchActivities from '@/pages/workspace/components/SearchActivities';
 import SettingsActivities from '@/pages/workspace/components/SettingsActivities';
 import CalendarView from '@/pages/workspace/views/CalendarView';
@@ -12,15 +12,16 @@ import { IconCalendar, IconLayoutKanban, IconList, IconPlus, IconTable } from '@
 import { Button, Space, Spin, Tabs, Tooltip } from 'antd';
 import { useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import SortActive from './../components/SortActive';
 
 type TabKey = 'kanban' | 'list' | 'calendar' | 'table';
 
 const KanbanWorkspaces = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('kanban');
   const [searchValue, setSearchValue] = useState<string>('');
+  const [filterParams, setFilterParams] = useState<FilterParams>({});
 
   const { workspaceId } = useParams();
-
   const { openModal } = useModal();
 
   const onSearch = useCallback((value: string) => {
@@ -37,43 +38,60 @@ const KanbanWorkspaces = () => {
     resource: 'stages',
     pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
-    queryOptions: {
-      enabled: !!workspaceData?.data.id,
-    },
+    queryOptions: { enabled: !!workspaceData?.data.id },
   });
-
-  const { data: activitiesData } = useList<IActivity>({
-    resource: 'activities',
-    pagination: { mode: 'off' },
-    filters: [
-      {
-        field: 'q',
-        operator: 'eq',
-        value: searchValue,
-      },
-      {
-        field: 'includeSubTasks',
-        operator: 'eq',
-        value: true,
-      },
-      {
-        field: 'workspaceId',
-        operator: 'eq',
-        value: workspaceData?.data.id,
-      },
-    ],
-    queryOptions: {
-      enabled: !!workspaceData?.data.id,
-    },
-  });
-
   const { data: users } = useList<IUser>({
     resource: 'users/all',
     pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
-    queryOptions: {
-      enabled: !!workspaceData?.data.id,
-    },
+    queryOptions: { enabled: !!workspaceData?.data.id },
+  });
+
+  const activityFilters: any[] = [
+    { field: 'q', operator: 'eq', value: searchValue },
+    { field: 'includeSubTasks', operator: 'eq', value: true },
+    { field: 'workspaceId', operator: 'eq', value: workspaceData?.data.id },
+  ];
+
+  if (filterParams.priority) {
+    activityFilters.push({ field: 'priority', operator: 'eq', value: filterParams.priority });
+  }
+  if (filterParams.stageId) {
+    activityFilters.push({ field: 'stageId', operator: 'eq', value: filterParams.stageId });
+  }
+  if (filterParams.category) {
+    activityFilters.push({ field: 'category', operator: 'eq', value: filterParams.category });
+  }
+  if (filterParams.startTimeFrom) {
+  activityFilters.push({
+    field: 'startTime[gte]',
+    operator: 'eq',
+    value: filterParams.startTimeFrom,
+  });
+}
+
+if (filterParams.startTimeFrom) {
+  activityFilters.push({
+    field: 'startTime[gte]',
+    operator: 'eq',
+    value: filterParams.startTimeFrom,
+  });
+}
+
+if (filterParams.endTimeTo) {
+  activityFilters.push({
+    field: 'endTime[lte]',
+    operator: 'eq',
+    value: filterParams.endTimeTo,
+  });
+}
+
+
+  const { data: activitiesData } = useList<IActivity>({
+    resource: 'activities',
+    pagination: { mode: 'off' },
+    filters: activityFilters,
+    queryOptions: { enabled: !!workspaceData?.data.id },
   });
 
   if (isLoadingWorkspace) {
@@ -240,8 +258,10 @@ const KanbanWorkspaces = () => {
           }}
         >
           <SearchActivities onSearch={onSearch} />
-          <FilterActivities />
+          <FilterActivities onApply={setFilterParams} />
           <SettingsActivities />
+          <SortActive stages={stagesData?.data || []} />
+
           <Tooltip title="Thêm mới hoạt động">
             <Button
               type="primary"
