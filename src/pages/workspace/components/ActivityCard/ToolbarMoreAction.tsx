@@ -1,11 +1,10 @@
 import { IActivity } from '@/common/types';
 import { IconCopy, IconPlus, IconTrash, IconPencil, IconDots } from '@tabler/icons-react';
-import { Button, Dropdown, MenuProps, Tooltip, Modal, message } from 'antd';
+import { Button, Dropdown, MenuProps, Tooltip, Modal } from 'antd';
 import { useState } from 'react';
-import { useInvalidate } from '@refinedev/core';
 import { useModal } from '@/hooks/useModal';
-import { ActivityService } from '@/services/api/activity';
 import { useKanbanContext } from '@/contexts/kanban/KanbanContext';
+import { useActivityActions } from '@/hooks/useActivityActions';
 
 interface ToolbarMoreActionProps {
   activity: IActivity;
@@ -14,8 +13,8 @@ interface ToolbarMoreActionProps {
 const ToolbarMoreAction = ({ activity }: ToolbarMoreActionProps) => {
   const [open, setOpen] = useState(false);
 
-  const invalidate = useInvalidate();
   const { openModal } = useModal();
+  const { duplicateActivity, removeActivity, createSubtask } = useActivityActions();
   
   // Chỉ sử dụng context cho rename (optimistic update)
   let updateLocalActivity: any = null;
@@ -38,24 +37,11 @@ const ToolbarMoreAction = ({ activity }: ToolbarMoreActionProps) => {
   };
 
 
-  const handleDuplicate = async (e?: React.MouseEvent) => {
+  const handleDuplicate = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    try {
-      await ActivityService.duplicateActivity(activity.id);
-      invalidate({
-        resource: 'activities',
-        invalidates: ['list', 'detail', 'many'],
-      });
-      
-      // Invalidate stages để refresh kanban columns
-      invalidate({
-        resource: 'stages',
-        invalidates: ['list'],
-      });
-      setOpen(false);
-    } catch (error) {
-      message.error('Nhân bản thất bại');
-    }
+    console.log('handleDuplicate called');
+    duplicateActivity(activity);
+    setOpen(false);
   };
 
   const handleDelete = (e?: React.MouseEvent) => {
@@ -67,57 +53,18 @@ const ToolbarMoreAction = ({ activity }: ToolbarMoreActionProps) => {
       okType: 'danger',
       cancelText: 'Hủy',
       maskClosable: true,
-      onOk: async () => {
-        try {
-          await ActivityService.deleteActivity(activity.id);
-          invalidate({
-            resource: 'activities',
-            invalidates: ['list', 'detail', 'many'],
-          });
-          
-          // Invalidate stages để refresh kanban columns
-          invalidate({
-            resource: 'stages',
-            invalidates: ['list'],
-          });
-        } catch (error) {
-          message.error('Xóa thất bại');
-        }
+      onOk: () => {
+        removeActivity(activity);
       },
     });
     setOpen(false);
   };
 
-  const handleCreateSubtask = async (e?: React.MouseEvent) => {
+  const handleCreateSubtask = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    try {
-      // Lấy thông tin activity hiện tại để tạo subtask
-      const parentActivity = await ActivityService.getActivity(activity.id);
-      
-      // Tạo subtask với parentId
-      const subtaskData = {
-        name: `Subtask của ${activity.name}`,
-        type: parentActivity.data.type,
-        stageId: parentActivity.data.stageId,
-        parentId: activity.id,
-        description: `Hoạt động phụ của: ${activity.name}`,
-      };
-      
-      await ActivityService.createActivity(subtaskData);
-      invalidate({
-        resource: 'activities',
-        invalidates: ['list', 'detail', 'many'],
-      });
-      
-      // Invalidate stages để refresh kanban columns
-      invalidate({
-        resource: 'stages',
-        invalidates: ['list'],
-      });
-      setOpen(false);
-    } catch (error) {
-      message.error('Tạo hoạt động phụ thất bại');
-    }
+    console.log('handleCreateSubtask called');
+    createSubtask(activity);
+    setOpen(false);
   };
 
   const items: MenuProps['items'] = [

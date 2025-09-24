@@ -380,7 +380,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
           <ToolbarActivityCard
             activity={activity}
             isCompletedStage={!!isCompletedStage}
-            stages={[]}
+            stages={stages || []}
           />
         )}
       </Card>
