@@ -22,3 +22,7 @@ export interface IActivityAssignee {
   note?: string;
   activity: IActivity;
 }
+
+export interface PayloadAssignee {
+  userId: string;
+}

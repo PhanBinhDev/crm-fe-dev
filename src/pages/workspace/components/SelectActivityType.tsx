@@ -7,8 +7,10 @@ import { Button, message, Popover, Skeleton, Space, Tooltip, Typography } from '
 import { useState } from 'react';
 
 interface SelectActivityTypeProps {
-  activity: IActivity | null;
-  isLoading: boolean;
+  activity?: IActivity | null;
+  isLoading?: boolean;
+  value?: ActivityType;
+  onChange?: (type: ActivityType) => void;
 }
 
 export const SelectActivityTypeSkeleton = () => (
@@ -39,11 +41,11 @@ export const SelectActivityTypeSkeleton = () => (
   </div>
 );
 
-const SelectActivityType = ({ activity, isLoading }: SelectActivityTypeProps) => {
+const SelectActivityType = ({ activity, isLoading, onChange, value }: SelectActivityTypeProps) => {
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<ActivityType>(
-    activity?.type || ActivityType.TASK,
+    activity?.type || value || ActivityType.TASK,
   );
 
   const handleCopy = (text: string) => {
@@ -62,6 +64,11 @@ const SelectActivityType = ({ activity, isLoading }: SelectActivityTypeProps) =>
 
   const onActivityTypeClick = (type: ActivityType) => {
     setSelectedType(type);
+
+    if (!activity) {
+      if (onChange) onChange(type);
+      return;
+    }
 
     if (activity?.type === type) {
       setOpen(false);
@@ -181,12 +188,11 @@ const SelectActivityType = ({ activity, isLoading }: SelectActivityTypeProps) =>
             borderRadius: 6,
             width: 'fit-content',
             border: '1px solid #f0f0f0',
-            borderEndEndRadius: 0,
-            borderStartEndRadius: 0,
             color: '#646464',
             fontSize: 14,
             fontWeight: 500,
             gap: 4,
+            ...(activity ? { borderEndEndRadius: 0, borderStartEndRadius: 0 } : {}),
           }}
           type="text"
           size="small"
@@ -197,38 +203,46 @@ const SelectActivityType = ({ activity, isLoading }: SelectActivityTypeProps) =>
               justifyContent: 'center',
             },
           }}
-          icon={<IconCircleDashed size={14} color={activity?.stage?.color || '#000'} />}
+          icon={
+            selectedType === ActivityType.EVENT ? (
+              <IconCalendarTime size={14} />
+            ) : (
+              <IconCircleDashed size={14} />
+            )
+          }
         >
-          {getActivityTypeLabel(activity?.type || ActivityType.TASK)}
+          {getActivityTypeLabel(selectedType || activity?.type || ActivityType.TASK)}
         </Button>
       </Popover>
-      <Tooltip title={!copied && 'Sao chép ID hoạt động'}>
-        <Button
-          style={{
-            height: 27,
-            borderRadius: 6,
-            borderEndStartRadius: 0,
-            borderStartStartRadius: 0,
-            width: 'fit-content',
-            border: '1px solid #f0f0f0',
-            color: '#646464',
-            fontWeight: 500,
-            padding: '0 8px',
-          }}
-          type="text"
-          size="small"
-          loading={isLoading}
-          onClick={() => activity?.id && handleCopy(activity.id)}
-        >
-          {copied ? (
-            <IconCheck size={14} color="#52c41a" />
-          ) : activity?.id ? (
-            activity.id.slice(0, 8)
-          ) : (
-            ''
-          )}
-        </Button>
-      </Tooltip>
+      {activity && (
+        <Tooltip title={!copied && 'Sao chép ID hoạt động'}>
+          <Button
+            style={{
+              height: 27,
+              borderRadius: 6,
+              borderEndStartRadius: 0,
+              borderStartStartRadius: 0,
+              width: 'fit-content',
+              border: '1px solid #f0f0f0',
+              color: '#646464',
+              fontWeight: 500,
+              padding: '0 8px',
+            }}
+            type="text"
+            size="small"
+            loading={isLoading}
+            onClick={() => activity?.id && handleCopy(activity.id)}
+          >
+            {copied ? (
+              <IconCheck size={14} color="#52c41a" />
+            ) : activity?.id ? (
+              activity.id.slice(0, 8)
+            ) : (
+              ''
+            )}
+          </Button>
+        </Tooltip>
+      )}
     </div>
   );
 };

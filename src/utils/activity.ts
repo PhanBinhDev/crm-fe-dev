@@ -1,13 +1,12 @@
 import {
+  ActivityCategory,
+  ActivityPriority,
+  ActivityStatus,
+  ActivityType,
   AssigneeRole,
   AssignmentStatus,
-  ActivityStatus,
-  ActivityPriority,
-  ActivityType,
-  ActivityCategory,
 } from '@/common/enum/activity';
-import { useEffect, useState } from "react";
-
+import { useEffect, useState } from 'react';
 
 // Assignee utilities
 export const getAssigneeRoleLabel = (role: AssigneeRole): string => {
@@ -93,7 +92,6 @@ export const getActivityStatusColor = (status: ActivityStatus): string => {
   }
 };
 
-
 export const getActivityPriorityLabel = (priority: ActivityPriority): string => {
   switch (priority) {
     case ActivityPriority.LOW:
@@ -127,7 +125,7 @@ export const getActivityPriorityColor = (priority: ActivityPriority): string => 
 export const getActivityTypeLabel = (type: ActivityType): string => {
   switch (type) {
     case ActivityType.TASK:
-      return 'Nhiệm vụ';
+      return 'Công việc';
     case ActivityType.EVENT:
       return 'Sự kiện';
     default:
@@ -197,7 +195,6 @@ export const formatFileSize = (bytes: any) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 };
 
-
 export const getColorFromName = (name: any) => {
   const colors = [
     '#f56a00',
@@ -235,12 +232,8 @@ export const getInitials = (name: any) => {
     .toUpperCase();
 };
 
-
 // useVisibleColumns.ts
-export function useLocalStorageState<T>(
-  storageKey: string,
-  defaultValue: T
-) {
+export function useLocalStorageState<T>(storageKey: string, defaultValue: T) {
   const loadValue = (): T => {
     try {
       const saved = localStorage.getItem(storageKey);
@@ -256,10 +249,9 @@ export function useLocalStorageState<T>(
     try {
       localStorage.setItem(storageKey, JSON.stringify(value));
     } catch (error) {
-      console.warn("Could not save setting to localStorage:", error);
+      console.warn('Could not save setting to localStorage:', error);
     }
   }, [storageKey, value]);
 
   return { value, setValue };
 }
-

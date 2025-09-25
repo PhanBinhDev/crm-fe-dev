@@ -65,6 +65,9 @@ const StageActivity = ({ value, onChange, error }: StageActivityProps) => {
                   gap: 2,
                   justifyContent: 'flex-start',
                   background: value?.id === stage.id ? '#f5f7fa' : 'transparent',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.background = '#f1f1f1';

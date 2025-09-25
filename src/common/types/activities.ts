@@ -6,7 +6,7 @@ import {
 } from '@/common/enum/activity';
 import { DateRange, IBase, IFeedback, IFile, IParticipant, IStage, IUser } from '@/common/types';
 
-import { IAssignee } from './assignee';
+import { IAssignee, PayloadAssignee } from './assignee';
 import { ISemester } from './semester';
 
 export interface IActivity extends IBase {
@@ -61,7 +61,7 @@ export interface FormAddActivityPayload {
   category?: ActivityCategory;
   mandatory?: boolean;
   parentId?: string;
-  assignees?: string[];
+  assignees?: PayloadAssignee[];
   files?: File[];
   stageId?: string;
   subtask?: string[];

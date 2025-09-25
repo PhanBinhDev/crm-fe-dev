@@ -1,4 +1,5 @@
 import { useDebounce } from '@/hooks/useDebounce';
+import { formatMinutesToText } from '@/utils/formatter';
 import { IconHelpOctagonFilled, IconHourglassEmpty } from '@tabler/icons-react';
 import { Button, Input, Popover, Space, Tooltip, Typography, message } from 'antd';
 import { useEffect, useState } from 'react';
@@ -14,9 +15,7 @@ const parseTimeEstimate = (input: string): { minutes: number; displayText: strin
 
   const cleanInput = input.toLowerCase().trim();
 
-  // Vietnamese patterns
   const patterns = [
-    // Minutes
     { regex: /(\d+)\s*(phút|phut|p|min|m)$/i, multiplier: 1 },
     { regex: /(\d+)\s*p$/i, multiplier: 1 },
 
@@ -113,29 +112,6 @@ const parseTimeEstimate = (input: string): { minutes: number; displayText: strin
   }
 
   return null;
-};
-
-// Format minutes back to readable text
-const formatMinutesToText = (minutes: number): string => {
-  if (minutes < 60) {
-    return `${minutes} phút`;
-  } else if (minutes < 60 * 24) {
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    if (remainingMinutes === 0) {
-      return `${hours} tiếng`;
-    }
-    return `${hours} tiếng ${remainingMinutes} phút`;
-  } else if (minutes < 60 * 24 * 7) {
-    const days = Math.floor(minutes / (60 * 8)); // 8 working hours per day
-    return `${days} ngày`;
-  } else if (minutes < 60 * 24 * 30) {
-    const weeks = Math.floor(minutes / (60 * 8 * 5)); // 5 working days per week
-    return `${weeks} tuần`;
-  } else {
-    const months = Math.floor(minutes / (60 * 8 * 5 * 4)); // 4 weeks per month
-    return `${months} tháng`;
-  }
 };
 
 const TimeEstimateActivity = ({ value, onChange }: TimeEstimateActivityProps) => {
@@ -341,7 +317,7 @@ const TimeEstimateActivity = ({ value, onChange }: TimeEstimateActivityProps) =>
         },
       }}
       trigger={['click']}
-      placement="bottom"
+      placement="bottomLeft"
       arrow={false}
       content={timeEstimateContent}
     >

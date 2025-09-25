@@ -24,12 +24,15 @@ export interface FormAddTaskRef {
 const ModalAddActivity = () => {
   const { isOpen, type, closeModal } = useModal();
   const isOpenModal = isOpen && type === 'ModalAddActivity';
-  const [taskOrEvent, setTaskOrEvent] = useState<string | 'task' | 'event'>('task');
-
   const formRef = useRef<FormAddTaskRef>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<ModalTabKey>('task');
+  const [openUploader, setOpenUploader] = useState({
+    task: false,
+    reminder: false,
+  });
 
   const invalidate = useInvalidate();
-
   const { mutate: createActivity, isPending: isPendingCreateActivity } = useCreate<FormAddTaskData>(
     {
       mutationOptions: {
@@ -37,15 +40,6 @@ const ModalAddActivity = () => {
       },
     },
   );
-
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<ModalTabKey>('task');
-
-  const [openUploader, setOpenUploader] = useState({
-    task: false,
-    event: false,
-    reminder: false,
-  });
 
   const handleCreate = useCallback(
     (action: ModalAction) => {
@@ -79,7 +73,6 @@ const ModalAddActivity = () => {
                   invalidates: ['list'],
                 });
                 message.success('Tạo hoạt động thành công');
-                setTaskOrEvent('task');
                 closeModal();
               },
               onError: () => {
@@ -181,10 +174,7 @@ const ModalAddActivity = () => {
                 marginBottom: 2,
                 background: '#0000000a',
               }}
-              onClick={() => {
-                closeModal();
-                setTaskOrEvent('task');
-              }}
+              onClick={closeModal}
               styles={{
                 icon: {
                   display: 'flex',
@@ -215,12 +205,9 @@ const ModalAddActivity = () => {
         </div>
       }
       open={isOpenModal}
-      onCancel={() => {
-        closeModal();
-        setTaskOrEvent('task');
-      }}
+      onCancel={closeModal}
       destroyOnHidden
-      width={645}
+      width={655}
       closeIcon={null}
       styles={{
         content: {
@@ -309,12 +296,7 @@ const ModalAddActivity = () => {
               trigger={['click']}
               onOpenChange={setMenuOpen}
             >
-              Tạo{' '}
-              {activeTab === 'task' && taskOrEvent === 'task'
-                ? 'công việc'
-                : activeTab === 'task' && taskOrEvent === 'event'
-                  ? 'sự kiện'
-                  : 'nhắc nhở'}
+              Tạo hoạt động
             </Dropdown.Button>
           ) : (
             <Button
@@ -332,12 +314,7 @@ const ModalAddActivity = () => {
       }
     >
       {activeTab === 'task' && (
-        <FormAddTask
-          onChangeType={setTaskOrEvent}
-          openUploader={openUploader.task}
-          ref={formRef}
-          onSubmit={handleFormSubmit}
-        />
+        <FormAddTask openUploader={openUploader.task} ref={formRef} onSubmit={handleFormSubmit} />
       )}
       {activeTab === 'reminder' && <FormAddReminder openUploader={openUploader.reminder} />}
     </Modal>
