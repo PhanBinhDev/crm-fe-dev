@@ -1,12 +1,11 @@
 import { useModal } from '@/hooks/useModal';
-import { ActivityService } from '@/services/api/activity';
-import { Input, message, Modal } from 'antd';
-import { useEffect, useState } from 'react';
+import { useActivityActions } from '@/hooks/useActivityActions';
 
 const ModalRenameActivity = () => {
   const { data, isOpen, type, closeModal } = useModal();
   const { activity, updateLocalActivity } = data || {};
   const [newName, setNewName] = useState('');
+  const { renameActivity } = useActivityActions();
 
   useEffect(() => {
     if (activity) {
@@ -14,29 +13,14 @@ const ModalRenameActivity = () => {
     }
   }, [activity]);
 
-  const handleOk = async () => {
+  const handleOk = () => {
     if (!newName.trim()) {
       message.error('Tên hoạt động không được để trống');
       return;
     }
 
-    try {
-      // OPTIMISTIC UPDATE: Cập nhật tên trong local state ngay lập tức
-      if (updateLocalActivity) {
-        updateLocalActivity(activity.id, { name: newName.trim() });
-      }
-
-      // API call trong background
-      await ActivityService.updateActivity(activity.id, { name: newName.trim() } as any);
-
-      closeModal();
-    } catch (error) {
-      // Rollback: Khôi phục tên cũ nếu API thất bại
-      if (updateLocalActivity) {
-        updateLocalActivity(activity.id, { name: activity.name });
-      }
-      message.error('Đổi tên thất bại');
-    }
+    renameActivity(activity, newName.trim(), updateLocalActivity);
+    closeModal();
   };
 
   const handleCancel = () => {
