@@ -11,7 +11,7 @@ import {
   IconJumpRope,
   IconPlus,
 } from '@tabler/icons-react';
-import { Button, Collapse, Input, List, message, Typography } from 'antd';
+import { Button, Collapse, Input, List, message, Tooltip, Typography } from 'antd';
 import { CollapseProps } from 'antd/lib';
 import { useMemo, useState } from 'react';
 import ActivityDetailCollapseStatus from './ActivityDetailCollapseStatus';
@@ -21,13 +21,16 @@ const { Text } = Typography;
 interface ActivityDetailSidebarProps {
   activity: IActivity;
   selectedItem: SelectedActivityItem | null;
+  loading: boolean;
   onSelectItem: (item: SelectedActivityItem) => void;
+  refetchActivity: any;
 }
 
 const ActivityDetailSidebar = ({
   activity,
   selectedItem,
   onSelectItem,
+  refetchActivity,
 }: ActivityDetailSidebarProps) => {
   const [showInput, setShowInput] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -65,6 +68,7 @@ const ActivityDetailSidebar = ({
           setShowInput(false);
           setName('');
           onSelectItem({ type: 'subactivity', data });
+          refetchActivity();
         },
         onError: error => {
           message.error(error.message || 'Tạo hoạt động phụ thất bại');
@@ -92,8 +96,17 @@ const ActivityDetailSidebar = ({
         if (e.currentTarget === e.target) setHovered(null);
       },
       label: (
-        <div>
-          {activity.name}
+        <div
+          style={{
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: '200px',
+            overflow: 'hidden',
+          }}
+        >
+          <Tooltip placement="top" title={activity.name}>
+            {activity.name}
+          </Tooltip>
 
           <div
             style={{
@@ -119,11 +132,11 @@ const ActivityDetailSidebar = ({
         boxShadow: 'rgba(0, 0, 0, 0.05) 0px 0px 0px 1px',
         borderRadius: 6,
         padding: '6px 8px',
+        height: '100%',
       },
       children: (
         <div
           style={{
-            minHeight: 'calc(90vh - 180px)',
             padding: 0,
             display: 'flex',
             flexDirection: 'column',
@@ -157,6 +170,9 @@ const ActivityDetailSidebar = ({
                           onChange={e => {
                             setName(e.target.value);
                             if (error) setError(false);
+                          }}
+                          onBlur={() => {
+                            setShowInput(false);
                           }}
                           onKeyDown={e => {
                             if (e.key === 'Enter') {
@@ -265,7 +281,7 @@ const ActivityDetailSidebar = ({
   ];
 
   return (
-    <>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div
         style={{
           display: 'flex',
@@ -297,6 +313,7 @@ const ActivityDetailSidebar = ({
       <div
         style={{
           padding: 6,
+          flex: 1,
         }}
       >
         <Collapse
@@ -307,11 +324,11 @@ const ActivityDetailSidebar = ({
           style={{
             height: '100%',
           }}
-          expandIcon={() => <ActivityDetailCollapseStatus color={activity.stage.color} />}
+          expandIcon={() => <ActivityDetailCollapseStatus color={activity?.stage?.color} />}
           items={items}
         />
       </div>
-    </>
+    </div>
   );
 };
 

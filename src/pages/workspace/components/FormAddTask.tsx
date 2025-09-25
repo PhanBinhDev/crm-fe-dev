@@ -203,6 +203,9 @@ const FormAddTask = forwardRef(
           setStageError(true);
           return;
         }
+
+        console.log('attachments', attachments);
+
         const attachmentsWithMeta = attachments.map(file => {
           if ('originFileObj' in file && file.originFileObj) {
             const origin = (file as any).originFileObj || file;
@@ -239,7 +242,7 @@ const FormAddTask = forwardRef(
           category: values.category,
           startTime: dateRange.start?.toDate(),
           endTime: dateRange.end?.toDate(),
-          files: attachmentsWithMeta,
+          files: attachments,
           subtask: subtasks.filter(task => task.trim()),
           checklist: checklists,
           workspaceId: currentWorkspace?.id || '',

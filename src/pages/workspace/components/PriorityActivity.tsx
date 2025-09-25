@@ -121,7 +121,7 @@ const PriorityActivity = ({ value, onChange }: PriorityActivityProps) => {
         },
       }}
       trigger={['click']}
-      placement="bottomLeft"
+      placement="bottomRight"
       arrow={false}
       content={priorityContent}
     >

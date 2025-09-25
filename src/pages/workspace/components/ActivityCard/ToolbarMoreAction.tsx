@@ -101,9 +101,9 @@ const ToolbarMoreAction = ({ activity }: ToolbarMoreActionProps) => {
   return (
     <>
       <div
-        onMouseDown={(e) => e.stopPropagation()}
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
+        onMouseDown={e => e.stopPropagation()}
+        onPointerDown={e => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <Dropdown
           menu={{ items }}
@@ -121,12 +121,11 @@ const ToolbarMoreAction = ({ activity }: ToolbarMoreActionProps) => {
               styles={{
                 icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
               }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
             />
           </Tooltip>
         </Dropdown>
       </div>
-
     </>
   );
 };

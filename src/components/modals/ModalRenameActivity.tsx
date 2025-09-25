@@ -1,5 +1,7 @@
-import { useModal } from '@/hooks/useModal';
 import { useActivityActions } from '@/hooks/useActivityActions';
+import { useModal } from '@/hooks/useModal';
+import { Input, message, Modal } from 'antd';
+import { useEffect, useState } from 'react';
 
 const ModalRenameActivity = () => {
   const { data, isOpen, type, closeModal } = useModal();

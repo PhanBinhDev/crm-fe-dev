@@ -5,6 +5,7 @@
 .custom-collapse-header {
   border-radius: 6px !important;
   position: relative;
+  overflow: hidden;
 }
 .custom-collapse-header.active {
   background-color: #f2f2f2;

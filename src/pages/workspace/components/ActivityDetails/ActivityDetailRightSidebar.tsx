@@ -1,6 +1,6 @@
 import { IconLink, IconMessage } from '@tabler/icons-react';
 import { Button, Divider, Layout, Tooltip } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ActivityLinkTab from './ActivityLinkTab';
 import ActivityLogTab from './ActivityLogTab';
 
@@ -8,20 +8,36 @@ const { Sider } = Layout;
 
 type RightSidebarTab = 'links' | 'logs';
 
-const ActivityDetailRightSidebar = () => {
+interface ActivityDetailRightSidebarProps {
+  isOverlay: boolean;
+  collapsedLeft: boolean;
+  setCollapsedLeft: (val: boolean) => void;
+}
+
+const ActivityDetailRightSidebar = ({
+  isOverlay,
+  collapsedLeft,
+  setCollapsedLeft,
+}: ActivityDetailRightSidebarProps) => {
   const [collapsedRight, setCollapsedRight] = useState(false);
   const [activeTab, setActiveTab] = useState<RightSidebarTab>('logs');
 
   const handleTabClick = (tab: RightSidebarTab) => {
     if (activeTab === tab) {
       setCollapsedRight(!collapsedRight);
+      if (isOverlay && collapsedRight) setCollapsedLeft(true);
       return;
     }
     setActiveTab(tab);
-    if (collapsedRight) {
-      setCollapsedRight(false);
-    }
+    if (collapsedRight) setCollapsedRight(false);
+    if (isOverlay) setCollapsedLeft(true);
   };
+
+  useEffect(() => {
+    if (isOverlay && !collapsedLeft) {
+      setCollapsedRight(true);
+    }
+  }, [collapsedLeft, isOverlay]);
 
   return (
     <>
@@ -35,8 +51,23 @@ const ActivityDetailRightSidebar = () => {
           background: '#fff',
           borderLeft: '1px solid #f0f0f0',
           overflow: 'hidden',
-          position: 'relative',
           transition: 'width 0.2s ease',
+          ...(isOverlay
+            ? {
+                position: 'absolute',
+                right: 49,
+                top: 0,
+                bottom: 0,
+                zIndex: 10,
+                transform: collapsedRight ? 'translateX(-100%)' : 'translateX(0)',
+                boxShadow: collapsedRight
+                  ? 'none'
+                  : '0 10px 15px -3px rgba(0, 0, 0, .106), 0 4px 6px -4px rgba(0, 0, 0, .106)',
+              }
+            : {
+                position: 'relative',
+                transition: 'width 0.2s ease',
+              }),
         }}
       >
         {!collapsedRight && activeTab === 'logs' && <ActivityLogTab />}

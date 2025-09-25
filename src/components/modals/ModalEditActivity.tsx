@@ -1,18 +1,25 @@
-import { IActivity, IStage } from '@/common/types';
+import { ActivityType } from '@/common/enum/activity';
+import { IActivity } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import ActivityDetailRightSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailRightSidebar';
 import ActivityDetailSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailSidebar';
+import ActivityMainContent from '@/pages/workspace/components/ActivityDetails/ActivityMainContent';
+import SelectActivityType from '@/pages/workspace/components/SelectActivityType';
+import { useOne, useUpdate } from '@refinedev/core';
 import {
   IconCalendar,
+  IconCornerLeftUp,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftCollapseFilled,
   IconShare,
   IconX,
 } from '@tabler/icons-react';
-import { Button, Layout, Modal, Space, Tooltip, Typography } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { Button, Input, Layout, Modal, Space, Tooltip, Typography } from 'antd';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMediaQuery } from 'usehooks-ts';
 
 const { Text } = Typography;
+const { TextArea } = Input;
 const { Header, Sider, Content } = Layout;
 
 export type ActivityItemType = 'activity' | 'subactivity';
@@ -23,15 +30,40 @@ export type SelectedActivityItem = {
 };
 
 const ModalEditActivity = () => {
-  const { isOpen, type, closeModal, data } = useModal();
+  const { isOpen, type, data, closeModal, setData } = useModal();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const isOpenModal = isOpen && type === 'ModalEditActivity';
   const [collapsedLeft, setCollapsedLeft] = useState(true);
   const layoutRef = useRef<HTMLDivElement>(null);
   const [isOverlay, setIsOverlay] = useState(false);
   const [selectedItem, setSelectedItem] = useState<SelectedActivityItem | null>(null);
+  const [formData, setFormData] = useState<Partial<IActivity>>({});
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [isContentNarrow, setIsContentNarrow] = useState(false);
+  const { activity: activityFromModal } = data || {};
 
-  const { activity } = (data as { activity: IActivity }) || {};
-  const { stage } = (data as { stage: IStage }) || {};
+  const {
+    data: activityData,
+    isLoading: isLoadingActivity,
+    refetch,
+  } = useOne<IActivity>({
+    resource: 'activities',
+    id: activityFromModal?.id,
+    queryOptions: { enabled: !!activityFromModal?.id },
+  });
+
+  const { mutate: updateActivity } = useUpdate<IActivity>({
+    resource: 'activities',
+    id: activityFromModal?.id,
+    mutationMode: 'optimistic',
+    invalidates: ['list'],
+  });
+
+  const activity = useMemo(() => {
+    if (!activityData?.data || isLoadingActivity) return {} as IActivity;
+
+    return activityData.data;
+  }, [activityData, isLoadingActivity]);
 
   useEffect(() => {
     if (activity && isOpenModal) {
@@ -39,10 +71,16 @@ const ModalEditActivity = () => {
         type: 'activity',
         data: activity,
       });
+      setFormData(activity);
     }
   }, [activity, isOpenModal]);
 
   useEffect(() => {
+    const checkContentWidth = () => {
+      if (contentRef.current) {
+        setIsContentNarrow(contentRef.current.offsetWidth < 600); // tuỳ ngưỡng bạn muốn
+      }
+    };
     const checkWidth = () => {
       if (layoutRef.current) {
         const width = layoutRef.current.offsetWidth;
@@ -51,16 +89,22 @@ const ModalEditActivity = () => {
     };
 
     checkWidth();
+    checkContentWidth();
     window.addEventListener('resize', checkWidth);
+    window.addEventListener('resize', checkContentWidth);
 
-    return () => window.removeEventListener('resize', checkWidth);
-  }, []);
+    return () => {
+      window.removeEventListener('resize', checkWidth);
+      window.removeEventListener('resize', checkContentWidth);
+    };
+  }, [collapsedLeft, isOverlay]);
 
   const handleSelectItem = (item: { type: ActivityItemType; data: IActivity }) => {
     setSelectedItem(item);
+    setFormData(item.data);
   };
 
-  const renderContent = () => {
+  const renderContent = useMemo(() => {
     if (!selectedItem) {
       return <div style={{ padding: 20 }}>No item selected</div>;
     }
@@ -71,19 +115,156 @@ const ModalEditActivity = () => {
     return (
       <div
         style={{
-          padding: 20,
+          padding: '36px 24px 48px',
           height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          maxWidth: 860,
+          minWidth: isContentNarrow ? '100%' : 860,
+          gap: 16,
         }}
       >
-        Hello Guys {itemData.name}
+        {!isMainActivity && (
+          <Button
+            type="text"
+            size="small"
+            style={{
+              alignSelf: 'flex-start',
+              padding: '0 6px',
+              borderRadius: 6,
+              gap: 4,
+            }}
+            styles={{
+              icon: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+            }}
+            icon={<IconCornerLeftUp size={14} color="#838383" />}
+            onClick={() =>
+              setSelectedItem({
+                type: 'activity',
+                data: activity,
+              })
+            }
+          >
+            Quay lại{' '}
+            <span>
+              {activity?.name?.length > 20 ? activity?.name.slice(0, 20) + '...' : activity?.name}
+            </span>
+          </Button>
+        )}
+
+        <SelectActivityType isLoading={isLoadingActivity} activity={itemData} />
+
+        <TextArea
+          placeholder={`Nhập tên ${itemData.type === ActivityType.TASK ? 'nhiệm vụ' : 'sự kiện'}...`}
+          size="middle"
+          variant="borderless"
+          style={{
+            fontWeight: 600,
+            fontSize: 22,
+            border: '1px solid transparent',
+            paddingLeft: 4,
+            lineHeight: '37px',
+            paddingTop: 0,
+            paddingBottom: 0,
+          }}
+          value={formData.name}
+          onChange={e => {
+            const newValue = e.target.value;
+            setFormData(prev => ({ ...prev, name: newValue }));
+          }}
+          autoSize={{ minRows: 1, maxRows: 4 }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = '#f0f0f0';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent';
+          }}
+          onFocus={e => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.borderColor = '#f0f0f0';
+          }}
+          onBlur={e => {
+            e.currentTarget.style.borderColor = 'transparent';
+            if (formData.name !== itemData.name && formData.name?.trim()) {
+              updateActivity({
+                values: {
+                  name: formData.name,
+                },
+              });
+            }
+          }}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.currentTarget.blur();
+            }
+          }}
+          name="name"
+        />
+
+        <ActivityMainContent itemData={itemData} isContentNarrow={isContentNarrow} />
+
+        <TextArea
+          placeholder={`Nhập mô tả...`}
+          size="middle"
+          variant="borderless"
+          style={{
+            fontWeight: 600,
+            fontSize: 16,
+            border: '1px solid #f0f0f0',
+            paddingLeft: 4,
+            lineHeight: '22px',
+          }}
+          value={formData.description}
+          onChange={e => {
+            const newValue = e.target.value;
+            setFormData(prev => ({ ...prev, description: newValue }));
+          }}
+          autoSize={{ minRows: 3, maxRows: 6 }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = '#f0f0f0';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent';
+          }}
+          onFocus={e => {
+            e.currentTarget.style.background = 'transparent';
+          }}
+          onBlur={() => {
+            if (formData.description !== itemData.description && formData.description?.trim()) {
+              updateActivity({
+                values: {
+                  description: formData.description,
+                },
+              });
+            }
+          }}
+          name="description"
+        />
       </div>
     );
-  };
+  }, [
+    selectedItem,
+    isLoadingActivity,
+    activity,
+    formData,
+    isMobile,
+    updateActivity,
+    contentRef,
+    collapsedLeft,
+  ]);
 
   return (
     <Modal
       open={isOpenModal}
-      onCancel={closeModal}
+      onCancel={() => {
+        closeModal();
+        setData({});
+      }}
       width="95vw"
       closeIcon={false}
       destroyOnHidden
@@ -240,29 +421,36 @@ const ModalEditActivity = () => {
               onSelectItem={item => {
                 handleSelectItem(item);
               }}
+              loading={isLoadingActivity}
+              refetchActivity={refetch}
             />
           </Sider>
 
           {/* Main Content */}
           <Content
+            ref={contentRef}
             style={{
               textAlign: 'center',
               minHeight: 120,
-              lineHeight: '120px',
               color: '#000',
               background: '#fff',
               overflow: 'auto',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
-              marginLeft: 0,
               transition: 'margin 0.2s ease',
               maxHeight: '100%',
+              display: 'flex',
+              justifyContent: 'center',
             }}
             className="hide-scrollbar"
           >
-            {renderContent()}
+            {renderContent}
           </Content>
-          <ActivityDetailRightSidebar />
+          <ActivityDetailRightSidebar
+            isOverlay={isOverlay}
+            collapsedLeft={collapsedLeft}
+            setCollapsedLeft={setCollapsedLeft}
+          />
         </Layout>
       </Layout>
     </Modal>
