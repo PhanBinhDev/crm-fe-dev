@@ -64,7 +64,7 @@ export const getPriorityLabel = (priority: ActivityPriority): string => {
 export const getPriorityColor = (priority: ActivityPriority): string => {
   switch (priority) {
     case ActivityPriority.LOW:
-      return 'cyan';
+      return 'teal';
     case ActivityPriority.MEDIUM:
       return 'blue';
     case ActivityPriority.HIGH:

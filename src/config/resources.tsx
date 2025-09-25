@@ -12,7 +12,6 @@ import {
   IconClock,
   IconFileAnalytics,
   IconFileText,
-  IconFolderCheck,
   IconFolders,
   IconLayoutDashboard,
   IconPresentation,
@@ -56,15 +55,6 @@ export const resources: ResourceConfig[] = [
       icon: <IconFolders size={16} />,
       canDelete: true,
       menuPath: '/workspaces',
-    },
-  },
-  {
-    name: 'feedback',
-    meta: {
-      label: 'Đánh giá sự kiện',
-      icon: <IconFolderCheck size={16} />,
-      canDelete: true,
-      menuPath: '/feedback',
     },
   },
   {
@@ -261,7 +251,7 @@ export const resources: ResourceConfig[] = [
 ];
 
 export const getResourcesByRole = (role: UserRole): ResourceConfig[] => {
-  const baseResources = ['dashboard', 'workspaces', 'my-work', 'teachers', 'feedback'];
+  const baseResources = ['dashboard', 'workspaces', 'my-work', 'teachers'];
 
   switch (role) {
     case UserRole.GV:

@@ -381,13 +381,13 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
             scroll={{ x: 1200 }}
             tableLayout="fixed"
             pagination={false}
-            // onRow={record => {
-            //   return {
-            //     onClick: () => {
-            //       openModal('ModalEditActivity', { activity: record });
-            //     },
-            //   };
-            // }}
+            onRow={record => {
+              return {
+                onClick: () => {
+                  openModal('ModalEditActivity', { activity: record });
+                },
+              };
+            }}
           />
           {tasks && tasks.length > 0 && (
             <div className="px-6 py-3 bg-white border-t border-gray-100"></div>
