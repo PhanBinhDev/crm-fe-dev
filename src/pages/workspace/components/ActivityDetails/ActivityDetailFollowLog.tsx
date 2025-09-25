@@ -1,6 +1,7 @@
 import {
   IconArchive,
   IconBell,
+  IconBellOff,
   IconCalendarDue,
   IconCheck,
   IconChecks,
@@ -9,8 +10,10 @@ import {
   IconMessage,
   IconPaperclip,
   IconTextCaption,
+  IconUser,
+  IconUserCheck,
 } from '@tabler/icons-react';
-import { Button, Divider, Input, Popover, Space, Tooltip } from 'antd';
+import { Avatar, Button, Divider, Input, Popover, Space, Tooltip } from 'antd';
 import { useState } from 'react';
 
 type ActivityLogFilterOption = {
@@ -96,13 +99,7 @@ const ActivityDetailFollowLog = () => {
                 }}
               >
                 <IconBell size={14} color="#838383" />
-                <span
-                  style={{
-                    fontWeight: 600,
-                  }}
-                >
-                  Theo dõi
-                </span>
+                Theo dõi
               </div>
               {true && <IconCheck size={14} color="#838383" />}
             </Button>
@@ -126,28 +123,85 @@ const ActivityDetailFollowLog = () => {
                   gap: 6,
                 }}
               >
-                <IconBell size={14} color="#838383" />
-                <span
-                  style={{
-                    fontWeight: 600,
-                  }}
-                >
-                  Theo dõi
-                </span>
+                <IconBellOff size={14} color="#838383" />
+                Bỏ theo dõi
               </div>
               {true && <IconCheck size={14} color="#838383" />}
             </Button>
           </Tooltip>
         </Space>
+
         <Divider
           size="small"
-          // style={{
-          //   margin: 0,
-          // }}
+          style={{
+            margin: 0,
+          }}
         />
-        {/* <hr /> */}
-        <Space>
+
+        <Space
+          direction="vertical"
+          style={{
+            gap: 8,
+            padding: '8px',
+            width: '100%',
+          }}
+          styles={{
+            item: {
+              width: '100%',
+            },
+          }}
+        >
           <Input placeholder="Tìm kiếm..." />
+          <span
+            style={{
+              color: '#838383',
+              marginLeft: 8,
+            }}
+          >
+            1 Theo dõi
+          </span>
+          <Button
+            type="text"
+            style={{
+              padding: '20px 4px',
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+            }}
+          >
+            <Avatar icon={<IconUserCheck />} />
+            <div
+              style={{
+                display: 'flex',
+                textAlign: 'left',
+              }}
+            >
+              Invite people via email
+            </div>
+          </Button>
+          <Button
+            type="text"
+            style={{
+              padding: '20px 4px',
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+            }}
+          >
+            <Avatar icon={<IconUser />} />
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                textAlign: 'left',
+              }}
+            >
+              <span>Me</span>
+              <span>16 mins</span>
+            </div>
+          </Button>
         </Space>
       </Space>
     </Space>
@@ -164,7 +218,7 @@ const ActivityDetailFollowLog = () => {
       styles={{
         body: {
           padding: '0',
-          width: 260,
+          width: 250,
         },
       }}
     >
