@@ -28,7 +28,7 @@ const ActivityFeedbacks = ({ activityId }: ActivityFeedbacksProps) => {
       <div
         style={{ width: '100%', padding: '30px', textAlign: 'center', fontSize: 13, color: '#999' }}
       >
-        <span> Chưa có hoạt động</span>
+        <span> Chưa có đánh giá</span>
       </div>
     );
   }

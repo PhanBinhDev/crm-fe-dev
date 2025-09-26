@@ -10,7 +10,6 @@ interface ActivityLogTabProps {
 
 const ActivityLogTab = ({ activityId }: ActivityLogTabProps) => {
   const [showSearch, setShowSearch] = useState(false);
-  const [showFilter, setShowFilter] = useState(false);
   const inputRef = useRef<InputRef>(null);
 
   const handleSearchClick = () => {
