@@ -457,13 +457,6 @@ const TableView = ({ stages, activities, users }: TableViewProps) => {
               },
             }}
             pagination={false}
-            onRow={record => {
-              return {
-                onClick: () => {
-                  openModal('ModalEditActivity', { activity: record });
-                },
-              };
-            }}
           />
         </SortableContext>
       </DndContext>

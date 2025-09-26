@@ -7,7 +7,7 @@ import { getColorFromName, getInitials } from '@/utils/activity';
 import { CalendarOutlined, HourglassOutlined, UserOutlined } from '@ant-design/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { IconCaretDownFilled, IconCategory, IconShare } from '@tabler/icons-react';
+import { IconCaretDownFilled, IconCategory, IconFlagFilled, IconShare } from '@tabler/icons-react';
 import { Avatar, Button, Card, Progress, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
@@ -168,7 +168,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
                   width: 'fit-content',
                 }}
               >
-                <IconCategory size={14} color={getPriorityColor(activity.priority)} />
+                <IconFlagFilled size={14} color={getPriorityColor(activity.priority)} />
                 <p>{getPriorityLabel(activity.priority)}</p>
               </div>
             </Tooltip>
