@@ -1,114 +1,64 @@
 import React from "react";
 import { Dropdown, Button } from "antd";
-import { useUpdate } from "@refinedev/core";
-import { IStage } from "@/common/types";
+import { IActivity } from "@/common/types";
+import { IconSortAscendingLetters } from "@tabler/icons-react";
 
-const GROUP_RANGES: Record<string, { start: number; end: number }> = {
-  not_started: { start: 1, end: 100 },
-  active: { start: 101, end: 200 },
-  done: { start: 201, end: 300 },
-  closed: { start: 301, end: 400 },
-};
-
-const GROUP_LABELS: Record<string, string> = {
-  not_started: "Chưa bắt đầu",
-  active: "Đang thực hiện",
-  done: "Hoàn thành",
-  closed: "Đã đóng",
-};
+type Mode = "title_asc" | "title_desc" | "created_desc" | "created_asc";
 
 interface SortActiveProps {
-  stages: IStage[];
-  onSorted?: () => void;
+  activities: IActivity[];
+  onSorted: (sorted: IActivity[]) => void;
 }
 
-const SortActive: React.FC<SortActiveProps> = ({ stages, onSorted }) => {
-  const { mutate: updateStage } = useUpdate();
-
-  const handleSortGroup = (groupKey: string, mode: string) => {
-    const range = GROUP_RANGES[groupKey];
-    const groupStages = stages.filter((s) => s.stageGroup === groupKey);
-
-    let sorted: IStage[] = [];
+const SortActive: React.FC<SortActiveProps> = ({ activities, onSorted }) => {
+  const handleSort = (mode: Mode) => {
+    let sorted = [...activities];
 
     switch (mode) {
       case "title_asc":
-        sorted = [...groupStages].sort((a, b) =>
-          a.title.localeCompare(b.title)
-        );
+        sorted.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
         break;
       case "title_desc":
-        sorted = [...groupStages].sort((a, b) =>
-          b.title.localeCompare(a.title)
-        );
-        break;
-      case "created_asc":
-        sorted = [...groupStages].sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
+        sorted.sort((a, b) => (b.name || "").localeCompare(a.name || ""));
         break;
       case "created_desc":
-        sorted = [...groupStages].sort(
+        sorted.sort(
           (a, b) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         break;
-      default:
-        sorted = groupStages;
+      case "created_asc":
+        sorted.sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+        break;
     }
 
-    // Gán lại position tuần tự trong range group
-    const newStages = sorted.map((s, idx) => ({
-      ...s,
-      position: range.start + idx,
-    }));
-
-    // Update BE
-    newStages.forEach((s) => {
-      updateStage({
-        resource: "stages",
-        id: s.id,
-        values: { position: s.position },
-        mutationMode: "optimistic",
-        successNotification: false,
-      });
-    });
-
-    if (onSorted) onSorted();
+    onSorted(sorted); 
   };
 
-  // build dropdown items
-  const items = Object.keys(GROUP_RANGES).map((groupKey) => ({
-    key: groupKey,
-    label: GROUP_LABELS[groupKey],
-    children: [
-      {
-        key: `${groupKey}_title_asc`,
-        label: "Tên A → Z",
-        onClick: () => handleSortGroup(groupKey, "title_asc"),
-      },
-      {
-        key: `${groupKey}_title_desc`,
-        label: "Tên Z → A",
-        onClick: () => handleSortGroup(groupKey, "title_desc"),
-      },
-      {
-        key: `${groupKey}_created_desc`,
-        label: "Ngày tạo mới nhất",
-        onClick: () => handleSortGroup(groupKey, "created_desc"),
-      },
-      {
-        key: `${groupKey}_created_asc`,
-        label: "Ngày tạo cũ nhất",
-        onClick: () => handleSortGroup(groupKey, "created_asc"),
-      },
-    ],
-  }));
+  const menuItems = [
+    { key: "title_asc", label: "Tên A → Z", onClick: () => handleSort("title_asc") },
+    { key: "title_desc", label: "Tên Z → A", onClick: () => handleSort("title_desc") },
+    { key: "created_desc", label: "Ngày tạo mới nhất", onClick: () => handleSort("created_desc") },
+    { key: "created_asc", label: "Ngày tạo cũ nhất", onClick: () => handleSort("created_asc") },
+  ];
 
   return (
-    <Dropdown menu={{ items }} trigger={["click"]}>
-      <Button size="small">Sắp xếp</Button>
+    <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
+      <Button
+        type="default"
+        style={{
+          borderRadius: 8,
+          width: 36,
+          height: 36,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        icon={<IconSortAscendingLetters size={18} stroke={2} color="#8c8c8c" />}
+      />
     </Dropdown>
   );
 };

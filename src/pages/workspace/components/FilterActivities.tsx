@@ -2,42 +2,55 @@ import { IconAdjustmentsHorizontal } from '@tabler/icons-react';
 import { Button, DatePicker, Divider, Popover, Select, Space, Tooltip, Typography } from 'antd';
 import { Dayjs } from 'dayjs';
 import { useState } from 'react';
+import { IUser } from '@/common/types';
+import AssigneeActivity from '@/pages/workspace/components/AssigneeActivity';
 
-const { RangePicker } = DatePicker;
 const { Title } = Typography;
 
 export interface FilterParams {
   priority?: string;
   stageId?: string;
   category?: string;
-  startTimeFrom?: string;
   endTimeTo?: string;
+  endTimeFrom?: string;
   createdBy?: string;
+  type?: 'task' | 'event';
+  eventType?: 'seminar' | 'workshop' | 'tutor';
+  assigneeId?: string;
 }
 
 const FilterActivities = ({ onApply }: { onApply?: (params: FilterParams) => void }) => {
   const [filters, setFilters] = useState<{
-    date: [Dayjs | null, Dayjs | null] | null;
+    endDate: Dayjs | null;
     priority?: string;
     stageId?: string;
     category?: string;
     keyword: string;
+    type?: 'task' | 'event';
+    eventType?: 'seminar' | 'workshop' | 'tutor';
+    assignee?: IUser | null;
   }>({
-    date: null,
+    endDate: null,
     priority: undefined,
     stageId: undefined,
     category: undefined,
     keyword: '',
+    type: undefined,
+    eventType: undefined,
+    assignee: null,
   });
 
   const [open, setOpen] = useState(false);
 
   const hasActiveFilter =
-    (filters.date && (filters.date[0] || filters.date[1])) ||
+    !!filters.endDate ||
     !!filters.priority ||
     !!filters.stageId ||
     !!filters.category ||
-    filters.keyword !== '';
+    !!filters.keyword ||
+    !!filters.type ||
+    !!filters.eventType ||
+    !!filters.assignee;
 
   const handleApply = () => {
     const params: FilterParams = {};
@@ -45,30 +58,35 @@ const FilterActivities = ({ onApply }: { onApply?: (params: FilterParams) => voi
     if (filters.priority) params.priority = filters.priority;
     if (filters.stageId) params.stageId = filters.stageId;
     if (filters.category) params.category = filters.category;
-    if (filters.date) {
-      const [start, end] = filters.date;
-
-      if (start) {
-        params.startTimeFrom = start.startOf('day').toISOString();
-      }
-      if (end) {
-        params.endTimeTo = end.endOf('day').toISOString();
-      }
+    if (filters.type) params.type = filters.type;
+    if (filters.type === 'event' && filters.eventType) {
+      params.eventType = filters.eventType;
     }
+
+    if (filters.endDate) {
+      params.endTimeFrom = filters.endDate.startOf('day').toISOString();
+      params.endTimeTo = filters.endDate.endOf('day').toISOString();
+    }
+
+    if (filters.assignee) params.assigneeId = filters.assignee.id;
 
     if (filters.keyword) params.createdBy = filters.keyword;
 
+    console.log('📌 Params gửi đi từ FilterActivities:', params);
     onApply?.(params);
     setOpen(false);
   };
 
   const handleReset = () => {
     setFilters({
-      date: null,
+      endDate: null,
       priority: undefined,
       stageId: undefined,
       category: undefined,
       keyword: '',
+      type: undefined,
+      eventType: undefined,
+      assignee: null,
     });
     onApply?.({});
   };
@@ -80,13 +98,13 @@ const FilterActivities = ({ onApply }: { onApply?: (params: FilterParams) => voi
       </Title>
       <Divider style={{ margin: '8px 0' }} />
 
-      {/* Date range */}
+      {/* End date */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontWeight: 500, marginBottom: 6 }}>Thời gian</div>
-        <RangePicker
+        <div style={{ fontWeight: 500, marginBottom: 6 }}>Ngày kết thúc</div>
+        <DatePicker
           style={{ width: '100%' }}
-          value={filters.date as any}
-          onChange={val => setFilters({ ...filters, date: val })}
+          value={filters.endDate}
+          onChange={val => setFilters({ ...filters, endDate: val })}
         />
       </div>
 
@@ -121,6 +139,52 @@ const FilterActivities = ({ onApply }: { onApply?: (params: FilterParams) => voi
             { label: 'Done', value: '452c0784-2b3b-45ad-ae49-2891d3826cbd' },
             { label: 'Complete', value: '98a2c2ec-58cb-4dcf-b5d2-81e3cdbb9e53' },
           ]}
+        />
+      </div>
+
+      {/* Type: Task or Event */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontWeight: 500, marginBottom: 6 }}>Loại</div>
+        <Select
+          placeholder="Chọn loại"
+          value={filters.type}
+          onChange={val => setFilters({ ...filters, type: val, eventType: undefined })}
+          style={{ width: '100%' }}
+          allowClear
+          options={[
+            { label: 'Công việc', value: 'task' },
+            { label: 'Sự kiện', value: 'event' },
+          ]}
+        />
+      </div>
+
+      {/* Event type nếu chọn Sự kiện */}
+      {filters.type === 'event' && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontWeight: 500, marginBottom: 6 }}>Loại sự kiện</div>
+          <Select
+            placeholder="Chọn loại sự kiện"
+            value={filters.eventType}
+            onChange={val => setFilters({ ...filters, eventType: val })}
+            style={{ width: '100%' }}
+            allowClear
+            options={[
+              { label: 'Seminar', value: 'seminar' },
+              { label: 'Workshop', value: 'workshop' },
+              { label: 'Tutor', value: 'tutor' },
+            ]}
+          />
+        </div>
+      )}
+
+      {/* Assignee */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontWeight: 500, marginBottom: 6 }}>Người phụ trách</div>
+        <AssigneeActivity
+          selectedUser={filters.assignee ? [filters.assignee] : []}
+          onToggleSelectUser={(user) =>
+            setFilters({ ...filters, assignee: user })
+          }
         />
       </div>
 
