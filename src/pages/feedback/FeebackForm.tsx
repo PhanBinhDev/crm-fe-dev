@@ -1,6 +1,7 @@
 import { LoadingPage } from '@/components/common';
-import { useOne } from '@refinedev/core';
-import { Button, Form, Input, Radio, Typography, message } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { useCreate, useOne } from '@refinedev/core';
+import { Button, Form, Input, Radio, Typography, Upload, message } from 'antd';
 import { useParams } from 'react-router-dom';
 
 const { TextArea } = Input;
@@ -24,7 +25,6 @@ const options = [
 const FeedbackForm = () => {
   const [form] = Form.useForm();
   const { id } = useParams();
-  console.log(id);
 
   const {
     data: eventInfo,
@@ -32,23 +32,49 @@ const FeedbackForm = () => {
     isError,
   } = useOne({ resource: 'activities', id: '3e6a9b83-ec1c-4495-9e81-4fae85fa1bb7' });
 
+  const { mutate: createFeedback, isPending: isPendingCreateFeedback } = useCreate({
+    mutationOptions: {
+      retry: false,
+    },
+  });
+
   const onFinish = (values: any) => {
-    const { studentName, studentId, comments, ...answers } = values;
+    const { fullname, email, studentId, numPhone, comments, images, ...answers } = values;
 
     const ratings = Object.values(answers) as number[];
     const avgRating = ratings.reduce((acc, val) => acc + val, 0) / ratings.length;
 
     const payload = {
-      studentName,
+      fullname,
+      email,
       studentId,
+      numPhone,
       comments,
       rating: avgRating,
-      answers,
+      images: images?.map((file: any) => ({
+        uid: file.uid,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.originFileObj?.lastModified,
+        originFileObj: file.originFileObj,
+      })),
     };
 
-    console.log('Submit data:', payload);
-
-    message.success('Gửi phản hồi thành công!');
+    createFeedback(
+      {
+        resource: `activities/${id}/event-feedback`,
+        values: payload,
+      },
+      {
+        onSuccess: () => {
+          message.success('TGửi phản hồi thành công!');
+        },
+        onError: () => {
+          message.error('Gửi phản hồi thất bại. Vui lòng thử lại sau.');
+        },
+      },
+    );
   };
 
   if (isLoading) return <LoadingPage />;
@@ -76,16 +102,52 @@ const FeedbackForm = () => {
         {/* Thông tin sinh viên */}
         <Form.Item
           label="Tên sinh viên"
-          name="studentName"
-          rules={[{ required: true, message: 'Vui lòng nhập tên sinh viên' }]}
+          name="fullname"
+          rules={[
+            { required: true, message: 'Vui lòng nhập tên sinh viên' },
+            { min: 2, message: 'Tên phải có ít nhất 2 ký tự' },
+            { max: 50, message: 'Tên không được quá 50 ký tự' },
+          ]}
         >
           <Input placeholder="Nhập tên sinh viên" />
         </Form.Item>
 
         <Form.Item
+          label="Email sinh viên"
+          name="email"
+          rules={[
+            { required: true, message: 'Vui lòng nhập email sinh viên' },
+            { type: 'email', message: 'Email không hợp lệ' },
+          ]}
+        >
+          <Input placeholder="Nhập email sinh viên" />
+        </Form.Item>
+
+        <Form.Item
+          label="Số điện thoại sinh viên"
+          name="numPhone"
+          rules={[
+            { required: true, message: 'Vui lòng nhập số điện thoại sinh viên' },
+            {
+              pattern: /^[0-9]{10,11}$/,
+              message: 'Số điện thoại không hợp lệ',
+            },
+          ]}
+        >
+          <Input placeholder="Nhập số điện thoại sinh viên" />
+        </Form.Item>
+
+        <Form.Item
           label="Mã số sinh viên"
           name="studentId"
-          rules={[{ required: true, message: 'Vui lòng nhập MSSV' }]}
+          rules={[
+            { required: true, message: 'Vui lòng nhập MSSV' },
+            {
+              pattern: /^[A-Za-z0-9]+$/,
+              message: 'MSSV chỉ được chứa chữ và số',
+            },
+            { min: 7, message: 'MSSV phải có ít nhất 7 ký tự' },
+          ]}
         >
           <Input placeholder="Nhập mã số sinh viên" />
         </Form.Item>
@@ -107,8 +169,23 @@ const FeedbackForm = () => {
           <TextArea rows={4} placeholder="Nhập góp ý của bạn (nếu có)" />
         </Form.Item>
 
+        {/* Upload ảnh */}
+        <Form.Item
+          label="Hình ảnh minh họa"
+          name="images"
+          valuePropName="fileList"
+          getValueFromEvent={e => e?.fileList}
+        >
+          <Upload listType="picture-card" beforeUpload={() => false} accept="image/*">
+            <div>
+              <PlusOutlined />
+              <div style={{ marginTop: 8 }}>Upload</div>
+            </div>
+          </Upload>
+        </Form.Item>
+
         <Form.Item>
-          <Button type="primary" htmlType="submit" block>
+          <Button type="primary" htmlType="submit" block loading={isPendingCreateFeedback}>
             Gửi đánh giá
           </Button>
         </Form.Item>
