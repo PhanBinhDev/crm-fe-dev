@@ -1,10 +1,14 @@
 import { IconSearch } from '@tabler/icons-react';
 import { Button, Input, InputRef, Space, Typography } from 'antd';
 import { useRef, useState } from 'react';
+import ActivityChangedHistory from './ActivityChangedHistory';
 import ActivityDetailFilterLog from './ActivityDetailFilterLog';
 import ActivityDetailFollowLog from './ActivityDetailFollowLog';
+interface ActivityLogTabProps {
+  activityId: string;
+}
 
-const ActivityLogTab = () => {
+const ActivityLogTab = ({ activityId }: ActivityLogTabProps) => {
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const inputRef = useRef<InputRef>(null);
@@ -76,6 +80,9 @@ const ActivityLogTab = () => {
             />
           </div>
         )}
+      </div>
+      <div style={{ background: '#f7f7f7ff', height: '100%' }}>
+        <ActivityChangedHistory activityId={activityId} />
       </div>
     </div>
   );

@@ -1,23 +1,26 @@
-import { IconLink, IconMessage } from '@tabler/icons-react';
+import { IconLink, IconMessage, IconMessageCircle } from '@tabler/icons-react';
 import { Button, Divider, Layout, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
+import ActivityFeedbackTab from './ActivityFeedbackTab';
 import ActivityLinkTab from './ActivityLinkTab';
 import ActivityLogTab from './ActivityLogTab';
 
 const { Sider } = Layout;
 
-type RightSidebarTab = 'links' | 'logs';
+type RightSidebarTab = 'links' | 'logs' | 'feedback';
 
 interface ActivityDetailRightSidebarProps {
   isOverlay: boolean;
   collapsedLeft: boolean;
   setCollapsedLeft: (val: boolean) => void;
+  activityId: string;
 }
 
 const ActivityDetailRightSidebar = ({
   isOverlay,
   collapsedLeft,
   setCollapsedLeft,
+  activityId,
 }: ActivityDetailRightSidebarProps) => {
   const [collapsedRight, setCollapsedRight] = useState(false);
   const [activeTab, setActiveTab] = useState<RightSidebarTab>('logs');
@@ -45,7 +48,7 @@ const ActivityDetailRightSidebar = ({
         collapsed={collapsedRight}
         collapsible
         trigger={null}
-        width={360}
+        width={400}
         collapsedWidth={0}
         style={{
           background: '#fff',
@@ -70,8 +73,11 @@ const ActivityDetailRightSidebar = ({
               }),
         }}
       >
-        {!collapsedRight && activeTab === 'logs' && <ActivityLogTab />}
-        {!collapsedRight && activeTab === 'links' && <ActivityLinkTab />}
+        {!collapsedRight && activeTab === 'logs' && <ActivityLogTab activityId={activityId} />}
+        {!collapsedRight && activeTab === 'links' && <ActivityLinkTab activityId={activityId} />}
+        {!collapsedRight && activeTab === 'feedback' && (
+          <ActivityFeedbackTab activityId={activityId} />
+        )}
       </Sider>
       <div
         style={{
@@ -117,6 +123,27 @@ const ActivityDetailRightSidebar = ({
               icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
             }}
             onClick={() => handleTabClick('links')}
+          />
+        </Tooltip>
+
+        <Divider
+          style={{
+            margin: '12px 0',
+          }}
+        />
+
+        <Tooltip placement="left" title={'Đánh giá'}>
+          <Button
+            type="text"
+            icon={<IconMessageCircle size={16} stroke={1.5} color="#838383" />}
+            style={{
+              background: activeTab === 'feedback' ? '#f0f0f0' : 'transparent',
+              borderRadius: 8,
+            }}
+            styles={{
+              icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+            }}
+            onClick={() => handleTabClick('feedback')}
           />
         </Tooltip>
       </div>

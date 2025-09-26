@@ -111,7 +111,6 @@ const ModalEditActivity = () => {
 
     const { type, data: itemData } = selectedItem;
     const isMainActivity = type === 'activity';
-
     return (
       <div
         style={{
@@ -447,6 +446,7 @@ const ModalEditActivity = () => {
             {renderContent}
           </Content>
           <ActivityDetailRightSidebar
+            activityId={activity.id}
             isOverlay={isOverlay}
             collapsedLeft={collapsedLeft}
             setCollapsedLeft={setCollapsedLeft}
