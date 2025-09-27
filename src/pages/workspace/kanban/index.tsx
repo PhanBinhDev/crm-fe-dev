@@ -3,6 +3,7 @@ import { useModal } from '@/hooks/useModal';
 import FilterActivities, { FilterParams } from '@/pages/workspace/components/FilterActivities';
 import SearchActivities from '@/pages/workspace/components/SearchActivities';
 import SettingsActivities from '@/pages/workspace/components/SettingsActivities';
+import SortActive from '@/pages/workspace/components/SortActive';
 import CalendarView from '@/pages/workspace/views/CalendarView';
 import KanbanView from '@/pages/workspace/views/KanbanView';
 import ListView from '@/pages/workspace/views/ListView';
@@ -12,7 +13,6 @@ import { IconCalendar, IconLayoutKanban, IconList, IconPlus, IconTable } from '@
 import { Button, Space, Spin, Tabs, Tooltip } from 'antd';
 import { useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import SortActive from './../components/SortActive';
 
 type TabKey = 'kanban' | 'list' | 'calendar' | 'table';
 
@@ -20,6 +20,7 @@ const KanbanWorkspaces = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('kanban');
   const [searchValue, setSearchValue] = useState<string>('');
   const [filterParams, setFilterParams] = useState<FilterParams>({});
+  const [displayActivities, setDisplayActivities] = useState<IActivity[]>([]);
 
   const { workspaceId } = useParams();
   const { openModal } = useModal();
@@ -40,6 +41,7 @@ const KanbanWorkspaces = () => {
     sorters: [{ field: 'position', order: 'asc' }],
     queryOptions: { enabled: !!workspaceData?.data.id },
   });
+
   const { data: users } = useList<IUser>({
     resource: 'users/all',
     pagination: { mode: 'off' },
@@ -62,36 +64,38 @@ const KanbanWorkspaces = () => {
   if (filterParams.category) {
     activityFilters.push({ field: 'category', operator: 'eq', value: filterParams.category });
   }
-  if (filterParams.startTimeFrom) {
-  activityFilters.push({
-    field: 'startTime[gte]',
-    operator: 'eq',
-    value: filterParams.startTimeFrom,
-  });
-}
+  if (filterParams.endTimeFrom) {
+    activityFilters.push({
+      field: 'endTime',
+      operator: 'gte',
+      value: filterParams.endTimeFrom,
+    });
+  }
+  if (filterParams.endTimeTo) {
+    activityFilters.push({
+      field: 'endTime',
+      operator: 'lte',
+      value: filterParams.endTimeTo,
+    });
+  }
 
-if (filterParams.startTimeFrom) {
-  activityFilters.push({
-    field: 'startTime[gte]',
-    operator: 'eq',
-    value: filterParams.startTimeFrom,
-  });
-}
-
-if (filterParams.endTimeTo) {
-  activityFilters.push({
-    field: 'endTime[lte]',
-    operator: 'eq',
-    value: filterParams.endTimeTo,
-  });
-}
-
+  if (filterParams.type) {
+    activityFilters.push({ field: 'type', operator: 'eq', value: filterParams.type });
+  }
+  if (filterParams.eventType) {
+    activityFilters.push({ field: 'eventType', operator: 'eq', value: filterParams.eventType });
+  }
 
   const { data: activitiesData } = useList<IActivity>({
     resource: 'activities',
     pagination: { mode: 'off' },
     filters: activityFilters,
-    queryOptions: { enabled: !!workspaceData?.data.id },
+    queryOptions: {
+      enabled: !!workspaceData?.data.id,
+      onSuccess: data => {
+        setDisplayActivities(data.data);
+      },
+    },
   });
 
   if (isLoadingWorkspace) {
@@ -101,6 +105,14 @@ if (filterParams.endTimeTo) {
   if (!workspaceData) {
     return <></>;
   }
+
+  const handleApplyFilters = (params: FilterParams) => {
+    if (Object.keys(params).length === 0) {
+      setFilterParams({});
+    } else {
+      setFilterParams(params);
+    }
+  };
 
   return (
     <div
@@ -258,9 +270,12 @@ if (filterParams.endTimeTo) {
           }}
         >
           <SearchActivities onSearch={onSearch} />
-          <FilterActivities onApply={setFilterParams} />
+          <SortActive
+            activities={displayActivities}
+            onSorted={(sorted: IActivity[]) => setDisplayActivities(sorted)}
+          />
+          <FilterActivities onApply={handleApplyFilters} />
           <SettingsActivities />
-          <SortActive stages={stagesData?.data || []} />
 
           <Tooltip title="Thêm mới hoạt động">
             <Button
@@ -285,22 +300,22 @@ if (filterParams.endTimeTo) {
       </Space>
 
       {activeTab === 'kanban' && (
-        <KanbanView stages={stagesData?.data || []} activities={activitiesData?.data || []} />
+        <KanbanView stages={stagesData?.data || []} activities={displayActivities} />
       )}
       {activeTab === 'list' && (
         <ListView
           stages={stagesData?.data || []}
-          activities={activitiesData?.data || []}
+          activities={displayActivities}
           users={users?.data || []}
         />
       )}
       {activeTab === 'calendar' && (
-        <CalendarView stages={stagesData?.data || []} activities={activitiesData?.data || []} />
+        <CalendarView stages={stagesData?.data || []} activities={displayActivities} />
       )}
       {activeTab === 'table' && (
         <TableView
           stages={stagesData?.data || []}
-          activities={activitiesData?.data || []}
+          activities={displayActivities}
           users={users?.data || []}
         />
       )}

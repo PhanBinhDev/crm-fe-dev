@@ -16,7 +16,7 @@ import {
 import { arrayMove, horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { useUpdate } from '@refinedev/core';
 import { Row } from 'antd';
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 interface KanbanViewProps {
@@ -50,21 +50,11 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
   }, [stages, pendingUpdate]);
 
   useEffect(() => {
-    if (activities && !pendingUpdate) {
-      const activitiesIds = activities
-        .map(a => a.id)
-        .sort()
-        .join(',');
-      const localActivitiesIds = localActivities
-        .map(a => a.id)
-        .sort()
-        .join(',');
+  if (!pendingUpdate) {
+    setLocalActivities(activities);
+  }
+}, [activities, pendingUpdate]);
 
-      if (activitiesIds !== localActivitiesIds) {
-        setLocalActivities(activities);
-      }
-    }
-  }, [activities, pendingUpdate, localActivities]);
 
   const { mutate: update } = useUpdate();
 
@@ -307,10 +297,10 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
         <div
           ref={scrollRef}
           style={{
-            overflowX: "auto",
-            overflowY: "hidden",
-            height: "calc(100vh - 250px)",
-            cursor: "grab",
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            height: 'calc(100vh - 250px)',
+            cursor: 'grab',
           }}
           onMouseDown={handleMouseDown}
           onMouseLeave={handleMouseLeave}
@@ -323,7 +313,6 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
               style={{
                 display: 'flex',
                 flexWrap: 'nowrap',
-                // gap: 16,
                 minWidth: '100%',
                 height: '100%',
               }}
@@ -332,10 +321,9 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
                 const stage = stages.find(col => col.id === id);
                 if (!stage) return null;
 
-                const activityByStage = localActivities
-                  .filter(activity => activity.stageId === stage.id)
-                  .sort((a, b) => a.position - b.position);
-
+                const activityByStage = localActivities.filter(
+                  activity => activity.stageId === stage.id,
+                );
                 return (
                   <div key={id} style={{ minWidth: 300, flexShrink: 0 }}>
                     <KanbanColumn
