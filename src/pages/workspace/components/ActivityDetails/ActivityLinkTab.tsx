@@ -1,5 +1,5 @@
-import { IconCategory, IconList, IconSearch } from '@tabler/icons-react';
-import { Button, InputRef, Space, Typography } from 'antd';
+import { IconCategory, IconLink, IconList, IconPlus } from '@tabler/icons-react';
+import { Button, Input, InputRef, Space, Tooltip, Typography } from 'antd';
 import { useRef, useState } from 'react';
 import ActivityLinks from './ActivityLinks';
 
@@ -8,15 +8,18 @@ interface ActivityLinkTabProps {
 }
 
 const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
-  const [showSearch, setShowSearch] = useState(false);
+  const [showInput, setShowInput] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'category'>('category');
   const inputRef = useRef<InputRef>(null);
 
-  const handleSearchClick = () => {
-    setShowSearch(true);
+  const handleAddLinks = () => {
+    setShowInput(true);
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
+  };
+  const handleBlur = () => {
+    setShowInput(false);
   };
 
   return (
@@ -36,21 +39,23 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
           Liên kết
         </Typography.Title>
         <Space style={{ gap: 2 }}>
-          <Button
-            onClick={handleSearchClick}
-            type="text"
-            styles={{
-              icon: {
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              },
-            }}
-            icon={<IconSearch size={16} stroke={1.5} color="#646464" />}
-            style={{
-              borderRadius: 8,
-            }}
-          />
+          <Tooltip title={'Thêm liên kết'}>
+            <Button
+              onClick={handleAddLinks}
+              type="text"
+              styles={{
+                icon: {
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                },
+              }}
+              icon={<IconPlus size={16} stroke={1.5} color="#646464" />}
+              style={{
+                borderRadius: 8,
+              }}
+            />
+          </Tooltip>
           <Button
             onClick={() => setViewMode('category')}
             type={'text'}
@@ -84,6 +89,30 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
             }}
           />
         </Space>
+        {showInput && (
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: 'calc(100% + 1px)',
+              background: '#fff',
+              zIndex: 10,
+              padding: 12,
+              borderBottom: '1px solid #f0f0f0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+            }}
+          >
+            <Input
+              ref={inputRef}
+              prefix={<IconLink size={16} color="#bfbfbf" />}
+              placeholder="Nhập liên kết..."
+              onBlur={handleBlur}
+              allowClear
+              style={{ borderRadius: 8, outline: 'none' }}
+            />
+          </div>
+        )}
       </div>
       <div style={{ background: '#f7f7f7ff', height: '100%', width: '100%' }}>
         <ActivityLinks activityId={activityId} viewMode={viewMode} />

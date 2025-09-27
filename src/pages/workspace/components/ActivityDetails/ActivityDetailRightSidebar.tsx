@@ -1,7 +1,7 @@
 import { IconFilePencil, IconLink, IconMessage, IconMessageCircle } from '@tabler/icons-react';
 import { Button, Divider, Layout, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
-import ActivityCommentTab from './ActivityCommnetTab';
+import ActivityCommentTab from './ActivityCommentTab';
 import ActivityFeedbackTab from './ActivityFeedbackTab';
 import ActivityLinkTab from './ActivityLinkTab';
 import ActivityLogTab from './ActivityLogTab';
