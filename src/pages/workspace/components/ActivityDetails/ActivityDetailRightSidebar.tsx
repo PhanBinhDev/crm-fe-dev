@@ -1,13 +1,14 @@
-import { IconLink, IconMessage, IconMessageCircle } from '@tabler/icons-react';
+import { IconFilePencil, IconLink, IconMessage, IconMessageCircle } from '@tabler/icons-react';
 import { Button, Divider, Layout, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
+import ActivityCommentTab from './ActivityCommnetTab';
 import ActivityFeedbackTab from './ActivityFeedbackTab';
 import ActivityLinkTab from './ActivityLinkTab';
 import ActivityLogTab from './ActivityLogTab';
 
 const { Sider } = Layout;
 
-type RightSidebarTab = 'links' | 'logs' | 'feedback';
+type RightSidebarTab = 'links' | 'logs' | 'feedback' | 'comment';
 
 interface ActivityDetailRightSidebarProps {
   isOverlay: boolean;
@@ -78,6 +79,9 @@ const ActivityDetailRightSidebar = ({
         {!collapsedRight && activeTab === 'feedback' && (
           <ActivityFeedbackTab activityId={activityId} />
         )}
+        {!collapsedRight && activeTab === 'comment' && (
+          <ActivityCommentTab activityId={activityId} />
+        )}
       </Sider>
       <div
         style={{
@@ -132,10 +136,31 @@ const ActivityDetailRightSidebar = ({
           }}
         />
 
-        <Tooltip placement="left" title={'Đánh giá'}>
+        <Tooltip placement="left" title={'Bình luận'}>
           <Button
             type="text"
             icon={<IconMessageCircle size={16} stroke={1.5} color="#838383" />}
+            style={{
+              background: activeTab === 'comment' ? '#f0f0f0' : 'transparent',
+              borderRadius: 8,
+            }}
+            styles={{
+              icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+            }}
+            onClick={() => handleTabClick('comment')}
+          />
+        </Tooltip>
+
+        <Divider
+          style={{
+            margin: '12px 0',
+          }}
+        />
+
+        <Tooltip placement="left" title={'Đánh giá'}>
+          <Button
+            type="text"
+            icon={<IconFilePencil size={16} stroke={1.5} color="#838383" />}
             style={{
               background: activeTab === 'feedback' ? '#f0f0f0' : 'transparent',
               borderRadius: 8,

@@ -1,6 +1,6 @@
-import { useList } from '@refinedev/core';
-import { IconFile, IconPointFilled } from '@tabler/icons-react';
-import { List, Skeleton } from 'antd';
+import { IconPointFilled } from '@tabler/icons-react';
+import { Avatar, List, Space, Typography } from 'antd';
+const { Text, Paragraph } = Typography;
 
 interface ActivityLinksProps {
   activityId: string;
@@ -8,35 +8,13 @@ interface ActivityLinksProps {
 }
 
 const ActivityLinks = ({ activityId, viewMode }: ActivityLinksProps) => {
-  const { data: dataLinks, isLoading } = useList({
-    resource: `activities/${activityId}/files`,
-    sorters: [{ field: 'createdAt', order: 'desc' }],
-  });
-
-  if (!dataLinks?.data || dataLinks.data.length === 0) {
-    return (
-      <div
-        style={{ width: '100%', padding: '30px', textAlign: 'center', fontSize: 13, color: '#999' }}
-      >
-        <span> Chưa có liên kết nào</span>
-      </div>
-    );
-  }
-  if (isLoading) {
-    return (
-      <div style={{ padding: 10 }}>
-        <Skeleton active paragraph={{ rows: 4 }} />
-      </div>
-    );
-  }
-
   if (viewMode === 'list') {
     return (
       <div>
         <List
           size="small"
           bordered={false}
-          dataSource={dataLinks.data}
+          //   dataSource={dataLinks.data}
           renderItem={item => (
             <List.Item
               style={{
@@ -53,21 +31,14 @@ const ActivityLinks = ({ activityId, viewMode }: ActivityLinksProps) => {
                 <IconPointFilled size={10} color="#666666ff" />
               </div>
               <div style={{ width: '100%' }}>
-                {item.fileUrl ? (
-                  <a
-                    href={item.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ fontSize: 12, color: '#1677ff' }}
-                  >
-                    {item.fileName}
-                  </a>
-                ) : (
-                  <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                    <IconFile size={14} />
-                    <span style={{ fontSize: 12 }}>{item.fileName}</span>
-                  </div>
-                )}
+                <a
+                  //   href={item.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 12, color: '#1677ff' }}
+                >
+                  {/* {item.fileName} */}
+                </a>
               </div>
             </List.Item>
           )}
@@ -77,35 +48,39 @@ const ActivityLinks = ({ activityId, viewMode }: ActivityLinksProps) => {
   }
 
   return (
-    <div style={{ padding: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-      {dataLinks.data.map(item => (
-        <div
-          key={item.id}
+    <div style={{ padding: 12, display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+      <a
+        style={{
+          background: '#9d1111ff',
+          border: '1px solid #eaeaea',
+          borderRadius: 8,
+          padding: 10,
+          fontSize: 12,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+        }}
+      >
+        <Space
           style={{
-            background: '#fff',
-            border: '1px solid #eaeaea',
-            borderRadius: 8,
-            padding: 10,
-            fontSize: 12,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'left',
+            width: '60%',
           }}
         >
-          {item.fileUrl ? (
-            <a
-              href={item.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: '#1677ff' }}
-            >
-              {item.fileName}
-            </a>
-          ) : (
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <IconFile size={14} />
-              <span>{item.fileName}</span>
-            </div>
-          )}
-        </div>
-      ))}
+          <Text strong={true}>Title</Text>
+          <Paragraph>
+            Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quod cupiditate dolores ab
+            reiciendis aliquid vitae, molestias, rerum, doloribus accusamus iste velit quis. Facilis
+            quibusdam exercitationem enim dicta ab impedit nemo.
+          </Paragraph>
+        </Space>
+        <Space>
+          <Avatar src="https://picsum.photos/id/1/200/300" shape="square" size={130}></Avatar>
+        </Space>
+      </a>
     </div>
   );
 };

@@ -67,7 +67,8 @@ export interface FormAddActivityPayload {
   subtask?: string[];
   checklist?: Checklist[];
   workspaceId: string;
-  quantityParticipants?: number;
+  instructorCount?: number;
+  studentCount?: number;
 }
 
 export interface ActivityPriorityLevel {
