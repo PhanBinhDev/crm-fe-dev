@@ -26,11 +26,7 @@ const FeedbackForm = () => {
   const [form] = Form.useForm();
   const { id } = useParams();
 
-  const {
-    data: eventInfo,
-    isLoading,
-    isError,
-  } = useOne({ resource: 'activities', id: '3e6a9b83-ec1c-4495-9e81-4fae85fa1bb7' });
+  const { data: eventInfo, isLoading, isError } = useOne({ resource: 'activities', id: id });
 
   const { mutate: createFeedback, isPending: isPendingCreateFeedback } = useCreate({
     mutationOptions: {
@@ -45,12 +41,12 @@ const FeedbackForm = () => {
     const avgRating = ratings.reduce((acc, val) => acc + val, 0) / ratings.length;
 
     const payload = {
-      fullname,
+      fullName: fullname,
       email,
       studentId,
       numPhone,
       comments,
-      rating: avgRating,
+      rating: String(avgRating),
       images: images?.map((file: any) => ({
         uid: file.uid,
         name: file.name,
@@ -79,7 +75,25 @@ const FeedbackForm = () => {
 
   if (isLoading) return <LoadingPage />;
 
-  if (isError) return <div>Có lỗi sảy ra, vui lòng thử lại sau</div>;
+  if (isError)
+    return (
+      <div
+        style={{
+          width: '800px',
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto',
+          padding: '20px',
+          fontSize: '30px',
+          fontWeight: 'bold',
+          color: 'red',
+        }}
+      >
+        Có lỗi sảy ra, vui lòng thử lại sau!!
+      </div>
+    );
 
   return (
     <div
