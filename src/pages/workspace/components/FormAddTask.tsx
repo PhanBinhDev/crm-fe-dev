@@ -403,21 +403,6 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                       <IconChevronRight size={14} />
                     </span>
                   </div>
-
-                  {/* <Button
-                    style={{
-                      height: 27,
-                    }}
-                  >
-                    <div></div>
-                    <IconChevronRight
-                      size={14}
-                      style={{
-                        transform: categoryOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-                        transition: 'transform 0.2s ease',
-                      }}
-                    />
-                  </Button> */}
                 </Popover>
               </Form.Item>
             )}

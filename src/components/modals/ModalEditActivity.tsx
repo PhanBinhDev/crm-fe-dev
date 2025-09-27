@@ -114,13 +114,14 @@ const ModalEditActivity = () => {
     return (
       <div
         style={{
+          width: '100%',
+          maxWidth: 860,
+          margin: '0 auto',
           padding: '36px 24px 48px',
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          maxWidth: 860,
-          minWidth: isContentNarrow ? '100%' : 860,
           gap: 16,
         }}
       >

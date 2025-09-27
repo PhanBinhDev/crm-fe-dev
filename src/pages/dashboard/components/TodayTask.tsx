@@ -1,5 +1,6 @@
 import { IActivity } from '@/common/types';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { UserOutlined } from '@ant-design/icons';
 import { useList } from '@refinedev/core';
@@ -12,6 +13,7 @@ const PAGE_SIZE = 20;
 
 const TodayTask: React.FC = () => {
   const assignees: any[] = [];
+  const { currentWorkspace } = useWorkspaces();
 
   const [page, setPage] = useState(1);
 
@@ -21,6 +23,15 @@ const TodayTask: React.FC = () => {
       current: page,
       pageSize: PAGE_SIZE,
     },
+    sorters: [{ field: 'createdAt', order: 'desc' }],
+    filters: [
+      {
+        field: 'workspaceId',
+        operator: 'eq',
+        value: currentWorkspace?.id,
+      },
+    ],
+    queryOptions: { enabled: !!currentWorkspace?.id },
   });
 
   const activities: IActivity[] = data?.data ?? [];

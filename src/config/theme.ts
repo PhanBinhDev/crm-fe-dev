@@ -23,6 +23,7 @@ export const antdTheme: ThemeConfig = {
     },
     Button: {
       borderRadius: 6,
+      lineWidthFocus: 0,
     },
     Input: {
       borderRadius: 6,

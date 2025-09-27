@@ -1,39 +1,27 @@
-import React, { useState } from "react";
-import {
-  Modal,
-  Typography,
-  Dropdown,
-  Button,
-  Form,
-  Input,
-  MenuProps,
-  Tooltip,
-} from "antd";
-import {
-  MoreOutlined,
-  PlusOutlined,
-  InfoCircleOutlined,
-  HolderOutlined,
-} from "@ant-design/icons";
-import { useCreate, useDelete, useList, useUpdate } from "@refinedev/core";
-import { IStage } from "@/common/types";
+import { IStage } from '@/common/types';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { InfoCircleOutlined, MoreOutlined, PlusOutlined } from '@ant-design/icons';
+import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
+import { IconGripVertical, IconPlus } from '@tabler/icons-react';
+import { Button, Dropdown, Form, Input, MenuProps, Modal, Tooltip, Typography } from 'antd';
+import React, { useState } from 'react';
+import { ColorPicker } from '../shared/ColorPicker';
 
 interface ModalEditStatusesProps {
   open: boolean;
   onCancel: () => void;
 }
 
-// =================== StageItem ===================
 const StageItem: React.FC<{
   stage: IStage;
   onEdit: (stage: IStage) => void;
   onDelete: (id: string) => void;
 }> = ({ stage, onEdit, onDelete }) => {
-  const items: MenuProps["items"] = [
-    { key: "edit", label: "Chỉnh sửa", onClick: () => onEdit(stage) },
+  const items: MenuProps['items'] = [
+    { key: 'edit', label: 'Chỉnh sửa', onClick: () => onEdit(stage) },
     {
-      key: "delete",
-      label: "Xóa",
+      key: 'delete',
+      label: 'Xóa',
       danger: true,
       disabled: stage.isBuiltIn,
       onClick: () => onDelete(stage.id),
@@ -43,37 +31,28 @@ const StageItem: React.FC<{
   return (
     <div
       style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "6px 8px",
-        border: "1px solid #e0e0e0",
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '6px 8px',
+        border: '1px solid #e0e0e0',
         borderRadius: 6,
         marginBottom: 6,
-        background: "#fff",
+        background: '#fff',
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <HolderOutlined style={{ color: "#aaa", cursor: "grab" }} />
-        <span
-          style={{
-            display: "inline-block",
-            width: 14,
-            height: 14,
-            borderRadius: "50%",
-            background: stage.color,
-          }}
-        />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <IconGripVertical size={14} color="#838383" style={{ cursor: 'grab' }} />
+        <ColorPicker value={stage.color} />
         <Typography.Text>{stage.title}</Typography.Text>
       </div>
-      <Dropdown menu={{ items }} trigger={["click"]}>
-        <MoreOutlined style={{ cursor: "pointer" }} />
+      <Dropdown menu={{ items }} trigger={['click']}>
+        <MoreOutlined style={{ cursor: 'pointer' }} />
       </Dropdown>
     </div>
   );
 };
 
-// =================== StageModal ===================
 const StageModal: React.FC<{
   visible: boolean;
   onCancel: () => void;
@@ -86,33 +65,27 @@ const StageModal: React.FC<{
   return (
     <Modal
       open={visible}
-      title={initialValues ? "Chỉnh sửa trạng thái" : "Thêm mới trạng thái"}
+      title={initialValues ? 'Chỉnh sửa trạng thái' : 'Thêm mới trạng thái'}
       onCancel={onCancel}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
     >
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={initialValues}
-        onFinish={onFinish}
-      >
+      <Form form={form} layout="vertical" initialValues={initialValues} onFinish={onFinish}>
         <Form.Item
           label="Tên trạng thái"
           name="title"
-          rules={[{ required: true, message: "Vui lòng nhập tên trạng thái" }]}
+          rules={[{ required: true, message: 'Vui lòng nhập tên trạng thái' }]}
         >
           <Input placeholder="Ví dụ: TO DO, IN PROGRESS..." />
         </Form.Item>
 
         {/* Bỏ chọn màu */}
-
-        <Form.Item style={{ textAlign: "right" }}>
+        <Form.Item style={{ textAlign: 'right' }}>
           <Button onClick={onCancel} style={{ marginRight: 8 }}>
             Hủy
           </Button>
           <Button type="primary" htmlType="submit" loading={loading}>
-            {initialValues ? "Cập nhật" : "Thêm mới"}
+            {initialValues ? 'Cập nhật' : 'Thêm mới'}
           </Button>
         </Form.Item>
       </Form>
@@ -125,39 +98,38 @@ const StageSettings: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingStage, setEditingStage] = useState<IStage | undefined>();
   const [defaultGroup, setDefaultGroup] = useState<string | undefined>();
+  const { currentWorkspace } = useWorkspaces();
 
   const { data: stagesData } = useList<IStage>({
-    resource: "stages",
+    resource: 'stages',
     pagination: { pageSize: 100 },
-    sorters: [{ field: "position", order: "asc" }],
+    sorters: [{ field: 'position', order: 'asc' }],
+    filters: [{ field: 'workspaceId', operator: 'eq', value: currentWorkspace?.id }],
   });
 
   const { mutate: createStage, isPending: createLoading } = useCreate();
   const { mutate: updateStage, isPending: updateLoading } = useUpdate();
   const { mutate: deleteStage } = useDelete();
 
-  const stages = (stagesData?.data || []).sort(
-    (a, b) => a.position - b.position
-  );
+  const stages = (stagesData?.data || []).sort((a, b) => a.position - b.position);
 
   const groupConfig = [
-    { key: "not_started", label: "Not started" },
-    { key: "active", label: "Active" },
-    { key: "done", label: "Done" },
-    { key: "closed", label: "Closed" },
+    { key: 'not_started', label: 'Chưa bắt đầu' },
+    { key: 'active', label: 'Đang hoạt động' },
+    { key: 'done', label: 'Đã hoàn thành' },
+    { key: 'closed', label: 'Đã đóng' },
   ];
 
   // =================== CREATE ===================
   const handleCreate = (values: any) => {
     if (!defaultGroup) return;
 
-    const groupStages = stages.filter((s) => s.stageGroup === defaultGroup);
-    const baseColor =
-      groupStages.length > 0 ? groupStages[0].color : "#808080";
+    const groupStages = stages.filter(s => s.stageGroup === defaultGroup);
+    const baseColor = groupStages.length > 0 ? groupStages[0].color : '#808080';
 
     createStage(
       {
-        resource: "stages",
+        resource: 'stages',
         values: {
           ...values,
           stageGroup: defaultGroup,
@@ -171,7 +143,7 @@ const StageSettings: React.FC = () => {
           setModalVisible(false);
           setDefaultGroup(undefined);
         },
-      }
+      },
     );
   };
 
@@ -179,21 +151,18 @@ const StageSettings: React.FC = () => {
   const handleUpdate = (values: any) => {
     if (!editingStage) return;
 
-    const groupStages = stages.filter(
-      (s) => s.stageGroup === editingStage.stageGroup
-    );
-    const baseColor =
-      groupStages.length > 0 ? groupStages[0].color : "#808080";
+    const groupStages = stages.filter(s => s.stageGroup === editingStage.stageGroup);
+    const baseColor = groupStages.length > 0 ? groupStages[0].color : '#808080';
 
     updateStage(
       {
-        resource: "stages",
+        resource: 'stages',
         id: editingStage.id,
         values: {
           ...values,
-          color: baseColor, 
+          color: baseColor,
         },
-        mutationMode: "optimistic",
+        mutationMode: 'optimistic',
         successNotification: false,
       },
       {
@@ -201,17 +170,17 @@ const StageSettings: React.FC = () => {
           setModalVisible(false);
           setEditingStage(undefined);
         },
-      }
+      },
     );
   };
 
   // =================== DELETE ===================
   const handleDelete = (id: string) => {
     Modal.confirm({
-      title: "Xác nhận xóa",
-      content: "Bạn có chắc chắn muốn xóa trạng thái này?",
+      title: 'Xác nhận xóa',
+      content: 'Bạn có chắc chắn muốn xóa trạng thái này?',
       onOk() {
-        deleteStage({ resource: "stages", id, mutationMode: "optimistic" });
+        deleteStage({ resource: 'stages', id, mutationMode: 'optimistic' });
       },
     });
   };
@@ -223,47 +192,46 @@ const StageSettings: React.FC = () => {
 
   return (
     <div>
-      <Typography.Title level={4} style={{ marginBottom: "4px" }}>
+      <Typography.Title level={4} style={{ marginBottom: '4px' }}>
         Quản lý trạng thái
       </Typography.Title>
       <Typography.Text type="secondary">
         Thêm, sửa hoặc xóa trạng thái trong từng nhóm
       </Typography.Text>
 
-      {groupConfig.map((group) => {
-        const groupStages = stages.filter((s) => s.stageGroup === group.key);
-        const groupColor =
-          groupStages.length > 0 ? groupStages[0].color : "#808080";
+      {groupConfig.map(group => {
+        const groupStages = stages.filter(s => s.stageGroup === group.key);
+        const groupColor = groupStages.length > 0 ? groupStages[0].color : '#808080';
 
         return (
           <div key={group.key} style={{ marginTop: 24 }}>
             {/* Group Header */}
             <div
               style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
                 marginBottom: 8,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span
                   style={{
-                    display: "inline-block",
+                    display: 'inline-block',
                     width: 14,
                     height: 14,
-                    borderRadius: "50%",
+                    borderRadius: '50%',
                     background: groupColor,
                   }}
                 />
                 <Typography.Text strong>{group.label}</Typography.Text>
                 <Tooltip title="Thông tin nhóm">
-                  <InfoCircleOutlined style={{ fontSize: 12, color: "#888" }} />
+                  <InfoCircleOutlined style={{ fontSize: 12, color: '#888' }} />
                 </Tooltip>
               </div>
-              {group.key !== "closed" && (
+              {group.key !== 'closed' && (
                 <PlusOutlined
-                  style={{ cursor: "pointer" }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => {
                     setDefaultGroup(group.key);
                     setModalVisible(true);
@@ -275,7 +243,7 @@ const StageSettings: React.FC = () => {
 
             {/* Stage Items */}
             <div>
-              {groupStages.map((stage) => (
+              {groupStages.map(stage => (
                 <StageItem
                   key={stage.id}
                   stage={stage}
@@ -284,25 +252,28 @@ const StageSettings: React.FC = () => {
                 />
               ))}
 
-              {group.key !== "closed" && (
-                <div
+              {group.key !== 'closed' && (
+                <Button
+                  type="text"
                   onClick={() => {
                     setDefaultGroup(group.key);
                     setModalVisible(true);
                     setEditingStage(undefined);
                   }}
+                  styles={{
+                    icon: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    },
+                  }}
+                  icon={<IconPlus size={14} />}
                   style={{
-                    padding: "6px 8px",
-                    border: "1px dashed #d9d9d9",
-                    borderRadius: 6,
-                    cursor: "pointer",
-                    color: "#8c8c8c",
-                    textAlign: "left",
-                    fontSize: 13,
+                    width: '100%',
                   }}
                 >
-                  + Add status
-                </div>
+                  Thêm trạng thái mới
+                </Button>
               )}
             </div>
           </div>
@@ -324,7 +295,6 @@ const StageSettings: React.FC = () => {
   );
 };
 
-// =================== ModalEditStatuses (export) ===================
 const ModalEditStatuses = ({ open, onCancel }: ModalEditStatusesProps) => {
   return (
     <Modal open={open} onCancel={onCancel} footer={null} width={550} destroyOnHidden>

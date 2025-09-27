@@ -13,7 +13,7 @@ import {
   IconUser,
   IconUserCheck,
 } from '@tabler/icons-react';
-import { Avatar, Button, Divider, Input, Popover, Space, Tooltip } from 'antd';
+import { Avatar, Button, Divider, Input, Popover, Space } from 'antd';
 import { useState } from 'react';
 
 type ActivityLogFilterOption = {
@@ -79,56 +79,52 @@ const ActivityDetailFollowLog = () => {
             },
           }}
         >
-          <Tooltip placement="left" title="Thông báo cho tôi liên quan đến hoạt động này">
-            <Button
+          <Button
+            style={{
+              width: '100%',
+              justifyContent: 'space-between',
+              padding: '0 6px',
+              alignItems: 'center',
+            }}
+            type="text"
+            size="middle"
+          >
+            <div
               style={{
-                width: '100%',
-                justifyContent: 'space-between',
-                padding: '0 6px',
+                display: 'flex',
+                justifyContent: 'center',
                 alignItems: 'center',
+                gap: 6,
               }}
-              type="text"
-              size="middle"
             >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-              >
-                <IconBell size={14} color="#838383" />
-                Theo dõi
-              </div>
-              {true && <IconCheck size={14} color="#838383" />}
-            </Button>
-          </Tooltip>
-          <Tooltip placement="left" title="Thông báo cho tôi liên quan đến hoạt động này">
-            <Button
+              <IconBell size={14} color="#838383" />
+              Theo dõi
+            </div>
+            {true && <IconCheck size={14} color="#838383" />}
+          </Button>
+          <Button
+            style={{
+              width: '100%',
+              justifyContent: 'space-between',
+              padding: '6px',
+              alignItems: 'center',
+            }}
+            type="text"
+            size="middle"
+          >
+            <div
               style={{
-                width: '100%',
-                justifyContent: 'space-between',
-                padding: '6px',
+                display: 'flex',
+                justifyContent: 'center',
                 alignItems: 'center',
+                gap: 6,
               }}
-              type="text"
-              size="middle"
             >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-              >
-                <IconBellOff size={14} color="#838383" />
-                Bỏ theo dõi
-              </div>
-              {true && <IconCheck size={14} color="#838383" />}
-            </Button>
-          </Tooltip>
+              <IconBellOff size={14} color="#838383" />
+              Bỏ theo dõi
+            </div>
+            {true && <IconCheck size={14} color="#838383" />}
+          </Button>
         </Space>
 
         <Divider

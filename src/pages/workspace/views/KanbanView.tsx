@@ -16,7 +16,7 @@ import {
 import { arrayMove, horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { useUpdate } from '@refinedev/core';
 import { Row } from 'antd';
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 interface KanbanViewProps {
@@ -29,7 +29,6 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
   const [activeColumn, setActiveColumn] = useState<IStage | null>(null);
   const [activeCard, setActiveCard] = useState<IActivity | null>(null);
   const [columnOrder, setColumnOrder] = useState<string[]>(stages?.map(col => col.id) || []);
-
   const [localActivities, setLocalActivities] = useState<IActivity[]>(activities);
 
   const sensors = useSensors(
@@ -43,32 +42,20 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
   useEffect(() => {
     if (stages && !pendingUpdate) {
       const newIds = stages.map(col => col.id);
-      if (newIds.length !== columnOrder.length) {
+      if (JSON.stringify(newIds) !== JSON.stringify(columnOrder)) {
         setColumnOrder(newIds);
       }
     }
   }, [stages, pendingUpdate]);
 
   useEffect(() => {
-    if (activities && !pendingUpdate) {
-      const activitiesIds = activities
-        .map(a => a.id)
-        .sort()
-        .join(',');
-      const localActivitiesIds = localActivities
-        .map(a => a.id)
-        .sort()
-        .join(',');
-
-      if (activitiesIds !== localActivitiesIds) {
-        setLocalActivities(activities);
-      }
+    if (!pendingUpdate) {
+      setLocalActivities(activities);
     }
-  }, [activities, pendingUpdate, localActivities]);
+  }, [activities, pendingUpdate]);
 
   const { mutate: update } = useUpdate();
 
-  // Context functions để ActivityCard có thể cập nhật localActivities
   const updateLocalActivity = useCallback((activityId: string, updates: Partial<IActivity>) => {
     setLocalActivities(prev =>
       prev.map(activity => (activity.id === activityId ? { ...activity, ...updates } : activity)),
@@ -154,6 +141,24 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
         }
 
         if (!targetStageId) return;
+
+        if (activity.stageId === targetStageId) {
+          const activitiesInStage = localActivities
+            .filter(a => a.stageId === targetStageId)
+            .sort((a, b) => a.position - b.position)
+            .map(a => a.id);
+
+          const oldIndex = activitiesInStage.indexOf(activity.id);
+          const newActivitiesInStage = [...activitiesInStage];
+          newActivitiesInStage.splice(oldIndex, 1);
+          newActivitiesInStage.splice(newPosition, 0, activity.id);
+
+          if (activitiesInStage.join(',') === newActivitiesInStage.join(',')) {
+            setActiveColumn(null);
+            setActiveCard(null);
+            return;
+          }
+        }
 
         const prevActivities = [...localActivities];
 
@@ -262,39 +267,6 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
     },
     [localActivities],
   );
-  // kéo sang trái phải
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollLeft = useRef(0);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!scrollRef.current) return;
-    isDragging.current = true;
-    scrollRef.current.style.cursor = 'grabbing';
-    startX.current = e.pageX - scrollRef.current.offsetLeft;
-    scrollLeft.current = scrollRef.current.scrollLeft;
-  };
-
-  const handleMouseLeave = () => {
-    if (!scrollRef.current) return;
-    isDragging.current = false;
-    scrollRef.current.style.cursor = 'grab';
-  };
-
-  const handleMouseUp = () => {
-    if (!scrollRef.current) return;
-    isDragging.current = false;
-    scrollRef.current.style.cursor = 'grab';
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging.current || !scrollRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX.current) * 1; // tốc độ kéo
-    scrollRef.current.scrollLeft = scrollLeft.current - walk;
-  };
 
   return (
     <KanbanProvider value={kanbanContextValue}>
@@ -305,17 +277,12 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
         onDragOver={handleDragOver}
       >
         <div
-          ref={scrollRef}
           style={{
-            overflowX: "auto",
-            overflowY: "hidden",
-            height: "calc(100vh - 250px)",
-            cursor: "grab",
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            height: 'calc(100vh - 250px)',
+            cursor: 'grab',
           }}
-          onMouseDown={handleMouseDown}
-          onMouseLeave={handleMouseLeave}
-          onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
         >
           <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
             <Row
@@ -323,7 +290,6 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
               style={{
                 display: 'flex',
                 flexWrap: 'nowrap',
-                // gap: 16,
                 minWidth: '100%',
                 height: '100%',
               }}
@@ -335,7 +301,6 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
                 const activityByStage = localActivities
                   .filter(activity => activity.stageId === stage.id)
                   .sort((a, b) => a.position - b.position);
-
                 return (
                   <div key={id} style={{ minWidth: 300, flexShrink: 0 }}>
                     <KanbanColumn

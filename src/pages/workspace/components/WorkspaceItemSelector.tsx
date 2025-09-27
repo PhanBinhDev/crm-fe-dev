@@ -12,13 +12,6 @@ interface WorkspaceItemSelectorProps {
 
 const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
   const [open, setOpen] = useState(false);
-
-  // Đóng popover khi nhận sự kiện từ modal
-  useEffect(() => {
-    const handler = () => setOpen(false);
-    window.addEventListener('close-workspace-popover', handler);
-    return () => window.removeEventListener('close-workspace-popover', handler);
-  }, []);
   const { openModal } = useModal();
   const { push } = useNavigation();
   const [tablerIcons, setTablerIcons] = useState<Record<string, React.FC<any>>>({});
@@ -266,6 +259,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
           style={{ width: '100%' }}
           onClick={() => {
             openModal('ModalAddWorkspace');
+            setOpen(false);
           }}
         >
           Tạo workspace mới

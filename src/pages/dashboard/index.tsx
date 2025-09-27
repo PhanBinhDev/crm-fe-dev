@@ -1,4 +1,5 @@
 import { IStage } from '@/common/types';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useList } from '@refinedev/core';
 import { Card, Col, Row } from 'antd';
 import React from 'react';
@@ -8,10 +9,15 @@ import Overview from './components/Overview';
 import TodayTask from './components/TodayTask';
 
 export const DashboardPage: React.FC = () => {
+  const { currentWorkspace } = useWorkspaces();
+
   const { data: stagesData } = useList({
     resource: 'stages',
+    pagination: { mode: 'off' },
+    sorters: [{ field: 'position', order: 'asc' }],
+    filters: [{ field: 'workspaceId', operator: 'eq', value: currentWorkspace?.id }],
+    queryOptions: { enabled: !!currentWorkspace?.id },
   });
-  console.log('stagesData', stagesData);
 
   return (
     <div style={{ padding: '24px' }}>

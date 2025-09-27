@@ -15,7 +15,7 @@ import {
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 
 const modalTabs: {
   key: NotificationTab;
@@ -37,8 +37,6 @@ const NotificationBtn = () => {
       sorters: [{ field: 'createdAt', order: 'desc' }],
       queryOptions: {
         getNextPageParam: lastPage => {
-          console.log('lastPage', lastPage);
-
           return lastPage.pagination.afterCursor;
         },
         getPreviousPageParam: firstPage => {
@@ -249,4 +247,4 @@ const NotificationBtn = () => {
   );
 };
 
-export default NotificationBtn;
+export default memo(NotificationBtn);

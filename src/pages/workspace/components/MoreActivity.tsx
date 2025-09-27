@@ -46,6 +46,9 @@ const MoreActivity = ({ showActions, onShowAction }: MoreActivityProps) => {
             borderRadius: 6,
             gap: 4,
             color: '#838383',
+            height: 27,
+            outline: 'none',
+            boxShadow: 'none',
           }}
           styles={{
             icon: {

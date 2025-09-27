@@ -9,4 +9,6 @@ export interface IStage extends IBase {
   stageGroup: StageGroup;
   groupPosition: number;
   isBuiltIn: boolean;
+  isCompleted: boolean;
+  workspaceId: string;
 }

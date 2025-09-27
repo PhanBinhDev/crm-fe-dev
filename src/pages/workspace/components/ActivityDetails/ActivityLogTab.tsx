@@ -37,7 +37,7 @@ const ActivityLogTab = ({ activityId }: ActivityLogTabProps) => {
         }}
       >
         <Typography.Title level={4} style={{ margin: 0 }}>
-          Activity
+          Nhật ký hoạt động
         </Typography.Title>
         <Space style={{ gap: 0 }}>
           <Button
