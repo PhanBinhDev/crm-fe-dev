@@ -8,10 +8,11 @@ import CalendarView from '@/pages/workspace/views/CalendarView';
 import KanbanView from '@/pages/workspace/views/KanbanView';
 import ListView from '@/pages/workspace/views/ListView';
 import TableView from '@/pages/workspace/views/TableView';
-import { useList, useOne } from '@refinedev/core';
+import { buildFilterCondition } from '@/utils/filters';
+import { CrudFilter, CrudOperators, useList, useOne } from '@refinedev/core';
 import { IconCalendar, IconLayoutKanban, IconList, IconPlus, IconTable } from '@tabler/icons-react';
 import { Button, Space, Spin, Tabs, Tooltip } from 'antd';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 type TabKey = 'kanban' | 'list' | 'calendar' | 'table';
@@ -20,7 +21,6 @@ const KanbanWorkspaces = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('kanban');
   const [searchValue, setSearchValue] = useState<string>('');
   const [filterParams, setFilterParams] = useState<FilterParams>({});
-  const [displayActivities, setDisplayActivities] = useState<IActivity[]>([]);
 
   const { workspaceId } = useParams();
   const { openModal } = useModal();
@@ -39,6 +39,7 @@ const KanbanWorkspaces = () => {
     resource: 'stages',
     pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
+    filters: [{ field: 'workspaceId', operator: 'eq', value: workspaceData?.data.id }],
     queryOptions: { enabled: !!workspaceData?.data.id },
   });
 
@@ -49,42 +50,33 @@ const KanbanWorkspaces = () => {
     queryOptions: { enabled: !!workspaceData?.data.id },
   });
 
-  const activityFilters: any[] = [
-    { field: 'q', operator: 'eq', value: searchValue },
-    { field: 'includeSubTasks', operator: 'eq', value: true },
-    { field: 'workspaceId', operator: 'eq', value: workspaceData?.data.id },
-  ];
+  const activityFilters = useMemo((): CrudFilter[] => {
+    const baseFilters: CrudFilter[] = [
+      { field: 'q', operator: 'eq', value: searchValue },
+      { field: 'includeSubTasks', operator: 'eq', value: true },
+      { field: 'workspaceId', operator: 'eq', value: workspaceData?.data.id },
+    ];
 
-  if (filterParams.priority) {
-    activityFilters.push({ field: 'priority', operator: 'eq', value: filterParams.priority });
-  }
-  if (filterParams.stageId) {
-    activityFilters.push({ field: 'stageId', operator: 'eq', value: filterParams.stageId });
-  }
-  if (filterParams.category) {
-    activityFilters.push({ field: 'category', operator: 'eq', value: filterParams.category });
-  }
-  if (filterParams.endTimeFrom) {
-    activityFilters.push({
-      field: 'endTime',
-      operator: 'gte',
-      value: filterParams.endTimeFrom,
-    });
-  }
-  if (filterParams.endTimeTo) {
-    activityFilters.push({
-      field: 'endTime',
-      operator: 'lte',
-      value: filterParams.endTimeTo,
-    });
-  }
+    const filterMappings: Array<{
+      field: string;
+      value: any;
+      operator?: Exclude<CrudOperators, 'or' | 'and'>;
+    }> = [
+      { field: 'priority', value: filterParams.priority },
+      { field: 'stageId', value: filterParams.stageId },
+      { field: 'category', value: filterParams.category },
+      { field: 'type', value: filterParams.type },
+      { field: 'eventType', value: filterParams.eventType },
+      { field: 'endTime', value: filterParams.endTimeFrom, operator: 'gte' },
+      { field: 'endTime', value: filterParams.endTimeTo, operator: 'lte' },
+    ];
 
-  if (filterParams.type) {
-    activityFilters.push({ field: 'type', operator: 'eq', value: filterParams.type });
-  }
-  if (filterParams.eventType) {
-    activityFilters.push({ field: 'eventType', operator: 'eq', value: filterParams.eventType });
-  }
+    const conditionalFilters = filterMappings
+      .map(({ field, value, operator }) => buildFilterCondition(field, value, operator))
+      .filter(Boolean) as CrudFilter[];
+
+    return [...baseFilters, ...conditionalFilters];
+  }, [searchValue, filterParams, workspaceData?.data.id]);
 
   const { data: activitiesData } = useList<IActivity>({
     resource: 'activities',
@@ -92,11 +84,92 @@ const KanbanWorkspaces = () => {
     filters: activityFilters,
     queryOptions: {
       enabled: !!workspaceData?.data.id,
-      onSuccess: data => {
-        setDisplayActivities(data.data);
-      },
     },
   });
+
+  const activities = useMemo(() => activitiesData?.data || [], [activitiesData]);
+
+  const handleApplyFilters = useCallback((params: FilterParams) => {
+    setFilterParams(Object.keys(params).length === 0 ? {} : params);
+  }, []);
+
+  const tabItems = useMemo(
+    () => [
+      {
+        key: 'kanban',
+        icon: IconLayoutKanban,
+        label: 'Bảng Kanban',
+      },
+      {
+        key: 'list',
+        icon: IconList,
+        label: 'Danh sách',
+      },
+      {
+        key: 'calendar',
+        icon: IconCalendar,
+        label: 'Lịch',
+      },
+      {
+        key: 'table',
+        icon: IconTable,
+        label: 'Bảng dữ liệu',
+      },
+    ],
+    [],
+  );
+
+  const renderTabLabel = (item: (typeof tabItems)[0]) => {
+    const Icon = item.icon;
+    const isActive = activeTab === item.key;
+
+    return (
+      <span
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          fontWeight: isActive ? 600 : 400,
+          color: isActive ? '#1677ff' : '#888',
+          transition: 'color 0.2s',
+        }}
+      >
+        <Icon
+          size={16}
+          style={{
+            marginRight: 2,
+            color: isActive ? '#1677ff' : '#bfbfbf',
+            transition: 'color 0.2s',
+          }}
+        />
+        {item.label}
+      </span>
+    );
+  };
+
+  const renderActiveView = useMemo(() => {
+    const commonProps = {
+      stages: stagesData?.data || [],
+      activities,
+      users: users?.data || [],
+    };
+
+    console.log('Rendering view for tab:', activeTab, 'with activities count:', activities.length);
+    console.log('Common props:', commonProps.stages);
+
+    switch (activeTab) {
+      case 'kanban':
+        return <KanbanView stages={commonProps.stages} activities={commonProps.activities} />;
+      case 'list':
+        return <ListView {...commonProps} />;
+      case 'calendar':
+        return <CalendarView stages={commonProps.stages} activities={commonProps.activities} />;
+      case 'table':
+        return <TableView {...commonProps} />;
+      default:
+        return null;
+    }
+  }, [activeTab, activities, stagesData?.data, users?.data, workspaceData?.data]);
 
   if (isLoadingWorkspace) {
     return <Spin />;
@@ -105,14 +178,6 @@ const KanbanWorkspaces = () => {
   if (!workspaceData) {
     return <></>;
   }
-
-  const handleApplyFilters = (params: FilterParams) => {
-    if (Object.keys(params).length === 0) {
-      setFilterParams({});
-    } else {
-      setFilterParams(params);
-    }
-  };
 
   return (
     <div
@@ -131,113 +196,13 @@ const KanbanWorkspaces = () => {
           marginBottom: 12,
         }}
       >
-        {/* Change layout */}
         <Tabs
           activeKey={activeTab}
           onChange={key => setActiveTab(key as TabKey)}
-          items={[
-            {
-              key: 'kanban',
-              label: (
-                <span
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    fontWeight: activeTab === 'kanban' ? 600 : 400,
-                    color: activeTab === 'kanban' ? '#1677ff' : '#888',
-                    transition: 'color 0.2s',
-                  }}
-                >
-                  <IconLayoutKanban
-                    size={16}
-                    style={{
-                      marginRight: 2,
-                      color: activeTab === 'kanban' ? '#1677ff' : '#bfbfbf',
-                      transition: 'color 0.2s',
-                    }}
-                  />
-                  Bảng Kanban
-                </span>
-              ),
-            },
-            {
-              key: 'list',
-              label: (
-                <span
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    fontWeight: activeTab === 'list' ? 600 : 400,
-                    color: activeTab === 'list' ? '#1677ff' : '#888',
-                    transition: 'color 0.2s',
-                  }}
-                >
-                  <IconList
-                    size={16}
-                    style={{
-                      marginRight: 2,
-                      color: activeTab === 'list' ? '#1677ff' : '#bfbfbf',
-                      transition: 'color 0.2s',
-                    }}
-                  />
-                  Danh sách
-                </span>
-              ),
-            },
-            {
-              key: 'calendar',
-              label: (
-                <span
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    fontWeight: activeTab === 'calendar' ? 600 : 400,
-                    color: activeTab === 'calendar' ? '#1677ff' : '#888',
-                    transition: 'color 0.2s',
-                  }}
-                >
-                  <IconCalendar
-                    size={16}
-                    style={{
-                      marginRight: 2,
-                      color: activeTab === 'calendar' ? '#1677ff' : '#bfbfbf',
-                      transition: 'color 0.2s',
-                    }}
-                  />
-                  Lịch
-                </span>
-              ),
-            },
-
-            {
-              key: 'table',
-              label: (
-                <span
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    fontWeight: activeTab === 'table' ? 600 : 400,
-                    color: activeTab === 'table' ? '#1677ff' : '#888',
-                    transition: 'color 0.2s',
-                  }}
-                >
-                  <IconTable
-                    size={16}
-                    style={{
-                      marginRight: 2,
-                      color: activeTab === 'table' ? '#1677ff' : '#bfbfbf',
-                      transition: 'color 0.2s',
-                    }}
-                  />
-                  Bảng dữ liệu
-                </span>
-              ),
-            },
-          ]}
+          items={tabItems.map(item => ({
+            key: item.key,
+            label: renderTabLabel(item),
+          }))}
           tabBarStyle={{
             borderBottom: 'none',
             marginBottom: 0,
@@ -246,7 +211,7 @@ const KanbanWorkspaces = () => {
             display: 'flex',
             alignItems: 'center',
             background: '#fff',
-            borderRadius: 10,
+            borderRadius: 8,
             boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
             padding: '0 12px',
             gap: 8,
@@ -260,6 +225,7 @@ const KanbanWorkspaces = () => {
             gap: 8,
           }}
         />
+
         <div
           style={{
             display: 'flex',
@@ -270,13 +236,9 @@ const KanbanWorkspaces = () => {
           }}
         >
           <SearchActivities onSearch={onSearch} />
-          <SortActive
-            activities={displayActivities}
-            onSorted={(sorted: IActivity[]) => setDisplayActivities(sorted)}
-          />
+          <SortActive activities={activities} onSorted={() => {}} />
           <FilterActivities onApply={handleApplyFilters} />
           <SettingsActivities />
-
           <Tooltip title="Thêm mới hoạt động">
             <Button
               type="primary"
@@ -299,26 +261,7 @@ const KanbanWorkspaces = () => {
         </div>
       </Space>
 
-      {activeTab === 'kanban' && (
-        <KanbanView stages={stagesData?.data || []} activities={displayActivities} />
-      )}
-      {activeTab === 'list' && (
-        <ListView
-          stages={stagesData?.data || []}
-          activities={displayActivities}
-          users={users?.data || []}
-        />
-      )}
-      {activeTab === 'calendar' && (
-        <CalendarView stages={stagesData?.data || []} activities={displayActivities} />
-      )}
-      {activeTab === 'table' && (
-        <TableView
-          stages={stagesData?.data || []}
-          activities={displayActivities}
-          users={users?.data || []}
-        />
-      )}
+      {renderActiveView}
     </div>
   );
 };

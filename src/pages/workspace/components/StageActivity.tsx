@@ -1,5 +1,6 @@
 import { IStage } from '@/common/types/stage';
 import { useModal } from '@/hooks/useModal';
+import { useWorkspaceStore } from '@/hooks/useWorkspaces';
 import { useList } from '@refinedev/core';
 import { IconBan, IconCheck } from '@tabler/icons-react';
 import { Button, List, Popover, Space, Spin, Typography } from 'antd';
@@ -16,10 +17,12 @@ const StageActivity = ({ value, onChange, error }: StageActivityProps) => {
   const userSelected = useRef(false);
   const { data: modalData } = useModal();
   const { stageId } = modalData ?? {};
+  const { currentWorkspace } = useWorkspaceStore();
 
   const { data, isLoading } = useList<IStage>({
     resource: 'stages',
     pagination: { mode: 'off' },
+    filters: [{ field: 'workspaceId', operator: 'eq', value: currentWorkspace?.id }],
   });
 
   const stages = data?.data ?? [];

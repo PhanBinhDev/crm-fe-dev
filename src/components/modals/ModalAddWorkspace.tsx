@@ -3,8 +3,8 @@ import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { createWorkspace } from '@/services/api/workspace';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { useList } from '@refinedev/core';
-import { Button, Form, Input, message, Modal, Select, Switch, Tooltip, Typography } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { Button, Form, Input, message, Modal, Select, Switch, Tooltip } from 'antd';
+import React, { useState } from 'react';
 import { UserRole } from '../../common/enum/user';
 import { IUser } from '../../common/types/users';
 import SelectIcon from '../shared/SelectIcon';
@@ -13,14 +13,6 @@ const ModalAddWorkspace: React.FC = () => {
   const { type, isOpen, closeModal } = useModal();
   const isModalOpen = type === 'ModalAddWorkspace' && isOpen;
   const { refreshWorkspaces } = useWorkspaces();
-
-  useEffect(() => {
-    if (isModalOpen) {
-      const evt = new CustomEvent('close-workspace-popover');
-      window.dispatchEvent(evt);
-    }
-  }, [isModalOpen]);
-  const { Text } = Typography;
 
   const { data: usersData } = useList({
     resource: 'users/all',
@@ -78,7 +70,7 @@ const ModalAddWorkspace: React.FC = () => {
       centered
       destroyOnHidden
     >
-      <div style={{ marginBottom: 24, color: '#555', fontSize: 15, fontWeight: 400 }}>
+      <div style={{ marginBottom: 24, color: '#555', fontSize: 14, fontWeight: 400 }}>
         Tạo Space cho các nhóm làm việc, phòng ban hoặc các dự án riêng.
       </div>
 

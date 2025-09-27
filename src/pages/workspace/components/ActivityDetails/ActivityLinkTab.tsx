@@ -35,24 +35,53 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
         <Typography.Title level={4} style={{ margin: 0 }}>
           Activity links
         </Typography.Title>
-        <Space style={{ gap: 0 }}>
+        <Space style={{ gap: 2 }}>
           <Button
             onClick={handleSearchClick}
             type="text"
+            styles={{
+              icon: {
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              },
+            }}
             icon={<IconSearch size={16} stroke={1.5} color="#646464" />}
-            style={{ borderRadius: 8 }}
+            style={{
+              borderRadius: 8,
+            }}
           />
           <Button
             onClick={() => setViewMode('category')}
-            type={viewMode === 'category' ? 'default' : 'text'}
+            type={'text'}
             icon={<IconCategory size={16} stroke={1.5} color="#646464" />}
-            style={{ borderRadius: 8 }}
+            style={{
+              borderRadius: 8,
+              background: viewMode === 'category' ? '#f0f0f0' : undefined,
+            }}
+            styles={{
+              icon: {
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              },
+            }}
           />
           <Button
             onClick={() => setViewMode('list')}
-            type={viewMode === 'list' ? 'default' : 'text'}
+            type={'text'}
             icon={<IconList size={16} stroke={1.5} color="#646464" />}
-            style={{ borderRadius: 8 }}
+            style={{
+              borderRadius: 8,
+              background: viewMode === 'list' ? '#f0f0f0' : undefined,
+            }}
+            styles={{
+              icon: {
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              },
+            }}
           />
         </Space>
       </div>

@@ -2,7 +2,7 @@ import { IStage } from '@/common/types';
 import { Form, Input, Modal } from 'antd';
 import React from 'react';
 
-interface StageModalProps {
+interface ModalEditStageProps {
   visible: boolean;
   onCancel: () => void;
   onFinish: (values: any) => void;
@@ -10,7 +10,7 @@ interface StageModalProps {
   loading?: boolean;
 }
 
-export const StageModal: React.FC<StageModalProps> = ({
+export const ModalEditStage: React.FC<ModalEditStageProps> = ({
   visible,
   onCancel,
   onFinish,
