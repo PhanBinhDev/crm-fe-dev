@@ -307,7 +307,7 @@ const ActivityDetailSidebar = ({
             fontWeight: 500,
           }}
         >
-          {'Open'}
+          {activity.stage.stageGroup}
         </span>
       </div>
       <div

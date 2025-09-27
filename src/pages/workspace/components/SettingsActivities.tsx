@@ -1,7 +1,7 @@
-import { KanbanBoardSettings } from '@/pages/workspaces/components/settings/KanbanBoardSettings';
 import { IconSettings } from '@tabler/icons-react';
 import { Button, Drawer, Tooltip } from 'antd';
 import { useState } from 'react';
+import { KanbanBoardSettings } from './KanbanSettings';
 
 const SettingsActivities = () => {
   const [settingsDrawerVisible, setSettingsDrawerVisible] = useState(false);

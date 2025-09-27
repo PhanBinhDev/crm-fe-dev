@@ -33,7 +33,7 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
         }}
       >
         <Typography.Title level={4} style={{ margin: 0 }}>
-          Activity links
+          Liên kết
         </Typography.Title>
         <Space style={{ gap: 2 }}>
           <Button
