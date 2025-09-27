@@ -307,7 +307,7 @@ const ActivityDetailSidebar = ({
             fontWeight: 500,
           }}
         >
-          {activity.stage.stageGroup}
+          {activity?.stage?.stageGroup || 'chưa có stage group'}
         </span>
       </div>
       <div

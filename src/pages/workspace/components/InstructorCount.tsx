@@ -3,12 +3,12 @@ import { IconUser } from '@tabler/icons-react';
 import { Button, Input, Popover, Space, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 
-interface QuantityParticipantsProps {
+interface InstructorCountProps {
   value?: number;
   onChange?: (value: number) => void;
 }
 
-const QuantityParticipants = ({ value, onChange }: QuantityParticipantsProps) => {
+const InstructorCount = ({ value, onChange }: InstructorCountProps) => {
   const [inputValue, setInputValue] = useState<number>(value || 0);
   const debouncedInput = useDebounce(inputValue, 400);
   const [open, setOpen] = useState<boolean>(false);
@@ -34,7 +34,7 @@ const QuantityParticipants = ({ value, onChange }: QuantityParticipantsProps) =>
   };
 
   const getButtonText = () => {
-    return debouncedInput || 'Người tham dự';
+    return debouncedInput || 'Giảng viên tham dự';
   };
 
   const getButtonColor = () => {
@@ -54,7 +54,7 @@ const QuantityParticipants = ({ value, onChange }: QuantityParticipantsProps) =>
           fontWeight: 600,
         }}
       >
-        Tổng số người tham dự
+        Tổng số giảng viên tham dự
       </Typography>
 
       {/* Input */}
@@ -107,4 +107,4 @@ const QuantityParticipants = ({ value, onChange }: QuantityParticipantsProps) =>
   );
 };
 
-export default QuantityParticipants;
+export default InstructorCount;

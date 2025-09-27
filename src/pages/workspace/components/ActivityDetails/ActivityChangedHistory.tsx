@@ -1,6 +1,7 @@
+import { getActivityStatusLabel } from '@/utils';
 import { useList } from '@refinedev/core';
 import { IconChevronRight, IconPointFilled } from '@tabler/icons-react';
-import { Button, List, Skeleton } from 'antd';
+import { Button, List, Skeleton, Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 
@@ -38,9 +39,10 @@ const ActivityChangedHistory = ({ activityId }: ActivityChangedHistoryProps) => 
   const otherLogs = allLogs.slice(1);
 
   const buildLogMessage = (item: any) => {
+    console.log(item.metadata);
     switch (item.metadata?.type) {
       case 'STAGE_CHANGE':
-        return `Chuyển hoạt động từ ${item.metadata.oldStageId} sang ${item.metadata.newStageId}`;
+        return `Chuyển hoạt động từ ${getActivityStatusLabel(item.metadata.oldStageName)} sang ${getActivityStatusLabel(item.metadata.newStageName)}`;
       default:
         return item.message;
     }
@@ -56,7 +58,7 @@ const ActivityChangedHistory = ({ activityId }: ActivityChangedHistoryProps) => 
       <div
         style={{
           display: 'flex',
-          gap: 4,
+          gap: 7,
           width: '100%',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
@@ -75,15 +77,20 @@ const ActivityChangedHistory = ({ activityId }: ActivityChangedHistoryProps) => 
           </div>
         </div>
         <div>
-          <span
-            style={{
-              fontSize: 12,
-              width: 'fit-content',
-              whiteSpace: 'nowrap',
-            }}
+          <Tooltip
+            title={dayjs(item.createdAt).format('DD/MM/YYYY HH:mm')}
+            style={{ fontSize: 12 }}
           >
-            {dayjs(item.createdAt).format('DD/MM/YYYY HH:mm')}
-          </span>
+            <span
+              style={{
+                fontSize: 12,
+                width: 'fit-content',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {item.timeAgo}
+            </span>
+          </Tooltip>
         </div>
       </div>
     </List.Item>

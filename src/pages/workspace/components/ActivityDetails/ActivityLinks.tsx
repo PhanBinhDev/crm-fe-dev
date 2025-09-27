@@ -1,6 +1,6 @@
-import { useList } from '@refinedev/core';
-import { IconFile, IconPointFilled } from '@tabler/icons-react';
-import { List, Skeleton } from 'antd';
+import { IconPointFilled } from '@tabler/icons-react';
+import { Avatar, Card, List, Typography } from 'antd';
+const { Text, Paragraph } = Typography;
 
 interface ActivityLinksProps {
   activityId: string;
@@ -8,67 +8,31 @@ interface ActivityLinksProps {
 }
 
 const ActivityLinks = ({ activityId, viewMode }: ActivityLinksProps) => {
-  const { data: dataLinks, isLoading } = useList({
-    resource: `activities/${activityId}/files`,
-    sorters: [{ field: 'createdAt', order: 'desc' }],
-  });
-
-  if (!dataLinks?.data || dataLinks.data.length === 0) {
-    return (
-      <div
-        style={{ width: '100%', padding: '30px', textAlign: 'center', fontSize: 13, color: '#999' }}
-      >
-        <span> Chưa có liên kết nào</span>
-      </div>
-    );
-  }
-  if (isLoading) {
-    return (
-      <div style={{ padding: 10 }}>
-        <Skeleton active paragraph={{ rows: 4 }} />
-      </div>
-    );
-  }
-
   if (viewMode === 'list') {
     return (
-      <div>
+      <div style={{ padding: 8, maxHeight: 'calc(90vh - 97px)', overflowY: 'auto' }}>
         <List
           size="small"
-          bordered={false}
-          dataSource={dataLinks.data}
+          dataSource={[{ title: 'Google', url: 'https://google.com' }]}
           renderItem={item => (
             <List.Item
               style={{
                 border: 'none',
                 display: 'flex',
-                gap: 4,
                 alignItems: 'flex-start',
-                color: '#666666ff',
-                margin: '5px 10px 0 0',
-                padding: ' 0 10px',
               }}
             >
               <div>
-                <IconPointFilled size={10} color="#666666ff" />
+                <IconPointFilled size={8} color="#888" />
               </div>
-              <div style={{ width: '100%' }}>
-                {item.fileUrl ? (
-                  <a
-                    href={item.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ fontSize: 12, color: '#1677ff' }}
-                  >
-                    {item.fileName}
-                  </a>
-                ) : (
-                  <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                    <IconFile size={14} />
-                    <span style={{ fontSize: 12 }}>{item.fileName}</span>
-                  </div>
-                )}
-              </div>
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 13, color: '#1677ff', marginLeft: 4 }}
+              >
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Quod cupiditate dolores...
+              </a>
             </List.Item>
           )}
         />
@@ -77,35 +41,48 @@ const ActivityLinks = ({ activityId, viewMode }: ActivityLinksProps) => {
   }
 
   return (
-    <div style={{ padding: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-      {dataLinks.data.map(item => (
-        <div
-          key={item.id}
-          style={{
-            background: '#fff',
-            border: '1px solid #eaeaea',
-            borderRadius: 8,
-            padding: 10,
-            fontSize: 12,
-          }}
-        >
-          {item.fileUrl ? (
-            <a
-              href={item.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: '#1677ff' }}
-            >
-              {item.fileName}
-            </a>
-          ) : (
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <IconFile size={14} />
-              <span>{item.fileName}</span>
-            </div>
-          )}
+    <div
+      style={{
+        padding: 12,
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gap: 8,
+        maxHeight: 'calc(90vh - 97px)',
+        overflowY: 'auto',
+      }}
+    >
+      <Card
+        hoverable
+        style={{ borderRadius: 12, boxShadow: '0 3px 3px rgba(0, 0, 0, 0.1)' }}
+        bodyStyle={{ display: 'flex', gap: 16, padding: 12 }}
+      >
+        <div style={{ flex: 1, maxHeight: 100, overflow: 'hidden' }}>
+          <p style={{ fontSize: 11, color: '#909090ff', marginBottom: 3 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, marginRight: 5 }}>vtdiem</span>10/10/1000
+            00:00
+          </p>
+          <Paragraph
+            strong
+            ellipsis={{ rows: 2 }}
+            style={{ marginBottom: 5, fontSize: 13, lineHeight: 1.2 }}
+          >
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Quod cupiditate dolores...
+          </Paragraph>
+          <Paragraph
+            ellipsis={{ rows: 2, expandable: false }}
+            style={{ fontSize: 12, marginBottom: 0 }}
+          >
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Quod cupiditate dolores...
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Quod cupiditate dolores...
+          </Paragraph>
         </div>
-      ))}
+        <Avatar
+          src="https://picsum.photos/id/1/200/300"
+          shape="square"
+          size={100}
+          style={{ borderRadius: 8 }}
+        />
+      </Card>
     </div>
   );
 };

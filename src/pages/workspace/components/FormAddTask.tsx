@@ -22,12 +22,13 @@ import AssigneeActivity from './AssigneeActivity';
 import ChecklistActivity from './ChecklistActivity';
 import DuedateActivity from './DuedateActivity';
 import FileAttachments from './FileAttachments';
+import InstructorCount from './InstructorCount';
 import LocationActivity from './LocationActivity';
 import MoreActivity from './MoreActivity';
 import PriorityActivity from './PriorityActivity';
-import QuantityParticipants from './QuantityParticipants';
 import SelectActivityType from './SelectActivityType';
 import StageActivity from './StageActivity';
+import StudentCount from './StudentCount';
 import SubtaskActivity from './SubtaskActivity';
 import TimeEstimateActivity from './TimeEstimateActivity';
 
@@ -82,7 +83,8 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
   });
   const [timeEstimate, setTimeEstimate] = useState<string>('');
   const [location, setLocation] = useState<string>('');
-  const [quantityParticipants, setQuantityParticipants] = useState<number>(0);
+  const [instructorCount, setInstructorCount] = useState<number>(0);
+  const [studentCount, setStudentCount] = useState<number>(0);
   const [selectedPriority, setSelectedPriority] = useState<ActivityPriorityLevel | null>(null);
   const [subtasks, setSubtasks] = useState<string[]>([]);
   const [checklists, setChecklists] = useState<Checklist[]>([]);
@@ -132,10 +134,18 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
     [form],
   );
 
-  const handleQuantityParticipantsChange = useCallback(
+  const handleInstructorCountChange = useCallback(
     (participant: number) => {
-      setQuantityParticipants(Number(participant));
-      form.setFieldValue('participants', participant);
+      setInstructorCount(Number(participant));
+      form.setFieldValue('instructorCount', participant);
+    },
+    [form],
+  );
+
+  const handleStudentCountChange = useCallback(
+    (participant: number) => {
+      setStudentCount(Number(participant));
+      form.setFieldValue('studentCount', participant);
     },
     [form],
   );
@@ -196,7 +206,9 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
       subtasks: false,
       checklist: false,
     });
-    (setLocation(''), setQuantityParticipants(0));
+    setLocation('');
+    setInstructorCount(0);
+    setStudentCount(0);
   };
 
   const handleSubmit = async (values: any) => {
@@ -226,7 +238,8 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
         checklist: checklists,
         workspaceId: currentWorkspace?.id || '',
         location: values.location || null,
-        quantityParticipants: values.quantityParticipants || null,
+        instructorCount: values.instructorCount || null,
+        studentCount: values.studentCount || null,
       };
 
       onSubmit?.({
@@ -252,7 +265,8 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
         timeEstimate: '',
         stage: undefined,
         location: '',
-        quantityParticipants: 0,
+        instructorCount: 0,
+        studentCount: 0,
         type: taskOrEvent,
       }}
     >
@@ -470,12 +484,12 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
               selectedUser={selectedAssignees}
               onToggleSelectUser={handleToggleSelectUser}
             />
-            <QuantityParticipants
-              value={quantityParticipants}
-              onChange={handleQuantityParticipantsChange}
-            />
+            <InstructorCount value={instructorCount} onChange={handleInstructorCountChange} />
             {taskOrEvent === 'event' && (
-              <LocationActivity value={location} onChange={handleLocationChange} />
+              <>
+                <StudentCount value={studentCount} onChange={handleStudentCountChange} />
+                <LocationActivity value={location} onChange={handleLocationChange} />
+              </>
             )}
             <DuedateActivity value={dateRange} onChange={handleDateRangeChange} />
             <PriorityActivity value={selectedPriority} onChange={handlePrioritySelect} />
@@ -527,7 +541,10 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
       <Form.Item name="location" hidden>
         <Input />
       </Form.Item>
-      <Form.Item name="quantityParticipants" hidden>
+      <Form.Item name="instructorCount" hidden>
+        <Input />
+      </Form.Item>
+      <Form.Item name="studentCount" hidden>
         <Input />
       </Form.Item>
     </Form>
