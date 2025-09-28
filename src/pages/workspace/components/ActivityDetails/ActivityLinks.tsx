@@ -17,22 +17,32 @@ const ActivityLinks = ({ activityId, viewMode }: ActivityLinksProps) => {
           renderItem={item => (
             <List.Item
               style={{
-                border: 'none',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'flex-start',
+                padding: '10px 0',
               }}
             >
-              <div>
-                <IconPointFilled size={8} color="#888" />
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <IconPointFilled size={8} color="#888" style={{ marginRight: 3 }} />
+                <div style={{ fontSize: 11, color: '#909090ff' }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, marginRight: 5 }}>vtdiem</span>
+                  10/10/1000 00:00
+                </div>
               </div>
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ fontSize: 13, color: '#1677ff', marginLeft: 4 }}
-              >
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Quod cupiditate dolores...
-              </a>
+
+              {/* Link */}
+              <div style={{ marginLeft: 10 /* = khoảng icon + marginRight */ }}>
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 13, color: '#1677ff' }}
+                >
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Quod cupiditate
+                  dolores...
+                </a>
+              </div>
             </List.Item>
           )}
         />

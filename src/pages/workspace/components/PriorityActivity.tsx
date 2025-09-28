@@ -131,6 +131,7 @@ const PriorityActivity = ({ value, onChange }: PriorityActivityProps) => {
           borderRadius: 6,
           gap: 4,
           color: '#838383',
+          borderColor: value ? value.color : undefined,
         }}
         styles={{
           icon: {

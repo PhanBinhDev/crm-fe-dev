@@ -1,6 +1,6 @@
 import { useDebounce } from '@/hooks/useDebounce';
-import { IconUser } from '@tabler/icons-react';
-import { Button, Input, Popover, Space, Typography } from 'antd';
+import { IconHelpOctagonFilled, IconUser } from '@tabler/icons-react';
+import { Button, Input, Popover, Space, Tooltip, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 
 interface StudentCountProps {
@@ -34,14 +34,14 @@ const StudentCount = ({ value, onChange }: StudentCountProps) => {
   };
 
   const getButtonText = () => {
-    return debouncedInput || 'Sinh viên tham dự';
+    return debouncedInput || 'Sinh viên';
   };
 
   const getButtonColor = () => {
     return debouncedInput ? '#1890ff' : '#838383';
   };
 
-  const timeEstimateContent = (
+  const studentCountContent = (
     <Space
       direction="vertical"
       style={{
@@ -54,7 +54,7 @@ const StudentCount = ({ value, onChange }: StudentCountProps) => {
           fontWeight: 600,
         }}
       >
-        Tổng số sinh viên tham dự
+        Sinh viên tham dự
       </Typography>
 
       {/* Input */}
@@ -64,7 +64,35 @@ const StudentCount = ({ value, onChange }: StudentCountProps) => {
           borderBottom: '1px solid #f0f0f0',
         }}
       >
-        <Input placeholder='vd: "F408"' value={inputValue} onChange={handleInputChange} autoFocus />
+        <Input
+          value={inputValue}
+          onChange={handleInputChange}
+          autoFocus
+          onPressEnter={() => setOpen(false)}
+        />
+      </div>
+
+      {/* Guideline */}
+      <div
+        style={{
+          padding: '0 12px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Tooltip title="Nhập số lượng sinh viên tối đa được phép tham dự sự kiện.">
+          <IconHelpOctagonFilled size={14} color="#838383" />
+        </Tooltip>
+
+        <Typography.Text
+          style={{
+            fontSize: 12,
+          }}
+          type="secondary"
+        >
+          Enter để xác nhận
+        </Typography.Text>
       </div>
     </Space>
   );
@@ -76,13 +104,13 @@ const StudentCount = ({ value, onChange }: StudentCountProps) => {
       styles={{
         body: {
           padding: '12px 0',
-          width: 210,
+          width: 170,
         },
       }}
       trigger={['click']}
       placement="bottomLeft"
       arrow={false}
-      content={timeEstimateContent}
+      content={studentCountContent}
     >
       <Button
         size="small"
