@@ -15,6 +15,12 @@ export const activityPriorityFilterOptions: ActivityPriorityLevel[] = [
   { label: 'Khẩn cấp', value: ActivityPriority.URGENT, color: '#e53935' },
 ];
 
+export const mapToActivityPriorityFilter = (
+  priority: ActivityPriority | null,
+): ActivityPriorityLevel | null => {
+  return activityPriorityFilterOptions.find(option => option.value === priority) || null;
+};
+
 // Helper functions
 export const getStatusLabel = (status: ActivityStatus): string => {
   switch (status) {

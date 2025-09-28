@@ -53,7 +53,7 @@ const KanbanWorkspaces = () => {
   const activityFilters = useMemo((): CrudFilter[] => {
     const baseFilters: CrudFilter[] = [
       { field: 'q', operator: 'eq', value: searchValue },
-      { field: 'includeSubTasks', operator: 'eq', value: true },
+      { field: 'includeSubTasks', operator: 'eq', value: false },
       { field: 'workspaceId', operator: 'eq', value: workspaceData?.data.id },
     ];
 
@@ -153,9 +153,6 @@ const KanbanWorkspaces = () => {
       activities,
       users: users?.data || [],
     };
-
-    console.log('Rendering view for tab:', activeTab, 'with activities count:', activities.length);
-    console.log('Common props:', commonProps.stages);
 
     switch (activeTab) {
       case 'kanban':

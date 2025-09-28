@@ -3,6 +3,7 @@ import { IActivity } from '@/common/types';
 import { SelectedActivityItem } from '@/components/modals/ModalEditActivity';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import '@/styles/overwrite/antd/collapse.css';
+import { getStageGroupColor, getStageGroupLabel, getStageGroupTextColor } from '@/utils/stage';
 import { useCreate } from '@refinedev/core';
 import {
   IconCheck,
@@ -11,7 +12,7 @@ import {
   IconJumpRope,
   IconPlus,
 } from '@tabler/icons-react';
-import { Button, Collapse, Input, List, message, Tooltip, Typography } from 'antd';
+import { Button, Collapse, Input, List, message, Popover, Tooltip, Typography } from 'antd';
 import { CollapseProps } from 'antd/lib';
 import { useMemo, useState } from 'react';
 import ActivityDetailCollapseStatus from './ActivityDetailCollapseStatus';
@@ -202,10 +203,11 @@ const ActivityDetailSidebar = ({
                     });
                   }}
                   style={{
-                    padding: '6px 8px 6px 12px',
+                    padding: `6px ${hovered === item.id ? '4px' : '12px'} 6px 12px`,
                     border: 0,
                     borderRadius: 6,
                     margin: 1,
+                    marginTop: 3,
                     gap: 12,
                     cursor: 'pointer',
                     alignItems: 'center',
@@ -254,27 +256,37 @@ const ActivityDetailSidebar = ({
                       }}
                     />
                   ) : hovered === item.id ? (
-                    <IconDotsVertical size={16} color="#838383" />
+                    <Popover trigger={['click']} placement="bottomLeft">
+                      <Button
+                        type="text"
+                        size="small"
+                        onClick={e => e.stopPropagation()}
+                        icon={<IconDotsVertical size={14} color="#838383" />}
+                        style={{ borderRadius: 6, padding: '0 6px' }}
+                      />
+                    </Popover>
                   ) : isSelected ? (
                     <IconCheck size={16} color="#838383" />
                   ) : null}
                 </List.Item>
               );
             }}
-          />
-          <Button
-            type="text"
-            style={{
-              width: '100%',
-              justifyContent: 'flex-start',
-              padding: '0 10px',
-              borderRadius: 6,
-            }}
-            onClick={() => setShowInput(true)}
-            icon={<IconPlus size={14} color="#838383" />}
           >
-            Thêm hoạt động phụ
-          </Button>
+            <Button
+              type="text"
+              style={{
+                width: '100%',
+                justifyContent: 'flex-start',
+                padding: '0 10px',
+                borderRadius: 6,
+                marginTop: 3,
+              }}
+              onClick={() => setShowInput(true)}
+              icon={<IconPlus size={14} color="#838383" />}
+            >
+              Thêm hoạt động phụ
+            </Button>
+          </List>
         </div>
       ),
     },
@@ -300,14 +312,14 @@ const ActivityDetailSidebar = ({
         <span
           style={{
             fontSize: 12,
-            color: '#888',
-            background: '#f5f5f5',
-            borderRadius: 12,
+            color: getStageGroupTextColor(activity?.stage?.stageGroup),
+            background: getStageGroupColor(activity?.stage?.stageGroup),
+            borderRadius: 10,
             padding: '2px 10px',
             fontWeight: 500,
           }}
         >
-          {activity?.stage?.stageGroup || 'chưa có stage group'}
+          {getStageGroupLabel(activity?.stage?.stageGroup)}
         </span>
       </div>
       <div

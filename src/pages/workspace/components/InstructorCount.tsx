@@ -80,7 +80,7 @@ const InstructorCount = ({ value, onChange }: InstructorCountProps) => {
           alignItems: 'center',
         }}
       >
-        <Tooltip title="Nhập số lượng giảng viên tối đa được phép tham dự sự kiện.">
+        <Tooltip title="Nhập số lượng giảng viên dự kiến tham dự sự kiện.">
           <IconHelpOctagonFilled size={14} color="#838383" />
         </Tooltip>
 
@@ -103,7 +103,7 @@ const InstructorCount = ({ value, onChange }: InstructorCountProps) => {
       styles={{
         body: {
           padding: '12px 0',
-          width: 170,
+          width: 200,
         },
       }}
       trigger={['click']}

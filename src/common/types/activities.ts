@@ -13,11 +13,11 @@ export interface IActivity extends IBase {
   name: string;
   type: ActivityType;
   description?: string;
-  priority?: ActivityPriority;
+  priority: ActivityPriority | null;
   stageId?: string;
   stage: IStage;
-  startTime?: Date;
-  endTime?: Date;
+  startTime: Date | null;
+  endTime: Date | null;
   location?: string;
   position: number;
   onlineLink?: string;

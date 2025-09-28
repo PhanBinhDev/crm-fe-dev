@@ -183,11 +183,11 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
             {activity.assignees && activity.assignees.length > 0 ? (
               <>
                 {activity.assignees.slice(0, 3).map((assignee, index) => (
-                  <Tooltip key={index} title={assignee.user.name} placement="top">
-                    {assignee.user.avatar ? (
+                  <Tooltip key={index} title={assignee.user?.name} placement="top">
+                    {assignee.user?.avatar ? (
                       <Avatar
                         size="small"
-                        src={assignee.user.avatar}
+                        src={assignee.user?.avatar}
                         style={{ marginLeft: index > 0 ? -8 : 0 }}
                       />
                     ) : (

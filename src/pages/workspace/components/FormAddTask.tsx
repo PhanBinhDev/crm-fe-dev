@@ -103,6 +103,14 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
     });
   };
 
+  const handleActivityTypeChange = useCallback(
+    (value: ActivityType) => {
+      setTaskOrEvent(value);
+      form.setFieldValue('type', value);
+    },
+    [form],
+  );
+
   const handlePrioritySelect = useCallback(
     (priority: ActivityPriorityLevel | null) => {
       setSelectedPriority(priority);
@@ -273,7 +281,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
       <Space direction="vertical" size={'middle'} style={{ width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <div style={{ flex: 1, display: 'flex', gap: 8, alignItems: 'center' }}>
-            <SelectActivityType value={taskOrEvent} onChange={setTaskOrEvent} />
+            <SelectActivityType value={taskOrEvent} onChange={handleActivityTypeChange} />
             {taskOrEvent === 'event' && (
               <Form.Item name="category" initialValue="tutor" style={{ marginBottom: 0 }}>
                 <Popover
@@ -433,7 +441,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
               border: '1px solid transparent',
               paddingLeft: 4,
             }}
-            autoSize={{ minRows: 1, maxRows: 4 }}
+            autoSize={{ minRows: 1, maxRows: 2 }}
             onMouseEnter={e => {
               e.currentTarget.style.background = '#f0f0f0';
             }}
@@ -460,7 +468,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
               border: '1px solid transparent',
               paddingLeft: 4,
             }}
-            autoSize={{ minRows: 1, maxRows: 3 }}
+            autoSize={{ minRows: 3, maxRows: 5 }}
             onMouseEnter={e => {
               e.currentTarget.style.background = '#f0f0f0';
             }}
@@ -484,9 +492,9 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
               selectedUser={selectedAssignees}
               onToggleSelectUser={handleToggleSelectUser}
             />
-            <InstructorCount value={instructorCount} onChange={handleInstructorCountChange} />
-            {taskOrEvent === 'event' && (
+            {taskOrEvent === ActivityType.EVENT && (
               <>
+                <InstructorCount value={instructorCount} onChange={handleInstructorCountChange} />
                 <StudentCount value={studentCount} onChange={handleStudentCountChange} />
                 <LocationActivity value={location} onChange={handleLocationChange} />
               </>

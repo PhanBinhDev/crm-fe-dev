@@ -1,11 +1,11 @@
 import { ActivityType } from '@/common/enum/activity';
-import { IActivity } from '@/common/types';
+import { IActivity, IStage } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import ActivityDetailRightSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailRightSidebar';
 import ActivityDetailSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailSidebar';
 import ActivityMainContent from '@/pages/workspace/components/ActivityDetails/ActivityMainContent';
 import SelectActivityType from '@/pages/workspace/components/SelectActivityType';
-import { useOne, useUpdate } from '@refinedev/core';
+import { useInvalidate, useList, useOne, useUpdate } from '@refinedev/core';
 import {
   IconCalendar,
   IconCornerLeftUp,
@@ -42,6 +42,7 @@ const ModalEditActivity = () => {
   const [isContentNarrow, setIsContentNarrow] = useState(false);
   const { activity: activityFromModal } = data || {};
 
+  const invalidate = useInvalidate();
   const {
     data: activityData,
     isLoading: isLoadingActivity,
@@ -52,11 +53,39 @@ const ModalEditActivity = () => {
     queryOptions: { enabled: !!activityFromModal?.id },
   });
 
+  const { data: stagesData, isLoading: isLoadingStages } = useList<IStage>({
+    resource: 'stages',
+    filters: [
+      {
+        field: 'workspaceId',
+        operator: 'eq',
+        value: activityFromModal?.workspaceId,
+      },
+    ],
+    pagination: {
+      mode: 'off',
+    },
+    queryOptions: { enabled: !!activityFromModal?.workspaceId },
+  });
+
   const { mutate: updateActivity } = useUpdate<IActivity>({
     resource: 'activities',
     id: activityFromModal?.id,
     mutationMode: 'optimistic',
     invalidates: ['list'],
+    mutationOptions: {
+      onSuccess: () => {
+        invalidate({
+          resource: `activities/${activityFromModal?.id}/logs`,
+          invalidates: ['list'],
+        });
+        invalidate({
+          resource: 'activities',
+          id: activityFromModal?.id,
+          invalidates: ['detail'],
+        });
+      },
+    },
   });
 
   const activity = useMemo(() => {
@@ -64,6 +93,12 @@ const ModalEditActivity = () => {
 
     return activityData.data;
   }, [activityData, isLoadingActivity]);
+
+  const stages = useMemo(() => {
+    if (!stagesData?.data || isLoadingStages) return [] as IStage[];
+
+    return stagesData.data;
+  }, [stagesData, isLoadingStages]);
 
   useEffect(() => {
     if (activity && isOpenModal) {
@@ -73,12 +108,12 @@ const ModalEditActivity = () => {
       });
       setFormData(activity);
     }
-  }, [activity, isOpenModal]);
+  }, [activity, isOpenModal, setFormData]);
 
   useEffect(() => {
     const checkContentWidth = () => {
       if (contentRef.current) {
-        setIsContentNarrow(contentRef.current.offsetWidth < 600); // tuỳ ngưỡng bạn muốn
+        setIsContentNarrow(contentRef.current.offsetWidth < 600);
       }
     };
     const checkWidth = () => {
@@ -106,7 +141,12 @@ const ModalEditActivity = () => {
 
   const renderContent = useMemo(() => {
     if (!selectedItem) {
-      return <div style={{ padding: 20 }}>No item selected</div>;
+      setSelectedItem({
+        type: 'activity',
+        data: activity,
+      });
+
+      return;
     }
 
     const { type, data: itemData } = selectedItem;
@@ -206,7 +246,13 @@ const ModalEditActivity = () => {
           name="name"
         />
 
-        <ActivityMainContent itemData={itemData} isContentNarrow={isContentNarrow} />
+        <ActivityMainContent
+          itemData={itemData}
+          isContentNarrow={isContentNarrow}
+          stages={stages}
+          onUpdate={updateActivity}
+          setFormData={setFormData}
+        />
 
         <TextArea
           placeholder={`Nhập mô tả...`}
@@ -256,6 +302,7 @@ const ModalEditActivity = () => {
     updateActivity,
     contentRef,
     collapsedLeft,
+    stages,
   ]);
 
   return (

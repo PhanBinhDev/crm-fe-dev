@@ -49,7 +49,7 @@ const ActivityDetailRightSidebar = ({
         collapsed={collapsedRight}
         collapsible
         trigger={null}
-        width={400}
+        width={350}
         collapsedWidth={0}
         style={{
           background: '#fff',

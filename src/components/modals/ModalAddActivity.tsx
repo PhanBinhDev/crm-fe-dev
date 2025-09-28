@@ -59,7 +59,7 @@ const ModalAddActivity = () => {
       callback: () => void;
     }) => {
       switch (action) {
-        case 'create-action':
+        case 'create-action': {
           createActivity(
             {
               resource: 'activities',
@@ -80,6 +80,7 @@ const ModalAddActivity = () => {
               },
             },
           );
+        }
       }
     },
     [closeModal],

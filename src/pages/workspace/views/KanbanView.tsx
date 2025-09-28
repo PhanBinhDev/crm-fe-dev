@@ -1,3 +1,4 @@
+import { StageGroup } from '@/common/enum/stage';
 import { IActivity, IStage } from '@/common/types';
 import { DragDropType } from '@/constants';
 import { KanbanProvider } from '@/contexts/kanban/KanbanContext';
@@ -13,7 +14,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { arrayMove, horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
+import { horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { useUpdate } from '@refinedev/core';
 import { Row } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
@@ -41,7 +42,16 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
 
   useEffect(() => {
     if (stages && !pendingUpdate) {
-      const newIds = stages.map(col => col.id);
+      const groupOrder = [StageGroup.NOT_STARTED, StageGroup.ACTIVE, StageGroup.DONE];
+
+      const newIds = stages
+        .filter(col => col.stageGroup !== StageGroup.CLOSED)
+        .sort((a, b) => {
+          const groupDiff = groupOrder.indexOf(a.stageGroup) - groupOrder.indexOf(b.stageGroup);
+          if (groupDiff !== 0) return groupDiff;
+          return (a.groupPosition ?? 0) - (b.groupPosition ?? 0);
+        })
+        .map(col => col.id);
       if (JSON.stringify(newIds) !== JSON.stringify(columnOrder)) {
         setColumnOrder(newIds);
       }
@@ -85,32 +95,7 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
 
       const dragType = active.data.current?.type;
 
-      if (dragType === DragDropType.KANBAN_COLUMN) {
-        if (active.id == over?.id) return;
-        const oldIndex = columnOrder.indexOf(String(active.id));
-        const newIndex = columnOrder.indexOf(String(over.id));
-        const newOrder = arrayMove(columnOrder, oldIndex, newIndex);
-        const prevOrder = [...columnOrder];
-        setColumnOrder(newOrder);
-        setPendingUpdate(true);
-        update(
-          {
-            resource: 'stages',
-            id: active.id,
-            values: { position: newIndex },
-            mutationMode: 'optimistic',
-          },
-          {
-            onSuccess: () => {
-              setPendingUpdate(false);
-            },
-            onError: () => {
-              setColumnOrder(prevOrder);
-              setPendingUpdate(false);
-            },
-          },
-        );
-      } else if (dragType === DragDropType.KANBAN_CARD) {
+      if (dragType === DragDropType.KANBAN_CARD) {
         const activity = activeCard || localActivities.find(x => x.id === active.id);
         if (!activity || !over?.id) return;
 
@@ -281,7 +266,6 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
             overflowX: 'auto',
             overflowY: 'hidden',
             height: 'calc(100vh - 250px)',
-            cursor: 'grab',
           }}
         >
           <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>

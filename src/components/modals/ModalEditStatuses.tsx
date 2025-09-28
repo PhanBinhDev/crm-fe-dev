@@ -1,8 +1,8 @@
 import { IStage } from '@/common/types';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { InfoCircleOutlined, MoreOutlined, PlusOutlined } from '@ant-design/icons';
+import { MoreOutlined, PlusOutlined } from '@ant-design/icons';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
-import { IconGripVertical, IconPlus } from '@tabler/icons-react';
+import { IconGripVertical, IconInfoSquareRounded, IconPlus } from '@tabler/icons-react';
 import { Button, Dropdown, Form, Input, MenuProps, Modal, Tooltip, Typography } from 'antd';
 import React, { useState } from 'react';
 import { ColorPicker } from '../shared/ColorPicker';
@@ -114,10 +114,26 @@ const StageSettings: React.FC = () => {
   const stages = (stagesData?.data || []).sort((a, b) => a.position - b.position);
 
   const groupConfig = [
-    { key: 'not_started', label: 'Chưa bắt đầu' },
-    { key: 'active', label: 'Đang hoạt động' },
-    { key: 'done', label: 'Đã hoàn thành' },
-    { key: 'closed', label: 'Đã đóng' },
+    {
+      key: 'not_started',
+      label: 'Chưa bắt đầu',
+      info: 'Các trạng thái chưa được thực hiện hoặc lên kế hoạch, ví dụ: Backlog, To Do.',
+    },
+    {
+      key: 'active',
+      label: 'Đang hoạt động',
+      info: 'Các trạng thái đang được xử lý hoặc theo dõi, ví dụ: In Progress, Ready for Test.',
+    },
+    {
+      key: 'done',
+      label: 'Đã hoàn thành',
+      info: 'Các trạng thái đã hoàn thành công việc, ví dụ: Complete, Done.',
+    },
+    {
+      key: 'closed',
+      label: 'Đã đóng',
+      info: 'Các trạng thái đã đóng hoặc không còn theo dõi, ví dụ: Cancelled, Closed.',
+    },
   ];
 
   // =================== CREATE ===================
@@ -135,6 +151,7 @@ const StageSettings: React.FC = () => {
           stageGroup: defaultGroup,
           color: baseColor,
           position: stages.length,
+          workspaceId: currentWorkspace?.id,
         },
         successNotification: false,
       },
@@ -201,11 +218,8 @@ const StageSettings: React.FC = () => {
 
       {groupConfig.map(group => {
         const groupStages = stages.filter(s => s.stageGroup === group.key);
-        const groupColor = groupStages.length > 0 ? groupStages[0].color : '#808080';
-
         return (
           <div key={group.key} style={{ marginTop: 24 }}>
-            {/* Group Header */}
             <div
               style={{
                 display: 'flex',
@@ -215,18 +229,9 @@ const StageSettings: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span
-                  style={{
-                    display: 'inline-block',
-                    width: 14,
-                    height: 14,
-                    borderRadius: '50%',
-                    background: groupColor,
-                  }}
-                />
                 <Typography.Text strong>{group.label}</Typography.Text>
-                <Tooltip title="Thông tin nhóm">
-                  <InfoCircleOutlined style={{ fontSize: 12, color: '#888' }} />
+                <Tooltip title={group.info}>
+                  <IconInfoSquareRounded size={16} color="#888" />
                 </Tooltip>
               </div>
               {group.key !== 'closed' && (

@@ -39,7 +39,6 @@ const ActivityChangedHistory = ({ activityId }: ActivityChangedHistoryProps) => 
   const otherLogs = allLogs.slice(1);
 
   const buildLogMessage = (item: any) => {
-    console.log(item.metadata);
     switch (item.metadata?.type) {
       case 'STAGE_CHANGE':
         return `Chuyển hoạt động từ ${getActivityStatusLabel(item.metadata.oldStageName)} sang ${getActivityStatusLabel(item.metadata.newStageName)}`;
