@@ -130,7 +130,10 @@ const SelectActivityType = ({ activity, isLoading, onChange, value }: SelectActi
             justifyContent: 'flex-start',
             padding: '0 6px',
           }}
-          onClick={() => onActivityTypeClick(ActivityType.TASK)}
+          onClick={() => {
+            onActivityTypeClick(ActivityType.TASK);
+            setOpen(false);
+          }}
           loading={isPending && selectedType === ActivityType.TASK}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -150,7 +153,10 @@ const SelectActivityType = ({ activity, isLoading, onChange, value }: SelectActi
             justifyContent: 'flex-start',
             padding: '0 6px',
           }}
-          onClick={() => onActivityTypeClick(ActivityType.EVENT)}
+          onClick={() => {
+            onActivityTypeClick(ActivityType.EVENT);
+            setOpen(false);
+          }}
           loading={isPending && selectedType === ActivityType.EVENT}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

@@ -78,7 +78,7 @@ const KanbanWorkspaces = () => {
     return [...baseFilters, ...conditionalFilters];
   }, [searchValue, filterParams, workspaceData?.data.id]);
 
-  const { data: activitiesData } = useList<IActivity>({
+  const { data: activitiesData, isLoading: isLoadingActivities } = useList<IActivity>({
     resource: 'activities',
     pagination: { mode: 'off' },
     filters: activityFilters,
@@ -168,15 +168,20 @@ const KanbanWorkspaces = () => {
     }
   }, [activeTab, activities, stagesData?.data, users?.data, workspaceData?.data]);
 
-  if (isLoadingWorkspace) {
+  if (isLoadingWorkspace || isLoadingActivities) {
     return (
-      <>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}
+      >
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             gap: 12,
-            padding: 16,
           }}
         >
           <div
@@ -220,9 +225,18 @@ const KanbanWorkspaces = () => {
               }}
             >
               {[...Array(4)].map((_, i) => (
-                <Skeleton.Button key={i} active shape="circle" style={{ width: 36, height: 36 }} />
+                <Skeleton.Button
+                  key={i}
+                  active
+                  shape="square"
+                  style={{ maxWidth: 36, height: 36, minWidth: 0 }}
+                />
               ))}
-              <Skeleton.Button active shape="circle" style={{ width: 36, height: 36 }} />
+              <Skeleton.Button
+                active
+                shape="square"
+                style={{ maxWidth: 36, height: 36, minWidth: 0 }}
+              />
             </div>
           </div>
         </div>
@@ -231,7 +245,6 @@ const KanbanWorkspaces = () => {
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
             gap: 16,
-            padding: 16,
           }}
         >
           {[...Array(4)].map((_, colIndex) => (
@@ -242,6 +255,11 @@ const KanbanWorkspaces = () => {
                 minHeight: 200,
                 display: 'flex',
                 flexDirection: 'column',
+              }}
+              styles={{
+                body: {
+                  padding: 12,
+                },
               }}
             >
               <div style={{ marginBottom: 12 }}>
@@ -262,7 +280,7 @@ const KanbanWorkspaces = () => {
             </Card>
           ))}
         </div>
-      </>
+      </div>
     );
   }
 
