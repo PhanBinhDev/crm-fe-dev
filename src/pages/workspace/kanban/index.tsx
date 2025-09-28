@@ -11,7 +11,7 @@ import TableView from '@/pages/workspace/views/TableView';
 import { buildFilterCondition } from '@/utils/filters';
 import { CrudFilter, CrudOperators, useList, useOne } from '@refinedev/core';
 import { IconCalendar, IconLayoutKanban, IconList, IconPlus, IconTable } from '@tabler/icons-react';
-import { Button, Space, Spin, Tabs, Tooltip } from 'antd';
+import { Button, Card, Skeleton, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -172,7 +172,101 @@ const KanbanWorkspaces = () => {
   }, [activeTab, activities, stagesData?.data, users?.data, workspaceData?.data]);
 
   if (isLoadingWorkspace) {
-    return <Spin />;
+    return (
+      <>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              width: '100%',
+              marginBottom: 12,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#fff',
+                borderRadius: 8,
+                padding: '0 12px',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                height: 36,
+              }}
+            >
+              {[...Array(4)].map((_, i) => (
+                <Skeleton.Button
+                  key={i}
+                  active
+                  size="small"
+                  style={{ width: 80, height: 20, borderRadius: 6 }}
+                />
+              ))}
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              {[...Array(4)].map((_, i) => (
+                <Skeleton.Button key={i} active shape="circle" style={{ width: 36, height: 36 }} />
+              ))}
+              <Skeleton.Button active shape="circle" style={{ width: 36, height: 36 }} />
+            </div>
+          </div>
+        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: 16,
+            padding: 16,
+          }}
+        >
+          {[...Array(4)].map((_, colIndex) => (
+            <Card
+              key={colIndex}
+              style={{
+                borderRadius: 8,
+                minHeight: 200,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <div style={{ marginBottom: 12 }}>
+                <Skeleton.Input active size="small" style={{ width: 100 }} />
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <Card
+                  size="small"
+                  style={{
+                    marginBottom: 12,
+                    borderRadius: 6,
+                  }}
+                >
+                  <Skeleton active title={false} paragraph={{ rows: 4 }} />
+                </Card>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </>
+    );
   }
 
   if (!workspaceData) {
