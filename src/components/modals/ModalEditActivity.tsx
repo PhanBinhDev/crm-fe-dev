@@ -8,13 +8,14 @@ import SelectActivityType from '@/pages/workspace/components/SelectActivityType'
 import { useInvalidate, useList, useOne, useUpdate } from '@refinedev/core';
 import {
   IconCalendar,
+  IconChevronDown,
   IconCornerLeftUp,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftCollapseFilled,
   IconShare,
   IconX,
 } from '@tabler/icons-react';
-import { Button, Input, Layout, Modal, Space, Tooltip, Typography } from 'antd';
+import { Button, Card, Input, Layout, Modal, Progress, Space, Tooltip, Typography } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 
@@ -43,7 +44,7 @@ const ModalEditActivity = () => {
   const { activity: activityFromModal } = data || {};
   const [showActions, setShowActions] = useState({
     edit: false,
-    double: false,
+    duplicate: false,
     delete: false,
   });
 
@@ -170,6 +171,58 @@ const ModalEditActivity = () => {
           gap: 16,
         }}
       >
+        {/* Progress bar */}
+        <Card
+          styles={{
+            body: {
+              padding: '8px',
+              paddingBottom: 4,
+              borderRadius: 10,
+              boxShadow: 'none',
+              width: '100%',
+            },
+          }}
+          style={{
+            boxShadow: 'none',
+            border: '1px solid #f0f0f0',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography.Title level={5} style={{ margin: 0 }}>
+              Tiến độ hoàn thành
+            </Typography.Title>
+
+            <Button
+              type="text"
+              size="small"
+              style={{
+                alignSelf: 'flex-start',
+                padding: '0 6px',
+                borderRadius: 6,
+                gap: 4,
+              }}
+              styles={{
+                icon: {
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+              }}
+              icon={<IconChevronDown size={14} color="#838383" />}
+            />
+          </div>
+
+          <div style={{ marginTop: 'auto' }}>
+            <Progress
+              percent={48}
+              showInfo={false}
+              strokeColor="#4caf50"
+              strokeWidth={8}
+              style={{ borderRadius: 8, height: 'fit-content' }}
+            />
+          </div>
+        </Card>
+
         {!isMainActivity && (
           <Button
             type="text"
@@ -296,8 +349,6 @@ const ModalEditActivity = () => {
           }}
           name="description"
         />
-
-        
       </div>
     );
   }, [

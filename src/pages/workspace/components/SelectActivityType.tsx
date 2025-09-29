@@ -4,7 +4,7 @@ import { getActivityTypeLabel } from '@/utils';
 import { useUpdate } from '@refinedev/core';
 import { IconCalendarTime, IconCheck, IconCircleDashed } from '@tabler/icons-react';
 import { Button, message, Popover, Skeleton, Space, Tooltip, Typography } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface SelectActivityTypeProps {
   activity?: IActivity | null;
@@ -47,6 +47,10 @@ const SelectActivityType = ({ activity, isLoading, onChange, value }: SelectActi
   const [selectedType, setSelectedType] = useState<ActivityType>(
     activity?.type || value || ActivityType.TASK,
   );
+
+  useEffect(() => {
+    setSelectedType(activity?.type || value || ActivityType.TASK);
+  }, [activity?.type, value]);
 
   const handleCopy = (text: string) => {
     if (copied) return;
