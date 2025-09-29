@@ -1,3 +1,4 @@
+import { IconSend2 } from '@tabler/icons-react';
 import { Avatar, Button, Skeleton, Typography } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { useState } from 'react';
@@ -18,14 +19,8 @@ const dummyComments: Comment[] = [
   {
     id: '1',
     author: 'Diễm',
-    content: 'Công việc này cần bổ sung thêm chi tiết deadline.',
+    content: 'cmt',
     createdAt: '28/09/2025 12:30',
-  },
-  {
-    id: '2',
-    author: 'Huy',
-    content: 'Đã cập nhật file tài liệu mới.',
-    createdAt: '28/09/2025 13:00',
   },
 ];
 
@@ -103,26 +98,36 @@ const ActivityCommentTab = ({ activityId, loading }: ActivityCommentTabProps) =>
           ))
         )}
       </div>
-
       <div
         style={{
           padding: 8,
-          background: '#fff',
-          borderTop: '1px solid #f0f0f0',
-          display: 'flex',
-          alignItems: 'flex-end',
-          gap: 8,
+          borderTop: '1px solid #e0e0e0ff',
+          background: '#f7f7f7ff',
         }}
       >
-        <TextArea
-          placeholder="Nhập bình luận..."
-          autoSize={focused ? { minRows: 3, maxRows: 6 } : { minRows: 1, maxRows: 1 }}
-          onFocus={() => setFocused(true)}
-          onBlur={() => {
-            if (!newComment.trim()) setFocused(false);
-          }}
-        />
-        {focused && <Button type="primary">Gửi</Button>}
+        <div style={{ position: 'relative', width: '100%' }}>
+          <TextArea
+            placeholder="Nhập bình luận..."
+            autoSize={focused ? { minRows: 3, maxRows: 6 } : { minRows: 1.45, maxRows: 1.45 }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => {
+              if (!newComment.trim()) setFocused(false);
+            }}
+            style={{ paddingRight: 70 }}
+          />
+
+          <Button
+            type="primary"
+            style={{
+              position: 'absolute',
+              right: 8,
+              bottom: 5,
+              height: 32,
+            }}
+          >
+            <IconSend2 />
+          </Button>
+        </div>
       </div>
     </div>
   );
