@@ -41,6 +41,11 @@ const ModalEditActivity = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isContentNarrow, setIsContentNarrow] = useState(false);
   const { activity: activityFromModal } = data || {};
+  const [showActions, setShowActions] = useState({
+    edit: false,
+    double: false,
+    delete: false,
+  });
 
   const invalidate = useInvalidate();
   const {
@@ -470,6 +475,13 @@ const ModalEditActivity = () => {
               }}
               loading={isLoadingActivity}
               refetchActivity={refetch}
+              showActions={showActions}
+              onShowAction={action =>
+                setShowActions(prev => ({
+                  ...prev,
+                  [action]: !prev[action],
+                }))
+              }
             />
           </Sider>
 

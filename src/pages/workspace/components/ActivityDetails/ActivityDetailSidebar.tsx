@@ -4,7 +4,7 @@ import { SelectedActivityItem } from '@/components/modals/ModalEditActivity';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import '@/styles/overwrite/antd/collapse.css';
 import { getStageGroupColor, getStageGroupLabel, getStageGroupTextColor } from '@/utils/stage';
-import { useCreate } from '@refinedev/core';
+import { useCreate, useDelete, useInvalidate } from '@refinedev/core';
 import {
   IconCheck,
   IconDeviceFloppy,
@@ -12,7 +12,7 @@ import {
   IconJumpRope,
   IconPlus,
 } from '@tabler/icons-react';
-import { Button, Collapse, Input, List, message, Popover, Tooltip, Typography } from 'antd';
+import { Button, Collapse, Dropdown, Input, List, message, Tooltip, Typography } from 'antd';
 import { CollapseProps } from 'antd/lib';
 import { useMemo, useState } from 'react';
 import ActivityDetailCollapseStatus from './ActivityDetailCollapseStatus';
@@ -25,6 +25,12 @@ interface ActivityDetailSidebarProps {
   loading: boolean;
   onSelectItem: (item: SelectedActivityItem) => void;
   refetchActivity: any;
+  showActions: {
+    edit: boolean;
+    duplicate: boolean;
+    delete: boolean;
+  };
+  onShowAction: (action: keyof ActivityDetailSidebarProps['showActions']) => void;
 }
 
 const ActivityDetailSidebar = ({
@@ -32,12 +38,15 @@ const ActivityDetailSidebar = ({
   selectedItem,
   onSelectItem,
   refetchActivity,
+  onShowAction,
 }: ActivityDetailSidebarProps) => {
   const [showInput, setShowInput] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
   const [error, setError] = useState<boolean>(false);
   const [name, setName] = useState<string>('');
   const subActivities = activity.subActivities || [];
+  const { mutate: deleteActivity } = useDelete();
+  const invalidate = useInvalidate();
 
   const { currentWorkspace } = useWorkspaces();
 
@@ -73,6 +82,48 @@ const ActivityDetailSidebar = ({
         },
         onError: error => {
           message.error(error.message || 'Tạo hoạt động phụ thất bại');
+        },
+      },
+    );
+  };
+
+  const handleDuplicateActivity = (item: IActivity) => {
+    createActivity(
+      {
+        values: {
+          parentId: activity.id,
+          name: `${item.name} (Copy)`,
+          workspaceId: currentWorkspace?.id,
+          stageId: item.stage.id,
+          type: item.type,
+        },
+      },
+      {
+        onSuccess: ({ data }) => {
+          message.success('Nhân bản thành công');
+          onSelectItem({ type: 'subactivity', data });
+          refetchActivity();
+        },
+        onError: error => {
+          message.error(error.message || 'Nhân bản thất bại');
+        },
+      },
+    );
+  };
+
+  const handleDeleteActivity = (item: IActivity) => {
+    deleteActivity(
+      {
+        resource: 'activities',
+        id: item.id,
+      },
+      {
+        onSuccess: () => {
+          message.success('Xóa thành công');
+          refetchActivity();
+        },
+        onError: error => {
+          message.error(error.message || 'Xóa thất bại');
         },
       },
     );
@@ -256,7 +307,41 @@ const ActivityDetailSidebar = ({
                       }}
                     />
                   ) : hovered === item.id ? (
-                    <Popover trigger={['click']} placement="bottomLeft">
+                    <Dropdown
+                      placement="bottomLeft"
+                      trigger={['click']}
+                      menu={{
+                        items: [
+                          {
+                            key: 'edit',
+                            label: (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                Sửa
+                              </span>
+                            ),
+                            onClick: () => onShowAction('edit'),
+                          },
+                          {
+                            key: 'duplicate',
+                            label: (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                Nhân bản
+                              </span>
+                            ),
+                            onClick: () => handleDuplicateActivity(item),
+                          },
+                          {
+                            key: 'checklist',
+                            label: (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                Xoá
+                              </span>
+                            ),
+                            onClick: () => handleDeleteActivity(item),
+                          },
+                        ],
+                      }}
+                    >
                       <Button
                         type="text"
                         size="small"
@@ -264,7 +349,7 @@ const ActivityDetailSidebar = ({
                         icon={<IconDotsVertical size={14} color="#838383" />}
                         style={{ borderRadius: 6, padding: '0 6px' }}
                       />
-                    </Popover>
+                    </Dropdown>
                   ) : isSelected ? (
                     <IconCheck size={16} color="#838383" />
                   ) : null}
