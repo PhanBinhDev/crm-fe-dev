@@ -11,6 +11,7 @@ export interface DisplayConfig {
   showProgress: boolean;
   showSubtask: boolean;
   showType: boolean;
+  showCompleted: boolean;
 }
 
 export const defaultConfig: DisplayConfig = {
@@ -23,6 +24,7 @@ export const defaultConfig: DisplayConfig = {
   showProgress: false,
   showSubtask: false,
   showType: false,
+  showCompleted: true,
 };
 
 interface DisplayConfigContextType {

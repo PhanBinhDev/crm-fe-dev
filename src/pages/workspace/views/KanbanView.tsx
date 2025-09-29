@@ -1,6 +1,7 @@
 import { StageGroup } from '@/common/enum/stage';
 import { IActivity, IStage } from '@/common/types';
 import { DragDropType } from '@/constants';
+import { useDisplayConfig } from '@/contexts/DisplayConfig';
 import { KanbanProvider } from '@/contexts/kanban/KanbanContext';
 import ActivityCard from '@/pages/workspace/components/ActivityCard';
 import KanbanColumn from '@/pages/workspace/components/KanbanColumn';
@@ -39,13 +40,20 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
       },
     }),
   );
+  const { config } = useDisplayConfig();
+  const showCompleted = config.showCompleted;
 
   useEffect(() => {
     if (stages && !pendingUpdate) {
-      const groupOrder = [StageGroup.NOT_STARTED, StageGroup.ACTIVE, StageGroup.DONE];
+      const groupOrder = [
+        StageGroup.NOT_STARTED,
+        StageGroup.ACTIVE,
+        StageGroup.DONE,
+        StageGroup.CLOSED,
+      ];
 
       const newIds = stages
-        .filter(col => col.stageGroup !== StageGroup.CLOSED)
+        .filter(col => showCompleted || col.stageGroup !== StageGroup.CLOSED)
         .sort((a, b) => {
           const groupDiff = groupOrder.indexOf(a.stageGroup) - groupOrder.indexOf(b.stageGroup);
           if (groupDiff !== 0) return groupDiff;
@@ -56,7 +64,7 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
         setColumnOrder(newIds);
       }
     }
-  }, [stages, pendingUpdate]);
+  }, [stages, pendingUpdate, showCompleted]);
 
   useEffect(() => {
     if (!pendingUpdate) {
