@@ -7,7 +7,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { Switch, Typography } from 'antd';
-import React from 'react';
+import React, { useState } from 'react';
 
 const { Text, Title } = Typography;
 
@@ -68,11 +68,31 @@ export const DisplaySettings: React.FC = () => {
       description: 'Hiển thị loại công việc',
     },
   ];
+  
 
   return (
     <div style={{ padding: '20px', maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
       {/* Card Fields */}
       <div style={{ marginBottom: '24px' }}>
+        <Title
+          level={5}
+          style={{
+            margin: '0 0 16px 0',
+            fontSize: '14px',
+            fontWeight: 600,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <span>Công việc đã hoàn thành</span>
+          <Switch
+            checked={config.showCompleted}
+            onChange={checked => handleConfigChange('showCompleted', checked)}
+            size="small"
+          />
+        </Title>
+
         <Title level={5} style={{ margin: '0 0 16px 0', fontSize: '14px', fontWeight: 600 }}>
           Thông tin hiển thị trên card
         </Title>
