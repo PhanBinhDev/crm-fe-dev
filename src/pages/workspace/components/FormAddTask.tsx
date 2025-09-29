@@ -9,7 +9,7 @@ import {
   ModalAction,
 } from '@/common/types';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useList } from '@refinedev/core';
+import { useGetIdentity, useList } from '@refinedev/core';
 import { IconCheck, IconChevronRight } from '@tabler/icons-react';
 import { Form, Input, List, Modal, Popover, Space } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
@@ -55,6 +55,9 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
     resource: 'activities/category',
     pagination: { mode: 'off' },
   });
+
+  const { data: identity } = useGetIdentity<{ role: string }>();
+  const currentUserRole = identity?.role;
 
   useImperativeHandle(ref, () => ({
     submitForm: (action: ModalAction) => {
@@ -295,10 +298,14 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                     <div style={{ width: 220, padding: 5 }}>
                       <List
                         size="small"
-                        dataSource={[
-                          ...(categoriesData?.data || []), 
-                          { id: 'custom', name: 'Tùy chỉnh', description: '' }, 
-                        ]}
+                        dataSource={
+                          currentUserRole === 'TM'
+                            ? [
+                                ...(categoriesData?.data || []),
+                                { id: 'custom', name: 'Tùy chỉnh', description: '' },
+                              ]
+                            : categoriesData?.data || []
+                        }
                         renderItem={item => (
                           <List.Item
                             key={item.id}
@@ -378,7 +385,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                   bodyStyle={{ padding: '12px 16px' }}
                   style={{
                     borderRadius: 10,
-                    transform: 'translateY(40px)', 
+                    transform: 'translateY(40px)',
                   }}
                 >
                   <Form
