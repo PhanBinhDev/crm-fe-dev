@@ -1,11 +1,10 @@
-import { IconSend2 } from '@tabler/icons-react';
-import { Avatar, Button, Skeleton, Typography } from 'antd';
+import { IconSend2, IconTrash } from '@tabler/icons-react';
+import { Avatar, Button, Typography } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 interface ActivityCommentTabProps {
   activityId: string;
-  loading?: boolean;
 }
 
 interface Comment {
@@ -24,10 +23,19 @@ const dummyComments: Comment[] = [
   },
 ];
 
-const ActivityCommentTab = ({ activityId, loading }: ActivityCommentTabProps) => {
-  const [comments, setComments] = useState<Comment[]>(dummyComments);
+const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
+  const [comments] = useState<Comment[]>(dummyComments);
   const [newComment, setNewComment] = useState('');
   const [focused, setFocused] = useState(false);
+
+  const inputRef = useRef<any>(null);
+
+  const handleReplyClick = () => {
+    setFocused(true);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
+  };
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -39,7 +47,6 @@ const ActivityCommentTab = ({ activityId, loading }: ActivityCommentTabProps) =>
           padding: '8px 8px 8px 16px',
           background: '#fff',
           borderBottom: '1px solid #f0f0f0',
-          position: 'relative',
         }}
       >
         <Typography.Title level={4} style={{ margin: 0 }}>
@@ -51,53 +58,84 @@ const ActivityCommentTab = ({ activityId, loading }: ActivityCommentTabProps) =>
         style={{
           background: '#f7f7f7ff',
           flex: 1,
-          padding: 12,
+          padding: '5px 10px 10px 10px',
           overflowY: 'auto',
         }}
       >
-        {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {[...Array(3)].map((_, i) => (
-              <div key={i} style={{ display: 'flex', gap: 8 }}>
-                <Skeleton.Avatar active size="large" shape="circle" />
-                <div style={{ flex: 1 }}>
-                  <Skeleton.Input active size="small" style={{ width: 120, marginBottom: 6 }} />
-                  <Skeleton paragraph={{ rows: 2, width: ['80%', '60%'] }} active />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          comments.map(cmt => (
+        {comments.map(cmt => (
+          <div
+            style={{
+              marginBottom: 7,
+              padding: '10px',
+              background: '#ffffffff',
+              borderRadius: 8,
+            }}
+          >
             <div
-              key={cmt.id}
               style={{
                 display: 'flex',
-                alignItems: 'flex-start',
-                gap: 8,
-                marginBottom: 16,
-                paddingBottom: '10px',
-                borderBottom: '1px solid #e0e0e0ff',
+                justifyContent: 'space-between',
               }}
             >
-              <Avatar>{cmt.author[0]}</Avatar>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>{cmt.author}</div>
-                <div
-                  style={{
-                    fontSize: 11,
-                    color: '#999',
-                    marginBottom: 3,
-                  }}
-                >
-                  {cmt.createdAt}
+              <div
+                key={cmt.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 8,
+                  flex: 1,
+                }}
+              >
+                <Avatar>{cmt.author[0]}</Avatar>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{cmt.author}</div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: '#999',
+                      }}
+                    >
+                      {cmt.createdAt}
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: 13, marginBottom: 6 }}>{cmt.content}</div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 550,
+                        cursor: 'pointer',
+                        color: '#686868ff',
+                      }}
+                    >
+                      Chỉnh sửa
+                    </div>
+                    <div
+                      onClick={handleReplyClick}
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 550,
+                        cursor: 'pointer',
+                        color: '#686868ff',
+                      }}
+                    >
+                      Trả lời
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontSize: 13 }}>{cmt.content}</div>
+              </div>
+
+              <div>
+                <IconTrash size={14} color="#ff4f4fff" style={{ cursor: 'pointer' }} />
               </div>
             </div>
-          ))
-        )}
+          </div>
+        ))}
       </div>
+
       <div
         style={{
           padding: 8,
@@ -107,7 +145,10 @@ const ActivityCommentTab = ({ activityId, loading }: ActivityCommentTabProps) =>
       >
         <div style={{ position: 'relative', width: '100%' }}>
           <TextArea
+            ref={inputRef}
             placeholder="Nhập bình luận..."
+            value={newComment}
+            onChange={e => setNewComment(e.target.value)}
             autoSize={focused ? { minRows: 3, maxRows: 6 } : { minRows: 1.45, maxRows: 1.45 }}
             onFocus={() => setFocused(true)}
             onBlur={() => {
@@ -120,7 +161,7 @@ const ActivityCommentTab = ({ activityId, loading }: ActivityCommentTabProps) =>
             type="primary"
             style={{
               position: 'absolute',
-              right: 8,
+              right: 6,
               bottom: 5,
               height: 32,
             }}
