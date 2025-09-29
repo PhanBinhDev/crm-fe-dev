@@ -4,18 +4,18 @@ import { useModal } from '@/hooks/useModal';
 import ActivityDetailRightSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailRightSidebar';
 import ActivityDetailSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailSidebar';
 import ActivityMainContent from '@/pages/workspace/components/ActivityDetails/ActivityMainContent';
+import ProgressBar from '@/pages/workspace/components/ActivityDetails/ProgressBar';
 import SelectActivityType from '@/pages/workspace/components/SelectActivityType';
 import { useInvalidate, useList, useOne, useUpdate } from '@refinedev/core';
 import {
   IconCalendar,
-  IconChevronDown,
   IconCornerLeftUp,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftCollapseFilled,
   IconShare,
   IconX,
 } from '@tabler/icons-react';
-import { Button, Card, Input, Layout, Modal, Progress, Space, Tooltip, Typography } from 'antd';
+import { Button, Input, Layout, Modal, Space, Tooltip, Typography } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 
@@ -163,7 +163,7 @@ const ModalEditActivity = () => {
           width: '100%',
           maxWidth: 860,
           margin: '0 auto',
-          padding: '36px 24px 48px',
+          padding: '30px 24px 48px',
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
@@ -172,56 +172,7 @@ const ModalEditActivity = () => {
         }}
       >
         {/* Progress bar */}
-        <Card
-          styles={{
-            body: {
-              padding: '8px',
-              paddingBottom: 4,
-              borderRadius: 10,
-              boxShadow: 'none',
-              width: '100%',
-            },
-          }}
-          style={{
-            boxShadow: 'none',
-            border: '1px solid #f0f0f0',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography.Title level={5} style={{ margin: 0 }}>
-              Tiến độ hoàn thành
-            </Typography.Title>
-
-            <Button
-              type="text"
-              size="small"
-              style={{
-                alignSelf: 'flex-start',
-                padding: '0 6px',
-                borderRadius: 6,
-                gap: 4,
-              }}
-              styles={{
-                icon: {
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                },
-              }}
-              icon={<IconChevronDown size={14} color="#838383" />}
-            />
-          </div>
-
-          <div style={{ marginTop: 'auto' }}>
-            <Progress
-              percent={48}
-              showInfo={false}
-              strokeColor="#4caf50"
-              strokeWidth={8}
-              style={{ borderRadius: 8, height: 'fit-content' }}
-            />
-          </div>
-        </Card>
+        <ProgressBar activity={activity} />
 
         {!isMainActivity && (
           <Button
