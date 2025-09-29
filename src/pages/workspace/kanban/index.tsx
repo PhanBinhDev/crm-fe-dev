@@ -1,5 +1,6 @@
 import { IActivity, IStage, IUser, IWorkspace } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
+import { useWorkspaceStore } from '@/hooks/useWorkspaces';
 import FilterActivities, { FilterParams } from '@/pages/workspace/components/FilterActivities';
 import SearchActivities from '@/pages/workspace/components/SearchActivities';
 import SettingsActivities from '@/pages/workspace/components/SettingsActivities';
@@ -24,6 +25,7 @@ const KanbanWorkspaces = () => {
   const [filterParams, setFilterParams] = useState<FilterParams>({});
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isTablet = useMediaQuery('(max-width: 992px)');
+  const { isLoading } = useWorkspaceStore();
 
   const { workspaceId } = useParams();
   const { openModal } = useModal();
@@ -171,7 +173,7 @@ const KanbanWorkspaces = () => {
     }
   }, [activeTab, activities, stagesData?.data, users?.data, workspaceData?.data]);
 
-  if (isLoadingWorkspace || isLoadingActivities) {
+  if (isLoadingWorkspace || isLoadingActivities || isLoading) {
     return (
       <div
         style={{

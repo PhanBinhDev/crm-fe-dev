@@ -35,6 +35,7 @@ const ActivityDetailSidebar = ({
 }: ActivityDetailSidebarProps) => {
   const [showInput, setShowInput] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
+  const [hoveredParent, setHoveredParent] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [name, setName] = useState<string>('');
   const subActivities = activity.subActivities || [];
@@ -91,10 +92,19 @@ const ActivityDetailSidebar = ({
         onSelectItem({ type: 'activity', data: activity });
       },
       onMouseEnter: e => {
-        if (e.currentTarget === e.target) setHovered(activity.id);
+        const target = e.currentTarget as HTMLElement;
+
+        console.log('target', target);
+
+        if (target.children[0].classList.contains('custom-collapse-header')) {
+          setHoveredParent(true);
+        }
       },
       onMouseLeave: e => {
-        if (e.currentTarget === e.target) setHovered(null);
+        const target = e.currentTarget as HTMLElement;
+        if (target.children[0].classList.contains('custom-collapse-header')) {
+          setHoveredParent(false);
+        }
       },
       label: (
         <div
@@ -113,15 +123,17 @@ const ActivityDetailSidebar = ({
             style={{
               position: 'absolute',
               top: '50%',
-              right: 12,
+              right: hoveredParent ? 4 : 12,
               transform: 'translateY(-50%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            {hovered === activity.id ? (
-              <IconDotsVertical size={14} color="#838383" />
+            {hoveredParent ? (
+              <Button type="text" size="small" style={{ borderRadius: 6, padding: '0 4px' }}>
+                <IconDotsVertical size={14} color="#838383" />
+              </Button>
             ) : isActivitySelected ? (
               <IconCheck size={14} color="#838383" />
             ) : null}
