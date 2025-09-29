@@ -9,7 +9,7 @@ import {
   ModalAction,
 } from '@/common/types';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useGetIdentity, useList } from '@refinedev/core';
+import { useCreate, useGetIdentity, useList } from '@refinedev/core';
 import { IconCheck, IconChevronRight } from '@tabler/icons-react';
 import { Form, Input, List, Modal, Popover, Space } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
@@ -51,10 +51,34 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
   const [category, setCategory] = useState<string>();
   const [customModalOpen, setCustomModalOpen] = useState(false);
   const [customForm] = Form.useForm();
+  const { mutate: createCategory } = useCreate<Category>();
+
   const { data: categoriesData, isLoading } = useList<Category>({
     resource: 'activities/category',
     pagination: { mode: 'off' },
   });
+
+  const onCreateCategory = (values: { name: string; description: string }) => {
+    createCategory(
+      {
+        resource: 'activities/category',
+        values: {
+          name: values.name,
+          description: values.description,
+        },
+      },
+      {
+        onSuccess: result => {
+          const newCategory = result.data;
+          setCategory(newCategory.id);
+          form.setFieldValue('category', newCategory.id);
+
+          setCustomModalOpen(false);
+          customForm.resetFields();
+        },
+      },
+    );
+  };
 
   const { data: identity } = useGetIdentity<{ role: string }>();
   const currentUserRole = identity?.role;
@@ -388,21 +412,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                     transform: 'translateY(40px)',
                   }}
                 >
-                  <Form
-                    form={customForm}
-                    layout="vertical"
-                    onFinish={(values: { name: string; description: string }) => {
-                      const newCategory: Category = {
-                        id: Date.now().toString(),
-                        name: values.name,
-                        description: values.description,
-                      };
-                      setCategory(newCategory.id);
-                      form.setFieldValue('category', newCategory.id);
-                      setCustomModalOpen(false);
-                      customForm.resetFields();
-                    }}
-                  >
+                  <Form form={customForm} layout="vertical" onFinish={onCreateCategory}>
                     <Form.Item
                       name="name"
                       label="Tiêu đề"
