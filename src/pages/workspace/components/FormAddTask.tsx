@@ -9,14 +9,9 @@ import {
   ModalAction,
 } from '@/common/types';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import {
-  IconBook,
-  IconBrandHipchat,
-  IconCheck,
-  IconChevronRight,
-  IconTable,
-} from '@tabler/icons-react';
-import { Form, Input, List, Popover, Space } from 'antd';
+import { useList } from '@refinedev/core';
+import { IconCheck, IconChevronRight } from '@tabler/icons-react';
+import { Form, Input, List, Modal, Popover, Space } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import AssigneeActivity from './AssigneeActivity';
 import ChecklistActivity from './ChecklistActivity';
@@ -34,11 +29,11 @@ import TimeEstimateActivity from './TimeEstimateActivity';
 
 const { TextArea } = Input;
 
-const typeCategories = [
-  { label: 'Seminar', value: 'seminar', icon: <IconTable size={15} /> },
-  { label: 'Workshop', value: 'workshop', icon: <IconBrandHipchat size={15} /> },
-  { label: 'Tutor', value: 'tutor', icon: <IconBook size={15} /> },
-];
+interface Category {
+  id: string;
+  name: string;
+  description?: string;
+}
 
 interface FormAddTaskProps {
   openUploader: boolean;
@@ -48,13 +43,18 @@ interface FormAddTaskProps {
     callback: () => void;
   }) => void;
 }
-
 const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, ref) => {
   const [form] = Form.useForm();
   const actionRef = useRef<ModalAction>();
   const { currentWorkspace } = useWorkspaces();
   const [taskOrEvent, setTaskOrEvent] = useState<ActivityType>(ActivityType.TASK);
-  const [category, setCategory] = useState<string | 'seminar' | 'workshop' | 'tutor'>('tutor');
+  const [category, setCategory] = useState<string>();
+  const [customModalOpen, setCustomModalOpen] = useState(false);
+  const [customForm] = Form.useForm();
+  const { data: categoriesData, isLoading } = useList<Category>({
+    resource: 'activities/category',
+    pagination: { mode: 'off' },
+  });
 
   useImperativeHandle(ref, () => ({
     submitForm: (action: ModalAction) => {
@@ -282,74 +282,47 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <div style={{ flex: 1, display: 'flex', gap: 8, alignItems: 'center' }}>
             <SelectActivityType value={taskOrEvent} onChange={handleActivityTypeChange} />
+
             {taskOrEvent === 'event' && (
               <Form.Item name="category" initialValue="tutor" style={{ marginBottom: 0 }}>
                 <Popover
                   trigger="click"
                   placement="bottomLeft"
                   onOpenChange={setCategoryOpen}
-                  styles={{
-                    body: {
-                      padding: 0,
-                    },
-                  }}
+                  styles={{ body: { padding: 0 } }}
                   open={categoryOpen}
                   content={
-                    <div style={{ width: 200, padding: 5 }}>
+                    <div style={{ width: 220, padding: 5 }}>
                       <List
                         size="small"
-                        dataSource={typeCategories}
+                        dataSource={[
+                          ...(categoriesData?.data || []), 
+                          { id: 'custom', name: 'Tùy chỉnh', description: '' }, 
+                        ]}
                         renderItem={item => (
                           <List.Item
+                            key={item.id}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
                               gap: 12,
-                              padding: '5px 7px',
+                              padding: '6px 10px',
                               cursor: 'pointer',
-                              fontWeight: 400,
-                              fontSize: 14,
-                              color: '#333',
-                              backgroundColor: item.value === category ? '#f0f6ff' : 'transparent',
                               borderRadius: 6,
-                              margin: '2px 4px',
-                              border: 'none',
-                              position: 'relative',
-                            }}
-                            onMouseEnter={e => {
-                              if (item.value !== category) {
-                                (e.target as HTMLElement).style.backgroundColor = '#f5f5f5';
-                              }
-                            }}
-                            onMouseLeave={e => {
-                              if (item.value !== category) {
-                                (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                              }
+                              backgroundColor: item.id === category ? '#f0f6ff' : 'transparent',
                             }}
                             onClick={() => {
-                              setCategory(item.value);
-                              form.setFieldValue('category', item.value);
+                              if (item.id === 'custom') {
+                                setCustomModalOpen(true);
+                              } else {
+                                setCategory(item.id);
+                                form.setFieldValue('category', item.id);
+                              }
                               setCategoryOpen(false);
                             }}
                           >
-                            <span
-                              style={{
-                                fontSize: 16,
-                                color: item.value === category ? '#1677ff' : '#666',
-                              }}
-                            >
-                              {item.icon}
-                            </span>
-                            <span
-                              style={{
-                                flex: 1,
-                                color: item.value === category ? '#1677ff' : '#333',
-                              }}
-                            >
-                              {item.label}
-                            </span>
-
-                            {item.value === category && <IconCheck size={14} />}
+                            <span style={{ flex: 1 }}>{item.name}</span>
+                            {item.id === category && <IconCheck size={14} />}
                           </List.Item>
                         )}
                       />
@@ -360,58 +333,91 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
+                      justifyContent: 'space-between',
                       gap: 6,
                       cursor: 'pointer',
-                      border: '1px solid #e4e4e4ff',
+                      border: '1px solid rgb(240, 240, 240)',
                       borderRadius: 6,
-                      padding: '4px 8px',
+                      padding: '0px 7px',
                       background: '#fff',
                       fontSize: 13,
                       fontWeight: 500,
                       color: '#24292f',
-                      minWidth: 'auto',
+                      minWidth: 160,
                       height: 27,
                       transition: 'all 0.2s ease',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                      boxShadow: categoryOpen
+                        ? '0 0 0 2px #1677ff33'
+                        : '0 1px 2px rgba(0,0,0,0.04)',
                     }}
                     onClick={() => setCategoryOpen(!categoryOpen)}
                   >
-                    <span
-                      style={{
-                        fontSize: 14,
-                        color: '#656d76',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        lineHeight: 1,
-                      }}
-                    >
-                      {typeCategories.find(opt => opt.value === category)?.icon}
+                    <span style={{ fontSize: 14, fontWeight: 500, color: '#646464' }}>
+                      {categoriesData?.data.find(opt => opt.id === category)?.name ||
+                        'Chọn loại sự kiện'}
                     </span>
-                    <span
+                    <IconChevronRight
+                      size={14}
                       style={{
-                        color: '#24292f',
-                        fontSize: 13,
-                        fontWeight: 500,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        lineHeight: 1,
-                      }}
-                    >
-                      {typeCategories.find(opt => opt.value === category)?.label}
-                    </span>
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        lineHeight: 1,
                         transform: categoryOpen ? 'rotate(90deg)' : 'rotate(0deg)',
                         transition: 'transform 0.2s ease',
+                        color: '#8c8c8c',
                       }}
-                    >
-                      <IconChevronRight size={14} />
-                    </span>
+                    />
                   </div>
                 </Popover>
+                <Modal
+                  title="Thêm loại sự kiện tùy chỉnh"
+                  open={customModalOpen}
+                  onCancel={() => setCustomModalOpen(false)}
+                  onOk={() => customForm.submit()}
+                  okText="Lưu"
+                  cancelText="Hủy"
+                  centered={false}
+                  width={450}
+                  bodyStyle={{ padding: '12px 16px' }}
+                  style={{
+                    borderRadius: 10,
+                    transform: 'translateY(40px)', 
+                  }}
+                >
+                  <Form
+                    form={customForm}
+                    layout="vertical"
+                    onFinish={(values: { name: string; description: string }) => {
+                      const newCategory: Category = {
+                        id: Date.now().toString(),
+                        name: values.name,
+                        description: values.description,
+                      };
+                      setCategory(newCategory.id);
+                      form.setFieldValue('category', newCategory.id);
+                      setCustomModalOpen(false);
+                      customForm.resetFields();
+                    }}
+                  >
+                    <Form.Item
+                      name="name"
+                      label="Tiêu đề"
+                      style={{ marginBottom: 8 }}
+                      rules={[{ required: true, message: 'Vui lòng nhập tiêu đề' }]}
+                    >
+                      <Input placeholder="Nhập tên loại sự kiện" />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="description"
+                      label="Mô tả chi tiết"
+                      style={{ marginBottom: 0 }}
+                    >
+                      <Input.TextArea
+                        rows={3}
+                        placeholder="Nhập mô tả chi tiết..."
+                        style={{ resize: 'none' }}
+                      />
+                    </Form.Item>
+                  </Form>
+                </Modal>
               </Form.Item>
             )}
           </div>
