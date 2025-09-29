@@ -26,7 +26,7 @@ const ActivityLinks = ({ activityId, viewMode }: ActivityLinksProps) => {
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <IconPointFilled size={8} color="#888" style={{ marginRight: 3 }} />
                 <div style={{ fontSize: 11, color: '#909090ff' }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, marginRight: 5 }}>vtdiem</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, marginRight: 5 }}>vtdiem</span>
                   10/10/1000 00:00
                 </div>
               </div>
@@ -68,7 +68,7 @@ const ActivityLinks = ({ activityId, viewMode }: ActivityLinksProps) => {
       >
         <div style={{ flex: 1, maxHeight: 100, overflow: 'hidden' }}>
           <p style={{ fontSize: 11, color: '#909090ff', marginBottom: 3 }}>
-            <span style={{ fontSize: 12, fontWeight: 600, marginRight: 5 }}>vtdiem</span>10/10/1000
+            <span style={{ fontSize: 13, fontWeight: 600, marginRight: 5 }}>vtdiem</span>10/10/1000
             00:00
           </p>
           <Paragraph
@@ -80,7 +80,7 @@ const ActivityLinks = ({ activityId, viewMode }: ActivityLinksProps) => {
           </Paragraph>
           <Paragraph
             ellipsis={{ rows: 2, expandable: false }}
-            style={{ fontSize: 12, marginBottom: 0 }}
+            style={{ fontSize: 13, marginBottom: 0 }}
           >
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Quod cupiditate dolores...
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Quod cupiditate dolores...

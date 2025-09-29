@@ -27,7 +27,7 @@ const ActivityChangedHistory = ({ activityId }: ActivityChangedHistoryProps) => 
   if (!dataLogs?.data || dataLogs.data.length === 0) {
     return (
       <div
-        style={{ width: '100%', padding: '30px', textAlign: 'center', fontSize: 12, color: '#999' }}
+        style={{ width: '100%', padding: '30px', textAlign: 'center', fontSize: 13, color: '#999' }}
       >
         <span> Chưa có hoạt động</span>
       </div>
@@ -69,7 +69,7 @@ const ActivityChangedHistory = ({ activityId }: ActivityChangedHistoryProps) => 
             <IconPointFilled size={10} color="#666666ff" />
           </div>
           <div>
-            <span style={{ fontSize: 12 }}>
+            <span style={{ fontSize: 13 }}>
               <span style={{ fontWeight: 500, textOverflow: 'ellipsis' }}>{item.user?.name}: </span>{' '}
               {buildLogMessage(item)}
             </span>
@@ -78,11 +78,11 @@ const ActivityChangedHistory = ({ activityId }: ActivityChangedHistoryProps) => 
         <div>
           <Tooltip
             title={dayjs(item.createdAt).format('DD/MM/YYYY HH:mm')}
-            style={{ fontSize: 12 }}
+            style={{ fontSize: 13 }}
           >
             <span
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 width: 'fit-content',
                 whiteSpace: 'nowrap',
               }}
@@ -114,7 +114,7 @@ const ActivityChangedHistory = ({ activityId }: ActivityChangedHistoryProps) => 
           style={{
             borderRadius: 6,
             width: '100%',
-            fontSize: 12,
+            fontSize: 13,
             color: '#666666ff',
             justifyContent: 'flex-start',
             padding: '0 7px',

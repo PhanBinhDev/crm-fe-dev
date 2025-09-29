@@ -26,7 +26,6 @@ interface ActivityDetailSidebarProps {
   onSelectItem: (item: SelectedActivityItem) => void;
   refetchActivity: any;
   showActions: {
-    edit: boolean;
     duplicate: boolean;
     delete: boolean;
   };
@@ -324,15 +323,6 @@ const ActivityDetailSidebar = ({
                       trigger={['click']}
                       menu={{
                         items: [
-                          {
-                            key: 'edit',
-                            label: (
-                              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                Sửa
-                              </span>
-                            ),
-                            onClick: () => onShowAction('edit'),
-                          },
                           {
                             key: 'duplicate',
                             label: (

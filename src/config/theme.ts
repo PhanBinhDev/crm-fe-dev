@@ -10,7 +10,8 @@ export const antdTheme: ThemeConfig = {
     colorError: '#ff4d4f',
     colorInfo: '#1890ff',
     borderRadius: 6,
-    fontFamily: '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    fontFamily: '"National Park", sans-serif',
+    // fontFamily: '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   },
   components: {
     Layout: {
