@@ -1,9 +1,9 @@
+import { IUser } from '@/common/types';
+import AssigneeActivity from '@/pages/workspace/components/AssigneeActivity';
 import { IconAdjustmentsHorizontal } from '@tabler/icons-react';
 import { Button, DatePicker, Divider, Popover, Select, Space, Tooltip, Typography } from 'antd';
 import { Dayjs } from 'dayjs';
 import { useState } from 'react';
-import { IUser } from '@/common/types';
-import AssigneeActivity from '@/pages/workspace/components/AssigneeActivity';
 
 const { Title } = Typography;
 
@@ -158,7 +158,6 @@ const FilterActivities = ({ onApply }: { onApply?: (params: FilterParams) => voi
         />
       </div>
 
-      {/* Event type nếu chọn Sự kiện */}
       {filters.type === 'event' && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontWeight: 500, marginBottom: 6 }}>Loại sự kiện</div>
@@ -182,9 +181,7 @@ const FilterActivities = ({ onApply }: { onApply?: (params: FilterParams) => voi
         <div style={{ fontWeight: 500, marginBottom: 6 }}>Người phụ trách</div>
         <AssigneeActivity
           selectedUser={filters.assignee ? [filters.assignee] : []}
-          onToggleSelectUser={(user) =>
-            setFilters({ ...filters, assignee: user })
-          }
+          onToggleSelectUser={user => setFilters({ ...filters, assignee: user })}
         />
       </div>
 

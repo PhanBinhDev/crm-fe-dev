@@ -311,7 +311,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
             <SelectActivityType value={taskOrEvent} onChange={handleActivityTypeChange} />
 
             {taskOrEvent === 'event' && (
-              <Form.Item name="category" initialValue="tutor" style={{ marginBottom: 0 }}>
+              <>
                 <Popover
                   trigger="click"
                   placement="bottomLeft"
@@ -398,15 +398,14 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                   </div>
                 </Popover>
                 <Modal
-                  title="Thêm loại sự kiện tùy chỉnh"
+                  title="Thêm danh mục sự kiện"
                   open={customModalOpen}
                   onCancel={() => setCustomModalOpen(false)}
                   onOk={() => customForm.submit()}
-                  okText="Lưu"
+                  okText="Tạo danh mục"
                   cancelText="Hủy"
                   centered={false}
                   width={450}
-                  bodyStyle={{ padding: '12px 16px' }}
                   style={{
                     borderRadius: 10,
                     transform: 'translateY(40px)',
@@ -415,7 +414,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                   <Form form={customForm} layout="vertical" onFinish={onCreateCategory}>
                     <Form.Item
                       name="name"
-                      label="Tiêu đề"
+                      label="Tên danh mục"
                       style={{ marginBottom: 8 }}
                       rules={[{ required: true, message: 'Vui lòng nhập tiêu đề' }]}
                     >
@@ -435,7 +434,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                     </Form.Item>
                   </Form>
                 </Modal>
-              </Form.Item>
+              </>
             )}
           </div>
 
@@ -558,6 +557,10 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
         <Input />
       </Form.Item>
       <Form.Item name="checklists" hidden>
+        <Input />
+      </Form.Item>
+
+      <Form.Item name="category" hidden>
         <Input />
       </Form.Item>
 
