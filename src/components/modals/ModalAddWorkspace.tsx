@@ -7,7 +7,7 @@ import { Button, Form, Input, message, Modal, Select, Switch, Tooltip } from 'an
 import React, { useState } from 'react';
 import { UserRole } from '../../common/enum/user';
 import { IUser } from '../../common/types/users';
-import SelectIcon from '../shared/SelectIcon';
+import AvatarUpload from '../shared/AvatarUpload';
 
 const ModalAddWorkspace: React.FC = () => {
   const { type, isOpen, closeModal } = useModal();
@@ -22,6 +22,7 @@ const ModalAddWorkspace: React.FC = () => {
   const [form] = Form.useForm();
   const [isPrivate, setIsPrivate] = useState(false);
   const [inviteMembers, setInviteMembers] = useState<IUser[]>([]);
+  const [avatarData, setAvatarData] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -29,20 +30,33 @@ const ModalAddWorkspace: React.FC = () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
-      await createWorkspace({
+      
+      const payload: any = {
         name: values.name,
         description: values.description || '',
-        icon: values.icon || '',
         visibility: isPrivate ? 'private' : 'public',
-        avatar: '',
-      });
+        members: inviteMembers.map(m => m.email),
+      };
+      
+      // Chỉ thêm avatar nếu có
+      if (avatarData) {
+        payload.avatar = avatarData;
+      }
+      
+      console.log('Creating workspace with payload:', payload);
+      
+      const result = await createWorkspace(payload);
+      console.log('Workspace creation result:', result);
+      
       message.success('Tạo workspace thành công!');
       refreshWorkspaces();
       form.resetFields();
       setInviteMembers([]);
       setIsPrivate(false);
+      setAvatarData(null);
       closeModal();
     } catch (err) {
+      console.error('Workspace creation error:', err);
       message.error('Tạo workspace thất bại!');
     } finally {
       setLoading(false);
@@ -85,23 +99,11 @@ const ModalAddWorkspace: React.FC = () => {
           required
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div
-              style={{
-                height: 36,
-                width: 36,
-                minWidth: 36,
-                border: '1px solid #e0e0e0',
-                borderRadius: 8,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: 0,
-              }}
-            >
-              <SelectIcon
-                value={form.getFieldValue('icon')}
-                onChange={(icon: string) => form.setFieldsValue({ icon })}
-                size={22}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <AvatarUpload
+                value={avatarData}
+                onChange={setAvatarData}
+                size={36}
               />
             </div>
             <Form.Item
