@@ -54,9 +54,22 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
   }, []);
 
   const renderWorkspaceAvatar = (workspace: IWorkspace, size: number = 24) => {
-    if (workspace?.avatar) {
-      return <Avatar size={size} src={workspace.avatar} />;
-    } else if (workspace?.icon) {
+    console.log('Workspace avatar data:', workspace?.avatar);
+    console.log('Full workspace data:', workspace);
+    
+    // Kiểm tra avatar dạng string (URL hoặc đường dẫn tương đối)
+    if (workspace?.avatar && typeof workspace.avatar === 'string') {
+      // Nếu là đường dẫn tương đối, thêm base URL
+      const avatarUrl = workspace.avatar.startsWith('http') 
+        ? workspace.avatar 
+        : `${import.meta.env.VITE_API_BASE_URL}${workspace.avatar}`;
+      
+      console.log('Final avatar URL:', avatarUrl);
+      return <Avatar size={size} src={avatarUrl} />;
+    }
+    
+    // Fallback về icon nếu có
+    if (workspace?.icon) {
       const IconComponent = tablerIcons[workspace.icon];
 
       return (

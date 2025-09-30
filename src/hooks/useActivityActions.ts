@@ -19,10 +19,12 @@ export const useActivityActions = () => {
       updateLocalActivity?: (id: string, data: any) => void,
     ) => {
       try {
-        // Tìm stage "COMPLETE" (ưu tiên) hoặc stage có position cao nhất
+        // Tìm stage có stageGroup = 'done' (ưu tiên) hoặc stage có position cao nhất
         const sortedStages = [...stages].sort((a, b) => (a.position || 0) - (b.position || 0));
         const completedStage =
+          sortedStages.find(stage => stage.stageGroup === 'done') ||
           sortedStages.find(stage => stage.title?.toUpperCase() === 'COMPLETE') ||
+          sortedStages.find(stage => stage.title?.toUpperCase() === 'DONE') ||
           sortedStages[sortedStages.length - 1];
 
         // OPTIMISTIC UPDATE: Cập nhật UI ngay lập tức
@@ -86,6 +88,9 @@ export const useActivityActions = () => {
           ...activityData,
           name: `${activity.name} (Copy)`,
           workspaceId: currentWorkspace.id,
+          priority: activityData.priority || undefined, // Convert null to undefined
+          startTime: activityData.startTime || undefined, // Convert null to undefined
+          endTime: activityData.endTime || undefined, // Convert null to undefined
           assignees:
             assignees?.map(assignee => ({
               userId: assignee.userId,
