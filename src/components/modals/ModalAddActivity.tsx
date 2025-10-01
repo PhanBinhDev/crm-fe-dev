@@ -1,5 +1,6 @@
 import { FormAddActivityPayload, FormAddTaskData, ModalAction } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
+import { useWorkspaceStore } from '@/hooks/useWorkspaces';
 import FormAddReminder from '@/pages/workspace/components/FormAddReminder';
 import FormAddTask from '@/pages/workspace/components/FormAddTask';
 import NotificationActivityBtn from '@/pages/workspace/components/NotificationActivityBtn';
@@ -9,6 +10,7 @@ import { useCreate, useInvalidate } from '@refinedev/core';
 import { IconArrowDownRight, IconPaperclip, IconX } from '@tabler/icons-react';
 import { Button, Dropdown, message, Modal, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 const modalTabs = [
   { key: 'task', label: 'Hoạt động' },
@@ -22,6 +24,8 @@ export interface FormAddTaskRef {
 }
 
 const ModalAddActivity = () => {
+  const { currentWorkspace } = useWorkspaceStore();
+  const workspaceId = currentWorkspace?.id;
   const { isOpen, type, closeModal } = useModal();
   const isOpenModal = isOpen && type === 'ModalAddActivity';
   const formRef = useRef<FormAddTaskRef>(null);
@@ -251,7 +255,9 @@ const ModalAddActivity = () => {
             />
           </Tooltip>
 
-          {activeTab !== 'reminder' && <NotificationActivityBtn />}
+          {activeTab !== 'reminder' && workspaceId && (
+            <NotificationActivityBtn workspaceId={workspaceId} />
+          )}
 
           {activeTab !== 'reminder' ? (
             <Dropdown.Button
