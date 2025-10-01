@@ -43,7 +43,7 @@ const WorkspaceMember = () => {
   });
 
   const [search, setSearch] = useState<string>('');
-  const [debouncedSearch] = useDebounceValue(search, 400);
+  const [debouncedSearch] = useDebounceValue(search.trim(), 400);
   const [selectedUser, setSelectedUser] = useState<IUser[]>([]);
 
   const { data: users, isLoading: isLoadingUsers } = useList<IUser>({
