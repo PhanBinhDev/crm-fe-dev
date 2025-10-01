@@ -1,4 +1,6 @@
-import { useList } from '@refinedev/core';
+import { MemberRole, MemberStatus } from '@/common/enum/workspace';
+import { getWorkspaceRoleLabel } from '@/utils/workspace';
+import { useGetIdentity, useList } from '@refinedev/core';
 import { IconMailPlus, IconPlus } from '@tabler/icons-react';
 import { Button, Form, Input, Select, Table, Tag } from 'antd';
 import { useMemo, useState } from 'react';
@@ -7,14 +9,13 @@ import { MemberRowActions } from './MemberRowAction';
 
 interface Member {
   user: {
+    id: string;
     name: string;
     email: string;
-    phone: string;
-    major: string;
-    role: string;
-    isActive: boolean;
-    createdAt: string;
   };
+  role: MemberRole;
+  createdAt: string;
+  status: MemberStatus;
 }
 
 const WorkspaceMember = () => {
@@ -26,15 +27,19 @@ const WorkspaceMember = () => {
     resource: `workspaces/${workspaceId}/members`,
   });
 
+  const { data: identity } = useGetIdentity<{ id: string }>();
+
+  const currentUserRole = (data?.data ?? []).find(m => m.user.id === identity?.id)?.role;
+
   const members = (data?.data ?? []).map((m, index) => ({
-    // key: m.id,
     index: index + 1,
+    id: m.user.id,
     name: m.user.name,
     email: m.user.email,
-    role: m.user.role,
-    status: m.user.isActive ? 'Accepted' : 'Pending',
-    // invitedBy: m.user.createdBy ?? '—',
-    invitedAt: new Date(m.user.createdAt).toLocaleDateString(),
+    role: m.role,
+    status: m.status,
+    // invitedBy: m.invitedBy,
+    invitedAt: new Date(m.createdAt).toLocaleDateString(),
   }));
 
   const roleCounts = useMemo(() => {
@@ -46,40 +51,56 @@ const WorkspaceMember = () => {
   }, [members]);
 
   const options = [
-    { label: `All Member (${members.length})`, value: '' },
-    ...Object.keys(roleCounts).map(role => ({
-      label: `${role} (${roleCounts[role]})`,
+    { label: `Tất cả thành viên (${members.length})`, value: '' },
+    ...(Object.keys(roleCounts) as MemberRole[]).map(role => ({
+      label: `${getWorkspaceRoleLabel(role)} (${roleCounts[role]})`,
       value: role,
     })),
   ];
 
   const filteredMembers = filterRole ? members.filter(m => m.role === filterRole) : members;
 
-  const columns = [
+  const baseColumns = [
     { title: 'STT', dataIndex: 'index', key: 'index', width: 60 },
     { title: 'Name', dataIndex: 'name', key: 'name' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
-    { title: 'Role', dataIndex: 'role', key: 'role' },
     {
-      title: 'Status',
+      title: 'Vai trò',
+      dataIndex: 'role',
+      key: 'role',
+      render: (status: string) => {
+        if (status === MemberRole.OWNER) return <p>Sở hữu</p>;
+        if (status === MemberRole.MEMBER) return <p>Thành viên</p>;
+        return <p>Admin</p>;
+      },
+    },
+    {
+      title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) =>
-        status === 'Accepted' ? (
-          <Tag color="green">Accepted</Tag>
-        ) : (
-          <Tag color="orange">Pending</Tag>
-        ),
+      render: (status: string) => {
+        if (status === MemberStatus.ACTIVE) return <Tag color="green">Xác nhận</Tag>;
+        if (status === MemberStatus.PENDING) return <Tag color="orange">Đang xử lý</Tag>;
+        return <Tag color="red">Từ chối</Tag>;
+      },
     },
-    { title: 'Invited By', dataIndex: 'invitedBy', key: 'invitedBy' },
-    { title: 'Invited At', dataIndex: 'invitedAt', key: 'invitedAt' },
-    {
-      title: 'Thao tác',
-      key: 'actions',
-      width: 80,
-      render: (_: any, record: any) => <MemberRowActions user={record} role={record.role} />,
-    },
+    { title: 'Người mời', dataIndex: 'invitedBy', key: 'invitedBy' },
+    { title: 'Ngày mời', dataIndex: 'invitedAt', key: 'invitedAt' },
   ];
+
+  const columns =
+    currentUserRole === 'owner'
+      ? [
+          ...baseColumns,
+          {
+            title: 'Thao tác',
+            key: 'actions',
+            width: 80,
+            render: (_: any, record: any) =>
+              record.role === 'owner' ? '' : <MemberRowActions member={record} />,
+          },
+        ]
+      : baseColumns;
 
   return (
     <div style={{ width: '100%' }}>
@@ -123,7 +144,7 @@ const WorkspaceMember = () => {
 
       <Select
         defaultValue=""
-        style={{ width: '20%', marginBottom: 10 }}
+        style={{ marginBottom: 10 }}
         options={options}
         onChange={value => setFilterRole(value)}
       />

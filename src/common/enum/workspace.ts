@@ -8,3 +8,9 @@ export enum MemberRole {
   ADMIN = 'admin',
   MEMBER = 'member',
 }
+
+export enum MemberStatus {
+  ACTIVE = 'active',
+  PENDING = 'pending',
+  REJECT = 'reject',
+}

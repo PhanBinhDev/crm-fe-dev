@@ -1,47 +1,30 @@
-import { MemberRole } from '@/common/enum/workspace';
 import { IUser } from '@/common/types';
-import { useUserPermissions } from '@/hooks/useUserPermissions';
-import { useInvalidate } from '@refinedev/core';
-import { IconDots, IconEdit, IconTrash } from '@tabler/icons-react';
+import { IconBrightnessAuto, IconDots, IconTrash } from '@tabler/icons-react';
 import { Button, Dropdown, MenuProps } from 'antd';
 import { FC } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 interface MemberRowActionsProps {
-  user: IUser;
-  role: string;
+  member: IUser;
 }
 
-export const MemberRowActions: FC<MemberRowActionsProps> = ({ user, role }) => {
-  const navigate = useNavigate();
-  const { canEdit, canToggleStatus } = useUserPermissions(user);
-  const invalidate = useInvalidate();
-
+export const MemberRowActions: FC<MemberRowActionsProps> = ({ member }) => {
+  console.log('member', member);
   const menuItems: MenuProps['items'] = [
     {
-      key: `view-${user.id}`,
+      key: `admin-${member.id}`,
+      icon: <IconBrightnessAuto size={18} />,
+      label: 'Đặt vai trò Admin',
+      // onClick: () =>
+    },
+    {
+      key: `delete-${member.id}`,
       icon: <IconTrash size={18} />,
       label: 'Xoá thành viên',
-      // onClick: () => setDrawerOpen(true),
+      onClick: () => {
+        console.log(member.id);
+      },
     },
   ];
-
-  // Nếu là CNBM thì luôn hiển thị nút sửa cho mọi user
-  if (role === MemberRole.OWNER) {
-    menuItems.push({
-      key: 'edit',
-      icon: <IconEdit size={18} />,
-      label: 'Chỉnh sửa',
-      onClick: () => navigate(`/teachers/edit/${user.id}`),
-    });
-  } else if (canEdit) {
-    menuItems.push({
-      key: 'edit',
-      icon: <IconEdit size={18} />,
-      label: 'Chỉnh sửa',
-      onClick: () => navigate(`/teachers/edit/${user.id}`),
-    });
-  }
 
   return (
     <>
