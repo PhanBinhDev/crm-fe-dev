@@ -5,6 +5,7 @@ export interface IWorkspace extends IBase {
   description?: string;
   icon?: string;
   avatar?: string;
+  visibility?: 'private' | 'public';
 }
 
 export interface IMember extends IBase {
