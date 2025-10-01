@@ -1,4 +1,5 @@
-import { IBase, IUser } from '@/common/types';
+import { IBase } from '@/common/types';
+import { MemberRole, MemberStatus } from '../enum/workspace';
 
 export interface IWorkspace extends IBase {
   name: string;
@@ -8,6 +9,14 @@ export interface IWorkspace extends IBase {
 }
 
 export interface IMember extends IBase {
-  user: IUser;
   workspaceId: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  role: MemberRole;
+  createdAt: string;
+  status: MemberStatus;
+  invitedBy: string;
 }

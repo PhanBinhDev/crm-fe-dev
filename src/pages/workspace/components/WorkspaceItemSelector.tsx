@@ -2,7 +2,7 @@ import { IWorkspace } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useNavigation } from '@refinedev/core';
-import { IconChevronDown, IconPencil, IconSettings } from '@tabler/icons-react';
+import { IconChevronDown, IconPencil, IconSettings, IconShare } from '@tabler/icons-react';
 import { Avatar, Button, Card, Divider, List, Popover, Skeleton, Space, Tooltip } from 'antd';
 import { useState } from 'react';
 
@@ -58,8 +58,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
     <Card
       styles={{
         body: {
-          padding: '10px 5px',
-          width: '230px',
+          padding: '5px',
         },
       }}
     >
@@ -143,13 +142,18 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
           >
             Cài đặt
           </Button>
-          {/* <Button
+          <Button
             type="text"
             style={{
               width: '100%',
               border: '1px solid #d9d9d9',
             }}
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              openModal('WorkspaceShareModal', {
+                workspaceId: currentWorkspace,
+              });
+              setOpen(false);
+            }}
             onMouseEnter={e => {
               e.currentTarget.style.backgroundColor = '#d9d9d9';
             }}
@@ -163,10 +167,10 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
             onMouseLeave={e => {
               e.currentTarget.style.backgroundColor = 'transparent';
             }}
-            icon={<IconUsers size={14} />}
+            icon={<IconShare size={14} />}
           >
-            Thành viên
-          </Button> */}
+            Chia sẻ
+          </Button>
         </Space>
       </Space>
       <Divider
@@ -265,8 +269,8 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
         styles={{
           body: {
             padding: 0,
-            width: 230,
-            marginLeft: 35,
+            width: 310,
+            marginLeft: 30,
           },
         }}
         trigger={['click']}

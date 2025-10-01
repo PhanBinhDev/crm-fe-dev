@@ -1,4 +1,5 @@
 import { MemberRole, MemberStatus } from '@/common/enum/workspace';
+import { IMember } from '@/common/types';
 import { getWorkspaceRoleLabel } from '@/utils/workspace';
 import { useGetIdentity, useList } from '@refinedev/core';
 import { IconMailPlus, IconPlus } from '@tabler/icons-react';
@@ -7,23 +8,12 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { MemberRowActions } from './MemberRowAction';
 
-interface Member {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  role: MemberRole;
-  createdAt: string;
-  status: MemberStatus;
-}
-
 const WorkspaceMember = () => {
   const [form] = Form.useForm();
   const [filterRole, setFilterRole] = useState<string>('');
   const { workspaceId } = useParams<{ workspaceId: string }>();
 
-  const { data, isLoading } = useList<Member>({
+  const { data, isLoading } = useList<IMember>({
     resource: `workspaces/${workspaceId}/members`,
   });
 

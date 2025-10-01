@@ -2,6 +2,7 @@ import ModalAddActivity from './ModalAddActivity';
 import ModalAddWorkspace from './ModalAddWorkspace';
 import ModalEditActivity from './ModalEditActivity';
 import ModalRenameActivity from './ModalRenameActivity';
+import WorkspaceShareModal from './WorkspaceShareModal';
 
 const Modals = () => {
   return (
@@ -10,6 +11,7 @@ const Modals = () => {
       <ModalAddActivity />
       <ModalEditActivity />
       <ModalRenameActivity />
+      <WorkspaceShareModal />
     </>
   );
 };
