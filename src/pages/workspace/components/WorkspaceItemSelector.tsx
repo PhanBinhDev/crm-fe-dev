@@ -1,9 +1,22 @@
 import { IWorkspace } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useNavigation } from '@refinedev/core';
-import { IconChevronDown, IconPencil, IconSettings, IconShare } from '@tabler/icons-react';
-import { Avatar, Button, Card, Divider, List, Popover, Skeleton, Space, Tooltip } from 'antd';
+import { useCustomMutation, useNavigation } from '@refinedev/core';
+import { IconCamera, IconChevronDown, IconSettings, IconShare } from '@tabler/icons-react';
+import {
+  Avatar,
+  Button,
+  Card,
+  Divider,
+  List,
+  message,
+  Popover,
+  Skeleton,
+  Space,
+  Spin,
+  Tooltip,
+  Upload,
+} from 'antd';
 import { useState } from 'react';
 
 interface WorkspaceItemSelectorProps {
@@ -14,7 +27,38 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
   const [open, setOpen] = useState(false);
   const { openModal } = useModal();
   const { push } = useNavigation();
-  const { workspaces, currentWorkspace, isLoading, switchWorkspace } = useWorkspaces();
+  const { workspaces, currentWorkspace, isLoading, switchWorkspace, refreshWorkspaces } =
+    useWorkspaces();
+
+  const { mutate: updateWorkspace, isPending: isUpdating } = useCustomMutation();
+
+  const handleUpdateWorkspace = async (option: any) => {
+    const formData = new FormData();
+    formData.append('avatar', option.file as Blob);
+    formData.append('name', currentWorkspace?.name as string);
+    formData.append('visibility', currentWorkspace?.visibility as string);
+
+    updateWorkspace(
+      {
+        url: '/workspaces/' + currentWorkspace?.id,
+        method: 'patch',
+        values: formData,
+        config: {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        },
+      },
+      {
+        onSuccess: () => {
+          message.success('Cập nhật avatar thành công');
+          refreshWorkspaces();
+          setOpen(false);
+        },
+        onError: () => {
+          message.error('Cập nhật avatar thất bại');
+        },
+      },
+    );
+  };
 
   const handleWorkspaceSelect = (workspace: IWorkspace) => {
     switchWorkspace(workspace.id);
@@ -54,7 +98,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
     );
   };
 
-  const priorityContent = (
+  const selectWorkspaceContent = (
     <Card
       styles={{
         body: {
@@ -64,15 +108,55 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
     >
       <Space direction="vertical" style={{ width: '100%', padding: 8 }}>
         <Space>
-          <Avatar
-            style={{
-              borderRadius: 6,
-            }}
-            size={'large'}
-            icon={<IconPencil size={16} />}
-            src={currentWorkspace?.avatar}
-          />
-
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <Upload
+              name="avatar"
+              showUploadList={false}
+              accept=".jpg,.jpeg,.png"
+              disabled={isUpdating}
+              customRequest={handleUpdateWorkspace}
+            >
+              {renderWorkspaceAvatar(currentWorkspace!, 35)}
+              {isUpdating && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Spin />
+                </div>
+              )}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: 0,
+                  transition: 'opacity 0.3s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
+              >
+                <IconCamera size={24} color="#fff" stroke={1.5} />
+              </div>
+            </Upload>
+          </div>
           <div
             style={{
               display: 'flex',
@@ -101,7 +185,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
                 color: '#666',
               }}
             >
-              1 thành viên
+              {currentWorkspace?.membersCount} thành viên
             </span>
           </div>
         </Space>
@@ -179,48 +263,48 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
         }}
       />
       <Space direction="vertical" style={{ width: '100%', padding: 8 }}>
-        <List>
-          {workspaces.length > 1 ? (
-            <List>
-              {workspaces
-                .filter(workspace => workspace.id !== currentWorkspace?.id)
-                .map(workspace => (
-                  <List.Item
-                    key={workspace.id}
-                    onClick={() => handleWorkspaceSelect(workspace)}
-                    style={{
-                      padding: '6px 8px',
-                      borderRadius: 6,
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.backgroundColor = '#f5f5f5';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <Space>
-                      {renderWorkspaceAvatar(workspace, 24)}
-                      <span>{workspace.name}</span>
-                    </Space>
-                  </List.Item>
-                ))}
-            </List>
-          ) : (
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '16px',
-                color: '#888',
-                background: '#f5f5f5',
-                borderRadius: 6,
-              }}
-            >
-              Không còn workspace nào khác.
-            </div>
-          )}
-        </List>
+        {workspaces.length > 1 ? (
+          <List>
+            {workspaces
+              .filter(workspace => workspace.id !== currentWorkspace?.id)
+              .map(workspace => (
+                <List.Item
+                  key={workspace.id}
+                  onClick={() => handleWorkspaceSelect(workspace)}
+                  style={{
+                    padding: '6px 8px',
+                    borderRadius: 6,
+                    cursor: 'pointer',
+                    marginBottom: workspace.id !== workspaces[workspaces.length - 1].id ? 4 : 0,
+                    border: 0,
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.backgroundColor = '#f5f5f5';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  <Space>
+                    {renderWorkspaceAvatar(workspace, 24)}
+                    <span>{workspace.name}</span>
+                  </Space>
+                </List.Item>
+              ))}
+          </List>
+        ) : (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '16px',
+              color: '#888',
+              background: '#f5f5f5',
+              borderRadius: 6,
+            }}
+          >
+            Không còn workspace nào khác.
+          </div>
+        )}
         <Button
           type="primary"
           style={{ width: '100%' }}
@@ -274,9 +358,9 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
           },
         }}
         trigger={['click']}
-        placement="bottomLeft"
+        placement="bottomRight"
         arrow={false}
-        content={priorityContent}
+        content={selectWorkspaceContent}
       >
         <Tooltip title={!collapsed ? null : 'Lựa chọn workspace'} placement="right">
           <Button

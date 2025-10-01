@@ -2,7 +2,6 @@ import { Authenticated, Refine } from '@refinedev/core';
 import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
 import routerBindings, {
   DocumentTitleHandler,
-  NavigateToResource,
   UnsavedChangesNotifier,
 } from '@refinedev/react-router-v6';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -28,6 +27,7 @@ import { DisplayConfigProvider } from './contexts/DisplayConfig';
 import { materialRoutes } from './pages/course-materials/routes';
 import { DashboardPage } from './pages/dashboard';
 import FeedbackForm from './pages/feedback/FeebackForm';
+import InviteWorkspace from './pages/invite/page';
 import { workspaceRoutes } from './pages/workspace/routes';
 import { accessControlProvider } from './providers/AccessControlProvider';
 
@@ -79,7 +79,7 @@ function App() {
                         </Authenticated>
                       }
                     >
-                      <Route index element={<NavigateToResource resource="dashboard" />} />
+                      <Route index element={<Navigate to="dashboard" replace />} />
                       <Route path="/dashboard" element={<DashboardPage />} />
                       {userRoutes}
                       {workspaceRoutes}
@@ -88,9 +88,9 @@ function App() {
                       {materialRoutes}
                       <Route path="*" element={<ErrorComponent />} />
                     </Route>
-
                     <Route element={<GoogleLoginPage />} path="/login" />
                     <Route element={<FeedbackForm />} path="/feedback-event/:id" />
+                    <Route path="/invite-members" element={<InviteWorkspace />} />,
                   </Routes>
 
                   <Modals />

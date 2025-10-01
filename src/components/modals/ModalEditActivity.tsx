@@ -4,8 +4,10 @@ import { useModal } from '@/hooks/useModal';
 import ActivityDetailRightSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailRightSidebar';
 import ActivityDetailSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailSidebar';
 import ActivityMainContent from '@/pages/workspace/components/ActivityDetails/ActivityMainContent';
+import ActivitySubtask from '@/pages/workspace/components/ActivityDetails/ActivitySubtask';
 import ProgressBar from '@/pages/workspace/components/ActivityDetails/ProgressBar';
 import SelectActivityType from '@/pages/workspace/components/SelectActivityType';
+import { calculateProgress } from '@/utils/activity';
 import { useInvalidate, useList, useOne, useUpdate } from '@refinedev/core';
 import {
   IconCalendar,
@@ -76,18 +78,18 @@ const ModalEditActivity = () => {
 
   const { mutate: updateActivity } = useUpdate<IActivity>({
     resource: 'activities',
-    id: activityFromModal?.id,
+    id: selectedItem?.data?.id,
     mutationMode: 'optimistic',
     invalidates: ['list'],
     mutationOptions: {
-      onSuccess: () => {
+      onSuccess: data => {
         invalidate({
-          resource: `activities/${activityFromModal?.id}/logs`,
+          resource: `activities/${data.data.id}/logs`,
           invalidates: ['list'],
         });
         invalidate({
           resource: 'activities',
-          id: activityFromModal?.id,
+          id: data.data.id,
           invalidates: ['detail'],
         });
       },
@@ -110,9 +112,15 @@ const ModalEditActivity = () => {
     if (activity && isOpenModal) {
       setSelectedItem({
         type: 'activity',
-        data: activity,
+        data: {
+          ...activity,
+          progress: calculateProgress(activity),
+        },
       });
-      setFormData(activity);
+      setFormData({
+        ...activity,
+        progress: calculateProgress(activity),
+      });
     }
   }, [activity, isOpenModal, setFormData]);
 
@@ -141,15 +149,27 @@ const ModalEditActivity = () => {
   }, [collapsedLeft, isOverlay]);
 
   const handleSelectItem = (item: { type: ActivityItemType; data: IActivity }) => {
-    setSelectedItem(item);
-    setFormData(item.data);
+    setSelectedItem({
+      type: item.type,
+      data: {
+        ...item.data,
+        progress: calculateProgress(item.data),
+      },
+    });
+    setFormData({
+      ...item.data,
+      progress: calculateProgress(item.data),
+    });
   };
 
   const renderContent = useMemo(() => {
     if (!selectedItem) {
       setSelectedItem({
         type: 'activity',
-        data: activity,
+        data: {
+          ...activity,
+          progress: calculateProgress(activity),
+        },
       });
 
       return;
@@ -172,7 +192,7 @@ const ModalEditActivity = () => {
         }}
       >
         {/* Progress bar */}
-        <ProgressBar activity={activity} />
+        <ProgressBar activity={itemData} />
 
         {!isMainActivity && (
           <Button
@@ -195,7 +215,10 @@ const ModalEditActivity = () => {
             onClick={() =>
               setSelectedItem({
                 type: 'activity',
-                data: activity,
+                data: {
+                  ...activity,
+                  progress: calculateProgress(activity),
+                },
               })
             }
           >
@@ -300,6 +323,9 @@ const ModalEditActivity = () => {
           }}
           name="description"
         />
+
+        {/* Sub task */}
+        {isMainActivity && <ActivitySubtask activity={activity} />}
       </div>
     );
   }, [

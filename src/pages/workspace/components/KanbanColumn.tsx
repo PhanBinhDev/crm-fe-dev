@@ -102,11 +102,7 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
   }, [editTitle, color, stage]);
 
   const isCompletedStage = useMemo(() => {
-    return (
-      stage.title.toLowerCase() === 'complete' &&
-      stage.isBuiltIn &&
-      stage.stageGroup === StageGroup.CLOSED
-    );
+    return stage.isCompleted && stage.isBuiltIn && stage.stageGroup === StageGroup.DONE;
   }, [stage]);
 
   return (

@@ -34,7 +34,9 @@ export const UserDrawer: React.FC<{
       onClose={onClose}
       open={open}
       title={null}
-      bodyStyle={{ padding: 0, background: '#fafafa' }}
+      styles={{
+        body: { padding: 0, background: '#fafafa' },
+      }}
     >
       {isLoading ? (
         <div style={{ padding: 48, textAlign: 'center' }}>

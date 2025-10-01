@@ -4,7 +4,7 @@ import { SelectedActivityItem } from '@/components/modals/ModalEditActivity';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import '@/styles/overwrite/antd/collapse.css';
 import { getStageGroupColor, getStageGroupLabel, getStageGroupTextColor } from '@/utils/stage';
-import { useCreate, useDelete, useInvalidate } from '@refinedev/core';
+import { useCreate, useDelete } from '@refinedev/core';
 import {
   IconCheck,
   IconDeviceFloppy,
@@ -37,7 +37,6 @@ const ActivityDetailSidebar = ({
   selectedItem,
   onSelectItem,
   refetchActivity,
-  onShowAction,
 }: ActivityDetailSidebarProps) => {
   const [showInput, setShowInput] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -46,7 +45,6 @@ const ActivityDetailSidebar = ({
   const [name, setName] = useState<string>('');
   const subActivities = activity.subActivities || [];
   const { mutate: deleteActivity } = useDelete();
-  const invalidate = useInvalidate();
 
   const { currentWorkspace } = useWorkspaces();
 
@@ -190,192 +188,185 @@ const ActivityDetailSidebar = ({
           </div>
         </div>
       ),
-      style: {
-        background: '#fff',
-        boxShadow: 'rgba(0, 0, 0, 0.05) 0px 0px 0px 1px',
-        borderRadius: 6,
-        padding: '6px 8px',
-        height: '100%',
-      },
-      children: (
-        <div
-          style={{
-            padding: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-          }}
-        >
-          <List
-            style={{
-              marginLeft: 12,
-            }}
-            dataSource={[
-              ...subActivities,
-              ...(showInput
-                ? [
-                    {
-                      id: 'new',
-                      name: (
-                        <Input
-                          variant="borderless"
-                          style={{
-                            padding: 0,
-                            borderRadius: 0,
-                            flex: 1,
-                            width: '100%',
-                            minWidth: 0,
-                          }}
-                          placeholder="Nhập tên hoạt động phụ"
-                          autoFocus
-                          disabled={isCreating}
-                          value={name}
-                          onChange={e => {
-                            setName(e.target.value);
-                            if (error) setError(false);
-                          }}
-                          onBlur={() => {
-                            setShowInput(false);
-                          }}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                              handleCreateActivity();
-                            }
-                          }}
-                        />
-                      ),
-                      stage: { id: '', title: '', position: 0, color: '#d9d9d9' },
-                    } as unknown as IActivity,
-                  ]
-                : []),
-            ]}
-            renderItem={(item: IActivity) => {
-              const isSelected =
-                selectedItem?.type === 'subactivity' && selectedItem?.data?.id === item.id;
+      // children: (
+      //   <div
+      //     style={{
+      //       padding: 0,
+      //       display: 'flex',
+      //       flexDirection: 'column',
+      //       gap: 4,
+      //     }}
+      //   >
+      //     <List
+      //       style={{
+      //         marginLeft: 12,
+      //       }}
+      //       dataSource={[
+      //         ...subActivities,
+      //         ...(showInput
+      //           ? [
+      //               {
+      //                 id: 'new',
+      //                 name: (
+      //                   <Input
+      //                     variant="borderless"
+      //                     style={{
+      //                       padding: 0,
+      //                       borderRadius: 0,
+      //                       flex: 1,
+      //                       width: '100%',
+      //                       minWidth: 0,
+      //                     }}
+      //                     placeholder="Nhập tên hoạt động phụ"
+      //                     autoFocus
+      //                     disabled={isCreating}
+      //                     value={name}
+      //                     onChange={e => {
+      //                       setName(e.target.value);
+      //                       if (error) setError(false);
+      //                     }}
+      //                     onBlur={() => {
+      //                       setShowInput(false);
+      //                     }}
+      //                     onKeyDown={e => {
+      //                       if (e.key === 'Enter') {
+      //                         handleCreateActivity();
+      //                       }
+      //                     }}
+      //                   />
+      //                 ),
+      //                 stage: { id: '', title: '', position: 0, color: '#d9d9d9' },
+      //               } as unknown as IActivity,
+      //             ]
+      //           : []),
+      //       ]}
+      //       renderItem={(item: IActivity) => {
+      //         const isSelected =
+      //           selectedItem?.type === 'subactivity' && selectedItem?.data?.id === item.id;
 
-              return (
-                <List.Item
-                  key={item.id}
-                  onClick={e => {
-                    e.stopPropagation();
-                    if (item.id === 'new') return;
-                    onSelectItem({
-                      type: 'subactivity',
-                      data: item as IActivity,
-                    });
-                  }}
-                  style={{
-                    padding: `6px ${hovered === item.id ? '4px' : '12px'} 6px 12px`,
-                    border: 0,
-                    borderRadius: 6,
-                    margin: 1,
-                    marginTop: 3,
-                    gap: 12,
-                    cursor: 'pointer',
-                    alignItems: 'center',
-                    justifyContent: 'flex-start',
-                    backgroundColor: isSelected ? '#f2f2f2' : 'transparent',
-                    maxHeight: 34,
-                  }}
-                  onMouseEnter={e => {
-                    e.stopPropagation();
-                    if (!isSelected)
-                      (e.currentTarget as HTMLDivElement).style.backgroundColor = '#f5f5f5';
-                    if (e.currentTarget === e.target) setHovered(item.id);
-                  }}
-                  onMouseLeave={e => {
-                    e.stopPropagation();
-                    if (!isSelected)
-                      (e.currentTarget as HTMLDivElement).style.backgroundColor = 'transparent';
-                    if (e.currentTarget === e.target) setHovered(null);
-                  }}
-                >
-                  <ActivityDetailCollapseStatus color={item?.stage?.color} />
-                  <Text
-                    style={{
-                      width: '100%',
-                    }}
-                  >
-                    {item.name}
-                  </Text>
+      //         return (
+      //           <List.Item
+      //             key={item.id}
+      //             onClick={e => {
+      //               e.stopPropagation();
+      //               if (item.id === 'new') return;
+      //               onSelectItem({
+      //                 type: 'subactivity',
+      //                 data: item as IActivity,
+      //               });
+      //             }}
+      //             style={{
+      //               padding: `6px ${hovered === item.id ? '4px' : '12px'} 6px 12px`,
+      //               border: 0,
+      //               borderRadius: 6,
+      //               margin: 1,
+      //               marginTop: 3,
+      //               gap: 12,
+      //               cursor: 'pointer',
+      //               alignItems: 'center',
+      //               justifyContent: 'flex-start',
+      //               backgroundColor: isSelected ? '#f2f2f2' : 'transparent',
+      //               maxHeight: 34,
+      //             }}
+      //             onMouseEnter={e => {
+      //               e.stopPropagation();
+      //               if (!isSelected)
+      //                 (e.currentTarget as HTMLDivElement).style.backgroundColor = '#f5f5f5';
+      //               if (e.currentTarget === e.target) setHovered(item.id);
+      //             }}
+      //             onMouseLeave={e => {
+      //               e.stopPropagation();
+      //               if (!isSelected)
+      //                 (e.currentTarget as HTMLDivElement).style.backgroundColor = 'transparent';
+      //               if (e.currentTarget === e.target) setHovered(null);
+      //             }}
+      //           >
+      //             <ActivityDetailCollapseStatus color={item?.stage?.color} />
+      //             <Text
+      //               style={{
+      //                 width: '100%',
+      //               }}
+      //             >
+      //               {item.name}
+      //             </Text>
 
-                  {item.id === 'new' ? (
-                    <Button
-                      size="small"
-                      type="text"
-                      style={{
-                        borderRadius: 6,
-                        padding: '0 6px',
-                      }}
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleCreateActivity();
-                      }}
-                      loading={isCreating}
-                      icon={<IconDeviceFloppy size={16} color="#838383" />}
-                      styles={{
-                        icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
-                      }}
-                    />
-                  ) : hovered === item.id ? (
-                    <Dropdown
-                      placement="bottomLeft"
-                      trigger={['click']}
-                      menu={{
-                        items: [
-                          {
-                            key: 'duplicate',
-                            label: (
-                              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                Nhân bản
-                              </span>
-                            ),
-                            onClick: () => handleDuplicateActivity(item),
-                          },
-                          {
-                            key: 'checklist',
-                            label: (
-                              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                Xoá
-                              </span>
-                            ),
-                            onClick: () => handleDeleteActivity(item),
-                          },
-                        ],
-                      }}
-                    >
-                      <Button
-                        type="text"
-                        size="small"
-                        onClick={e => e.stopPropagation()}
-                        icon={<IconDotsVertical size={14} color="#838383" />}
-                        style={{ borderRadius: 6, padding: '0 6px' }}
-                      />
-                    </Dropdown>
-                  ) : isSelected ? (
-                    <IconCheck size={16} color="#838383" />
-                  ) : null}
-                </List.Item>
-              );
-            }}
-          >
-            <Button
-              type="text"
-              style={{
-                width: '100%',
-                justifyContent: 'flex-start',
-                padding: '0 10px',
-                borderRadius: 6,
-                marginTop: 3,
-              }}
-              onClick={() => setShowInput(true)}
-              icon={<IconPlus size={14} color="#838383" />}
-            >
-              Thêm hoạt động phụ
-            </Button>
-          </List>
-        </div>
-      ),
+      //             {item.id === 'new' ? (
+      //               <Button
+      //                 size="small"
+      //                 type="text"
+      //                 style={{
+      //                   borderRadius: 6,
+      //                   padding: '0 6px',
+      //                 }}
+      //                 onClick={e => {
+      //                   e.stopPropagation();
+      //                   handleCreateActivity();
+      //                 }}
+      //                 loading={isCreating}
+      //                 icon={<IconDeviceFloppy size={16} color="#838383" />}
+      //                 styles={{
+      //                   icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+      //                 }}
+      //               />
+      //             ) : hovered === item.id ? (
+      //               <Dropdown
+      //                 placement="bottomLeft"
+      //                 trigger={['click']}
+      //                 menu={{
+      //                   items: [
+      //                     {
+      //                       key: 'duplicate',
+      //                       label: (
+      //                         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      //                           Nhân bản
+      //                         </span>
+      //                       ),
+      //                       onClick: () => handleDuplicateActivity(item),
+      //                     },
+      //                     {
+      //                       key: 'checklist',
+      //                       label: (
+      //                         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      //                           Xoá
+      //                         </span>
+      //                       ),
+      //                       onClick: () => handleDeleteActivity(item),
+      //                     },
+      //                   ],
+      //                 }}
+      //               >
+      //                 <Button
+      //                   type="text"
+      //                   size="small"
+      //                   onClick={e => e.stopPropagation()}
+      //                   icon={<IconDotsVertical size={14} color="#838383" />}
+      //                   style={{ borderRadius: 6, padding: '0 6px' }}
+      //                 />
+      //               </Dropdown>
+      //             ) : isSelected ? (
+      //               <IconCheck size={16} color="#838383" />
+      //             ) : null}
+      //           </List.Item>
+      //         );
+      //       }}
+      //     >
+      //       <Button
+      //         type="text"
+      //         style={{
+      //           width: '100%',
+      //           justifyContent: 'flex-start',
+      //           padding: '0 10px',
+      //           borderRadius: 6,
+      //           marginTop: 3,
+      //         }}
+      //         onClick={() => setShowInput(true)}
+      //         icon={<IconPlus size={14} color="#838383" />}
+      //       >
+      //         Thêm hoạt động phụ
+      //       </Button>
+      //     </List>
+      //   </div>
+      // ),
     },
   ];
 
@@ -415,17 +406,203 @@ const ActivityDetailSidebar = ({
           flex: 1,
         }}
       >
-        <Collapse
-          activeKey={['activity']}
-          bordered={false}
-          collapsible={'header'}
-          size="small"
+        <div
           style={{
+            backgroundColor: '#fff',
+            boxShadow: 'rgba(0, 0, 0, 0.05) 0px 0px 0px 1px',
+            borderRadius: 10,
+            overflowY: 'auto',
+            padding: '6px 8px',
             height: '100%',
           }}
-          expandIcon={() => <ActivityDetailCollapseStatus color={activity?.stage?.color} />}
-          items={items}
-        />
+        >
+          <Collapse
+            activeKey={['activity']}
+            bordered={false}
+            collapsible={'header'}
+            size="small"
+            expandIcon={() => <ActivityDetailCollapseStatus color={activity?.stage?.color} />}
+            items={items}
+          />
+
+          <div
+            style={{
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+            }}
+          >
+            <List
+              style={{
+                marginLeft: 12,
+              }}
+              dataSource={[
+                ...subActivities,
+                ...(showInput
+                  ? [
+                      {
+                        id: 'new',
+                        name: (
+                          <Input
+                            variant="borderless"
+                            style={{
+                              padding: 0,
+                              borderRadius: 0,
+                              flex: 1,
+                              width: '100%',
+                              minWidth: 0,
+                            }}
+                            placeholder="Nhập tên hoạt động phụ"
+                            autoFocus
+                            disabled={isCreating}
+                            value={name}
+                            onChange={e => {
+                              setName(e.target.value);
+                              if (error) setError(false);
+                            }}
+                            onBlur={() => {
+                              setShowInput(false);
+                            }}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') {
+                                handleCreateActivity();
+                              }
+                            }}
+                          />
+                        ),
+                        stage: { id: '', title: '', position: 0, color: '#d9d9d9' },
+                      } as unknown as IActivity,
+                    ]
+                  : []),
+              ]}
+              renderItem={(item: IActivity) => {
+                const isSelected =
+                  selectedItem?.type === 'subactivity' && selectedItem?.data?.id === item.id;
+
+                return (
+                  <List.Item
+                    key={item.id}
+                    onClick={e => {
+                      e.stopPropagation();
+                      if (item.id === 'new') return;
+                      onSelectItem({
+                        type: 'subactivity',
+                        data: item as IActivity,
+                      });
+                    }}
+                    style={{
+                      padding: `6px ${hovered === item.id ? '4px' : '12px'} 6px 12px`,
+                      border: 0,
+                      borderRadius: 6,
+                      margin: 1,
+                      marginTop: 3,
+                      gap: 12,
+                      cursor: 'pointer',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      backgroundColor: isSelected ? '#f2f2f2' : 'transparent',
+                      maxHeight: 34,
+                    }}
+                    onMouseEnter={e => {
+                      e.stopPropagation();
+                      if (!isSelected)
+                        (e.currentTarget as HTMLDivElement).style.backgroundColor = '#f5f5f5';
+                      if (e.currentTarget === e.target) setHovered(item.id);
+                    }}
+                    onMouseLeave={e => {
+                      e.stopPropagation();
+                      if (!isSelected)
+                        (e.currentTarget as HTMLDivElement).style.backgroundColor = 'transparent';
+                      if (e.currentTarget === e.target) setHovered(null);
+                    }}
+                  >
+                    <ActivityDetailCollapseStatus color={item?.stage?.color} />
+                    <Text
+                      style={{
+                        width: '100%',
+                      }}
+                    >
+                      {item.name}
+                    </Text>
+
+                    {item.id === 'new' ? (
+                      <Button
+                        size="small"
+                        type="text"
+                        style={{
+                          borderRadius: 6,
+                          padding: '0 6px',
+                        }}
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleCreateActivity();
+                        }}
+                        loading={isCreating}
+                        icon={<IconDeviceFloppy size={16} color="#838383" />}
+                        styles={{
+                          icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+                        }}
+                      />
+                    ) : hovered === item.id ? (
+                      <Dropdown
+                        placement="bottomLeft"
+                        trigger={['click']}
+                        menu={{
+                          items: [
+                            {
+                              key: 'duplicate',
+                              label: (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  Nhân bản
+                                </span>
+                              ),
+                              onClick: () => handleDuplicateActivity(item),
+                            },
+                            {
+                              key: 'checklist',
+                              label: (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  Xoá
+                                </span>
+                              ),
+                              onClick: () => handleDeleteActivity(item),
+                            },
+                          ],
+                        }}
+                      >
+                        <Button
+                          type="text"
+                          size="small"
+                          onClick={e => e.stopPropagation()}
+                          icon={<IconDotsVertical size={14} color="#838383" />}
+                          style={{ borderRadius: 6, padding: '0 6px' }}
+                        />
+                      </Dropdown>
+                    ) : isSelected ? (
+                      <IconCheck size={16} color="#838383" />
+                    ) : null}
+                  </List.Item>
+                );
+              }}
+            >
+              <Button
+                type="text"
+                style={{
+                  width: '100%',
+                  justifyContent: 'flex-start',
+                  padding: '0 10px',
+                  borderRadius: 6,
+                  marginTop: 3,
+                }}
+                onClick={() => setShowInput(true)}
+                icon={<IconPlus size={14} color="#838383" />}
+              >
+                Thêm hoạt động phụ
+              </Button>
+            </List>
+          </div>
+        </div>
       </div>
     </div>
   );

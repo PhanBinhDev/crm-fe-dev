@@ -30,24 +30,24 @@ const ModalAddWorkspace: React.FC = () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
-      
+
       const payload: any = {
         name: values.name,
         description: values.description || '',
         visibility: isPrivate ? 'private' : 'public',
         members: inviteMembers.map(m => m.email),
       };
-      
+
       // Chỉ thêm avatar nếu có
       if (avatarData) {
         payload.avatar = avatarData;
       }
-      
+
       console.log('Creating workspace with payload:', payload);
-      
+
       const result = await createWorkspace(payload);
       console.log('Workspace creation result:', result);
-      
+
       message.success('Tạo workspace thành công!');
       refreshWorkspaces();
       form.resetFields();
@@ -100,11 +100,7 @@ const ModalAddWorkspace: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-              <AvatarUpload
-                value={avatarData}
-                onChange={setAvatarData}
-                size={36}
-              />
+              <AvatarUpload value={avatarData} onChange={setAvatarData} size={36} />
             </div>
             <Form.Item
               name="name"

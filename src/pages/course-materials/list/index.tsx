@@ -52,7 +52,12 @@ const MaterialsList: React.FC = () => {
 
   return (
     <RefineList title="Tài liệu môn học" headerButtons={[]}>
-      <Card bodyStyle={{ padding: 16, background: '#f5f5f5' }} style={{ borderRadius: 12 }}>
+      <Card
+        styles={{
+          body: { padding: 16, background: '#f5f5f5' },
+        }}
+        style={{ borderRadius: 12 }}
+      >
         {/* Header */}
         <Row justify="end" style={{ marginBottom: 12 }}>
           <MaterialFilter
@@ -117,7 +122,9 @@ function FolderCard({ title, onClick }: { title: string; onClick?: () => void })
       hoverable
       onClick={onClick}
       style={{ borderRadius: 16, background: '#fff', textAlign: 'center' }}
-      bodyStyle={{ padding: 16 }}
+      styles={{
+        body: { padding: 16 },
+      }}
     >
       <div
         style={{
