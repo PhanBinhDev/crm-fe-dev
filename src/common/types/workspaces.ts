@@ -6,6 +6,7 @@ export interface IWorkspace extends IBase {
   icon?: string;
   avatar?: string;
   visibility?: 'private' | 'public';
+  membersCount?: number;
 }
 
 export interface IMember extends IBase {

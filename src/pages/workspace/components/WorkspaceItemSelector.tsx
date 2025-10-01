@@ -186,7 +186,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
                 color: '#666',
               }}
             >
-              1 thành viên
+              {currentWorkspace?.membersCount} thành viên
             </span>
           </div>
         </Space>
