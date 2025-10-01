@@ -6,6 +6,7 @@ import SettingsMembersWorkspaces from './settings/Member';
 import AppearanceSettings from './settings/components/AppearanceSettings';
 import GeneralSettings from './settings/components/GeneralSettings';
 import SecuritySettings from './settings/components/SecuritySettings';
+import WorkspaceMember from './settings/components/WorkspaceMember';
 
 export const workspaceRoutes = [
   <Route path="/workspaces" element={<RedirectToWorkspace />} />,
@@ -13,6 +14,7 @@ export const workspaceRoutes = [
   <Route path="/workspaces/:workspaceId/settings" element={<SettingsWorkspaces />}>
     <Route index element={<Navigate to="general" replace />} />
     <Route path="general" element={<GeneralSettings />} />
+    <Route path="member" element={<WorkspaceMember />} />
     <Route path="security" element={<SecuritySettings />} />
     <Route path="appearance" element={<AppearanceSettings />} />
   </Route>,
