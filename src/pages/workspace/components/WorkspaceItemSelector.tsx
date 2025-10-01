@@ -2,7 +2,7 @@ import { IWorkspace } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useNavigation } from '@refinedev/core';
-import { IconChevronDown, IconPencil, IconSettings, IconUsers } from '@tabler/icons-react';
+import { IconChevronDown, IconPencil, IconSettings } from '@tabler/icons-react';
 import { Avatar, Button, Card, Divider, List, Popover, Skeleton, Space, Tooltip } from 'antd';
 import { useState } from 'react';
 
@@ -58,7 +58,8 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
     <Card
       styles={{
         body: {
-          padding: 0,
+          padding: '10px 5px',
+          width: '230px',
         },
       }}
     >
@@ -142,7 +143,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
           >
             Cài đặt
           </Button>
-          <Button
+          {/* <Button
             type="text"
             style={{
               width: '100%',
@@ -165,7 +166,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
             icon={<IconUsers size={14} />}
           >
             Thành viên
-          </Button>
+          </Button> */}
         </Space>
       </Space>
       <Divider
@@ -264,7 +265,8 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
         styles={{
           body: {
             padding: 0,
-            width: 310,
+            width: 230,
+            marginLeft: 35,
           },
         }}
         trigger={['click']}

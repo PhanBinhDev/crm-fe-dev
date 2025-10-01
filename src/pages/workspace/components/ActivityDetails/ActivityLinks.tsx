@@ -31,8 +31,7 @@ const ActivityLinks = ({ activityId, viewMode }: ActivityLinksProps) => {
                 </div>
               </div>
 
-              {/* Link */}
-              <div style={{ marginLeft: 10 /* = khoảng icon + marginRight */ }}>
+              <div style={{ marginLeft: 10 }}>
                 <a
                   href={item.url}
                   target="_blank"
