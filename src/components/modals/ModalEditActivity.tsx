@@ -78,18 +78,18 @@ const ModalEditActivity = () => {
 
   const { mutate: updateActivity } = useUpdate<IActivity>({
     resource: 'activities',
-    id: activityFromModal?.id,
+    id: selectedItem?.data?.id,
     mutationMode: 'optimistic',
     invalidates: ['list'],
     mutationOptions: {
-      onSuccess: () => {
+      onSuccess: data => {
         invalidate({
-          resource: `activities/${activityFromModal?.id}/logs`,
+          resource: `activities/${data.data.id}/logs`,
           invalidates: ['list'],
         });
         invalidate({
           resource: 'activities',
-          id: activityFromModal?.id,
+          id: data.data.id,
           invalidates: ['detail'],
         });
       },

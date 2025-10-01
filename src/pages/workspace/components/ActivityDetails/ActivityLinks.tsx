@@ -63,7 +63,9 @@ const ActivityLinks = ({ activityId, viewMode }: ActivityLinksProps) => {
       <Card
         hoverable
         style={{ borderRadius: 12, boxShadow: '0 3px 3px rgba(0, 0, 0, 0.1)' }}
-        bodyStyle={{ display: 'flex', gap: 16, padding: 12 }}
+        styles={{
+          body: { display: 'flex', gap: 16, padding: 12 },
+        }}
       >
         <div style={{ flex: 1, maxHeight: 100, overflow: 'hidden' }}>
           <p style={{ fontSize: 11, color: '#909090ff', marginBottom: 3 }}>

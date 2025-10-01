@@ -27,6 +27,7 @@ import { DisplayConfigProvider } from './contexts/DisplayConfig';
 import { materialRoutes } from './pages/course-materials/routes';
 import { DashboardPage } from './pages/dashboard';
 import FeedbackForm from './pages/feedback/FeebackForm';
+import InviteWorkspace from './pages/invite/page';
 import { workspaceRoutes } from './pages/workspace/routes';
 import { accessControlProvider } from './providers/AccessControlProvider';
 
@@ -87,9 +88,9 @@ function App() {
                       {materialRoutes}
                       <Route path="*" element={<ErrorComponent />} />
                     </Route>
-
                     <Route element={<GoogleLoginPage />} path="/login" />
                     <Route element={<FeedbackForm />} path="/feedback-event/:id" />
+                    <Route path="/invite-members" element={<InviteWorkspace />} />,
                   </Routes>
 
                   <Modals />
