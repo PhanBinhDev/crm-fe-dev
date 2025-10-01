@@ -1,6 +1,8 @@
+import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
 import { IconSend2, IconTrash } from '@tabler/icons-react';
-import { Avatar, Button, Typography } from 'antd';
+import { Avatar, Button, message, Popconfirm, Skeleton, Typography } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
+import dayjs from 'dayjs';
 import { useRef, useState } from 'react';
 
 interface ActivityCommentTabProps {
@@ -9,33 +11,258 @@ interface ActivityCommentTabProps {
 
 interface Comment {
   id: string;
-  author: string;
+  user: { avatar: string; name: string };
   content: string;
   createdAt: string;
+  parentCommentId?: string | null;
+  replies?: Comment[];
 }
 
-const dummyComments: Comment[] = [
-  {
-    id: '1',
-    author: 'Diễm',
-    content: 'cmt',
-    createdAt: '28/09/2025 12:30',
-  },
-];
-
 const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
-  const [comments] = useState<Comment[]>(dummyComments);
-  const [newComment, setNewComment] = useState('');
   const [focused, setFocused] = useState(false);
-
   const inputRef = useRef<any>(null);
 
-  const handleReplyClick = () => {
-    setFocused(true);
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 0);
+  const { mutate: createComment, isLoading: isCreating } = useCreate();
+  const { mutate: updateComment } = useUpdate();
+  const { mutate: deleteComment } = useDelete();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [commentContent, setCommentContent] = useState('');
+  const [replyToId, setReplyToId] = useState<string | null>(null);
+
+  const {
+    data: comments,
+    refetch,
+    isLoading,
+  } = useList<Comment>({
+    resource: `activities/${activityId}/comments`,
+  });
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: 10 }}>
+        <Skeleton active paragraph={{ rows: 4 }} />
+      </div>
+    );
+  }
+
+  const buildCommentsTree = (comments: Comment[]) => {
+    const map = new Map<string, Comment>();
+    const roots: Comment[] = [];
+
+    comments.forEach(c => {
+      map.set(c.id, { ...c, replies: [] });
+    });
+
+    map.forEach(cmt => {
+      if (cmt.parentCommentId) {
+        const parent = map.get(cmt.parentCommentId);
+        if (parent) {
+          parent.replies?.push(cmt);
+        }
+      } else {
+        roots.push(cmt);
+      }
+    });
+
+    return roots;
   };
+
+  const organizedComments = buildCommentsTree(comments?.data || []);
+
+  const handleReplyClick = (parentId: string) => {
+    setReplyToId(parentId);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const handleSendComment = () => {
+    if (!commentContent.trim()) return;
+
+    const values = {
+      activityId,
+      content: commentContent,
+      parentCommentId: replyToId || '',
+    };
+
+    createComment(
+      {
+        resource: `activities/comments`,
+        values,
+      },
+      {
+        onSuccess: () => {
+          setCommentContent('');
+          setReplyToId(null);
+          setFocused(false);
+          refetch();
+          message.success(replyToId ? 'Đã trả lời' : 'Đã bình luận');
+        },
+        onError: error => {
+          console.error('Error creating comment:', error);
+          message.error('Gửi thất bại');
+        },
+      },
+    );
+  };
+
+  const handleSaveEdit = (id: string) => {
+    updateComment(
+      {
+        resource: `activities/${activityId}/comments`,
+        id,
+        values: { content: editingContent },
+      },
+      {
+        onSuccess: () => {
+          refetch();
+          message.success('Cập nhật bình luận thành công');
+          setEditingId(null);
+          setEditingContent('');
+        },
+        onError: () => {
+          message.error('Cập nhật bình luận thất bại');
+        },
+      },
+    );
+  };
+
+  const handleStartEdit = (id: string, currentContent: string) => {
+    setEditingId(id);
+    setEditingContent(currentContent);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteComment(
+      {
+        resource: `activities/${activityId}/comments`,
+        id,
+      },
+      {
+        onSuccess: () => {
+          refetch();
+          message.success('Xóa thành công');
+        },
+        onError: () => {
+          message.error('Xóa thất bại');
+        },
+      },
+    );
+  };
+
+  const renderComment = (cmt: Comment, isReply = false) => (
+    <div
+      key={cmt.id}
+      style={{
+        marginBottom: 7,
+        marginLeft: isReply ? 40 : 0,
+        padding: '10px',
+        background: '#fff',
+        borderRadius: 8,
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, flex: 1 }}>
+          <Avatar size={isReply ? 32 : 40}>{cmt.user.avatar}</Avatar>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{cmt.user.name}</div>
+              <div style={{ fontSize: 11, color: '#999' }}>
+                {dayjs(cmt.createdAt).format('DD/MM/YYYY HH:mm')}
+              </div>
+            </div>
+
+            <div style={{ fontSize: 13, marginBottom: 6 }}>
+              {editingId === cmt.id ? (
+                <TextArea
+                  value={editingContent}
+                  onChange={e => setEditingContent(e.target.value)}
+                  onPressEnter={e => {
+                    if (!e.shiftKey) {
+                      e.preventDefault();
+                      handleSaveEdit(cmt.id);
+                    }
+                  }}
+                  autoSize={{ minRows: 1, maxRows: 6 }}
+                  style={{ resize: 'none' }}
+                />
+              ) : (
+                cmt.content
+              )}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              {editingId === cmt.id ? (
+                <>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 550,
+                      cursor: 'pointer',
+                      color: '#1890ff',
+                    }}
+                    onClick={() => handleSaveEdit(cmt.id)}
+                  >
+                    Lưu
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 550,
+                      cursor: 'pointer',
+                      color: '#686868ff',
+                    }}
+                    onClick={() => setEditingId(null)}
+                  >
+                    Hủy
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 550,
+                      cursor: 'pointer',
+                      color: '#686868ff',
+                    }}
+                    onClick={() => handleStartEdit(cmt.id, cmt.content)}
+                  >
+                    Chỉnh sửa
+                  </span>
+
+                  {!isReply && (
+                    <span
+                      onClick={() => handleReplyClick(cmt.id)}
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 550,
+                        cursor: 'pointer',
+                        color: '#686868ff',
+                      }}
+                    >
+                      Trả lời
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <Popconfirm
+            title="Xác nhận xóa bình luận?"
+            okText="Xóa"
+            cancelText="Hủy"
+            okButtonProps={{ danger: true }}
+            onConfirm={() => handleDelete(cmt.id)}
+          >
+            <IconTrash size={14} color="#ff4f4fff" style={{ cursor: 'pointer' }} />
+          </Popconfirm>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -62,78 +289,18 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
           overflowY: 'auto',
         }}
       >
-        {comments.map(cmt => (
-          <div
-            style={{
-              marginBottom: 7,
-              padding: '10px',
-              background: '#ffffffff',
-              borderRadius: 8,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div
-                key={cmt.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 8,
-                  flex: 1,
-                }}
-              >
-                <Avatar>{cmt.author[0]}</Avatar>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{cmt.author}</div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: '#999',
-                      }}
-                    >
-                      {cmt.createdAt}
-                    </div>
-                  </div>
-
-                  <div style={{ fontSize: 13, marginBottom: 6 }}>{cmt.content}</div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 550,
-                        cursor: 'pointer',
-                        color: '#686868ff',
-                      }}
-                    >
-                      Chỉnh sửa
-                    </div>
-                    <div
-                      onClick={handleReplyClick}
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 550,
-                        cursor: 'pointer',
-                        color: '#686868ff',
-                      }}
-                    >
-                      Trả lời
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <IconTrash size={14} color="#ff4f4fff" style={{ cursor: 'pointer' }} />
-              </div>
+        {organizedComments.length ? (
+          organizedComments.map(cmt => (
+            <div key={cmt.id}>
+              {renderComment(cmt)}
+              {cmt.replies?.map(reply => renderComment(reply, true))}
             </div>
+          ))
+        ) : (
+          <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+            Chưa có bình luận
           </div>
-        ))}
+        )}
       </div>
 
       <div
@@ -143,22 +310,50 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
           background: '#f7f7f7ff',
         }}
       >
+        {replyToId && (
+          <div
+            style={{
+              fontSize: 12,
+              color: '#666',
+              marginBottom: 4,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <span>Đang trả lời...</span>
+            <span
+              onClick={() => setReplyToId(null)}
+              style={{ color: '#1890ff', cursor: 'pointer' }}
+            >
+              Hủy
+            </span>
+          </div>
+        )}
         <div style={{ position: 'relative', width: '100%' }}>
           <TextArea
             ref={inputRef}
-            placeholder="Nhập bình luận..."
-            value={newComment}
-            onChange={e => setNewComment(e.target.value)}
+            placeholder={replyToId ? 'Nhập trả lời...' : 'Nhập bình luận...'}
+            value={commentContent}
+            onChange={e => setCommentContent(e.target.value)}
             autoSize={focused ? { minRows: 3, maxRows: 6 } : { minRows: 1.45, maxRows: 1.45 }}
             onFocus={() => setFocused(true)}
             onBlur={() => {
-              if (!newComment.trim()) setFocused(false);
+              if (!commentContent.trim()) setFocused(false);
+            }}
+            onPressEnter={e => {
+              if (!e.shiftKey) {
+                e.preventDefault();
+                handleSendComment();
+              }
             }}
             style={{ paddingRight: 70 }}
           />
 
           <Button
             type="primary"
+            loading={isCreating}
+            onClick={handleSendComment}
             style={{
               position: 'absolute',
               right: 6,
