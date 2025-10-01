@@ -284,7 +284,7 @@ const ModalAddActivity = () => {
                 borderRadius: 8,
               }}
               destroyOnHidden
-              placement="bottomLeft"
+              placement="bottomRight"
               icon={
                 <DownOutlined
                   size={16}

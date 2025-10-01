@@ -3,9 +3,9 @@ import { axiosInstance } from '@/lib/axios';
 export interface CreateWorkspacePayload {
   name: string;
   description: string;
-  icon: string;
   visibility: string;
   avatar: string;
+  members?: string[];
 }
 
 export async function createWorkspace(payload: CreateWorkspacePayload) {

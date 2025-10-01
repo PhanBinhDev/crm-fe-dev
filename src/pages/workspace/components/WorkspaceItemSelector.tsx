@@ -4,7 +4,7 @@ import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useNavigation } from '@refinedev/core';
 import { IconChevronDown, IconPencil, IconSettings } from '@tabler/icons-react';
 import { Avatar, Button, Card, Divider, List, Popover, Skeleton, Space, Tooltip } from 'antd';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface WorkspaceItemSelectorProps {
   collapsed?: boolean;
@@ -14,8 +14,6 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
   const [open, setOpen] = useState(false);
   const { openModal } = useModal();
   const { push } = useNavigation();
-  const [tablerIcons, setTablerIcons] = useState<Record<string, React.FC<any>>>({});
-
   const { workspaces, currentWorkspace, isLoading, switchWorkspace } = useWorkspaces();
 
   const handleWorkspaceSelect = (workspace: IWorkspace) => {
@@ -23,73 +21,37 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
     setOpen(false);
   };
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const mod = await import('@tabler/icons-react');
-        if (mounted) {
-          const iconMap = Object.entries(mod).reduce(
-            (acc, [key, comp]) => {
-              if (
-                key.startsWith('Icon') &&
-                (typeof comp === 'function' ||
-                  (typeof comp === 'object' && comp !== null && 'render' in comp))
-              ) {
-                acc[key] = comp as React.FC<any>;
-              }
-              return acc;
-            },
-            {} as Record<string, React.FC<any>>,
-          );
-          setTablerIcons(iconMap);
-        }
-      } catch (e) {
-        console.error('Failed to load tabler icons', e);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
   const renderWorkspaceAvatar = (workspace: IWorkspace, size: number = 24) => {
-    if (workspace?.avatar) {
-      return <Avatar size={size} src={workspace.avatar} />;
-    } else if (workspace?.icon) {
-      const IconComponent = tablerIcons[workspace.icon];
+    if (workspace?.avatar && typeof workspace.avatar === 'string') {
+      const avatarUrl = workspace.avatar.startsWith('http')
+        ? workspace.avatar
+        : `${import.meta.env.VITE_API_BASE_URL}${workspace.avatar}`;
 
-      return (
+      return <Avatar size={size} src={avatarUrl} />;
+    }
+
+    return (
+      <div
+        style={{
+          padding: 2,
+          borderRadius: 4,
+          backgroundColor: '#f9f9f9',
+        }}
+      >
         <Avatar
           size={size}
-          icon={<IconComponent size={16} />}
-          style={{ backgroundColor: '#1890ff' }}
-        />
-      );
-    } else {
-      return (
-        <div
           style={{
-            padding: 2,
-            borderRadius: 4,
-            backgroundColor: '#f9f9f9',
+            backgroundColor: 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'oklch(27.4% 0.006 286.033)',
           }}
         >
-          <Avatar
-            size={size}
-            style={{
-              backgroundColor: 'transparent',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'oklch(27.4% 0.006 286.033)',
-            }}
-          >
-            {workspace?.name?.charAt(0).toUpperCase() || 'W'}
-          </Avatar>
-        </div>
-      );
-    }
+          {workspace?.name?.charAt(0).toUpperCase() || 'W'}
+        </Avatar>
+      </div>
+    );
   };
 
   const priorityContent = (

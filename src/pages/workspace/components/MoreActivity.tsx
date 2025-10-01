@@ -10,7 +10,7 @@ interface MoreActivityProps {
   onShowAction: (action: keyof MoreActivityProps['showActions']) => void;
 }
 
-const MoreActivity = ({ showActions, onShowAction }: MoreActivityProps) => {
+const MoreActivity = ({ onShowAction }: MoreActivityProps) => {
   return (
     <>
       <Dropdown
@@ -39,6 +39,7 @@ const MoreActivity = ({ showActions, onShowAction }: MoreActivityProps) => {
             },
           ],
         }}
+        placement="bottomRight"
       >
         <Button
           size="small"
