@@ -2,7 +2,6 @@ import { Authenticated, Refine } from '@refinedev/core';
 import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
 import routerBindings, {
   DocumentTitleHandler,
-  NavigateToResource,
   UnsavedChangesNotifier,
 } from '@refinedev/react-router-v6';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -79,7 +78,7 @@ function App() {
                         </Authenticated>
                       }
                     >
-                      <Route index element={<NavigateToResource resource="dashboard" />} />
+                      <Route index element={<Navigate to="dashboard" replace />} />
                       <Route path="/dashboard" element={<DashboardPage />} />
                       {userRoutes}
                       {workspaceRoutes}

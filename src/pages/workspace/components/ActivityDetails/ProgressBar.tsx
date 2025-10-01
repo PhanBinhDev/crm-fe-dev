@@ -51,13 +51,13 @@ const ProgressBar = ({ activity }: ProgressBarProps) => {
       </div>
 
       <Typography.Text type="secondary" style={{ fontSize: 13, marginBottom: 4, display: 'block' }}>
-        {getProgressText(48)}
+        {getProgressText(activity.progress || 0)}
       </Typography.Text>
 
       <div style={{ marginTop: 'auto' }}>
         <Progress
-          percent={48}
-          strokeColor={getProgressColor(48)}
+          percent={activity.progress || 0}
+          strokeColor={getProgressColor(activity.progress || 0)}
           strokeWidth={8}
           style={{ borderRadius: 8, height: 'fit-content' }}
         />

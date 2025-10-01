@@ -6,7 +6,7 @@ import EstimateContent from '@/components/shared/EstimateContent';
 import PriorityContent from '@/components/shared/PriorityContent';
 import StatusContent from '@/components/shared/StatusContent';
 import { getPriorityLabel, mapToActivityPriorityFilter } from '@/constants';
-import { getActivityPriorityColor } from '@/utils/activity';
+import { calculateProgress, getActivityPriorityColor } from '@/utils/activity';
 import { formatMinutesToText } from '@/utils/formatter';
 import { getNextStage } from '@/utils/stage';
 import { parseTimeEstimate } from '@/utils/times';
@@ -50,10 +50,15 @@ const ActivityMainContent = ({
 }: ActivityMainContentProps) => {
   const onStageChange = useCallback(
     (stage: IStage) => {
-      setFormData(prev => ({
-        ...prev,
-        stage,
-      }));
+      setFormData(prev => {
+        console.log('progress', calculateProgress({ ...prev, stage } as IActivity));
+
+        return {
+          ...prev,
+          stage,
+          progress: calculateProgress({ ...prev, stage } as IActivity),
+        };
+      });
       onUpdate({
         values: {
           stage,

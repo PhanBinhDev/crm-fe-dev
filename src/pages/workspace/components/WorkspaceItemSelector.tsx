@@ -98,12 +98,12 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
     );
   };
 
-  const priorityContent = (
+  const selectWorkspaceContent = (
     <Card
       styles={{
         body: {
-          padding: '10px 5px',
-          width: '230px',
+          padding: '0',
+          width: '100%',
         },
       }}
     >
@@ -227,30 +227,6 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
           >
             Cài đặt
           </Button>
-          {/* <Button
-            type="text"
-            style={{
-              width: '100%',
-              border: '1px solid #d9d9d9',
-            }}
-            onClick={() => setOpen(false)}
-            onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = '#d9d9d9';
-            }}
-            styles={{
-              icon: {
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              },
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-            icon={<IconUsers size={14} />}
-          >
-            Thành viên
-          </Button> */}
         </Space>
       </Space>
       <Divider
@@ -259,48 +235,48 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
         }}
       />
       <Space direction="vertical" style={{ width: '100%', padding: 8 }}>
-        <List>
-          {workspaces.length > 1 ? (
-            <List>
-              {workspaces
-                .filter(workspace => workspace.id !== currentWorkspace?.id)
-                .map(workspace => (
-                  <List.Item
-                    key={workspace.id}
-                    onClick={() => handleWorkspaceSelect(workspace)}
-                    style={{
-                      padding: '6px 8px',
-                      borderRadius: 6,
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.backgroundColor = '#f5f5f5';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <Space>
-                      {renderWorkspaceAvatar(workspace, 24)}
-                      <span>{workspace.name}</span>
-                    </Space>
-                  </List.Item>
-                ))}
-            </List>
-          ) : (
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '16px',
-                color: '#888',
-                background: '#f5f5f5',
-                borderRadius: 6,
-              }}
-            >
-              Không còn workspace nào khác.
-            </div>
-          )}
-        </List>
+        {workspaces.length > 1 ? (
+          <List>
+            {workspaces
+              .filter(workspace => workspace.id !== currentWorkspace?.id)
+              .map(workspace => (
+                <List.Item
+                  key={workspace.id}
+                  onClick={() => handleWorkspaceSelect(workspace)}
+                  style={{
+                    padding: '6px 8px',
+                    borderRadius: 6,
+                    cursor: 'pointer',
+                    marginBottom: workspace.id !== workspaces[workspaces.length - 1].id ? 4 : 0,
+                    border: 0,
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.backgroundColor = '#f5f5f5';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  <Space>
+                    {renderWorkspaceAvatar(workspace, 24)}
+                    <span>{workspace.name}</span>
+                  </Space>
+                </List.Item>
+              ))}
+          </List>
+        ) : (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '16px',
+              color: '#888',
+              background: '#f5f5f5',
+              borderRadius: 6,
+            }}
+          >
+            Không còn workspace nào khác.
+          </div>
+        )}
         <Button
           type="primary"
           style={{ width: '100%' }}
@@ -349,14 +325,13 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
         styles={{
           body: {
             padding: 0,
-            width: 230,
-            marginLeft: 35,
+            width: 250,
           },
         }}
         trigger={['click']}
-        placement="bottomLeft"
+        placement="bottomRight"
         arrow={false}
-        content={priorityContent}
+        content={selectWorkspaceContent}
       >
         <Tooltip title={!collapsed ? null : 'Lựa chọn workspace'} placement="right">
           <Button

@@ -23,7 +23,7 @@ const modalTabs: {
 }[] = [
   { key: 'all', label: 'Tất cả' },
   { key: 'unread', label: 'Chưa đọc' },
-  { key: 'mentions', label: 'Đề cập' },
+  { key: 'mentions', label: 'Nhắc tên' },
 ] as const;
 
 const NotificationBtn = () => {

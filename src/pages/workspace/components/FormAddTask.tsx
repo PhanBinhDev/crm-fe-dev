@@ -8,8 +8,9 @@ import {
   IUser,
   ModalAction,
 } from '@/common/types';
+import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useCreate, useGetIdentity, useList } from '@refinedev/core';
+import { useCreate, useList } from '@refinedev/core';
 import { IconCheck, IconChevronRight } from '@tabler/icons-react';
 import { Form, Input, List, Modal, Popover, Space } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
@@ -80,7 +81,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
     );
   };
 
-  const { data: identity } = useGetIdentity<{ role: string }>();
+  const { user: identity } = useAuth();
   const currentUserRole = identity?.role;
 
   useImperativeHandle(ref, () => ({

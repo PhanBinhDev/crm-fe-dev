@@ -1,6 +1,7 @@
 import { MemberRole, MemberStatus } from '@/common/enum/workspace';
+import { useAuth } from '@/hooks/useAuth';
 import { getWorkspaceRoleLabel } from '@/utils/workspace';
-import { useGetIdentity, useList } from '@refinedev/core';
+import { useList } from '@refinedev/core';
 import { IconMailPlus, IconPlus } from '@tabler/icons-react';
 import { Button, Form, Input, Select, Table, Tag } from 'antd';
 import { useMemo, useState } from 'react';
@@ -27,7 +28,7 @@ const WorkspaceMember = () => {
     resource: `workspaces/${workspaceId}/members`,
   });
 
-  const { data: identity } = useGetIdentity<{ id: string }>();
+  const { user: identity } = useAuth();
 
   const currentUserRole = (data?.data ?? []).find(m => m.user.id === identity?.id)?.role;
 

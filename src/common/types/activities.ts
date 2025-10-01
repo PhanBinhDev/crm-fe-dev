@@ -33,6 +33,7 @@ export interface IActivity extends IBase {
   assignees?: IAssignee[];
   progress?: number;
   subActivities?: IActivity[];
+  checklists?: Checklist[];
 }
 
 export interface FormAddTaskData {
