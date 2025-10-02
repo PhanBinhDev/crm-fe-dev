@@ -23,11 +23,22 @@ import { useParams } from 'react-router-dom';
 import { useDebounceValue } from 'usehooks-ts';
 import { MemberRowActions } from './MemberRowAction';
 
+interface Member {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  role: MemberRole;
+  createdAt: string;
+  status: MemberStatus;
+}
+
 const WorkspaceMember = () => {
   const [filterRole, setFilterRole] = useState<string>('');
   const { workspaceId } = useParams<{ workspaceId: string }>();
 
-  const { data, isLoading } = useList<IMember>({
+  const { data, isLoading } = useList<Member>({
     resource: `workspaces/${workspaceId}/members`,
   });
 

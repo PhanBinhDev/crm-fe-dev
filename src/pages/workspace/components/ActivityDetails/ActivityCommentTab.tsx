@@ -1,9 +1,15 @@
+import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { getColorFromName, getInitials } from '@/utils/activity';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
 import { IconSend2, IconTrash } from '@tabler/icons-react';
 import { Avatar, Button, message, Popconfirm, Skeleton, Typography } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import dayjs from 'dayjs';
+import 'dayjs/locale/vi';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import { useRef, useState } from 'react';
+dayjs.extend(relativeTime);
+dayjs.locale('vi');
 
 interface ActivityCommentTabProps {
   activityId: string;
@@ -149,120 +155,139 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
     );
   };
 
-  const renderComment = (cmt: Comment, isReply = false) => (
-    <div
-      key={cmt.id}
-      style={{
-        marginBottom: 7,
-        marginLeft: isReply ? 40 : 0,
-        padding: '10px',
-        background: '#fff',
-        borderRadius: 8,
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, flex: 1 }}>
-          <Avatar size={isReply ? 32 : 40}>{cmt.user.avatar}</Avatar>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{cmt.user.name}</div>
-              <div style={{ fontSize: 11, color: '#999' }}>
-                {dayjs(cmt.createdAt).format('DD/MM/YYYY HH:mm')}
+  const renderComment = (cmt: Comment, isReply = false) => {
+    const now = dayjs();
+    const createdAt = dayjs(cmt.createdAt);
+    const isWithinOneWeek = now.diff(createdAt, 'days') < 7;
+    return (
+      <div
+        key={cmt.id}
+        style={{
+          marginBottom: 7,
+          marginLeft: isReply ? 40 : 0,
+          padding: '10px',
+          background: '#fff',
+          borderRadius: 8,
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, flex: 1 }}>
+            {cmt.user?.avatar ? (
+              <Avatar size={isReply ? 32 : 40} src={cmt.user?.avatar} />
+            ) : (
+              <Avatar
+                size="small"
+                style={{
+                  backgroundColor: getColorFromName(cmt.user.name || AVATAR_PLACEHOLDER),
+                  color: '#fff',
+                  fontWeight: 'bold',
+                }}
+              >
+                {getInitials(cmt.user.name)}
+              </Avatar>
+            )}
+
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{cmt.user.name}</div>
+                <div style={{ fontSize: 11, color: '#999' }}>
+                  {isWithinOneWeek ? createdAt.fromNow() : createdAt.format('DD/MM/YYYY HH:mm')}
+                </div>
               </div>
-            </div>
 
-            <div style={{ fontSize: 13, marginBottom: 6 }}>
-              {editingId === cmt.id ? (
-                <TextArea
-                  value={editingContent}
-                  onChange={e => setEditingContent(e.target.value)}
-                  onPressEnter={e => {
-                    if (!e.shiftKey) {
-                      e.preventDefault();
-                      handleSaveEdit(cmt.id);
-                    }
-                  }}
-                  autoSize={{ minRows: 1, maxRows: 6 }}
-                  style={{ resize: 'none' }}
-                />
-              ) : (
-                cmt.content
-              )}
-            </div>
+              <div style={{ fontSize: 13, marginBottom: 6 }}>
+                {editingId === cmt.id ? (
+                  <TextArea
+                    value={editingContent}
+                    onChange={e => setEditingContent(e.target.value)}
+                    onPressEnter={e => {
+                      if (!e.shiftKey) {
+                        e.preventDefault();
+                        handleSaveEdit(cmt.id);
+                      }
+                    }}
+                    autoSize={{ minRows: 1, maxRows: 6 }}
+                    style={{ resize: 'none' }}
+                  />
+                ) : (
+                  cmt.content
+                )}
+              </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              {editingId === cmt.id ? (
-                <>
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 550,
-                      cursor: 'pointer',
-                      color: '#1890ff',
-                    }}
-                    onClick={() => handleSaveEdit(cmt.id)}
-                  >
-                    Lưu
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 550,
-                      cursor: 'pointer',
-                      color: '#686868ff',
-                    }}
-                    onClick={() => setEditingId(null)}
-                  >
-                    Hủy
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 550,
-                      cursor: 'pointer',
-                      color: '#686868ff',
-                    }}
-                    onClick={() => handleStartEdit(cmt.id, cmt.content)}
-                  >
-                    Chỉnh sửa
-                  </span>
-
-                  {!isReply && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                {editingId === cmt.id ? (
+                  <>
                     <span
-                      onClick={() => handleReplyClick(cmt.id)}
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 550,
+                        cursor: 'pointer',
+                        color: '#1890ff',
+                      }}
+                      onClick={() => handleSaveEdit(cmt.id)}
+                    >
+                      Lưu
+                    </span>
+                    <span
                       style={{
                         fontSize: 12,
                         fontWeight: 550,
                         cursor: 'pointer',
                         color: '#686868ff',
                       }}
+                      onClick={() => setEditingId(null)}
                     >
-                      Trả lời
+                      Hủy
                     </span>
-                  )}
-                </>
-              )}
+                  </>
+                ) : (
+                  <>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 550,
+                        cursor: 'pointer',
+                        color: '#686868ff',
+                      }}
+                      onClick={() => handleStartEdit(cmt.id, cmt.content)}
+                    >
+                      Chỉnh sửa
+                    </span>
+
+                    {!isReply && (
+                      <span
+                        onClick={() => handleReplyClick(cmt.id)}
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 550,
+                          cursor: 'pointer',
+                          color: '#686868ff',
+                        }}
+                      >
+                        Trả lời
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div>
-          <Popconfirm
-            title="Xác nhận xóa bình luận?"
-            okText="Xóa"
-            cancelText="Hủy"
-            okButtonProps={{ danger: true }}
-            onConfirm={() => handleDelete(cmt.id)}
-          >
-            <IconTrash size={14} color="#ff4f4fff" style={{ cursor: 'pointer' }} />
-          </Popconfirm>
+          <div>
+            <Popconfirm
+              title="Xác nhận xóa bình luận?"
+              okText="Xóa"
+              cancelText="Hủy"
+              okButtonProps={{ danger: true }}
+              onConfirm={() => handleDelete(cmt.id)}
+            >
+              <IconTrash size={14} color="#ff4f4fff" style={{ cursor: 'pointer' }} />
+            </Popconfirm>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
