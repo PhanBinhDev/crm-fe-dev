@@ -90,7 +90,7 @@ function App() {
                     </Route>
                     <Route element={<GoogleLoginPage />} path="/login" />
                     <Route element={<FeedbackForm />} path="/feedback-event/:id" />
-                    <Route path="/invite-members" element={<InviteWorkspace />} />,
+                    <Route path="/invite-members/:token" element={<InviteWorkspace />} />,
                   </Routes>
 
                   <Modals />

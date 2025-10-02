@@ -28,7 +28,7 @@ const InviteWorkspace = () => {
     if (token) {
       mutate({
         method: 'post',
-        url: `workspaces/invite/${token}`,
+        url: `workspaces/verify-invite/${token}`,
         values: {},
       });
     }

@@ -5,9 +5,9 @@ export const getWorkspaceRoleLabel = (role: MemberRole): string => {
     case MemberRole.OWNER:
       return 'Sở hữu';
     case MemberRole.ADMIN:
-      return 'Thành viên';
+      return 'Quản trị viên';
     case MemberRole.MEMBER:
-      return 'Admin';
+      return 'Thành viên';
     default:
       return role;
   }
