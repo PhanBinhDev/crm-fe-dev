@@ -84,14 +84,22 @@ const ModalEditActivity = () => {
     mutationOptions: {
       onSuccess: data => {
         invalidate({
-          resource: `activities/${data.data.id}/logs`,
+          resource: `activities/${activityFromModal.id}/logs`,
           invalidates: ['list'],
         });
         invalidate({
           resource: 'activities',
-          id: data.data.id,
+          id: activityFromModal.id,
           invalidates: ['detail'],
         });
+
+        if (selectedItem?.type === 'subactivity') {
+          invalidate({
+            resource: 'activities',
+            id: selectedItem.data.id,
+            invalidates: ['detail'],
+          });
+        }
       },
     },
   });

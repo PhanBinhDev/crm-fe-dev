@@ -48,6 +48,8 @@ const ActivityMainContent = ({
   onUpdate,
   setFormData,
 }: ActivityMainContentProps) => {
+  console.log('itemData', itemData.progress);
+
   const onStageChange = useCallback(
     (stage: IStage) => {
       setFormData(prev => {
