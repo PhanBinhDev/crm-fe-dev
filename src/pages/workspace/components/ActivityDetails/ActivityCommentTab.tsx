@@ -27,7 +27,6 @@ interface Comment {
 
 const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   const { user: currentUser } = useAuth();
-  console.log('crrUserId', currentUser?.id);
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<any>(null);
 

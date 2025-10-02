@@ -82,7 +82,7 @@ const ModalEditActivity = () => {
     mutationMode: 'optimistic',
     invalidates: ['list'],
     mutationOptions: {
-      onSuccess: data => {
+      onSuccess: () => {
         invalidate({
           resource: `activities/${activityFromModal.id}/logs`,
           invalidates: ['list'],
@@ -94,6 +94,7 @@ const ModalEditActivity = () => {
         });
 
         if (selectedItem?.type === 'subactivity') {
+          console.log('Invalidate parent activity detail');
           invalidate({
             resource: 'activities',
             id: selectedItem.data.id,
@@ -171,6 +172,8 @@ const ModalEditActivity = () => {
   };
 
   const renderContent = useMemo(() => {
+    console.log('Render content', { selectedItem, activity });
+
     if (!selectedItem) {
       setSelectedItem({
         type: 'activity',
