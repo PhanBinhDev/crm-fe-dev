@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
 import { IconSend2, IconTrash } from '@tabler/icons-react';
-import { Avatar, Button, message, Popconfirm, Skeleton, Typography } from 'antd';
+import { Avatar, Button, message, Popconfirm, Skeleton } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
@@ -50,10 +50,54 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
     },
   });
 
+  const SKELETON_COUNT = 3;
+
   if (isLoading) {
     return (
-      <div style={{ padding: 10 }}>
-        <Skeleton active paragraph={{ rows: 4 }} />
+      <div
+        style={{
+          padding: '5px 10px 10px 10px',
+          background: '#f7f7f7ff',
+          flex: 1,
+        }}
+      >
+        {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
+          <div key={index} style={{ marginBottom: 15 }}>
+            <div
+              style={{ display: 'flex', gap: 8, padding: 10, background: '#fff', borderRadius: 8 }}
+            >
+              <Skeleton.Avatar active size={40} shape="circle" style={{ marginTop: 5 }} />
+              <Skeleton
+                active
+                title={false}
+                paragraph={{ rows: 2, width: ['90%', '50%'] }}
+                style={{ flex: 1, marginTop: 5 }}
+              />
+            </div>
+
+            {index > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 8,
+                  padding: 10,
+                  background: '#fff',
+                  borderRadius: 8,
+                  marginLeft: 40,
+                  marginTop: 10,
+                }}
+              >
+                <Skeleton.Avatar active size={32} shape="circle" style={{ marginTop: 5 }} />
+                <Skeleton
+                  active
+                  title={false}
+                  paragraph={{ rows: 1, width: ['80%'] }}
+                  style={{ flex: 1, marginTop: 5 }}
+                />
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     );
   }
@@ -301,22 +345,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   };
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '8px 8px 8px 16px',
-          background: '#fff',
-          borderBottom: '1px solid #f0f0f0',
-        }}
-      >
-        <Typography.Title level={4} style={{ margin: 0 }}>
-          Bình luận
-        </Typography.Title>
-      </div>
-
+    <>
       <div
         style={{
           background: '#f7f7f7ff',
@@ -401,7 +430,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
           </Button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
