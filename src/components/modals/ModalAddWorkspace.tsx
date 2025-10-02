@@ -159,7 +159,7 @@ const ModalAddWorkspace: React.FC = () => {
           />
         </Form.Item>
 
-        {!isPrivate && (
+        {/* {!isPrivate && (
           <Form.Item style={{ marginBottom: 24 }}>
             <div
               style={{
@@ -217,7 +217,7 @@ const ModalAddWorkspace: React.FC = () => {
               </Form.Item>
             </div>
           </Form.Item>
-        )}
+        )} */}
 
         <Form.Item style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
