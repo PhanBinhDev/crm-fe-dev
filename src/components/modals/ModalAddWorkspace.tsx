@@ -35,8 +35,11 @@ const ModalAddWorkspace: React.FC = () => {
         name: values.name,
         description: values.description || '',
         visibility: isPrivate ? 'private' : 'public',
-        members: inviteMembers.map(m => m.email),
       };
+
+      if (inviteMembers.length > 0) {
+        payload.members = inviteMembers.map(m => m.email);
+      }
 
       // Chỉ thêm avatar nếu có
       if (avatarData) {
