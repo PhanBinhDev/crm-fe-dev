@@ -104,6 +104,17 @@ const WorkspaceMember = () => {
   ];
 
   const filteredMembers = filterRole ? members.filter(m => m.role === filterRole) : members;
+  const sortedMembers = useMemo(() => {
+    const membersToSort = [...filteredMembers];
+
+    membersToSort.sort((a, b) => {
+      if (a.role === MemberRole.OWNER) return -1;
+      if (b.role === MemberRole.OWNER) return 1;
+      return 0;
+    });
+
+    return membersToSort;
+  }, [filteredMembers]);
 
   const baseColumns = [
     { title: 'STT', dataIndex: 'index', key: 'index', width: 60 },
@@ -327,12 +338,7 @@ const WorkspaceMember = () => {
         onChange={value => setFilterRole(value)}
       />
 
-      <Table
-        loading={isLoading}
-        columns={columns}
-        dataSource={filteredMembers}
-        pagination={false}
-      />
+      <Table loading={isLoading} columns={columns} dataSource={sortedMembers} pagination={false} />
     </div>
   );
 };
