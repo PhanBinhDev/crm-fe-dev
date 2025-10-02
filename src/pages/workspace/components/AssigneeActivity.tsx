@@ -22,7 +22,6 @@ const AssigneeActivity = ({
 }: AssigneeActivityProps) => {
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch] = useDebounceValue(search, 400);
-
   const { data, isLoading } = useList<IUser>({
     resource: 'users/all',
     filters: debouncedSearch
@@ -37,7 +36,6 @@ const AssigneeActivity = ({
     pagination: { pageSize: 20 },
     queryOptions: {
       retry: false,
-      enabled: !!debouncedSearch,
     },
   });
 
@@ -96,8 +94,13 @@ const AssigneeActivity = ({
           </div>
           <List
             dataSource={users}
-            loading={!!debouncedSearch && isLoading}
-            style={{ minHeight: 180, overflowY: 'auto', margin: '0 8px' }}
+            loading={isLoading}
+            style={{
+              minHeight: 180,
+              maxHeight: 200,
+              overflowY: 'auto',
+              margin: '0 8px',
+            }}
             renderItem={(user: IUser) => {
               const isActive = selectedUser.some(u => u.id === user.id);
               return (
@@ -194,6 +197,16 @@ const AssigneeActivity = ({
       }
       trigger={['click']}
       placement="bottomLeft"
+      builtinPlacements={{
+        bottomLeft: {
+          points: ['tl', 'bl'],
+          offset: [0, 4],
+          overflow: {
+            adjustX: true,
+            adjustY: false,
+          },
+        },
+      }}
       arrow={false}
       destroyOnHidden
       styles={{

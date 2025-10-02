@@ -1,5 +1,5 @@
 import { MemberRole, MemberStatus } from '@/common/enum/workspace';
-import { IUser } from '@/common/types';
+import { IMember, IUser } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
 import { getWorkspaceRoleLabel } from '@/utils/workspace';
 import { useCreate, useList } from '@refinedev/core';
@@ -23,17 +23,6 @@ import { useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDebounceValue } from 'usehooks-ts';
 import { MemberRowActions } from './MemberRowAction';
-
-interface Member {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  role: MemberRole;
-  createdAt: string;
-  status: MemberStatus;
-}
 
 const WorkspaceMember = () => {
   const [filterRole, setFilterRole] = useState<string>('');
@@ -65,6 +54,14 @@ const WorkspaceMember = () => {
     },
   });
 
+  const memberNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    (data?.data ?? []).forEach(member => {
+      map.set(member.user.id, member.user.name);
+    });
+    return map;
+  }, [data]);
+
   const usersData = useMemo(() => {
     if (isLoadingUsers) return [];
     return users?.data ?? [];
@@ -76,16 +73,20 @@ const WorkspaceMember = () => {
 
   const currentUserRole = (data?.data ?? []).find(m => m.user.id === identity?.id)?.role;
 
-  const members = (data?.data ?? []).map((m, index) => ({
-    index: index + 1,
-    id: m.user.id,
-    name: m.user.name,
-    email: m.user.email,
-    role: m.role,
-    status: m.status,
-    // invitedBy: m.invitedBy,
-    invitedAt: new Date(m.createdAt).toLocaleDateString(),
-  }));
+  const members = (data?.data ?? []).map((m, index) => {
+    const invitedByName = memberNameMap.get(m.createdBy) || m.createdBy;
+
+    return {
+      index: index + 1,
+      id: m.user.id,
+      name: m.user.name,
+      email: m.user.email,
+      role: m.role,
+      status: m.status,
+      invitedBy: invitedByName,
+      invitedAt: new Date(m.createdAt).toLocaleDateString(),
+    };
+  });
 
   const roleCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -104,6 +105,17 @@ const WorkspaceMember = () => {
   ];
 
   const filteredMembers = filterRole ? members.filter(m => m.role === filterRole) : members;
+  const sortedMembers = useMemo(() => {
+    const membersToSort = [...filteredMembers];
+
+    membersToSort.sort((a, b) => {
+      if (a.role === MemberRole.OWNER) return -1;
+      if (b.role === MemberRole.OWNER) return 1;
+      return 0;
+    });
+
+    return membersToSort;
+  }, [filteredMembers]);
 
   const baseColumns = [
     { title: 'STT', dataIndex: 'index', key: 'index', width: 60 },
@@ -331,12 +343,7 @@ const WorkspaceMember = () => {
         onChange={value => setFilterRole(value)}
       />
 
-      <Table
-        loading={isLoading}
-        columns={columns}
-        dataSource={filteredMembers}
-        pagination={false}
-      />
+      <Table loading={isLoading} columns={columns} dataSource={sortedMembers} pagination={false} />
     </div>
   );
 };

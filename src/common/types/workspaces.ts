@@ -19,5 +19,5 @@ export interface IMember extends IBase {
   role: MemberRole;
   createdAt: string;
   status: MemberStatus;
-  invitedBy: string;
+  createdBy: string;
 }

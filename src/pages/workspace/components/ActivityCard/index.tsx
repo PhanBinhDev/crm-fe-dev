@@ -182,33 +182,28 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 5 }}>
             {activity.assignees && activity.assignees.length > 0 ? (
               <>
-                {activity.assignees.slice(0, 3).map((assignee, index) => (
-                  <Tooltip key={index} title={assignee.user?.name} placement="top">
-                    {assignee.user?.avatar ? (
+                {activity.assignees.slice(0, 3).map((assignee, index) => {
+                  const userName = assignee.user?.name || AVATAR_PLACEHOLDER;
+                  const initials = getInitials(userName);
+                  const avatarColor = getColorFromName(userName);
+
+                  return (
+                    <Tooltip key={index} title={assignee.user?.name} placement="top">
                       <Avatar
                         size="small"
                         src={assignee.user?.avatar}
-                        style={{ marginLeft: index > 0 ? -8 : 0 }}
-                      />
-                    ) : (
-                      <Avatar
-                        size="small"
                         style={{
-                          backgroundColor: getColorFromName(
-                            assignee.user.name || AVATAR_PLACEHOLDER,
-                          ),
+                          backgroundColor: avatarColor,
                           color: '#fff',
                           fontWeight: 'bold',
                           marginLeft: index > 0 ? -8 : 0,
                         }}
                       >
-                        {getInitials(assignee.user.name)}
+                        {initials}
                       </Avatar>
-                    )}
-                  </Tooltip>
-                ))}
-
-                {/* Hiển thị số lượng còn lại nếu có nhiều hơn 3 assignees */}
+                    </Tooltip>
+                  );
+                })}
                 {activity.assignees.length > 3 && (
                   <Avatar
                     size="small"
