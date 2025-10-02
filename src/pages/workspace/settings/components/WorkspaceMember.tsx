@@ -1,5 +1,5 @@
 import { MemberRole, MemberStatus } from '@/common/enum/workspace';
-import { IUser } from '@/common/types';
+import { IMember, IUser } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
 import { getWorkspaceRoleLabel } from '@/utils/workspace';
 import { useCreate, useList } from '@refinedev/core';
@@ -23,23 +23,11 @@ import { useParams } from 'react-router-dom';
 import { useDebounceValue } from 'usehooks-ts';
 import { MemberRowActions } from './MemberRowAction';
 
-interface Member {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  role: MemberRole;
-  createdAt: string;
-  createdBy: string;
-  status: MemberStatus;
-}
-
 const WorkspaceMember = () => {
   const [filterRole, setFilterRole] = useState<string>('');
   const { workspaceId } = useParams<{ workspaceId: string }>();
 
-  const { data, isLoading } = useList<Member>({
+  const { data, isLoading } = useList<IMember>({
     resource: `workspaces/${workspaceId}/members`,
   });
 
