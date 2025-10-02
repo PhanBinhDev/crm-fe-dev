@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getWorkspaceRoleLabel } from '@/utils/workspace';
 import { useCreate, useList } from '@refinedev/core';
 import { IconCheck, IconMailPlus, IconPlus } from '@tabler/icons-react';
+import type { InputRef } from 'antd';
 import {
   Avatar,
   Button,
@@ -18,7 +19,7 @@ import {
   Tag,
   Tooltip,
 } from 'antd';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDebounceValue } from 'usehooks-ts';
 import { MemberRowActions } from './MemberRowAction';
@@ -38,7 +39,7 @@ const WorkspaceMember = () => {
   const [filterRole, setFilterRole] = useState<string>('');
   const { workspaceId } = useParams<{ workspaceId: string }>();
 
-  const { data, isLoading } = useList<Member>({
+  const { data, isLoading, refetch } = useList<Member>({
     resource: `workspaces/${workspaceId}/members`,
   });
 
@@ -128,7 +129,7 @@ const WorkspaceMember = () => {
         return <Tag color="red">Từ chối</Tag>;
       },
     },
-    { title: 'Người mời', dataIndex: 'invitedBy', key: 'invitedBy' },
+    // { title: 'Người mời', dataIndex: 'invitedBy', key: 'invitedBy' },
     { title: 'Ngày mời', dataIndex: 'invitedAt', key: 'invitedAt' },
   ];
 
@@ -145,6 +146,7 @@ const WorkspaceMember = () => {
           },
         ]
       : baseColumns;
+  const inputSearch = useRef<InputRef>(null);
 
   const handleAddMember = () => {
     if (selectedUser.length === 0) return;
@@ -160,6 +162,8 @@ const WorkspaceMember = () => {
         onSuccess: () => {
           setSelectedUser([]);
           setSearch('');
+          inputSearch.current?.input && (inputSearch.current.input.value = '');
+          refetch();
           message.success('Thêm thành viên thành công');
         },
         onError: () => {
@@ -235,6 +239,7 @@ const WorkspaceMember = () => {
       <Form style={{ marginBottom: 10, width: '100%', height: '100%', position: 'relative' }}>
         <Form.Item name="usersId" style={{ width: '100%', marginBottom: 0 }}>
           <Input
+            ref={inputSearch}
             prefix={<IconMailPlus size={16} color="#bfbfbf" />}
             placeholder="Tìm kiếm hoặc nhập email..."
             value={search}
