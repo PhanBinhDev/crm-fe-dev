@@ -2,7 +2,7 @@ import { IWorkspace } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useCustomMutation, useNavigation } from '@refinedev/core';
-import { IconCamera, IconChevronDown, IconSettings } from '@tabler/icons-react';
+import { IconCamera, IconChevronDown, IconSettings, IconShare } from '@tabler/icons-react';
 import {
   Avatar,
   Button,
@@ -102,8 +102,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
     <Card
       styles={{
         body: {
-          padding: '0',
-          width: '100%',
+          padding: '5px',
         },
       }}
     >
@@ -227,6 +226,35 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
           >
             Cài đặt
           </Button>
+          <Button
+            type="text"
+            style={{
+              width: '100%',
+              border: '1px solid #d9d9d9',
+            }}
+            onClick={() => {
+              openModal('WorkspaceShareModal', {
+                workspaceId: currentWorkspace,
+              });
+              setOpen(false);
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.backgroundColor = '#d9d9d9';
+            }}
+            styles={{
+              icon: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            icon={<IconShare size={14} />}
+          >
+            Chia sẻ
+          </Button>
         </Space>
       </Space>
       <Divider
@@ -325,7 +353,8 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
         styles={{
           body: {
             padding: 0,
-            width: 250,
+            width: 310,
+            marginLeft: 30,
           },
         }}
         trigger={['click']}

@@ -1,5 +1,5 @@
 import { IconFilePencil, IconLink, IconMessage, IconMessageCircle } from '@tabler/icons-react';
-import { Button, Divider, Layout, Tooltip } from 'antd';
+import { Button, Divider, Layout, Tooltip, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import ActivityCommentTab from './ActivityCommentTab';
 import ActivityFeedbackTab from './ActivityFeedbackTab';
@@ -80,7 +80,23 @@ const ActivityDetailRightSidebar = ({
           <ActivityFeedbackTab activityId={activityId} />
         )}
         {!collapsedRight && activeTab === 'comment' && (
-          <ActivityCommentTab activityId={activityId} />
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 8px 8px 16px',
+                background: '#fff',
+                borderBottom: '1px solid #f0f0f0',
+              }}
+            >
+              <Typography.Title level={4} style={{ margin: 0 }}>
+                Bình luận
+              </Typography.Title>
+            </div>
+            <ActivityCommentTab activityId={activityId} />
+          </div>
         )}
       </Sider>
       <div
