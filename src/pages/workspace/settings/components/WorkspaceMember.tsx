@@ -31,6 +31,7 @@ interface Member {
   };
   role: MemberRole;
   createdAt: string;
+  createdBy: string;
   status: MemberStatus;
 }
 
@@ -64,6 +65,14 @@ const WorkspaceMember = () => {
     },
   });
 
+  const memberNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    (data?.data ?? []).forEach(member => {
+      map.set(member.user.id, member.user.name);
+    });
+    return map;
+  }, [data]);
+
   const usersData = useMemo(() => {
     if (isLoadingUsers) return [];
     return users?.data ?? [];
@@ -75,16 +84,20 @@ const WorkspaceMember = () => {
 
   const currentUserRole = (data?.data ?? []).find(m => m.user.id === identity?.id)?.role;
 
-  const members = (data?.data ?? []).map((m, index) => ({
-    index: index + 1,
-    id: m.user.id,
-    name: m.user.name,
-    email: m.user.email,
-    role: m.role,
-    status: m.status,
-    // invitedBy: m.invitedBy,
-    invitedAt: new Date(m.createdAt).toLocaleDateString(),
-  }));
+  const members = (data?.data ?? []).map((m, index) => {
+    const invitedByName = memberNameMap.get(m.createdBy) || m.createdBy;
+
+    return {
+      index: index + 1,
+      id: m.user.id,
+      name: m.user.name,
+      email: m.user.email,
+      role: m.role,
+      status: m.status,
+      invitedBy: invitedByName,
+      invitedAt: new Date(m.createdAt).toLocaleDateString(),
+    };
+  });
 
   const roleCounts = useMemo(() => {
     const counts: Record<string, number> = {};
