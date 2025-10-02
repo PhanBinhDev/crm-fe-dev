@@ -205,29 +205,28 @@ const TableView = ({ stages, activities, users }: TableViewProps) => {
       render: (assignees: any[]) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {assignees?.length > 0 ? (
-            assignees.slice(0, 3).map((assignee, index) => (
-              <Tooltip key={index} title={assignee.user.name}>
-                {assignee.user.avatar ? (
+            assignees.slice(0, 3).map((assignee, index) => {
+              const userName = assignee.user?.name || AVATAR_PLACEHOLDER;
+              const initials = getInitials(userName);
+              const avatarColor = getColorFromName(userName);
+
+              return (
+                <Tooltip key={index} title={assignee.user.name}>
                   <Avatar
                     size="small"
                     src={assignee.user.avatar}
-                    style={{ marginLeft: index > 0 ? -8 : 0 }}
-                  />
-                ) : (
-                  <Avatar
-                    size="small"
                     style={{
-                      backgroundColor: getColorFromName(assignee.user.name || AVATAR_PLACEHOLDER),
+                      backgroundColor: avatarColor,
                       color: '#fff',
                       fontWeight: 'bold',
                       marginLeft: index > 0 ? -8 : 0,
                     }}
                   >
-                    {getInitials(assignee.user.name)}
+                    {initials}
                   </Avatar>
-                )}
-              </Tooltip>
-            ))
+                </Tooltip>
+              );
+            })
           ) : (
             <Tooltip title="Chưa có người thực hiện">
               <Avatar size="small" style={{ backgroundColor: '#f5f5f5', color: '#8c8c8c' }}>
