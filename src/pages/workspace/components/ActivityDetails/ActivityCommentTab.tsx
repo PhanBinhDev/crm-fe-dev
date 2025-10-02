@@ -1,4 +1,5 @@
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { useAuth } from '@/hooks/useAuth';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
 import { IconSend2, IconTrash } from '@tabler/icons-react';
@@ -17,7 +18,7 @@ interface ActivityCommentTabProps {
 
 interface Comment {
   id: string;
-  user: { avatar: string; name: string };
+  user: { id: string; avatar: string; name: string };
   content: string;
   createdAt: string;
   parentCommentId?: string | null;
@@ -25,6 +26,8 @@ interface Comment {
 }
 
 const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
+  const { user: currentUser } = useAuth();
+  console.log('crrUserId', currentUser?.id);
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<any>(null);
 
@@ -42,6 +45,9 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
     isLoading,
   } = useList<Comment>({
     resource: `activities/${activityId}/comments`,
+    queryOptions: {
+      refetchInterval: 10000,
+    },
   });
 
   if (isLoading) {
@@ -156,6 +162,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   };
 
   const renderComment = (cmt: Comment, isReply = false) => {
+    const isAuthor = cmt.user.id === currentUser?.id;
     const now = dayjs();
     const createdAt = dayjs(cmt.createdAt);
     const isWithinOneWeek = now.diff(createdAt, 'days') < 7;
@@ -196,7 +203,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
               </div>
 
               <div style={{ fontSize: 13, marginBottom: 6 }}>
-                {editingId === cmt.id ? (
+                {isAuthor && editingId === cmt.id ? (
                   <TextArea
                     value={editingContent}
                     onChange={e => setEditingContent(e.target.value)}
@@ -242,17 +249,19 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
                   </>
                 ) : (
                   <>
-                    <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 550,
-                        cursor: 'pointer',
-                        color: '#686868ff',
-                      }}
-                      onClick={() => handleStartEdit(cmt.id, cmt.content)}
-                    >
-                      Chỉnh sửa
-                    </span>
+                    {isAuthor && (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 550,
+                          cursor: 'pointer',
+                          color: '#686868ff',
+                        }}
+                        onClick={() => handleStartEdit(cmt.id, cmt.content)}
+                      >
+                        Chỉnh sửa
+                      </span>
+                    )}
 
                     {!isReply && (
                       <span
@@ -273,17 +282,19 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
             </div>
           </div>
 
-          <div>
-            <Popconfirm
-              title="Xác nhận xóa bình luận?"
-              okText="Xóa"
-              cancelText="Hủy"
-              okButtonProps={{ danger: true }}
-              onConfirm={() => handleDelete(cmt.id)}
-            >
-              <IconTrash size={14} color="#ff4f4fff" style={{ cursor: 'pointer' }} />
-            </Popconfirm>
-          </div>
+          {isAuthor && (
+            <div>
+              <Popconfirm
+                title="Xác nhận xóa bình luận?"
+                okText="Xóa"
+                cancelText="Hủy"
+                okButtonProps={{ danger: true }}
+                onConfirm={() => handleDelete(cmt.id)}
+              >
+                <IconTrash size={14} color="#ff4f4fff" style={{ cursor: 'pointer' }} />
+              </Popconfirm>
+            </div>
+          )}
         </div>
       </div>
     );
