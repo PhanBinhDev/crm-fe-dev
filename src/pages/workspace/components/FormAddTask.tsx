@@ -86,6 +86,18 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
 
   useImperativeHandle(ref, () => ({
     submitForm: (action: ModalAction) => {
+      console.log('Submitting form with action:', action);
+
+      setErrors({ stage: false, location: false });
+
+      if (!stage) {
+        setErrors(prev => ({ ...prev, stage: true }));
+      }
+
+      if (taskOrEvent === ActivityType.EVENT && (!location || location.trim() === '')) {
+        setErrors(prev => ({ ...prev, location: true }));
+      }
+
       actionRef.current = action;
       form.submit();
     },
@@ -115,7 +127,6 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [categoryOpen, setCategoryOpen] = useState(false);
-  const [locationError, setLocationError] = useState(false);
 
   const handleToggleSelectUser = (user: IUser) => {
     setSelectedAssignees(prev => {
@@ -212,10 +223,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
 
   const handleStateChange = useCallback(
     (nextStage: IStage | null) => {
-      // Nếu có stage thì clear lỗi, nếu không thì báo lỗi
       setErrors(prev => ({ ...prev, stage: !nextStage }));
-
-      // Cập nhật stage state + form value
       setStage(nextStage);
       form.setFieldValue('stage', nextStage);
     },
@@ -240,22 +248,11 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
     setLocation('');
     setInstructorCount(0);
     setStudentCount(0);
+    setErrors({ stage: false, location: false });
   };
 
   const handleSubmit = async (values: any) => {
     try {
-      setLocationError(false);
-      setErrors(prev => ({ ...prev, stage: false }));
-
-      if (!values.stage || !values.stage.id) {
-        setErrors(prev => ({ ...prev, stage: true }));
-        return;
-      }
-      if (!values.location || values.location.trim() === '') {
-        setLocationError(true);
-        return;
-      }
-
       const formData: FormAddActivityPayload = {
         name: values.name?.trim(),
         description: values.description?.trim(),
@@ -522,7 +519,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                 <LocationActivity
                   value={location}
                   onChange={handleLocationChange}
-                  error={locationError}
+                  error={errors.location}
                 />
               </>
             )}

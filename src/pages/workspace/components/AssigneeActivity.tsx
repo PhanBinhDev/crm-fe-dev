@@ -26,8 +26,6 @@ const AssigneeActivity = ({
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch] = useDebounceValue(search, 400);
 
-  console.log('workspaceId in AssigneeActivity:', workspaceId);
-
   const { data, isLoading } = useList<IUser>({
     resource: workspaceId ? `workspaces/${workspaceId}/members` : '',
     filters: debouncedSearch
@@ -50,8 +48,6 @@ const AssigneeActivity = ({
     if (isLoading) return [];
     return data?.data ?? [];
   }, [isLoading, data]);
-
-  console.log('members in AssigneeActivity:', members);
 
   return (
     <Popover
