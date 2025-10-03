@@ -1,9 +1,8 @@
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { createWorkspace } from '@/services/api/workspace';
-import { InfoCircleOutlined } from '@ant-design/icons';
 import { useList } from '@refinedev/core';
-import { Button, Form, Input, message, Modal, Select, Switch, Tooltip } from 'antd';
+import { Button, Form, Input, message, Modal, Select, Switch } from 'antd';
 import React, { useState } from 'react';
 import { UserRole } from '../../common/enum/user';
 import { IUser } from '../../common/types/users';

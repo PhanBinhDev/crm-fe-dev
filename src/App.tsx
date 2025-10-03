@@ -19,7 +19,6 @@ import { profileRoutes } from '@/pages/profile/routes';
 import { semesterRoutes } from '@/pages/semester/routes';
 import { userRoutes } from '@/pages/users/routes';
 import { authProvider } from '@/providers/AuthProvider';
-import { standardDataProvider } from '@/providers/nestjs';
 import '@/styles/globals.css';
 import { ErrorComponent } from './components/common/ErrorBoundary';
 import Modals from './components/modals';
@@ -30,6 +29,7 @@ import FeedbackForm from './pages/feedback/FeebackForm';
 import InviteWorkspace from './pages/invite/page';
 import { workspaceRoutes } from './pages/workspace/routes';
 import { accessControlProvider } from './providers/AccessControlProvider';
+import { standardDataProvider } from './providers/nestjs/standardProvider';
 
 function App() {
   const dataProvider = standardDataProvider(API_URL);

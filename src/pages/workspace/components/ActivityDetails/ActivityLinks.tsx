@@ -1,13 +1,13 @@
 import { IconPointFilled } from '@tabler/icons-react';
 import { Avatar, Card, List, Typography } from 'antd';
-const { Text, Paragraph } = Typography;
+const { Paragraph } = Typography;
 
 interface ActivityLinksProps {
   activityId: string;
   viewMode: 'list' | 'category';
 }
 
-const ActivityLinks = ({ activityId, viewMode }: ActivityLinksProps) => {
+const ActivityLinks = ({ viewMode }: ActivityLinksProps) => {
   if (viewMode === 'list') {
     return (
       <div style={{ padding: 8, maxHeight: 'calc(90vh - 97px)', overflowY: 'auto' }}>

@@ -10,7 +10,6 @@ import { useCreate, useInvalidate } from '@refinedev/core';
 import { IconArrowDownRight, IconPaperclip, IconX } from '@tabler/icons-react';
 import { Button, Dropdown, message, Modal, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 const modalTabs = [
   { key: 'task', label: 'Hoạt động' },

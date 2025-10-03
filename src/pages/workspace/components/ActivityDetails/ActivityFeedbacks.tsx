@@ -2,7 +2,7 @@ interface ActivityFeedbacksProps {
   activityId: string;
 }
 
-const ActivityFeedbacks = ({ activityId }: ActivityFeedbacksProps) => {
+const ActivityFeedbacks = ({}: ActivityFeedbacksProps) => {
   return <div>activity feedback</div>;
 };
 

@@ -5,14 +5,12 @@ import { useDelete, useList, useOne, useUpdate } from '@refinedev/core';
 import { IconTrash } from '@tabler/icons-react';
 import { Button, Popconfirm, Space, Spin, Switch, Typography, message } from 'antd';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 const { Text } = Typography;
 
 const GeneralSettings = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
-  const navigate = useNavigate();
-
   if (!workspaceId) {
     return (
       <Spin

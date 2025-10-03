@@ -7,7 +7,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { Switch, Typography } from 'antd';
-import React, { useState } from 'react';
+import React from 'react';
 
 const { Text, Title } = Typography;
 
@@ -68,7 +68,6 @@ export const DisplaySettings: React.FC = () => {
       description: 'Hiển thị loại công việc',
     },
   ];
-  
 
   return (
     <div style={{ padding: '20px', maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>

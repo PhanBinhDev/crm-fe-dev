@@ -1,56 +1,21 @@
-import {
-  IconArchive,
-  IconBell,
-  IconBellOff,
-  IconCalendarDue,
-  IconCheck,
-  IconChecks,
-  IconHeading,
-  IconListDetails,
-  IconMessage,
-  IconPaperclip,
-  IconTextCaption,
-  IconUser,
-  IconUserCheck,
-} from '@tabler/icons-react';
+import { IconBell, IconBellOff, IconCheck, IconUser, IconUserCheck } from '@tabler/icons-react';
 import { Avatar, Button, Divider, Input, Popover, Space } from 'antd';
 import { useState } from 'react';
 
-type ActivityLogFilterOption = {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-};
-
-const activityLogFilterOptions: ActivityLogFilterOption[] = [
-  {
-    label: 'Thêm hoặc xóa khỏi danh sách',
-    value: 'list',
-    icon: <IconListDetails size={14} color="#838383" />,
-  },
-  { label: 'Lưu trữ', value: 'archived', icon: <IconArchive size={14} color="#838383" /> },
-  { label: 'Bình luận', value: 'comments', icon: <IconMessage size={14} color="#838383" /> },
-  { label: 'Danh sách việc', value: 'checklists', icon: <IconChecks size={14} color="#838383" /> },
-  { label: 'Đính kèm', value: 'attachments', icon: <IconPaperclip size={14} color="#838383" /> },
-  { label: 'Hạn chót', value: 'due_date', icon: <IconCalendarDue size={14} color="#838383" /> },
-  { label: 'Mô tả', value: 'description', icon: <IconTextCaption size={14} color="#838383" /> },
-  { label: 'Tiêu đề', value: 'title', icon: <IconHeading size={14} color="#838383" /> },
-];
-
 const ActivityDetailFollowLog = () => {
   const [showFilter, setShowFilter] = useState(false);
-  const [selected, setSelected] = useState<string[]>(
-    activityLogFilterOptions.map(opt => opt.value),
-  );
+  // const [selected, setSelected] = useState<string[]>(
+  //   activityLogFilterOptions.map(opt => opt.value),
+  // );
 
-  const allSelected = selected.length === activityLogFilterOptions.length;
+  // const allSelected = selected.length === activityLogFilterOptions.length;
 
-  const handleToggle = (value: string) => {
-    setSelected(prev => (prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]));
-  };
+  // const handleToggle = (value: string) => {
+  //   setSelected(prev => (prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]));
+  // };
 
-  const handleSelectAll = () => setSelected(activityLogFilterOptions.map(opt => opt.value));
-  const handleUnselectAll = () => setSelected([]);
+  // const handleSelectAll = () => setSelected(activityLogFilterOptions.map(opt => opt.value));
+  // const handleUnselectAll = () => setSelected([]);
 
   const contentFilter = (
     <Space

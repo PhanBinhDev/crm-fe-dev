@@ -1,9 +1,9 @@
-import { IconUpload, IconUser } from '@tabler/icons-react';
-import { Avatar, Upload, UploadFile, UploadProps, message } from 'antd';
-import { UploadRequestOption } from 'antd/lib/upload/interface';
-import React, { useState } from 'react';
-import { useCustomMutation } from '@refinedev/core';
 import { IFileUploadResponse } from '@/common/types/file';
+import { useCustomMutation } from '@refinedev/core';
+import { IconUpload, IconUser, IconX } from '@tabler/icons-react';
+import type { UploadProps } from 'antd';
+import { Avatar, Upload, message } from 'antd';
+import React, { useCallback, useState } from 'react';
 
 interface AvatarUploadProps {
   value?: string | null;
@@ -11,113 +11,103 @@ interface AvatarUploadProps {
   size?: number;
 }
 
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, size = 36 }) => {
-  const [uploading, setUploading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string>('');
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [avatarUrl, setAvatarUrl] = useState<string>(value || '');
   const [hovered, setHovered] = useState(false);
 
-  const { mutate: uploadFile } = useCustomMutation<IFileUploadResponse>();
+  const { mutate: uploadFile, isPending: uploading } = useCustomMutation<IFileUploadResponse>();
 
-  const beforeUpload = (file: File) => {
-    const isImage = file.type.startsWith('image/');
-    if (!isImage) {
+  const validateFile = useCallback((file: File): boolean => {
+    if (!file.type.startsWith('image/')) {
       message.error('Chỉ chấp nhận file hình ảnh!');
       return false;
     }
 
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
+    if (file.size > MAX_FILE_SIZE) {
       message.error('Kích thước file phải nhỏ hơn 2MB!');
       return false;
     }
 
     return true;
-  };
+  }, []);
 
-  const handleAvatarUpload = async (options: UploadRequestOption) => {
-    const { file, onSuccess, onError } = options;
-    setUploading(true);
+  const handleUpload = useCallback(
+    async (options: any) => {
+      const { file, onSuccess, onError } = options;
 
-    // Hiện preview ngay lập tức
-    const previewUrl = URL.createObjectURL(file as Blob);
-    setAvatarUrl(previewUrl);
+      const previewUrl = URL.createObjectURL(file);
+      setAvatarUrl(previewUrl);
 
-    const formData = new FormData();
-    formData.append('file', file as Blob);
+      const formData = new FormData();
+      formData.append('file', file);
 
-    uploadFile(
-      {
-        url: '/upload/file',
-        method: 'post',
-        values: formData,
-        config: {
-          headers: { 'Content-Type': 'multipart/form-data' },
+      uploadFile(
+        {
+          url: '/upload/file',
+          method: 'post',
+          values: formData,
+          config: {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          },
         },
-      },
-      {
-        onSuccess: res => {
-          console.log('Full upload response:', res);
-          console.log('Upload response data:', res.data);
-          
-          // API upload trả về path, không phải URL đầy đủ
-          const filePath = res.data.url || res.data.path;
-          
-          console.log('Upload success - file path:', filePath);
-          
-          // Hiển thị preview với URL đầy đủ
-          const previewUrl = `${import.meta.env.VITE_API_BASE_URL}${filePath}`;
-          setAvatarUrl(previewUrl);
-          
-          // Gửi path cho parent component
-          onChange?.(filePath);
-          onSuccess?.(res.data, file as any);
-          setUploading(false);
+        {
+          onSuccess: res => {
+            const filePath = res.data.url;
+            const fullUrl = `${API_BASE_URL}${filePath}`;
+
+            // Cleanup preview URL
+            URL.revokeObjectURL(previewUrl);
+
+            setAvatarUrl(fullUrl);
+            onChange?.(filePath);
+            onSuccess?.(res.data, file);
+          },
+          onError: error => {
+            console.error('Upload error:', error);
+
+            // Cleanup on error
+            URL.revokeObjectURL(previewUrl);
+            setAvatarUrl(value || '');
+
+            onChange?.(null);
+            onError?.(error);
+            message.error('Tải ảnh lên thất bại!');
+          },
         },
-        onError: error => {
-          console.error('Upload error:', error);
-          setUploading(false);
-          // Xóa preview nếu upload thất bại
-          setAvatarUrl('');
-          onChange?.(null);
-          onError?.(error as any);
-          message.error('Tải ảnh lên thất bại!');
-        },
-      },
-    );
-  };
+      );
+    },
+    [uploadFile, onChange, value],
+  );
 
-  const handleChange: UploadProps['onChange'] = info => {
-    const { fileList: newFileList } = info;
-    setFileList(newFileList);
+  const handleRemove = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setAvatarUrl('');
+      onChange?.(null);
+    },
+    [onChange],
+  );
 
-    if (info.file.status === 'uploading') {
-      setUploading(true);
-      return;
-    }
-
-    if (info.file.status === 'done') {
-      // Avatar URL đã được set trong handleAvatarUpload, không cần set lại ở đây
-      setUploading(false);
-    } else if (info.file.status === 'error') {
-      message.error('Tải ảnh lên thất bại!');
-      setUploading(false);
-    }
-  };
-
-  const handleRemove = () => {
-    setAvatarUrl('');
-    setFileList([]);
-    onChange?.(null);
+  const uploadProps: UploadProps = {
+    name: 'avatar',
+    showUploadList: false,
+    beforeUpload: validateFile,
+    customRequest: handleUpload,
+    maxCount: 1,
+    disabled: uploading,
   };
 
   return (
-    <div 
-      style={{ 
+    <div
+      className="avatar-upload-wrapper"
+      style={{
         position: 'relative',
-        display: 'flex',
+        display: 'inline-flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -126,54 +116,42 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, size = 36 
         size={size}
         src={avatarUrl}
         icon={<IconUser size={size / 2} />}
-        style={{ 
+        style={{
           border: '1px solid #e0e0e0',
           cursor: 'pointer',
-          transition: 'all 0.2s ease'
+          transition: 'all 0.2s ease',
         }}
       />
-      
-      {/* Upload overlay */}
+
+      {/* Hover overlay with upload */}
       {hovered && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <Upload
-            name="avatar"
-            listType="text"
-            fileList={fileList}
-            onChange={handleChange}
-            beforeUpload={beforeUpload}
-            customRequest={handleAvatarUpload}
-            maxCount={1}
-            showUploadList={false}
+        <Upload {...uploadProps}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
           >
-            <IconUpload 
-              size={16} 
+            <IconUpload
+              size={size / 2.5}
               color="white"
-              style={{ 
+              style={{
                 opacity: uploading ? 0.5 : 1,
-                transition: 'opacity 0.2s ease'
+                transition: 'opacity 0.2s ease',
               }}
             />
-          </Upload>
-        </div>
+          </div>
+        </Upload>
       )}
-      
-      {/* Remove button when avatar exists */}
+
+      {/* Remove button */}
       {avatarUrl && hovered && (
         <div
           onClick={handleRemove}
@@ -189,12 +167,17 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, size = 36 
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            fontSize: 12,
-            color: 'white',
-            fontWeight: 'bold'
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            transition: 'transform 0.2s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = 'scale(1.1)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'scale(1)';
           }}
         >
-          ×
+          <IconX size={12} color="white" />
         </div>
       )}
     </div>

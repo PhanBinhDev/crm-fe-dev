@@ -30,6 +30,9 @@ const WorkspaceMember = () => {
 
   const { data, isLoading, refetch } = useList<IMember>({
     resource: `workspaces/${workspaceId}/members`,
+    queryOptions: {
+      enabled: !!workspaceId,
+    },
   });
 
   const [search, setSearch] = useState<string>('');

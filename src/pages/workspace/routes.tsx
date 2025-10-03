@@ -7,7 +7,6 @@ import AppearanceSettings from './settings/components/AppearanceSettings';
 import GeneralSettings from './settings/components/GeneralSettings';
 import SecuritySettings from './settings/components/SecuritySettings';
 import WorkspaceMember from './settings/components/WorkspaceMember';
-import InviteWorkspace from '../invite/page';
 
 export const workspaceRoutes = [
   <Route path="/workspaces" element={<RedirectToWorkspace />} />,
@@ -24,5 +23,4 @@ export const workspaceRoutes = [
     path="/workspaces/:workspaceId/settings/members"
     element={<SettingsMembersWorkspaces />}
   />,
-
 ];

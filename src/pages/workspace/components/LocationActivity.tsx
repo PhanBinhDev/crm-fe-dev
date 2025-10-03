@@ -38,10 +38,6 @@ const LocationActivity = ({ value, onChange, error }: LocationActivityProps) => 
     return debouncedInput || 'Địa điểm';
   };
 
-  const getButtonColor = () => {
-    return debouncedInput ? '#1890ff' : '#838383';
-  };
-
   const timeEstimateContent = (
     <Space
       direction="vertical"

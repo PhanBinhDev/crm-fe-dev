@@ -54,7 +54,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
   const [customForm] = Form.useForm();
   const { mutate: createCategory } = useCreate<Category>();
 
-  const { data: categoriesData, isLoading } = useList<Category>({
+  const { data: categoriesData } = useList<Category>({
     resource: 'activities/category',
     pagination: { mode: 'off' },
   });
@@ -87,13 +87,6 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
   useImperativeHandle(ref, () => ({
     submitForm: (action: ModalAction) => {
       actionRef.current = action;
-
-      if (!stage) {
-        setStageError(true);
-      } else {
-        setStageError(false);
-      }
-
       form.submit();
     },
   }));
@@ -122,7 +115,6 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [categoryOpen, setCategoryOpen] = useState(false);
-  const [stageError, setStageError] = useState(false);
   const [locationError, setLocationError] = useState(false);
 
   const handleToggleSelectUser = (user: IUser) => {
@@ -218,17 +210,17 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
     [form],
   );
 
- const handleStateChange = useCallback(
-   (nextStage: IStage | null) => {
-     // Nếu có stage thì clear lỗi, nếu không thì báo lỗi
-     setErrors(prev => ({ ...prev, stage: !nextStage }));
+  const handleStateChange = useCallback(
+    (nextStage: IStage | null) => {
+      // Nếu có stage thì clear lỗi, nếu không thì báo lỗi
+      setErrors(prev => ({ ...prev, stage: !nextStage }));
 
-     // Cập nhật stage state + form value
-     setStage(nextStage);
-     form.setFieldValue('stage', nextStage);
-   },
-   [form],
- );
+      // Cập nhật stage state + form value
+      setStage(nextStage);
+      form.setFieldValue('stage', nextStage);
+    },
+    [form],
+  );
 
   const handleReset = () => {
     form.resetFields();
@@ -252,7 +244,6 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
 
   const handleSubmit = async (values: any) => {
     try {
-      setStageError(false);
       setLocationError(false);
       setErrors(prev => ({ ...prev, stage: false }));
 

@@ -2,9 +2,8 @@ import { IUser } from '@/common/types';
 import { useWorkspaceStore } from '@/hooks/useWorkspaces';
 import { useList } from '@refinedev/core';
 import { IconCheck, IconSearch, IconUsers } from '@tabler/icons-react';
-import { Avatar, Button, Input, List, Popover, Space, Tooltip } from 'antd';
+import { Avatar, Button, Input, List, Popover, Tooltip } from 'antd';
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { useDebounceValue } from 'usehooks-ts';
 
 interface AssigneeActivityProps {
@@ -23,14 +22,14 @@ const AssigneeActivity = ({
   title = 'Phụ trách',
 }: AssigneeActivityProps) => {
   const { currentWorkspace } = useWorkspaceStore();
-  const workspaceId = currentWorkspace?.id; 
+  const workspaceId = currentWorkspace?.id;
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch] = useDebounceValue(search, 400);
 
   console.log('workspaceId in AssigneeActivity:', workspaceId);
 
   const { data, isLoading } = useList<IUser>({
-    resource: workspaceId ? `workspaces/${workspaceId}/members` : '', 
+    resource: workspaceId ? `workspaces/${workspaceId}/members` : '',
     filters: debouncedSearch
       ? [
           {
@@ -43,7 +42,7 @@ const AssigneeActivity = ({
     pagination: { mode: 'off' },
     queryOptions: {
       retry: false,
-      enabled: !!workspaceId, 
+      enabled: !!workspaceId,
     },
   });
 
@@ -112,7 +111,7 @@ const AssigneeActivity = ({
               margin: '0 8px',
             }}
             renderItem={(item: any) => {
-              const member = item.user; 
+              const member = item.user;
               const isActive = selectedUser.some((u: IUser) => u.id === member.id);
               return (
                 <List.Item

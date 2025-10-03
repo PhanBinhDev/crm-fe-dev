@@ -2,7 +2,6 @@ import { ActivityPriority, ActivityStatus } from '@/common/enum/activity';
 import { IActivity, IStage, IUser } from '@/common/types';
 import { ColorPicker } from '@/components/shared/ColorPicker';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
-import { useModal } from '@/hooks/useModal';
 import '@/styles/table-list.css';
 import {
   getActivityPriorityColor,
@@ -47,7 +46,6 @@ interface TableViewProps {
 }
 
 const TableView = ({ stages, activities, users }: TableViewProps) => {
-  const { openModal } = useModal();
   const [dataSource, setDataSource] = useState<IActivity[]>(activities);
 
   const sensors = useSensors(
