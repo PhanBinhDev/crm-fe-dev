@@ -57,7 +57,7 @@ const ModalAddActivity = () => {
       action,
       callback,
     }: {
-      data: FormAddActivityPayload | FormData;
+      data: FormAddActivityPayload;
       action: ModalAction;
       callback: () => void;
     }) => {
@@ -66,7 +66,7 @@ const ModalAddActivity = () => {
           createActivity(
             {
               resource: 'activities',
-              values: data instanceof FormData ? data : cleanPayload(data),
+              values: cleanPayload(data),
             },
             {
               onSuccess: () => {

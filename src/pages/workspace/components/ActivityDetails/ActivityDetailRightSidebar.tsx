@@ -1,14 +1,15 @@
-import { IconFilePencil, IconLink, IconMessage, IconMessageCircle } from '@tabler/icons-react';
+import { IconFilePencil, IconLink, IconMessage, IconMessageCircle, IconPaperclip } from '@tabler/icons-react';
 import { Button, Divider, Layout, Tooltip, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import ActivityCommentTab from './ActivityCommentTab';
 import ActivityFeedbackTab from './ActivityFeedbackTab';
+import ActivityFilesTab from './ActivityFilesTab';
 import ActivityLinkTab from './ActivityLinkTab';
 import ActivityLogTab from './ActivityLogTab';
 
 const { Sider } = Layout;
 
-type RightSidebarTab = 'links' | 'logs' | 'feedback' | 'comment';
+type RightSidebarTab = 'links' | 'logs' | 'feedback' | 'comment' | 'files';
 
 interface ActivityDetailRightSidebarProps {
   isOverlay: boolean;
@@ -76,6 +77,7 @@ const ActivityDetailRightSidebar = ({
       >
         {!collapsedRight && activeTab === 'logs' && <ActivityLogTab activityId={activityId} />}
         {!collapsedRight && activeTab === 'links' && <ActivityLinkTab activityId={activityId} />}
+        {!collapsedRight && activeTab === 'files' && <ActivityFilesTab activityId={activityId} />}
         {!collapsedRight && activeTab === 'feedback' && (
           <ActivityFeedbackTab activityId={activityId} />
         )}
@@ -143,6 +145,27 @@ const ActivityDetailRightSidebar = ({
               icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
             }}
             onClick={() => handleTabClick('links')}
+          />
+        </Tooltip>
+
+        <Divider
+          style={{
+            margin: '12px 0',
+          }}
+        />
+
+        <Tooltip placement="left" title={'Tệp đính kèm'}>
+          <Button
+            type="text"
+            icon={<IconPaperclip size={16} stroke={1.5} color="#838383" />}
+            style={{
+              background: activeTab === 'files' ? '#f0f0f0' : 'transparent',
+              borderRadius: 8,
+            }}
+            styles={{
+              icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+            }}
+            onClick={() => handleTabClick('files')}
           />
         </Tooltip>
 
