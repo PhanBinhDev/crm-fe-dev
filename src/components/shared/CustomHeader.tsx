@@ -10,11 +10,11 @@ import NotificationBtn from './NotificationBtn';
 
 const { Header } = Layout;
 
-interface AppHeaderProps {
+interface CustomHeaderProps {
   collapsed: boolean;
 }
 
-export const AppHeader = ({ collapsed }: AppHeaderProps) => {
+export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
   const { user, isLoading } = useAuth();
   const { mutate: logout } = useLogout();
   const [profileTab, setProfileTab] = useState(false);

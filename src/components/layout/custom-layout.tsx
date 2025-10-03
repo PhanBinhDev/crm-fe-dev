@@ -1,4 +1,4 @@
-import { AppHeader } from '@/components/shared/Header';
+import { CustomHeader } from '@/components/shared/CustomHeader';
 import { getResourcesByRole, ResourceConfig } from '@/config/resources';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
@@ -267,7 +267,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
           backgroundColor: '#f0f2f5',
         }}
       >
-        <AppHeader collapsed={collapsed} />
+        <CustomHeader collapsed={collapsed} />
         <Content
           style={{
             margin: '24px 16px',
