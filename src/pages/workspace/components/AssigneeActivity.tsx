@@ -1,8 +1,10 @@
 import { IUser } from '@/common/types';
+import { useWorkspaceStore } from '@/hooks/useWorkspaces';
 import { useList } from '@refinedev/core';
 import { IconCheck, IconSearch, IconUsers } from '@tabler/icons-react';
 import { Avatar, Button, Input, List, Popover, Space, Tooltip } from 'antd';
 import { useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { useDebounceValue } from 'usehooks-ts';
 
 interface AssigneeActivityProps {
@@ -20,10 +22,15 @@ const AssigneeActivity = ({
   onToggleSelectUser,
   title = 'Phụ trách',
 }: AssigneeActivityProps) => {
+  const { currentWorkspace } = useWorkspaceStore();
+  const workspaceId = currentWorkspace?.id; 
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch] = useDebounceValue(search, 400);
+
+  console.log('workspaceId in AssigneeActivity:', workspaceId);
+
   const { data, isLoading } = useList<IUser>({
-    resource: 'users/all',
+    resource: workspaceId ? `workspaces/${workspaceId}/members` : '', 
     filters: debouncedSearch
       ? [
           {
@@ -33,16 +40,19 @@ const AssigneeActivity = ({
           },
         ]
       : [],
-    pagination: { pageSize: 20 },
+    pagination: { mode: 'off' },
     queryOptions: {
       retry: false,
+      enabled: !!workspaceId, 
     },
   });
 
-  const users = useMemo(() => {
+  const members = useMemo(() => {
     if (isLoading) return [];
     return data?.data ?? [];
   }, [isLoading, data]);
+
+  console.log('members in AssigneeActivity:', members);
 
   return (
     <Popover
@@ -93,7 +103,7 @@ const AssigneeActivity = ({
             />
           </div>
           <List
-            dataSource={users}
+            dataSource={members}
             loading={isLoading}
             style={{
               minHeight: 180,
@@ -101,94 +111,29 @@ const AssigneeActivity = ({
               overflowY: 'auto',
               margin: '0 8px',
             }}
-            renderItem={(user: IUser) => {
-              const isActive = selectedUser.some(u => u.id === user.id);
+            renderItem={(item: any) => {
+              const member = item.user; 
+              const isActive = selectedUser.some((u: IUser) => u.id === member.id);
               return (
                 <List.Item
-                  key={user.id}
+                  key={item.id}
+                  onClick={() => onToggleSelectUser(member)}
                   style={{
-                    padding: '8px',
+                    padding: '6px 10px',
+                    borderRadius: 6,
                     cursor: 'pointer',
-                    borderRadius: 8,
-                    background: '#f6f6f6',
-                    marginBottom: 4,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    gap: 8,
-                    border: isActive ? '1px solid #1890ff' : '1px solid transparent',
-                  }}
-                  onClick={() => onToggleSelectUser(user)}
-                  className="assignee-list-item"
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = '#f0f0f0';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = '#f6f6f6';
                   }}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                    }}
-                  >
-                    <Avatar
-                      size={24}
-                      src={user.avatar}
-                      style={{ background: '#1890ff', fontSize: 14 }}
-                    >
-                      {user.name?.[0] ?? 'U'}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Avatar size={28} src={member.avatar}>
+                      {member.name?.[0]}
                     </Avatar>
-                    <span
-                      style={{
-                        fontWeight: 500,
-                        fontSize: 12,
-                        color: isActive ? '#1890ff' : undefined,
-                      }}
-                    >
-                      {user.name}
-                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 500 }}>{member.name}</span>
                   </div>
-                  <Space
-                    styles={{
-                      item: {
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      },
-                    }}
-                  >
-                    <div
-                      className="assignee-profile-btn"
-                      style={{ opacity: 0, transition: 'opacity 0.2s' }}
-                    >
-                      <Tooltip title="Xem hồ sơ">
-                        <button
-                          style={{
-                            width: 'auto',
-                            padding: '0 10px',
-                            fontSize: 12,
-                            lineHeight: '24px',
-                            borderRadius: 6,
-                            border: '1px solid #d9d9d9',
-                            outline: 'none',
-                            background: 'white',
-                            cursor: 'pointer',
-                            height: 24,
-                          }}
-                          onClick={e => {
-                            e.stopPropagation();
-                          }}
-                        >
-                          Hồ sơ
-                        </button>
-                      </Tooltip>
-                    </div>
-                    {/* Icon checked when isActive */}
-                    {isActive && <IconCheck size={16} color="#1890ff" />}
-                  </Space>
+                  {isActive && <IconCheck size={16} color="#888" />}
                 </List.Item>
               );
             }}
