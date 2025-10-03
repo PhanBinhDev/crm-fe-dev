@@ -10,7 +10,6 @@ import { calculateProgress, getActivityPriorityColor } from '@/utils/activity';
 import { formatMinutesToText } from '@/utils/formatter';
 import { getNextStage } from '@/utils/stage';
 import { parseTimeEstimate } from '@/utils/times';
-import { HttpError, PrevContext, UpdateResponse } from '@refinedev/core';
 import {
   IconCalendar,
   IconCaretRightFilled,
@@ -23,8 +22,6 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { Avatar, Button, Popover, Space, Tooltip } from 'antd';
-import { MutateFunction } from 'node_modules/@refinedev/core/dist/definitions/types';
-import { UpdateParams } from 'node_modules/@refinedev/core/dist/hooks/data/useUpdate';
 import { useCallback } from 'react';
 import ActivityContentItem from './ActivityContentItem';
 
@@ -32,12 +29,7 @@ interface ActivityMainContentProps {
   isContentNarrow: boolean;
   itemData: IActivity;
   stages: IStage[];
-  onUpdate: MutateFunction<
-    UpdateResponse<IActivity>,
-    HttpError,
-    UpdateParams<IActivity, HttpError, {}>,
-    PrevContext<IActivity>
-  >;
+  onUpdate: any;
   setFormData: React.Dispatch<React.SetStateAction<Partial<IActivity>>>;
 }
 

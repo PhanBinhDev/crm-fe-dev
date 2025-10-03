@@ -28,7 +28,7 @@ import { DashboardPage } from './pages/dashboard';
 import FeedbackForm from './pages/feedback/FeebackForm';
 import InviteWorkspace from './pages/invite/page';
 import { workspaceRoutes } from './pages/workspace/routes';
-import { AccessControlProviderCustom } from './providers/AccessControlProvider';
+import { AccessControlProviderCustom } from './providers/AccessControlProviderCustom';
 import { standardDataProvider } from './providers/nestjs/standardProvider';
 
 function App() {
