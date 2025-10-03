@@ -30,12 +30,9 @@ axiosInstance.interceptors.response.use(
     const errorResponse = error.response?.data;
 
     if (errorResponse) {
-      if (error.response?.status === 401) {
-        message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-
-        // call api logout
-        // await authService.logout();
-      }
+      // if (error.response?.status === 401) {
+      //   message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      // }
     }
 
     return Promise.reject(error);

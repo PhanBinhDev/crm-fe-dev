@@ -23,10 +23,13 @@ export const authProvider: AuthProvider = {
   },
 
   check: async () => {
+    console.log('Auth check');
+
     try {
       await authService.getProfile();
       return {
         authenticated: true,
+        redirectTo: '/',
       };
     } catch (error: any) {
       return {

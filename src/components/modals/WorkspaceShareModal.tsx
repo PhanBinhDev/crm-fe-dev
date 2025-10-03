@@ -168,7 +168,7 @@ const WorkspaceShareModal = () => {
       footer={null}
       width={500}
       centered
-      destroyOnClose
+      destroyOnHidden
     >
       <div style={{ marginBottom: 20, color: '#555', width: '100%', textAlign: 'center' }}>
         Mời thành viên tham gia bằng một trong các cách dưới đây:

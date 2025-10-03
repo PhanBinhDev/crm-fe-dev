@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Card, Space, Select, Alert } from 'antd';
+import { API_URL } from '@/constants';
 import { GoogleOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, Select, Space } from 'antd';
+import React, { useEffect, useState } from 'react';
 
 export const GoogleLoginPage: React.FC = () => {
   const [campus, setCampus] = useState<string | undefined>(undefined);
@@ -26,7 +27,7 @@ export const GoogleLoginPage: React.FC = () => {
 
   const handleGoogleLogin = () => {
     setError(null);
-    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google`;
+    window.location.href = `${API_URL}/auth/google`;
   };
 
   return (
