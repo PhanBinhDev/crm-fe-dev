@@ -135,6 +135,14 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
 
         if (!targetStageId) return;
 
+        const sourceStage = stages.find(s => s.id === activity.stageId);
+        const targetStage = stages.find(s => s.id === targetStageId);
+
+        //không cho kéo ra khỏi CLOSED
+        if (sourceStage?.stageGroup === StageGroup.CLOSED && targetStage?.id !== sourceStage.id) {
+          return;
+        }
+
         if (activity.stageId === targetStageId) {
           const activitiesInStage = localActivities
             .filter(a => a.stageId === targetStageId)
@@ -239,6 +247,12 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
 
       const activeActivity = localActivities.find(x => x.id === activeId);
       if (!activeActivity) return;
+
+      //không update UI khi task trong CLOSED
+      const sourceStage = stages.find(s => s.id === activeActivity.stageId);
+      if (sourceStage?.stageGroup === StageGroup.CLOSED) {
+        return;
+      }
 
       let targetStageId: string | undefined;
 
