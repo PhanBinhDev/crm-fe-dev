@@ -28,7 +28,7 @@ import { DashboardPage } from './pages/dashboard';
 import FeedbackForm from './pages/feedback/FeebackForm';
 import InviteWorkspace from './pages/invite/page';
 import { workspaceRoutes } from './pages/workspace/routes';
-import { accessControlProvider } from './providers/AccessControlProvider';
+import { AccessControlProviderCustom } from './providers/AccessControlProvider';
 import { standardDataProvider } from './providers/nestjs/standardProvider';
 
 function App() {
@@ -44,7 +44,7 @@ function App() {
                 <Refine
                   dataProvider={dataProvider}
                   authProvider={authProvider}
-                  accessControlProvider={accessControlProvider}
+                  accessControlProvider={AccessControlProviderCustom}
                   routerProvider={routerBindings}
                   resources={resources}
                   options={{

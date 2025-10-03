@@ -7,7 +7,7 @@ const ROLE_HIERARCHY = {
   [UserRole.GV]: 1,
 };
 
-export const accessControlProvider: AccessControlProvider = {
+export const AccessControlProviderCustom: AccessControlProvider = {
   can: async ({ resource, action, params }) => {
     const user = params?.identity;
 

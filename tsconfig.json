@@ -15,14 +15,13 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@components/*": ["./src/components/*"],
       "@pages/*": ["./src/pages/*"],
       "@hooks/*": ["./src/hooks/*"],
       "@services/*": ["./src/services/*"],
-      "@types/*": ["src/common/types/*"],
+      "@types/*": ["./src/common/types/*"],
       "@constants/*": ["./src/constants/*"],
       "@utils/*": ["./src/utils/*"]
     }
