@@ -28,7 +28,7 @@ const WorkspaceMember = () => {
   const [filterRole, setFilterRole] = useState<string>('');
   const { workspaceId } = useParams<{ workspaceId: string }>();
 
-  const { data, isLoading, refetch } = useList<Member>({
+  const { data, isLoading, refetch } = useList<IMember>({
     resource: `workspaces/${workspaceId}/members`,
   });
 
