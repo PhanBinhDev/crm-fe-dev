@@ -105,6 +105,10 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
     checklist: false,
   });
   const [stage, setStage] = useState<IStage | null>(null);
+  const [errors, setErrors] = useState<{ stage: boolean; location: boolean }>({
+    stage: false,
+    location: false,
+  });
   const [dateRange, setDateRange] = useState<DateRange>({
     start: null,
     end: null,
@@ -119,6 +123,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
   const [attachments, setAttachments] = useState<File[]>([]);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [stageError, setStageError] = useState(false);
+  const [locationError, setLocationError] = useState(false);
 
   const handleToggleSelectUser = (user: IUser) => {
     setSelectedAssignees(prev => {
@@ -213,19 +218,17 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
     [form],
   );
 
-  const handleStateChange = useCallback(
-    (stage: IStage | null) => {
-      if (stage) {
-        setStageError(false);
-      } else {
-        setStageError(true);
-      }
+ const handleStateChange = useCallback(
+   (nextStage: IStage | null) => {
+     // Nếu có stage thì clear lỗi, nếu không thì báo lỗi
+     setErrors(prev => ({ ...prev, stage: !nextStage }));
 
-      setStage(stage);
-      form.setFieldValue('stage', stage);
-    },
-    [form],
-  );
+     // Cập nhật stage state + form value
+     setStage(nextStage);
+     form.setFieldValue('stage', nextStage);
+   },
+   [form],
+ );
 
   const handleReset = () => {
     form.resetFields();
@@ -250,9 +253,15 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
   const handleSubmit = async (values: any) => {
     try {
       setStageError(false);
+      setLocationError(false);
+      setErrors(prev => ({ ...prev, stage: false }));
 
-      if (!values.stage.id) {
-        setStageError(true);
+      if (!values.stage || !values.stage.id) {
+        setErrors(prev => ({ ...prev, stage: true }));
+        return;
+      }
+      if (!values.location || values.location.trim() === '') {
+        setLocationError(true);
         return;
       }
 
@@ -510,7 +519,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
 
         <div style={{ marginTop: 12 }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <StageActivity value={stage} onChange={handleStateChange} error={stageError} />
+            <StageActivity value={stage} onChange={handleStateChange} error={errors.stage} />
             <AssigneeActivity
               selectedUser={selectedAssignees}
               onToggleSelectUser={handleToggleSelectUser}
@@ -519,7 +528,11 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
               <>
                 <InstructorCount value={instructorCount} onChange={handleInstructorCountChange} />
                 <StudentCount value={studentCount} onChange={handleStudentCountChange} />
-                <LocationActivity value={location} onChange={handleLocationChange} />
+                <LocationActivity
+                  value={location}
+                  onChange={handleLocationChange}
+                  error={locationError}
+                />
               </>
             )}
             <DuedateActivity value={dateRange} onChange={handleDateRangeChange} />

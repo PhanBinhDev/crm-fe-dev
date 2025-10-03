@@ -6,9 +6,10 @@ import { useEffect, useState } from 'react';
 interface LocationActivityProps {
   value?: string;
   onChange?: (value: string) => void;
+  error?: boolean;
 }
 
-const LocationActivity = ({ value, onChange }: LocationActivityProps) => {
+const LocationActivity = ({ value, onChange, error }: LocationActivityProps) => {
   const [inputValue, setInputValue] = useState<string>(value || '');
   const debouncedInput = useDebounce(inputValue, 400);
   const [open, setOpen] = useState<boolean>(false);
@@ -89,8 +90,9 @@ const LocationActivity = ({ value, onChange }: LocationActivityProps) => {
         style={{
           borderRadius: 6,
           gap: 4,
-          color: getButtonColor(),
-          borderColor: debouncedInput ? '#1890ff' : undefined,
+          color: debouncedInput ? '#1890ff' : '#838383',
+          borderColor: error ? '#ff4d4f' : debouncedInput ? '#1890ff' : '#d9d9d9',
+          // background: error ? '#fff1f0' : '#fff',
         }}
         styles={{
           icon: {
