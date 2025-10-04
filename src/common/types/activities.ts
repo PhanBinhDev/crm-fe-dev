@@ -63,7 +63,7 @@ export interface FormAddActivityPayload {
   mandatory?: boolean;
   parentId?: string;
   assignees?: PayloadAssignee[];
-  files?: File[];
+  attachments?: string[]; // ✅ URLs thay vì File objects
   stageId?: string;
   subtask?: string[];
   checklist?: Checklist[];

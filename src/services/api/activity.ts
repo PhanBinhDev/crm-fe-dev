@@ -1,7 +1,49 @@
 import { axiosInstance } from '@/lib/axios';
 import { ApiResponse } from '@/common/types/api';
 
+export const FileUploadService = {
+  // Upload single file
+  uploadFile: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await axiosInstance.post<ApiResponse<{ url: string; fileName: string }>>('/upload/file', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  // Upload multiple files cùng lúc
+  uploadMultipleFiles: async (files: File[]) => {
+    const formData = new FormData();
+    files.forEach(file => formData.append('files', file));
+    
+    const response = await axiosInstance.post<ApiResponse<{ urls: string[] }>>('/upload/multi', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    return response.data;
+  },
+};
+
 export const ActivityService = {
+  // POST /api/upload/file - Upload file và lấy URL
+  uploadFile: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await axiosInstance.post<ApiResponse<{ url: string; fileName: string }>>('/upload/file', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   // POST /api/activities/{id}/files - Đính kèm file cho activity
   uploadFiles: async (id: string, files: File[]) => {
     const formData = new FormData();

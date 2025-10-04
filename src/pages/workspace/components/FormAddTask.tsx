@@ -11,6 +11,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useCreate, useList } from '@refinedev/core';
+import { FileUploadService } from '@/services/api/activity';
 import { IconCheck, IconChevronRight } from '@tabler/icons-react';
 import { Form, Input, List, Modal, Popover, Space } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
@@ -86,18 +87,6 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
 
   useImperativeHandle(ref, () => ({
     submitForm: (action: ModalAction) => {
-      console.log('Submitting form with action:', action);
-
-      setErrors({ stage: false, location: false });
-
-      if (!stage) {
-        setErrors(prev => ({ ...prev, stage: true }));
-      }
-
-      if (taskOrEvent === ActivityType.EVENT && (!location || location.trim() === '')) {
-        setErrors(prev => ({ ...prev, location: true }));
-      }
-
       actionRef.current = action;
       form.submit();
     },
@@ -253,26 +242,54 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
 
   const handleSubmit = async (values: any) => {
     try {
+      // ✅ Bước 1: Upload files trước để lấy URLs
+      let fileUrls: string[] = [];
+      if (attachments.length > 0) {
+        try {
+          const uploadResult = await FileUploadService.uploadMultipleFiles(attachments);
+          
+          if (Array.isArray(uploadResult)) {
+            if (uploadResult.length > 0 && uploadResult[0].url) {
+              fileUrls = uploadResult.map((item: any) => item.url);
+            } else {
+              fileUrls = uploadResult;
+            }
+          } else if (uploadResult.data && uploadResult.data.urls) {
+            fileUrls = uploadResult.data.urls;
+          } else if (Array.isArray(uploadResult.data)) {
+            if (uploadResult.data.length > 0 && uploadResult.data[0].url) {
+              fileUrls = uploadResult.data.map((item: any) => item.url);
+            } else {
+              fileUrls = uploadResult.data;
+            }
+          } else {
+            return;
+          }
+        } catch (uploadError) {
+          return;
+        }
+      }
+
+      // ✅ Bước 2: Tạo activity với URLs trong attachments
       const formData: FormAddActivityPayload = {
         name: values.name?.trim(),
         description: values.description?.trim(),
-        assignees: selectedAssignees.map(user => ({
-          userId: user.id,
-        })),
+        type: values.type,
+        stageId: values.stage.id,
+        workspaceId: currentWorkspace?.id || '',
         priority: selectedPriority?.value,
         estimateTime: parseFloat(timeEstimate) || 0,
-        stageId: values.stage.id,
-        type: values.type,
-        category: values.category,
         startTime: dateRange.start?.toDate(),
         endTime: dateRange.end?.toDate(),
-        files: attachments,
-        subtask: subtasks.filter(task => task.trim()),
-        checklist: checklists,
-        workspaceId: currentWorkspace?.id || '',
         location: values.location || null,
         instructorCount: values.instructorCount || null,
         studentCount: values.studentCount || null,
+        assignees: selectedAssignees.map(user => ({
+          userId: user.id,
+        })),
+        subtask: subtasks.filter(task => task.trim()),
+        checklist: checklists,
+        attachments: fileUrls,
       };
 
       onSubmit?.({
@@ -280,7 +297,9 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
         action: actionRef.current || 'create-action',
         callback: () => handleReset(),
       });
-    } catch (error) {}
+    } catch (error) {
+      console.error('❌ Lỗi khi submit form:', error);
+    }
   };
 
   return (
