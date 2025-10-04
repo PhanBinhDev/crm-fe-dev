@@ -354,7 +354,6 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
           body: {
             padding: 0,
             width: 310,
-            marginLeft: 30,
           },
         }}
         trigger={['click']}

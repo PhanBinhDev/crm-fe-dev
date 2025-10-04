@@ -36,12 +36,11 @@ const NotificationActivityBtn = ({ workspaceId }: NotificationActivityBtnProps) 
   return (
     <Popover
       trigger={['click']}
-      placement="top"
+      placement="topRight"
       arrow={false}
       content={
         <div style={{ width: 260 }}>
-          {/* Search */}
-          <div style={{ padding: '6px 10px', borderBottom: '1px solid #eee' }}>
+          <div style={{ padding: '8px 12px', borderBottom: '1px solid #eee' }}>
             <Input
               placeholder="Tìm kiếm hoặc nhập email..."
               size="small"
@@ -72,7 +71,7 @@ const NotificationActivityBtn = ({ workspaceId }: NotificationActivityBtnProps) 
           <List
             loading={isLoading}
             dataSource={filteredMembers}
-            style={{ maxHeight: 250, overflowY: 'auto' }}
+            style={{ maxHeight: 250, overflowY: 'auto', padding: 8 }}
             locale={{ emptyText: 'Không có thành viên' }}
             renderItem={(user: any) => {
               const isActive = selected.includes(user.id);
@@ -84,14 +83,14 @@ const NotificationActivityBtn = ({ workspaceId }: NotificationActivityBtnProps) 
                     padding: '6px 10px',
                     cursor: 'pointer',
                     borderRadius: 6,
-                    background: 'transparent', 
-                    border: '1px solid transparent', 
+                    background: 'transparent',
+                    border: '1px solid transparent',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.background = '#f5f5f5'; 
+                    e.currentTarget.style.background = '#f5f5f5';
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.background = 'transparent';
@@ -107,9 +106,14 @@ const NotificationActivityBtn = ({ workspaceId }: NotificationActivityBtnProps) 
                 </List.Item>
               );
             }}
-          />
+          >
+            
+          </List>
         </div>
       }
+      styles={{
+        body: { padding: 0, width: 260 },
+      }}
     >
       <Tooltip title="Người theo dõi">
         <Button

@@ -38,7 +38,7 @@ const LocationActivity = ({ value, onChange, error }: LocationActivityProps) => 
     return debouncedInput || 'Địa điểm';
   };
 
-  const timeEstimateContent = (
+  const locationContent = (
     <Space
       direction="vertical"
       style={{
@@ -58,7 +58,6 @@ const LocationActivity = ({ value, onChange, error }: LocationActivityProps) => 
       <div
         style={{
           padding: '0 12px 8px',
-          borderBottom: '1px solid #f0f0f0',
         }}
       >
         <Input placeholder='vd: "F408"' value={inputValue} onChange={handleInputChange} autoFocus />
@@ -79,7 +78,7 @@ const LocationActivity = ({ value, onChange, error }: LocationActivityProps) => 
       trigger={['click']}
       placement="bottomLeft"
       arrow={false}
-      content={timeEstimateContent}
+      content={locationContent}
     >
       <Button
         size="small"
@@ -88,7 +87,6 @@ const LocationActivity = ({ value, onChange, error }: LocationActivityProps) => 
           gap: 4,
           color: debouncedInput ? '#1890ff' : '#838383',
           borderColor: error ? '#ff4d4f' : debouncedInput ? '#1890ff' : '#d9d9d9',
-          // background: error ? '#fff1f0' : '#fff',
         }}
         styles={{
           icon: {

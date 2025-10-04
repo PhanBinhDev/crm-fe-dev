@@ -2,7 +2,7 @@ import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { useLogout } from '@refinedev/core';
-import { IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
+import { IconLogout, IconSettings, IconUser, IconUserCircle } from '@tabler/icons-react';
 import { Avatar, Button, Drawer, Dropdown, Layout, MenuProps, Skeleton, Space } from 'antd';
 import { useState } from 'react';
 import CustomBreadcrumb from './CustomBreadcrumb';
@@ -22,18 +22,32 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
-      icon: <IconUser size={18} />,
+      icon: <IconUserCircle size={16} />,
       label: 'Hồ sơ cá nhân',
       type: 'item',
       onClick: () => setProfileTab(true),
+      style: {
+        borderRadius: 8,
+      },
     },
-    { key: 'settings', icon: <IconSettings size={18} />, label: 'Cài đặt', type: 'item' },
+    {
+      key: 'settings',
+      icon: <IconSettings size={16} />,
+      label: 'Cài đặt',
+      type: 'item',
+      style: {
+        borderRadius: 8,
+      },
+    },
     { type: 'divider' },
     {
       key: 'logout',
+      style: {
+        borderRadius: 8,
+      },
       icon: (
         <IconLogout
-          size={18}
+          size={16}
           style={{
             color: 'inherit',
           }}
@@ -83,8 +97,9 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
             menu={{
               items: userMenuItems,
               style: {
-                padding: '8px 6px',
-                minWidth: 150,
+                padding: 6,
+                minWidth: 180,
+                borderRadius: 10,
                 boxShadow:
                   '0 3px 6px -4px rgba(0,0,0,0.2), 0 6px 16px 0 rgba(0,0,0,0.08), 0 9px 28px 8px rgba(0,0,0,0.05)',
               },
@@ -120,7 +135,13 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
                 <>
                   <Avatar
                     size={28}
-                    src={user?.avatar || AVATAR_PLACEHOLDER}
+                    src={
+                      user?.avatar
+                        ? user.avatar.startsWith('http')
+                          ? user.avatar
+                          : `${import.meta.env.VITE_API_BASE_URL}${user?.avatar}`
+                        : AVATAR_PLACEHOLDER
+                    }
                     icon={<IconUser size={18} />}
                     style={{ backgroundColor: '#1890ff', flexShrink: 0 }}
                   />

@@ -37,7 +37,7 @@ const ActivitySubtask = ({ activity }: ActivitySubtaskProps) => {
                 height: 28,
                 display: 'flex',
                 alignItems: 'center',
-                marginTop: '1px',
+                marginTop: '4px',
               }}
             />
           )}

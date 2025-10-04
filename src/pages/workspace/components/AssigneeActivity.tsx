@@ -1,4 +1,5 @@
-import { IUser } from '@/common/types';
+import { IMember, IUser } from '@/common/types';
+import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaceStore } from '@/hooks/useWorkspaces';
 import { useList } from '@refinedev/core';
 import { IconCheck, IconSearch, IconUsers } from '@tabler/icons-react';
@@ -21,12 +22,13 @@ const AssigneeActivity = ({
   onToggleSelectUser,
   title = 'Phụ trách',
 }: AssigneeActivityProps) => {
+  const { user } = useAuth();
   const { currentWorkspace } = useWorkspaceStore();
   const workspaceId = currentWorkspace?.id;
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch] = useDebounceValue(search, 400);
 
-  const { data, isLoading } = useList<IUser>({
+  const { data, isLoading } = useList<IMember>({
     resource: workspaceId ? `workspaces/${workspaceId}/members` : '',
     filters: debouncedSearch
       ? [
@@ -106,7 +108,7 @@ const AssigneeActivity = ({
               overflowY: 'auto',
               margin: '0 8px',
             }}
-            renderItem={(item: any) => {
+            renderItem={(item: IMember) => {
               const member = item.user;
               const isActive = selectedUser.some((u: IUser) => u.id === member.id);
               return (
@@ -121,12 +123,22 @@ const AssigneeActivity = ({
                     alignItems: 'center',
                     justifyContent: 'space-between',
                   }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#f5f5f5';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <Avatar size={28} src={member.avatar}>
                       {member.name?.[0]}
                     </Avatar>
-                    <span style={{ fontSize: 13, fontWeight: 500 }}>{member.name}</span>
+                    <span style={{ fontSize: 13, fontWeight: 500 }}>
+                      {user?.id === member.id
+                        ? `${member.name.charAt(0).toUpperCase() + member.name.slice(1)} (Bạn)`
+                        : member.name.charAt(0).toUpperCase() + member.name.slice(1)}
+                    </span>
                   </div>
                   {isActive && <IconCheck size={16} color="#888" />}
                 </List.Item>

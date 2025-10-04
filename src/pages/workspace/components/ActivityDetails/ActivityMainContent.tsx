@@ -3,6 +3,7 @@ import { ActivityPriorityLevel, IActivity, IStage } from '@/common/types';
 import { IAssignee } from '@/common/types/assignee';
 import AssigneeContent from '@/components/shared/AssigneeContent';
 import EstimateContent from '@/components/shared/EstimateContent';
+import LocationContent from '@/components/shared/LocationContent';
 import PriorityContent from '@/components/shared/PriorityContent';
 import StatusContent from '@/components/shared/StatusContent';
 import { getPriorityLabel, mapToActivityPriorityFilter } from '@/constants';
@@ -17,6 +18,7 @@ import {
   IconFlag,
   IconFlagFilled,
   IconHourglassEmpty,
+  IconLocation,
   IconPlaystationCircle,
   IconUsers,
   IconX,
@@ -40,8 +42,6 @@ const ActivityMainContent = ({
   onUpdate,
   setFormData,
 }: ActivityMainContentProps) => {
-  console.log('itemData', itemData.progress);
-
   const onStageChange = useCallback(
     (stage: IStage) => {
       setFormData(prev => {
@@ -112,6 +112,23 @@ const ActivityMainContent = ({
       onUpdate({
         values: { estimateTime: minutes },
       });
+    },
+    [setFormData, onUpdate],
+  );
+
+  const onLocationChange = useCallback(
+    (location: string) => {
+      console.log('location', location);
+
+      setFormData(prev => ({
+        ...prev,
+        location,
+      }));
+      // onUpdate({
+      //   values: {
+      //     location,
+      //   },
+      // });
     },
     [setFormData, onUpdate],
   );
@@ -647,7 +664,7 @@ const ActivityMainContent = ({
         <ActivityContentItem
           startContent={
             <>
-              <IconHourglassEmpty size={14} />
+              <IconLocation size={14} />
               <span
                 style={{
                   userSelect: 'none',
@@ -661,15 +678,12 @@ const ActivityMainContent = ({
             <Popover
               placement="bottomLeft"
               content={
-                <EstimateContent
-                  estimateTime={itemData.estimateTime}
-                  onEstimateChange={onEstimateChange}
-                />
+                <LocationContent location={itemData.location} onLocationChange={onLocationChange} />
               }
               arrow={false}
               trigger={['click']}
               styles={{
-                body: { padding: '8px 0', width: 280 },
+                body: { padding: '8px 0', width: 220 },
               }}
             >
               <Space
@@ -682,29 +696,33 @@ const ActivityMainContent = ({
                   },
                 }}
               >
-                <Button
-                  type="text"
-                  size="small"
-                  style={{
-                    padding: '6px',
-                    color: '#8c8c8c',
-                    background: 'transparent',
-                    borderRadius: 7,
-                    fontSize: 14,
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = 'transparent';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'transparent';
-                  }}
-                >
-                  {!itemData.estimateTime
-                    ? 'Trống'
-                    : formatMinutesToText(itemData.estimateTime || 0)}
-                </Button>
+                <Tooltip title={itemData?.location && itemData.location.length > 20 ? itemData.location : ''}>
+                  <Button
+                    type="text"
+                    size="small"
+                    style={{
+                      padding: '6px',
+                      color: '#8c8c8c',
+                      background: 'transparent',
+                      borderRadius: 7,
+                      fontSize: 14,
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    {!itemData.location
+                      ? 'Trống'
+                      : itemData.location.length > 20
+                        ? `${itemData.location.slice(0, 20)}...`
+                        : itemData.location}
+                  </Button>
+                </Tooltip>
 
-                {Boolean(itemData.estimateTime) && (
+                {Boolean(itemData.location) && (
                   <Button
                     type="text"
                     size="small"

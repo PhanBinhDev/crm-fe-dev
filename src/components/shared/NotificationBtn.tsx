@@ -1,6 +1,6 @@
 import { INotification, NotificationTab } from '@/common/types';
-import { useInfiniteList } from '@refinedev/core';
-import { IconBell, IconX } from '@tabler/icons-react';
+import { useInfiniteList, useUpdate } from '@refinedev/core';
+import { IconBell, IconChecks, IconX } from '@tabler/icons-react';
 import {
   Avatar,
   Badge,
@@ -37,6 +37,8 @@ const NotificationBtn = () => {
       sorters: [{ field: 'createdAt', order: 'desc' }],
       queryOptions: {
         getNextPageParam: lastPage => {
+          console.log('lastPage', lastPage);
+
           return lastPage.pagination.afterCursor;
         },
         getPreviousPageParam: firstPage => {
@@ -44,6 +46,12 @@ const NotificationBtn = () => {
         },
       },
     });
+
+  const { mutate, isPending: isUpdating } = useUpdate({
+    resource: 'notifications',
+    invalidates: ['list'],
+    mutationMode: 'optimistic',
+  });
 
   const notifications = useMemo(() => {
     const notificationMap = new Map();
@@ -70,14 +78,55 @@ const NotificationBtn = () => {
     }
   };
 
+  const markAsRead = (noti: INotification) => {
+    if (isUpdating || noti.isRead) return;
+
+    mutate({
+      resource: 'notifications/read',
+      id: '',
+      values: {
+        notificationId: noti.id,
+      },
+    });
+  };
+
+  const markAllAsRead = () => {
+    if (isUpdating) return;
+
+    mutate({
+      resource: 'notifications/read-all',
+      id: '',
+      values: {},
+    });
+  };
+
+  const clearAll = () => {
+    if (isUpdating || !notifications) return;
+
+    mutate({
+      resource: 'notifications/clear-all',
+      id: '',
+      values: {},
+    });
+  };
+
   const renderItem = (item: INotification) => (
     <List.Item
       style={{
         background: item.isRead ? '#fff' : '#f6faff',
-        borderLeft: item.isRead ? '2px solid transparent' : '2px solid #1677ff',
         padding: '8px 12px',
         cursor: 'pointer',
+        borderRadius: 6,
+        position: 'relative',
       }}
+      key={item.id}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = '#f5f5f5';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = item.isRead ? '#fff' : '#f6faff';
+      }}
+      onClick={() => markAsRead(item)}
     >
       <List.Item.Meta
         avatar={
@@ -90,21 +139,24 @@ const NotificationBtn = () => {
             <Typography.Text strong style={{ fontSize: '13px' }}>
               {item.user?.name}
             </Typography.Text>
-            {!item.isRead && (
-              <span
-                style={{
-                  display: 'inline-block',
-                  width: 6,
-                  height: 6,
-                  borderRadius: 3,
-                  background: '#1677ff',
-                  marginLeft: 4,
-                }}
-              />
-            )}
-            <Typography.Text type="secondary" style={{ fontSize: '11px', marginLeft: 'auto' }}>
-              {dayjs(item.createdAt).format('HH:mm')}
-            </Typography.Text>
+            <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
+              {!item.isRead && (
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 6,
+                    height: 6,
+                    borderRadius: 3,
+                    background: '#1677ff',
+                    marginRight: 4,
+                  }}
+                />
+              )}
+
+              <Typography.Text type="secondary" style={{ fontSize: '11px' }}>
+                {dayjs(item.createdAt).format('HH:mm')}
+              </Typography.Text>
+            </div>
           </div>
         }
         description={
@@ -143,6 +195,12 @@ const NotificationBtn = () => {
         <Button
           type="text"
           size="small"
+          style={{
+            borderRadius: 7,
+          }}
+          styles={{
+            icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+          }}
           onClick={() => setOpen(false)}
           icon={<IconX size={16} color="#838383" />}
         />
@@ -191,18 +249,67 @@ const NotificationBtn = () => {
         onScroll={handleScroll}
       >
         {isLoading ? (
-          <Spin style={{ margin: '40px auto', display: 'block' }} />
+          <Spin style={{ margin: '10px auto', display: 'block' }} />
         ) : notifications.length === 0 ? (
-          <Empty description="Không có thông báo nào" style={{ margin: '40px 0' }} />
+          <Empty description="Không có thông báo nào" style={{ margin: '10px 0' }} />
         ) : (
           <List
             dataSource={notifications}
             renderItem={renderItem}
             split={false}
-            style={{ padding: 0 }}
+            style={{ padding: '0 8px' }}
           />
         )}
         {isFetchingNextPage && <Spin style={{ margin: '12px auto', display: 'block' }} />}
+      </div>
+
+      <div
+        style={{
+          padding: 8,
+          borderTop: '1px solid #f0f0f0',
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Button
+          type="text"
+          style={{
+            padding: '4px 12px',
+          }}
+          styles={{
+            icon: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+          }}
+          icon={<IconX size={14} />}
+          disabled={!notifications.length || isUpdating}
+          onClick={clearAll}
+        >
+          Xóa
+        </Button>
+
+        <Button
+          type="primary"
+          style={{
+            border: 0,
+          }}
+          styles={{
+            icon: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+          }}
+          icon={<IconChecks size={14} />}
+          onClick={markAllAsRead}
+          disabled={!notifications || unreadCount === 0 || isUpdating}
+        >
+          Đánh dấu đã đọc
+        </Button>
       </div>
     </Space>
   );
@@ -213,7 +320,7 @@ const NotificationBtn = () => {
       onOpenChange={setOpen}
       styles={{
         body: {
-          padding: '0',
+          padding: 0,
           width: 350,
           overflow: 'hidden',
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',

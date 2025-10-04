@@ -10,8 +10,8 @@ import {
 } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useCreate, useList } from '@refinedev/core';
 import { FileUploadService } from '@/services/api/activity';
+import { useCreate, useList } from '@refinedev/core';
 import { IconCheck, IconChevronRight } from '@tabler/icons-react';
 import { Form, Input, List, Modal, Popover, Space } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
@@ -242,12 +242,11 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
 
   const handleSubmit = async (values: any) => {
     try {
-      // ✅ Bước 1: Upload files trước để lấy URLs
       let fileUrls: string[] = [];
       if (attachments.length > 0) {
         try {
           const uploadResult = await FileUploadService.uploadMultipleFiles(attachments);
-          
+
           if (Array.isArray(uploadResult)) {
             if (uploadResult.length > 0 && uploadResult[0].url) {
               fileUrls = uploadResult.map((item: any) => item.url);
@@ -270,7 +269,6 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
         }
       }
 
-      // ✅ Bước 2: Tạo activity với URLs trong attachments
       const formData: FormAddActivityPayload = {
         name: values.name?.trim(),
         description: values.description?.trim(),

@@ -89,6 +89,7 @@ const AssigneeContent = ({ currentAssignees, onChangeAssignees }: AssigneeConten
                     justifyContent: 'flex-start',
                     height: 32,
                     padding: '0 8px 0 6px',
+                    background: isSelected ? '#f0f0f0' : 'transparent',
                   }}
                   onClick={() => {
                     if (isSelected) {
