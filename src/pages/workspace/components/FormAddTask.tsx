@@ -10,8 +10,7 @@ import {
 } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { FileUploadService } from '@/services/api/activity';
-import { useCreate, useList } from '@refinedev/core';
+import { useCreate, useList, useCustomMutation } from '@refinedev/core';
 import { IconCheck, IconChevronRight } from '@tabler/icons-react';
 import { Form, Input, List, Modal, Popover, Space } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
@@ -54,6 +53,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
   const [customModalOpen, setCustomModalOpen] = useState(false);
   const [customForm] = Form.useForm();
   const { mutate: createCategory } = useCreate<Category>();
+  const { mutate: uploadFiles } = useCustomMutation();
 
   const { data: categoriesData } = useList<Category>({
     resource: 'activities/category',
@@ -245,7 +245,25 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
       let fileUrls: string[] = [];
       if (attachments.length > 0) {
         try {
-          const uploadResult = await FileUploadService.uploadMultipleFiles(attachments);
+          const formData = new FormData();
+          attachments.forEach(file => formData.append('files', file));
+
+          const uploadResult = await new Promise<any>((resolve, reject) => {
+            uploadFiles(
+              {
+                url: '/upload/multi',
+                method: 'post',
+                values: formData,
+                config: {
+                  headers: { 'Content-Type': 'multipart/form-data' },
+                },
+              },
+              {
+                onSuccess: (res) => resolve(res),
+                onError: (error) => reject(error),
+              },
+            );
+          });
 
           if (Array.isArray(uploadResult)) {
             if (uploadResult.length > 0 && uploadResult[0].url) {

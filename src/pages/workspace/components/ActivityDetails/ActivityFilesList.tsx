@@ -56,10 +56,15 @@ const ActivityFilesList = ({ files, loading }: ActivityFilesListProps) => {
             style={{ 
               borderRadius: 8, 
               boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
-              border: '1px solid #f0f0f0'
+              border: '1px solid #f0f0f0',
+              cursor: 'pointer'
             }}
             styles={{
               body: { display: 'flex', gap: 12, padding: 12 },
+            }}
+            onClick={() => {
+              // Mở file để xem trực tiếp
+              window.open(file.url, '_blank');
             }}
           >
             <div style={{ fontSize: 20, display: 'flex', alignItems: 'center' }}>
@@ -87,7 +92,9 @@ const ActivityFilesList = ({ files, loading }: ActivityFilesListProps) => {
                   styles={{
                     icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
                   }}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Download file
                     const link = document.createElement('a');
                     link.href = file.url;
                     link.download = fileName;

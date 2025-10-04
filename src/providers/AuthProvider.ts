@@ -1,5 +1,5 @@
-import { authService } from '@/services/api/auth';
 import { AuthProvider } from '@refinedev/core';
+import { axiosInstance } from '@/lib/axios';
 
 export const authProvider: AuthProvider = {
   login: async () => {
@@ -11,7 +11,7 @@ export const authProvider: AuthProvider = {
 
   logout: async () => {
     try {
-      await authService.logout();
+      await axiosInstance.delete('/auth/logout');
     } catch (error) {
       console.error('Logout API error:', error);
     }
@@ -26,7 +26,7 @@ export const authProvider: AuthProvider = {
     console.log('Auth check');
 
     try {
-      await authService.getProfile();
+      await axiosInstance.get('/auth/me');
       return {
         authenticated: true,
         redirectTo: '/',
@@ -41,7 +41,7 @@ export const authProvider: AuthProvider = {
 
   getPermissions: async () => {
     try {
-      const response = await authService.getProfile();
+      const response = await axiosInstance.get('/auth/me');
       return response.data.data.role || null;
     } catch {
       return null;
@@ -50,8 +50,7 @@ export const authProvider: AuthProvider = {
 
   getIdentity: async () => {
     try {
-      const response = await authService.getProfile();
-
+      const response = await axiosInstance.get('/auth/me');
       return response.data.data;
     } catch {
       return null;
