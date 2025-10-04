@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { message, Spin } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import { UserForm } from '@/pages/users/form/components/UserForm';
-import { UserService } from '@/services/api/user';
+import { useCustomMutation } from '@refinedev/core';
+import { useOne } from '@refinedev/core';
 
 
 
@@ -12,21 +13,20 @@ export const UserEdit = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { mutate: updateUser } = useCustomMutation();
 
+  const { data: userData } = useOne({
+    resource: 'users',
+    id: id!,
+    queryOptions: { enabled: !!id },
+  });
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await UserService.getUser(id!);
-        setUser(res.data);
-      } catch (error) {
-        message.error('Không tìm thấy người dùng!');
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) fetchUser();
-  }, [id]);
+    if (userData?.data) {
+      setUser(userData.data);
+      setLoading(false);
+    }
+  }, [userData]);
 
   const handleFinish = async (values: any) => {
     if (isProcessing) return;
@@ -43,9 +43,21 @@ export const UserEdit = () => {
       avatar: values.avatar,
     };
     try {
-      await UserService.updateUser(id!, payload);
+      await new Promise((resolve, reject) => {
+        updateUser(
+          {
+            url: `/users/${id}`,
+            method: 'patch',
+            values: payload,
+          },
+          {
+            onSuccess: (res) => resolve(res),
+            onError: (error) => reject(error),
+          },
+        );
+      });
       message.success('Cập nhật người dùng thành công!');
-  navigate('/teachers', { state: { reload: true } });
+      navigate('/teachers', { state: { reload: true } });
     } catch (error: any) {
       const details = error?.response?.data?.details;
       if (details && Array.isArray(details)) {

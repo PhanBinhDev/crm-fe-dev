@@ -1,5 +1,5 @@
-import { UserService } from '@/services/api/user';
 import { createUserImportTemplate } from '@/services/utils/exportUtils';
+import { useCustomMutation } from '@refinedev/core';
 import {
   IconDownload,
   IconFileSpreadsheet,
@@ -21,6 +21,7 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
   const [fileList, setFileList] = useState<any[]>([]);
   const [urlInput, setUrlInput] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
+  const { mutate: importUsers } = useCustomMutation();
 
   const handleDownloadTemplate = () => {
     try {
@@ -104,7 +105,22 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
       if (fileList.length > 0) {
         const formData = new FormData();
         formData.append('file', fileList[0]);
-        response = await UserService.importUsers(formData);
+        response = await new Promise((resolve, reject) => {
+          importUsers(
+            {
+              url: '/users/import',
+              method: 'post',
+              values: formData,
+              config: {
+                headers: { 'Content-Type': 'multipart/form-data' },
+              },
+            },
+            {
+              onSuccess: (res) => resolve(res),
+              onError: (error) => reject(error),
+            },
+          );
+        });
       } else if (urlInput.trim()) {
         if (!validateUrl(urlInput.trim())) {
           // setInputError('URL không hợp lệ. Vui lòng nhập đúng định dạng.');
@@ -113,11 +129,23 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
           return;
         }
         const convertedUrl = convertGoogleSheetUrl(urlInput.trim());
-        response = await UserService.importUsersFromUrl(convertedUrl);
+        response = await new Promise((resolve, reject) => {
+          importUsers(
+            {
+              url: '/users/import-url',
+              method: 'post',
+              values: { url: convertedUrl },
+            },
+            {
+              onSuccess: (res) => resolve(res),
+              onError: (error) => reject(error),
+            },
+          );
+        });
       }
       // ...existing code xử lý response...
-      if (response && response.statusCode === 200) {
-        const { successCount, failureCount } = response.data;
+      if (response && (response as any).statusCode === 200) {
+        const { successCount, failureCount } = (response as any).data;
         if (successCount > 0) {
           if (failureCount > 0) {
             message.warning(

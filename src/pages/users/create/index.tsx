@@ -1,7 +1,7 @@
 import { Form, message, Spin } from 'antd';
 import { UserForm } from '@/pages/users/form/components/UserForm';
 import { useAuth } from '@/hooks/useAuth';
-import { UserService } from '@/services/api/user';
+import { useCustomMutation } from '@refinedev/core';
 import { UserRole } from '@/common/enum/user';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +10,7 @@ export const UserCreate = () => {
   const { user: identity } = useAuth();
   const [form] = Form.useForm();
   const [isProcessing, setIsProcessing] = useState(false);
+  const { mutate: createUser } = useCustomMutation();
   const navigate = useNavigate();
 
   const isCNBM = identity?.role === UserRole.CNBM;
@@ -33,7 +34,19 @@ export const UserCreate = () => {
       avatar: values.avatar,
     };
     try {
-      await UserService.createUser(payload);
+      await new Promise((resolve, reject) => {
+        createUser(
+          {
+            url: '/users',
+            method: 'post',
+            values: payload,
+          },
+          {
+            onSuccess: (res) => resolve(res),
+            onError: (error) => reject(error),
+          },
+        );
+      });
       message.success('Tạo người dùng thành công!');
       form.resetFields();
       navigate('/teachers', { state: { reload: true } });

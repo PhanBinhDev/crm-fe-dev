@@ -1,6 +1,6 @@
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { createWorkspace } from '@/services/api/workspace';
+import { useCustomMutation } from '@refinedev/core';
 import { useList } from '@refinedev/core';
 import { Button, Form, Input, message, Modal, Select, Switch } from 'antd';
 import React, { useState } from 'react';
@@ -12,6 +12,7 @@ const ModalAddWorkspace: React.FC = () => {
   const { type, isOpen, closeModal } = useModal();
   const isModalOpen = type === 'ModalAddWorkspace' && isOpen;
   const { refreshWorkspaces } = useWorkspaces();
+  const { mutate: createWorkspace } = useCustomMutation();
 
   const { data: usersData } = useList({
     resource: 'users/all',
@@ -47,7 +48,19 @@ const ModalAddWorkspace: React.FC = () => {
 
       console.log('Creating workspace with payload:', payload);
 
-      const result = await createWorkspace(payload);
+      const result = await new Promise((resolve, reject) => {
+        createWorkspace(
+          {
+            url: '/workspaces',
+            method: 'post',
+            values: payload,
+          },
+          {
+            onSuccess: (res) => resolve(res),
+            onError: (error) => reject(error),
+          },
+        );
+      });
       console.log('Workspace creation result:', result);
 
       message.success('Tạo workspace thành công!');
