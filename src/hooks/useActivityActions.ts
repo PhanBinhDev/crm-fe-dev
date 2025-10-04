@@ -95,7 +95,7 @@ export const useActivityActions = () => {
             assignees?.map(assignee => ({
               userId: assignee.userId,
             })) || [],
-          files: undefined,
+          attachments: undefined,
         };
 
         console.log('duplicateData:', duplicateData);
