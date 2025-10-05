@@ -1,9 +1,4 @@
-import {
-  ActivityCategory,
-  ActivityPriority,
-  ActivityStatus,
-  ActivityType,
-} from '@/common/enum/activity';
+import { ActivityPriority, ActivityStatus, ActivityType } from '@/common/enum/activity';
 import {
   DateRange,
   IBase,
@@ -72,11 +67,11 @@ export interface FormAddActivityPayload {
   location?: string;
   onlineLink?: string;
   estimateTime?: number;
-  category?: ActivityCategory;
+  category?: ICategory;
   mandatory?: boolean;
   parentId?: string;
   assignees?: PayloadAssignee[];
-  attachments?: string[]; // ✅ URLs thay vì File objects
+  attachments?: string[];
   stageId?: string;
   subtask?: string[];
   checklist?: Checklist[];

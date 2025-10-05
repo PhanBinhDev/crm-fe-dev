@@ -27,6 +27,7 @@ const ActivitySubtask = ({ activity }: ActivitySubtaskProps) => {
   const [value, setValue] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const [formData, _setFormData] = useState<Partial<IActivity>>({});
 
   const { subTasks, doneCount, totalCount, percent } = useMemo(() => {
     const subTasks = activity.subActivities || [];
@@ -148,7 +149,36 @@ const ActivitySubtask = ({ activity }: ActivitySubtaskProps) => {
           >
             {/* type */}
             {isMobile ? (
-              <Popover placement="top" trigger={['click']} content={<div>Hello</div>}>
+              <Popover
+                placement="topRight"
+                trigger={['click']}
+                styles={{
+                  body: { padding: 0, width: 250 },
+                }}
+                arrow={false}
+                content={
+                  <Space
+                    style={{
+                      padding: 8,
+                      width: '100%',
+                    }}
+                    styles={{
+                      item: {
+                        width: '100%',
+                      },
+                    }}
+                  >
+                    <Typography
+                      style={{
+                        padding: '3px 12px 0',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Tùy chỉnh
+                    </Typography>
+                  </Space>
+                }
+              >
                 <Button
                   type="text"
                   size="small"
@@ -224,7 +254,7 @@ const ActivitySubtask = ({ activity }: ActivitySubtaskProps) => {
                     icon={<IconFlag size={14} stroke={2.5} />}
                   />
                 </Tooltip>
-                {activity.type === ActivityType.EVENT && (
+                {formData.type === ActivityType.EVENT && (
                   <>
                     <Tooltip title="Vị trí tổ chức" placement="top">
                       <Button
