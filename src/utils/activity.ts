@@ -326,3 +326,34 @@ export function calculateProgress(activity: IActivity): number {
   // Làm tròn đến 2 chữ số thập phân
   return Math.round(progress * 100) / 100;
 }
+
+export const getColumnLabel = (key: string) => {
+  const labels = {
+    stage: 'Giai đoạn',
+    name: 'Tên hoạt động',
+    type: 'Loại',
+    assignees: 'Người thực hiện',
+    startDate: 'Ngày bắt đầu',
+    dueDate: 'Ngày kết thúc',
+    priority: 'Độ ưu tiên',
+    location: 'Vị trí',
+    description: 'Mô tả',
+  };
+  return labels[key as keyof typeof labels] || '';
+};
+
+// Helper function để lấy width của từng column
+export const getColumnWidth = (key: string) => {
+  const widths = {
+    stage: 25,
+    name: 250,
+    type: 100,
+    assignees: 150,
+    startDate: 120,
+    dueDate: 120,
+    priority: 100,
+    location: 150,
+    description: 200,
+  };
+  return widths[key as keyof typeof widths] || 150;
+};

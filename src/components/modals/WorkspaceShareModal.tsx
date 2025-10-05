@@ -7,8 +7,6 @@ import { useState } from 'react';
 const WorkspaceShareModal = () => {
   const { isOpen, type, data, closeModal } = useModal();
   const isOpenModal = isOpen && type === 'WorkspaceShareModal';
-  console.log('dt', data?.workspaceId);
-
   const [showQR, setShowQR] = useState(false);
 
   const inviteCode = data?.inviteCode || '000000';

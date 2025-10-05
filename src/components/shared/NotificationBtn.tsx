@@ -38,8 +38,6 @@ const NotificationBtn = () => {
       sorters: [{ field: 'createdAt', order: 'desc' }],
       queryOptions: {
         getNextPageParam: lastPage => {
-          console.log('lastPage', lastPage);
-
           return lastPage.pagination.afterCursor;
         },
         getPreviousPageParam: firstPage => {

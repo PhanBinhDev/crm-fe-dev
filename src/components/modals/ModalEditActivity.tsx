@@ -141,6 +141,16 @@ const ModalEditActivity = () => {
     });
   };
 
+  const handleSelectSubtask = useCallback((subtask: IActivity) => {
+    setSelectedItem({
+      type: 'subactivity',
+      data: {
+        ...subtask,
+        progress: calculateProgress(subtask),
+      },
+    });
+  }, []);
+
   const updateActivityData = useCallback((updates: Partial<IActivity>) => {
     setSelectedItem(prev => {
       if (!prev) return prev;
@@ -336,7 +346,9 @@ const ModalEditActivity = () => {
         />
 
         {/* Sub task */}
-        {isMainActivity && <ActivitySubtask activity={activity} />}
+        {isMainActivity && (
+          <ActivitySubtask activity={itemData} onSelectSubtask={handleSelectSubtask} />
+        )}
 
         {/* Checklist */}
         <ActivityChecklist activity={itemData} />

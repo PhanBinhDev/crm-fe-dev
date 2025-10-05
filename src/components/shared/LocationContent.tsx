@@ -1,6 +1,5 @@
 import { Input, Space, Typography } from 'antd';
-import { memo, useEffect, useRef, useState } from 'react';
-import { useDebounceValue } from 'usehooks-ts';
+import { memo, useState } from 'react';
 
 interface LocationContentProps {
   location: string | undefined;
@@ -9,25 +8,8 @@ interface LocationContentProps {
 
 const LocationContent = ({ location, onLocationChange }: LocationContentProps) => {
   const [inputValue, setInputValue] = useState<string>(location || '');
-  const [debouncedInput] = useDebounceValue(inputValue, 500);
-
-  const isUserInput = useRef(false);
-
-  useEffect(() => {
-    if (!isUserInput.current && location !== inputValue) {
-      setInputValue(location || '');
-    }
-  }, [location]);
-
-  useEffect(() => {
-    if (isUserInput.current && debouncedInput !== location && debouncedInput) {
-      onLocationChange(debouncedInput);
-    }
-    isUserInput.current = false;
-  }, [debouncedInput, onLocationChange, location]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    isUserInput.current = true;
     setInputValue(e.target.value);
   };
 
@@ -52,7 +34,14 @@ const LocationContent = ({ location, onLocationChange }: LocationContentProps) =
           padding: '0 12px 8px',
         }}
       >
-        <Input placeholder='vd: "F408"' value={inputValue} onChange={handleInputChange} autoFocus />
+        <Input
+          placeholder='vd: "F408"'
+          value={inputValue}
+          onChange={handleInputChange}
+          autoFocus
+          onBlur={() => onLocationChange(inputValue)}
+          onPressEnter={() => onLocationChange(inputValue)}
+        />
       </div>
     </Space>
   );
