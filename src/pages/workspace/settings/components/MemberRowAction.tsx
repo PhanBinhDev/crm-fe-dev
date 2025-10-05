@@ -1,7 +1,9 @@
 import { MemberRole } from '@/common/enum/workspace';
 import { IMember } from '@/common/types';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { useDelete, useInvalidate } from '@refinedev/core';
 import { IconBrightnessAuto, IconDots, IconTrash } from '@tabler/icons-react';
-import { Button, Dropdown, MenuProps } from 'antd';
+import { Button, Dropdown, MenuProps, message, Modal } from 'antd';
 import { FC } from 'react';
 
 interface MemberRowActionsProps {
@@ -10,6 +12,35 @@ interface MemberRowActionsProps {
 
 export const MemberRowActions: FC<MemberRowActionsProps> = ({ member }) => {
   console.log('member', member);
+  const { currentWorkspace } = useWorkspaces();
+  const currentWorkspaceId = currentWorkspace?.id;
+
+  const invalidate = useInvalidate();
+  const { mutate: deleteMember, isLoading } = useDelete();
+  const handleDeleteMember = (id: string) => {
+    const hideLoading = message.loading('Đang xoá thành viên...', 0);
+    console.log('id', id);
+    deleteMember(
+      {
+        resource: `workspaces/${currentWorkspaceId}/members`,
+        id: id,
+      },
+      {
+        onSuccess: () => {
+          hideLoading();
+          invalidate({
+            resource: `workspaces/${currentWorkspaceId}/members`,
+            invalidates: ['list', 'detail', 'many'],
+          });
+          message.success('Xóa thành công');
+        },
+        onError: () => {
+          hideLoading();
+          message.error('Xóa thất bại');
+        },
+      },
+    );
+  };
   const menuItems: MenuProps['items'] = [
     {
       key: `admin-${member.id}`,
@@ -24,7 +55,17 @@ export const MemberRowActions: FC<MemberRowActionsProps> = ({ member }) => {
       icon: <IconTrash color="#ff4d4f" size={18} />,
       label: 'Xoá thành viên',
       onClick: () => {
-        console.log(member.id);
+        Modal.confirm({
+          title: 'Xác nhận xoá thành viên',
+          content: `Bạn có chắc chắn muốn xoá thành viên này khỏi không gian làm việc không?`,
+          okText: 'Xoá',
+          okType: 'danger',
+          cancelText: 'Huỷ',
+          okButtonProps: { loading: isLoading },
+          onOk() {
+            handleDeleteMember(member.id);
+          },
+        });
       },
     },
   ];
