@@ -1,11 +1,14 @@
 import { useDisplayConfig } from '@/contexts/DisplayConfig';
+import { UserOutlined } from '@ant-design/icons';
 import {
-  CalendarOutlined,
-  FileTextOutlined,
-  FlagOutlined,
-  PercentageOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
+  IconCalendar,
+  IconCategory,
+  IconClock,
+  IconFileDescription,
+  IconFlag,
+  IconProgress,
+  IconSubtask,
+} from '@tabler/icons-react';
 import { Switch, Typography } from 'antd';
 import React from 'react';
 
@@ -28,43 +31,43 @@ export const DisplaySettings: React.FC = () => {
     {
       key: 'showEndTime',
       label: 'Ngày hết hạn',
-      icon: <CalendarOutlined />,
+      icon: <IconCalendar size={17} />,
       description: 'Hiển thị due date của task',
     },
     {
       key: 'showEstimate',
       label: 'Ước tính thời gian',
-      icon: <CalendarOutlined />,
+      icon: <IconClock size={17} />,
       description: 'Hiển thị due date của task',
     },
     {
       key: 'showPriority',
       label: 'Độ ưu tiên',
-      icon: <FlagOutlined />,
+      icon: <IconFlag size={17} />,
       description: 'Hiển thị mức độ ưu tiên (High, Medium, Low)',
     },
     {
       key: 'showDescription',
       label: 'Mô tả',
-      icon: <FileTextOutlined />,
+      icon: <IconFileDescription size={17} />,
       description: 'Hiển thị preview mô tả (tối đa 2 dòng)',
     },
     {
       key: 'showProgress',
       label: 'Tiến độ',
-      icon: <PercentageOutlined />,
+      icon: <IconProgress size={17} />,
       description: 'Hiển thị thanh progress bar',
     },
     {
       key: 'showSubtask',
       label: 'Subtask',
-      icon: <PercentageOutlined />,
+      icon: <IconSubtask size={17} />,
       description: 'Hiển thị nhiệm vụ con',
     },
     {
       key: 'showType',
       label: 'Type',
-      icon: <PercentageOutlined />,
+      icon: <IconCategory size={17} />,
       description: 'Hiển thị loại công việc',
     },
   ];
