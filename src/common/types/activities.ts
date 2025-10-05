@@ -4,7 +4,16 @@ import {
   ActivityStatus,
   ActivityType,
 } from '@/common/enum/activity';
-import { DateRange, IBase, IFeedback, IFile, IParticipant, IStage, IUser } from '@/common/types';
+import {
+  DateRange,
+  IBase,
+  ICategory,
+  IFeedback,
+  IFile,
+  IParticipant,
+  IStage,
+  IUser,
+} from '@/common/types';
 
 import { IAssignee, PayloadAssignee } from './assignee';
 import { ISemester } from './semester';
@@ -23,9 +32,11 @@ export interface IActivity extends IBase {
   onlineLink?: string;
   mandatory: boolean;
   estimateTime?: number;
+  workspaceId: string;
   parentId?: string;
   semester: ISemester;
-  category?: ActivityCategory;
+  categoryId: string | null;
+  category?: ICategory;
   status: ActivityStatus;
   participants?: IParticipant[];
   files?: IFile[];
@@ -34,6 +45,8 @@ export interface IActivity extends IBase {
   progress?: number;
   subActivities?: IActivity[];
   checklists?: Checklist[];
+  instructorCount?: number;
+  studentCount?: number;
 }
 
 export interface FormAddTaskData {

@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "@types/canvas-confetti": "^1.9.0",
+    "@types/lodash": "^4.17.20",
     "@types/node": "^24.2.0",
     "@types/react": "^18.2.15",
     "@types/react-date-range": "^1.4.10",

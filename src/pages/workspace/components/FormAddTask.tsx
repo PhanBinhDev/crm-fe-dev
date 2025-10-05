@@ -10,7 +10,7 @@ import {
 } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useCreate, useList, useCustomMutation } from '@refinedev/core';
+import { useCreate, useCustomMutation, useList } from '@refinedev/core';
 import { IconCheck, IconChevronRight } from '@tabler/icons-react';
 import { Form, Input, List, Modal, Popover, Space } from 'antd';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
@@ -259,8 +259,8 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                 },
               },
               {
-                onSuccess: (res) => resolve(res),
-                onError: (error) => reject(error),
+                onSuccess: res => resolve(res),
+                onError: error => reject(error),
               },
             );
           });

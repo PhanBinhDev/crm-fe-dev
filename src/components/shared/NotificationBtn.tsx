@@ -16,6 +16,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import { memo, useMemo, useState } from 'react';
+import Spinner from '../ui/Spinner';
 
 const modalTabs: {
   key: NotificationTab;
@@ -30,7 +31,7 @@ const NotificationBtn = () => {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<NotificationTab>('all');
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
     useInfiniteList<INotification>({
       resource: 'notifications',
       pagination: { pageSize: 10 },
@@ -51,6 +52,11 @@ const NotificationBtn = () => {
     resource: 'notifications',
     invalidates: ['list'],
     mutationMode: 'optimistic',
+    mutationOptions: {
+      onSuccess: () => {
+        refetch();
+      },
+    },
   });
 
   const notifications = useMemo(() => {
@@ -249,7 +255,9 @@ const NotificationBtn = () => {
         onScroll={handleScroll}
       >
         {isLoading ? (
-          <Spin style={{ margin: '10px auto', display: 'block' }} />
+          <div style={{ margin: '10px auto', display: 'block' }}>
+            <Spinner />
+          </div>
         ) : notifications.length === 0 ? (
           <Empty description="Không có thông báo nào" style={{ margin: '10px 0' }} />
         ) : (

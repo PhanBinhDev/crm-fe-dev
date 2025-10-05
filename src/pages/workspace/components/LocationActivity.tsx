@@ -1,11 +1,12 @@
+import LocationContent from '@/components/shared/LocationContent';
 import { useDebounce } from '@/hooks/useDebounce';
 import { IconLocation } from '@tabler/icons-react';
 import { Button, Input, Popover, Space, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 
 interface LocationActivityProps {
-  value?: string;
-  onChange?: (value: string) => void;
+  value: string;
+  onChange: (value: string) => void;
   error?: boolean;
 }
 
@@ -35,35 +36,8 @@ const LocationActivity = ({ value, onChange, error }: LocationActivityProps) => 
   };
 
   const getButtonText = () => {
-    return debouncedInput || 'Địa điểm';
+    return value || 'Địa điểm';
   };
-
-  const locationContent = (
-    <Space
-      direction="vertical"
-      style={{
-        width: '100%',
-      }}
-    >
-      <Typography
-        style={{
-          padding: '0 12px',
-          fontWeight: 600,
-        }}
-      >
-        Địa điểm tổ chức sự kiện
-      </Typography>
-
-      {/* Input */}
-      <div
-        style={{
-          padding: '0 12px 8px',
-        }}
-      >
-        <Input placeholder='vd: "F408"' value={inputValue} onChange={handleInputChange} autoFocus />
-      </div>
-    </Space>
-  );
 
   return (
     <Popover
@@ -78,7 +52,7 @@ const LocationActivity = ({ value, onChange, error }: LocationActivityProps) => 
       trigger={['click']}
       placement="bottomLeft"
       arrow={false}
-      content={locationContent}
+      content={<LocationContent location={value} onLocationChange={onChange} />}
     >
       <Button
         size="small"

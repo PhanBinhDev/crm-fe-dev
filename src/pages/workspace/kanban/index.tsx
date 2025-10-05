@@ -179,6 +179,7 @@ const KanbanWorkspaces = () => {
         style={{
           overflowX: 'auto',
           overflowY: 'hidden',
+          flex: 1,
         }}
       >
         <div
@@ -353,6 +354,7 @@ const KanbanWorkspaces = () => {
         display: 'flex',
         flexDirection: 'column',
         gap: 12,
+        minHeight: 'calc(100vh - 136px)',
       }}
     >
       {/* Headers */}

@@ -1,36 +1,41 @@
 import { ActivityType } from '@/common/enum/activity';
-import { ActivityPriorityLevel, IActivity, IStage } from '@/common/types';
+import { ActivityPriorityLevel, IActivity, ICategory, IStage } from '@/common/types';
 import { IAssignee } from '@/common/types/assignee';
+import ActivityCategoryContent from '@/components/shared/ActivityCategoryContent';
 import AssigneeContent from '@/components/shared/AssigneeContent';
 import EstimateContent from '@/components/shared/EstimateContent';
 import LocationContent from '@/components/shared/LocationContent';
 import PriorityContent from '@/components/shared/PriorityContent';
 import StatusContent from '@/components/shared/StatusContent';
+import UserCountContent from '@/components/shared/UserCountContent';
 import { getPriorityLabel, mapToActivityPriorityFilter } from '@/constants';
 import { calculateProgress, getActivityPriorityColor } from '@/utils/activity';
 import { formatMinutesToText } from '@/utils/formatter';
 import { getNextStage } from '@/utils/stage';
 import { parseTimeEstimate } from '@/utils/times';
+import { useList } from '@refinedev/core';
 import {
   IconCalendar,
   IconCaretRightFilled,
+  IconChalkboardTeacher,
   IconCheck,
   IconFlag,
   IconFlagFilled,
   IconHourglassEmpty,
   IconLocation,
   IconPlaystationCircle,
+  IconProgress,
+  IconSchool,
   IconUsers,
   IconX,
 } from '@tabler/icons-react';
 import { Avatar, Button, Popover, Space, Tooltip } from 'antd';
-import { useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import ActivityContentItem from './ActivityContentItem';
 
 interface ActivityMainContentProps {
   isContentNarrow: boolean;
   itemData: IActivity;
-  stages: IStage[];
   onUpdate: any;
   setFormData: React.Dispatch<React.SetStateAction<Partial<IActivity>>>;
 }
@@ -38,15 +43,33 @@ interface ActivityMainContentProps {
 const ActivityMainContent = ({
   isContentNarrow,
   itemData,
-  stages,
   onUpdate,
   setFormData,
 }: ActivityMainContentProps) => {
+  const { data: stagesData, isLoading: isLoadingStages } = useList<IStage>({
+    resource: 'stages',
+    filters: [
+      {
+        field: 'workspaceId',
+        operator: 'eq',
+        value: itemData?.workspaceId,
+      },
+    ],
+    pagination: {
+      mode: 'off',
+    },
+    queryOptions: { enabled: !!itemData?.workspaceId },
+  });
+
+  const stages = useMemo(() => {
+    if (!stagesData?.data || isLoadingStages) return [] as IStage[];
+
+    return stagesData.data;
+  }, [stagesData, isLoadingStages]);
+
   const onStageChange = useCallback(
     (stage: IStage) => {
       setFormData(prev => {
-        console.log('progress', calculateProgress({ ...prev, stage } as IActivity));
-
         return {
           ...prev,
           stage,
@@ -117,18 +140,62 @@ const ActivityMainContent = ({
   );
 
   const onLocationChange = useCallback(
-    (location: string) => {
-      console.log('location', location);
-
+    (location: string | undefined) => {
       setFormData(prev => ({
         ...prev,
-        location,
+        location: location || undefined,
       }));
-      // onUpdate({
-      //   values: {
-      //     location,
-      //   },
-      // });
+      onUpdate({
+        values: {
+          location,
+        },
+      });
+    },
+    [setFormData, onUpdate],
+  );
+
+  const onCategoryChange = useCallback(
+    (category: ICategory | undefined) => {
+      setFormData(prev => ({
+        ...prev,
+        category,
+      }));
+      onUpdate({
+        values: {
+          categoryId: category ? category.id : undefined,
+          category,
+        },
+      });
+    },
+    [setFormData, onUpdate],
+  );
+
+  const onInstructorCountChange = useCallback(
+    (count: number | undefined) => {
+      setFormData(prev => ({
+        ...prev,
+        instructorCount: count,
+      }));
+      onUpdate({
+        values: {
+          instructorCount: count,
+        },
+      });
+    },
+    [setFormData, onUpdate],
+  );
+
+  const onStudentCountChange = useCallback(
+    (count: number | undefined) => {
+      setFormData(prev => ({
+        ...prev,
+        studentCount: count,
+      }));
+      onUpdate({
+        values: {
+          studentCount: count,
+        },
+      });
     },
     [setFormData, onUpdate],
   );
@@ -661,42 +728,134 @@ const ActivityMainContent = ({
       />
 
       {itemData.type === ActivityType.EVENT && (
-        <ActivityContentItem
-          startContent={
-            <>
-              <IconLocation size={14} />
-              <span
-                style={{
-                  userSelect: 'none',
-                }}
-              >
-                Vị trí
-              </span>
-            </>
-          }
-          endContent={
-            <Popover
-              placement="bottomLeft"
-              content={
-                <LocationContent location={itemData.location} onLocationChange={onLocationChange} />
-              }
-              arrow={false}
-              trigger={['click']}
-              styles={{
-                body: { padding: '8px 0', width: 220 },
-              }}
-            >
-              <Space
-                style={{ flex: 1, height: '100%', justifyContent: 'space-between' }}
+        <>
+          <ActivityContentItem
+            startContent={
+              <>
+                <IconLocation size={14} />
+                <span
+                  style={{
+                    userSelect: 'none',
+                  }}
+                >
+                  Vị trí
+                </span>
+              </>
+            }
+            endContent={
+              <Popover
+                placement="bottomLeft"
+                content={
+                  <LocationContent
+                    location={itemData.location}
+                    onLocationChange={onLocationChange}
+                  />
+                }
+                arrow={false}
+                trigger={['click']}
                 styles={{
-                  item: {
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  },
+                  body: { padding: '8px 0', width: 220 },
                 }}
               >
-                <Tooltip title={itemData?.location && itemData.location.length > 20 ? itemData.location : ''}>
+                <Space
+                  style={{ flex: 1, height: '100%', justifyContent: 'space-between' }}
+                  styles={{
+                    item: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    },
+                  }}
+                >
+                  <Tooltip
+                    title={
+                      itemData?.location && itemData.location.length > 20 ? itemData.location : ''
+                    }
+                  >
+                    <Button
+                      type="text"
+                      size="small"
+                      style={{
+                        padding: '6px',
+                        color: '#8c8c8c',
+                        background: 'transparent',
+                        borderRadius: 7,
+                        fontSize: 14,
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'transparent';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      {!itemData.location
+                        ? 'Trống'
+                        : itemData.location.length > 20
+                          ? `${itemData.location.slice(0, 20)}...`
+                          : itemData.location}
+                    </Button>
+                  </Tooltip>
+
+                  {Boolean(itemData.location) && (
+                    <Button
+                      type="text"
+                      size="small"
+                      style={{
+                        borderRadius: 6,
+                        padding: '0 6px',
+                      }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        onLocationChange(undefined);
+                      }}
+                    >
+                      <IconX size={15} color={'#838383'} />
+                    </Button>
+                  )}
+                </Space>
+              </Popover>
+            }
+          />
+
+          <ActivityContentItem
+            startContent={
+              <>
+                <IconProgress size={14} />
+                <span
+                  style={{
+                    userSelect: 'none',
+                  }}
+                >
+                  Loại hoạt động
+                </span>
+              </>
+            }
+            endContent={
+              <Popover
+                placement="bottomLeft"
+                content={
+                  <ActivityCategoryContent
+                    category={itemData.category}
+                    onCategoryChange={onCategoryChange}
+                  />
+                }
+                arrow={false}
+                trigger={['click']}
+                styles={{
+                  body: { padding: '8px 0', width: 220 },
+                }}
+              >
+                <Space
+                  style={{ flex: 1, height: '100%', justifyContent: 'space-between' }}
+                  styles={{
+                    item: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    },
+                  }}
+                >
                   <Button
                     type="text"
                     size="small"
@@ -714,37 +873,195 @@ const ActivityMainContent = ({
                       e.currentTarget.style.background = 'transparent';
                     }}
                   >
-                    {!itemData.location
-                      ? 'Trống'
-                      : itemData.location.length > 20
-                        ? `${itemData.location.slice(0, 20)}...`
-                        : itemData.location}
+                    {!itemData.category ? 'Trống' : itemData.category.name}
                   </Button>
-                </Tooltip>
 
-                {Boolean(itemData.location) && (
+                  {Boolean(itemData.category) && (
+                    <Button
+                      type="text"
+                      size="small"
+                      style={{
+                        borderRadius: 6,
+                        padding: '0 6px',
+                      }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        onCategoryChange(undefined);
+                      }}
+                    >
+                      <IconX size={15} color={'#838383'} />
+                    </Button>
+                  )}
+                </Space>
+              </Popover>
+            }
+          />
+
+          <ActivityContentItem
+            startContent={
+              <>
+                <IconChalkboardTeacher size={14} />
+                <span
+                  style={{
+                    userSelect: 'none',
+                  }}
+                >
+                  Giảng viên
+                </span>
+              </>
+            }
+            endContent={
+              <Popover
+                placement="bottomLeft"
+                content={
+                  <UserCountContent
+                    title="giảng viên tham gia"
+                    count={itemData.instructorCount}
+                    onCountChange={onInstructorCountChange}
+                  />
+                }
+                arrow={false}
+                trigger={['click']}
+                styles={{
+                  body: { padding: '8px 0', width: 240 },
+                }}
+              >
+                <Space
+                  style={{ flex: 1, height: '100%', justifyContent: 'space-between' }}
+                  styles={{
+                    item: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    },
+                  }}
+                >
                   <Button
                     type="text"
                     size="small"
                     style={{
-                      borderRadius: 6,
-                      padding: '0 6px',
+                      padding: '6px',
+                      color: '#8c8c8c',
+                      background: 'transparent',
+                      borderRadius: 7,
+                      fontSize: 14,
                     }}
-                    onClick={e => {
-                      e.stopPropagation();
-                      onEstimateChange('0');
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'transparent';
                     }}
                   >
-                    <IconX size={15} color={'#838383'} />
+                    {!itemData.instructorCount
+                      ? 'Trống'
+                      : `${itemData.instructorCount ?? 0} giảng viên`}
                   </Button>
-                )}
-              </Space>
-            </Popover>
-          }
-        />
+
+                  {Boolean(itemData.instructorCount) && (
+                    <Button
+                      type="text"
+                      size="small"
+                      style={{
+                        borderRadius: 6,
+                        padding: '0 6px',
+                      }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        onInstructorCountChange(0);
+                      }}
+                    >
+                      <IconX size={15} color={'#838383'} />
+                    </Button>
+                  )}
+                </Space>
+              </Popover>
+            }
+          />
+
+          <ActivityContentItem
+            startContent={
+              <>
+                <IconSchool size={14} />
+                <span
+                  style={{
+                    userSelect: 'none',
+                  }}
+                >
+                  Học sinh
+                </span>
+              </>
+            }
+            endContent={
+              <Popover
+                placement="bottomLeft"
+                content={
+                  <UserCountContent
+                    title="học sinh tham gia"
+                    count={itemData.studentCount}
+                    onCountChange={onStudentCountChange}
+                  />
+                }
+                arrow={false}
+                trigger={['click']}
+                styles={{
+                  body: { padding: '8px 0', width: 240 },
+                }}
+              >
+                <Space
+                  style={{ flex: 1, height: '100%', justifyContent: 'space-between' }}
+                  styles={{
+                    item: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    },
+                  }}
+                >
+                  <Button
+                    type="text"
+                    size="small"
+                    style={{
+                      padding: '6px',
+                      color: '#8c8c8c',
+                      background: 'transparent',
+                      borderRadius: 7,
+                      fontSize: 14,
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    {!itemData.studentCount ? 'Trống' : `${itemData.studentCount} học sinh`}
+                  </Button>
+
+                  {Boolean(itemData.studentCount) && (
+                    <Button
+                      type="text"
+                      size="small"
+                      style={{
+                        borderRadius: 6,
+                        padding: '0 6px',
+                      }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        onStudentCountChange(0);
+                      }}
+                    >
+                      <IconX size={15} color={'#838383'} />
+                    </Button>
+                  )}
+                </Space>
+              </Popover>
+            }
+          />
+        </>
       )}
     </div>
   );
 };
 
-export default ActivityMainContent;
+export default memo(ActivityMainContent);

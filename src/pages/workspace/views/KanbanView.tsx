@@ -287,7 +287,8 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
           style={{
             overflowX: 'auto',
             overflowY: 'hidden',
-            height: 'calc(100vh - 250px)',
+            flex: 1,
+            display: 'flex',
           }}
         >
           <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
@@ -298,6 +299,7 @@ const KanbanView = ({ stages, activities }: KanbanViewProps) => {
                 flexWrap: 'nowrap',
                 minWidth: '100%',
                 height: '100%',
+                flex: 1,
               }}
             >
               {columnOrder.map(id => {

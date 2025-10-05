@@ -2,6 +2,7 @@ import { Dayjs } from 'dayjs';
 
 export * from './activities';
 export * from './auth';
+export * from './category';
 export * from './feedback';
 export * from './file';
 export * from './notification';

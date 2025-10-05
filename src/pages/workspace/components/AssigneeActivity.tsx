@@ -121,6 +121,7 @@ const AssigneeActivity = ({
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
+                    border: 0,
                     justifyContent: 'space-between',
                   }}
                   onMouseEnter={e => {

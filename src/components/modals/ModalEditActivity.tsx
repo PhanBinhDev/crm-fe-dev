@@ -1,6 +1,7 @@
 import { ActivityType } from '@/common/enum/activity';
-import { IActivity, IStage } from '@/common/types';
+import { IActivity } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
+import ActivityChecklist from '@/pages/workspace/components/ActivityDetails/ActivityChecklist';
 import ActivityDetailRightSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailRightSidebar';
 import ActivityDetailSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailSidebar';
 import ActivityMainContent from '@/pages/workspace/components/ActivityDetails/ActivityMainContent';
@@ -8,7 +9,7 @@ import ActivitySubtask from '@/pages/workspace/components/ActivityDetails/Activi
 import ProgressBar from '@/pages/workspace/components/ActivityDetails/ProgressBar';
 import SelectActivityType from '@/pages/workspace/components/SelectActivityType';
 import { calculateProgress } from '@/utils/activity';
-import { useInvalidate, useList, useOne, useUpdate } from '@refinedev/core';
+import { useInvalidate, useOne, useUpdate } from '@refinedev/core';
 import {
   IconCalendar,
   IconCornerLeftUp,
@@ -18,8 +19,8 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { Button, Input, Layout, Modal, Space, Tooltip, Typography } from 'antd';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useMediaQuery } from 'usehooks-ts';
+import _ from 'lodash';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -34,13 +35,11 @@ export type SelectedActivityItem = {
 
 const ModalEditActivity = () => {
   const { isOpen, type, data, closeModal, setData } = useModal();
-  const isMobile = useMediaQuery('(max-width: 768px)');
   const isOpenModal = isOpen && type === 'ModalEditActivity';
   const [collapsedLeft, setCollapsedLeft] = useState(true);
   const layoutRef = useRef<HTMLDivElement>(null);
   const [isOverlay, setIsOverlay] = useState(false);
   const [selectedItem, setSelectedItem] = useState<SelectedActivityItem | null>(null);
-  const [formData, setFormData] = useState<Partial<IActivity>>({});
   const contentRef = useRef<HTMLDivElement>(null);
   const [isContentNarrow, setIsContentNarrow] = useState(false);
   const { activity: activityFromModal } = data || {};
@@ -61,21 +60,6 @@ const ModalEditActivity = () => {
     queryOptions: { enabled: !!activityFromModal?.id },
   });
 
-  const { data: stagesData, isLoading: isLoadingStages } = useList<IStage>({
-    resource: 'stages',
-    filters: [
-      {
-        field: 'workspaceId',
-        operator: 'eq',
-        value: activityFromModal?.workspaceId,
-      },
-    ],
-    pagination: {
-      mode: 'off',
-    },
-    queryOptions: { enabled: !!activityFromModal?.workspaceId },
-  });
-
   const { mutate: updateActivity } = useUpdate<IActivity>({
     resource: 'activities',
     id: selectedItem?.data?.id,
@@ -94,7 +78,6 @@ const ModalEditActivity = () => {
         });
 
         if (selectedItem?.type === 'subactivity') {
-          console.log('Invalidate parent activity detail');
           invalidate({
             resource: 'activities',
             id: selectedItem.data.id,
@@ -111,12 +94,6 @@ const ModalEditActivity = () => {
     return activityData.data;
   }, [activityData, isLoadingActivity]);
 
-  const stages = useMemo(() => {
-    if (!stagesData?.data || isLoadingStages) return [] as IStage[];
-
-    return stagesData.data;
-  }, [stagesData, isLoadingStages]);
-
   useEffect(() => {
     if (activity && isOpenModal) {
       setSelectedItem({
@@ -126,26 +103,23 @@ const ModalEditActivity = () => {
           progress: calculateProgress(activity),
         },
       });
-      setFormData({
-        ...activity,
-        progress: calculateProgress(activity),
-      });
     }
-  }, [activity, isOpenModal, setFormData]);
+  }, [activity, isOpenModal]);
+
+  const checkContentWidth = useCallback(() => {
+    if (contentRef.current) {
+      setIsContentNarrow(contentRef.current.offsetWidth < 600);
+    }
+  }, []);
+
+  const checkWidth = useCallback(() => {
+    if (layoutRef.current) {
+      const width = layoutRef.current.offsetWidth;
+      setIsOverlay(width < 768);
+    }
+  }, []);
 
   useEffect(() => {
-    const checkContentWidth = () => {
-      if (contentRef.current) {
-        setIsContentNarrow(contentRef.current.offsetWidth < 600);
-      }
-    };
-    const checkWidth = () => {
-      if (layoutRef.current) {
-        const width = layoutRef.current.offsetWidth;
-        setIsOverlay(width < 768);
-      }
-    };
-
     checkWidth();
     checkContentWidth();
     window.addEventListener('resize', checkWidth);
@@ -165,16 +139,26 @@ const ModalEditActivity = () => {
         progress: calculateProgress(item.data),
       },
     });
-    setFormData({
-      ...item.data,
-      progress: calculateProgress(item.data),
-    });
   };
 
-  const renderContent = useMemo(() => {
-    console.log('Render content', { selectedItem, activity });
+  const updateActivityData = useCallback((updates: Partial<IActivity>) => {
+    setSelectedItem(prev => {
+      if (!prev) return prev;
+      const hasChanges = !_.isEqual(_.pick(prev.data, Object.keys(updates)), updates);
+      if (!hasChanges) return prev;
 
-    if (!selectedItem) {
+      return {
+        ...prev,
+        data: {
+          ...prev.data,
+          ...updates,
+        },
+      };
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!selectedItem && activity && Object.keys(activity).length > 0) {
       setSelectedItem({
         type: 'activity',
         data: {
@@ -182,9 +166,22 @@ const ModalEditActivity = () => {
           progress: calculateProgress(activity),
         },
       });
-
-      return;
     }
+  }, [selectedItem, activity]);
+
+  const onTypeChange = useCallback(
+    (type: ActivityType) => {
+      if (!selectedItem) return;
+
+      updateActivityData({ type });
+
+      updateActivity({ values: { type } });
+    },
+    [updateActivity, updateActivityData],
+  );
+
+  const renderContent = useMemo(() => {
+    if (!selectedItem) return null;
 
     const { type, data: itemData } = selectedItem;
     const isMainActivity = type === 'activity';
@@ -198,7 +195,8 @@ const ModalEditActivity = () => {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden',
+          overflowX: 'hidden',
+          overflowY: 'auto',
           gap: 16,
         }}
       >
@@ -240,7 +238,7 @@ const ModalEditActivity = () => {
           </Button>
         )}
 
-        <SelectActivityType isLoading={isLoadingActivity} activity={itemData} />
+        <SelectActivityType id={itemData.id} value={itemData.type} onChange={onTypeChange} />
 
         <TextArea
           placeholder={`Nhập tên ${itemData.type === ActivityType.TASK ? 'nhiệm vụ' : 'sự kiện'}...`}
@@ -255,10 +253,10 @@ const ModalEditActivity = () => {
             paddingTop: 0,
             paddingBottom: 0,
           }}
-          value={formData.name}
+          value={selectedItem.data.name}
           onChange={e => {
             const newValue = e.target.value;
-            setFormData(prev => ({ ...prev, name: newValue }));
+            updateActivityData({ name: newValue });
           }}
           autoSize={{ minRows: 1, maxRows: 4 }}
           onMouseEnter={e => {
@@ -273,10 +271,10 @@ const ModalEditActivity = () => {
           }}
           onBlur={e => {
             e.currentTarget.style.borderColor = 'transparent';
-            if (formData.name !== itemData.name && formData.name?.trim()) {
+            if (selectedItem.data.name !== itemData.name && selectedItem.data.name?.trim()) {
               updateActivity({
                 values: {
-                  name: formData.name,
+                  name: selectedItem.data.name,
                 },
               });
             }
@@ -292,9 +290,8 @@ const ModalEditActivity = () => {
         <ActivityMainContent
           itemData={itemData}
           isContentNarrow={isContentNarrow}
-          stages={stages}
           onUpdate={updateActivity}
-          setFormData={setFormData}
+          setFormData={updateActivityData as any}
         />
 
         <TextArea
@@ -308,10 +305,10 @@ const ModalEditActivity = () => {
             paddingLeft: 4,
             lineHeight: '22px',
           }}
-          value={formData.description}
+          value={selectedItem.data.description}
           onChange={e => {
             const newValue = e.target.value;
-            setFormData(prev => ({ ...prev, description: newValue }));
+            updateActivityData({ description: newValue });
           }}
           autoSize={{ minRows: 3, maxRows: 6 }}
           onMouseEnter={e => {
@@ -324,10 +321,13 @@ const ModalEditActivity = () => {
             e.currentTarget.style.background = 'transparent';
           }}
           onBlur={() => {
-            if (formData.description !== itemData.description && formData.description?.trim()) {
+            if (
+              selectedItem.data.description !== itemData.description &&
+              selectedItem.data.description?.trim()
+            ) {
               updateActivity({
                 values: {
-                  description: formData.description,
+                  description: selectedItem.data.description,
                 },
               });
             }
@@ -337,18 +337,20 @@ const ModalEditActivity = () => {
 
         {/* Sub task */}
         {isMainActivity && <ActivitySubtask activity={activity} />}
+
+        {/* Checklist */}
+        <ActivityChecklist activity={itemData} />
+
+        {/* Attachments */}
       </div>
     );
   }, [
     selectedItem,
+    updateActivityData,
+    isContentNarrow,
     isLoadingActivity,
     activity,
-    formData,
-    isMobile,
     updateActivity,
-    contentRef,
-    collapsedLeft,
-    stages,
   ]);
 
   return (
