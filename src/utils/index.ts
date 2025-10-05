@@ -1,18 +1,17 @@
 // Activity utilities
 export {
-  getAssigneeRoleLabel,
-  getAssigneeRoleColor,
-  getAssignmentStatusLabel,
-  getAssignmentStatusColor,
-  getActivityStatusLabel,
-  getActivityStatusColor,
-  getActivityPriorityLabel,
   getActivityPriorityColor,
+  getActivityPriorityLabel,
+  getActivityStatusColor,
+  getActivityStatusLabel,
   getActivityTypeLabel,
-  getActivityCategoryLabel,
+  getAssigneeRoleColor,
+  getAssigneeRoleLabel,
+  getAssignmentStatusColor,
+  getAssignmentStatusLabel,
 } from './activity';
 
 export { getSemesterColor, getSemesterLabel } from './semester';
 
 // User utilities
-export { getUserRoleLabel, getUserRoleColor, getUserStatusLabel, getUserStatusColor } from './user';
+export { getUserRoleColor, getUserRoleLabel, getUserStatusColor, getUserStatusLabel } from './user';

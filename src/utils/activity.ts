@@ -1,5 +1,4 @@
 import {
-  ActivityCategory,
   ActivityPriority,
   ActivityStatus,
   ActivityType,
@@ -131,19 +130,6 @@ export const getActivityTypeLabel = (type: ActivityType): string => {
       return 'Sự kiện';
     default:
       return type;
-  }
-};
-
-export const getActivityCategoryLabel = (category: ActivityCategory): string => {
-  switch (category) {
-    case ActivityCategory.SEMINAR:
-      return 'Hội thảo';
-    case ActivityCategory.WORKSHOP:
-      return 'Workshop';
-    case ActivityCategory.TUTOR:
-      return 'Dạy kèm';
-    default:
-      return category;
   }
 };
 

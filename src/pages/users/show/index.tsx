@@ -1,47 +1,46 @@
-import {
-  Card,
-  Typography,
-  Descriptions,
-  Avatar,
-  Tag,
-  Space,
-  Button,
-  Divider,
-  Row,
-  Col,
-  List,
-  Result,
-} from 'antd';
-import {
-  UserOutlined,
-  MailOutlined,
-  PhoneOutlined,
-  EditOutlined,
-  ArrowLeftOutlined,
-  CalendarOutlined,
-  ProjectOutlined,
-} from '@ant-design/icons';
 import { IUser } from '@/common/types';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useOne, useCan } from '@refinedev/core';
 import { userRoleFilterOptions } from '@/constants/user';
-import { UserInfoSkeleton } from './components/UserInfoSkeleton';
+import { useAuth } from '@/hooks/useAuth';
 import {
-  getAssigneeRoleLabel,
-  getAssigneeRoleColor,
-  getAssignmentStatusLabel,
-  getAssignmentStatusColor,
-  getActivityStatusLabel,
-  getActivityStatusColor,
-  getActivityPriorityLabel,
   getActivityPriorityColor,
+  getActivityPriorityLabel,
+  getActivityStatusColor,
+  getActivityStatusLabel,
   getActivityTypeLabel,
-  getActivityCategoryLabel,
+  getAssigneeRoleColor,
+  getAssigneeRoleLabel,
+  getAssignmentStatusColor,
+  getAssignmentStatusLabel,
   getUserRoleColor,
   getUserStatusColor,
   getUserStatusLabel,
 } from '@/utils';
-import { useAuth } from '@/hooks/useAuth';
+import {
+  ArrowLeftOutlined,
+  CalendarOutlined,
+  EditOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  ProjectOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+import { useCan, useOne } from '@refinedev/core';
+import {
+  Avatar,
+  Button,
+  Card,
+  Col,
+  Descriptions,
+  Divider,
+  List,
+  Result,
+  Row,
+  Space,
+  Tag,
+  Typography,
+} from 'antd';
+import { useNavigate, useParams } from 'react-router-dom';
+import { UserInfoSkeleton } from './components/UserInfoSkeleton';
 
 const { Title } = Typography;
 
@@ -311,7 +310,7 @@ export const UserShow = () => {
                             )}
                             {assignee.activity?.category && (
                               <Tag color="cyan" style={{ fontSize: 12 }}>
-                                {getActivityCategoryLabel(assignee.activity.category)}
+                                {assignee.activity.category.name}
                               </Tag>
                             )}
                             {assignee.activity?.priority && (
