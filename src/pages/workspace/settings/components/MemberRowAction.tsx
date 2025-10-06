@@ -1,7 +1,7 @@
 import { MemberRole } from '@/common/enum/workspace';
 import { IMember } from '@/common/types';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useDelete, useInvalidate } from '@refinedev/core';
+import { useDelete, useInvalidate, useUpdate } from '@refinedev/core';
 import { IconBrightnessAuto, IconDots, IconTrash } from '@tabler/icons-react';
 import { Button, Dropdown, MenuProps, message, Modal } from 'antd';
 import { FC } from 'react';
@@ -11,15 +11,14 @@ interface MemberRowActionsProps {
 }
 
 export const MemberRowActions: FC<MemberRowActionsProps> = ({ member }) => {
-  console.log('member', member);
   const { currentWorkspace } = useWorkspaces();
   const currentWorkspaceId = currentWorkspace?.id;
 
   const invalidate = useInvalidate();
   const { mutate: deleteMember, isLoading } = useDelete();
+  const { mutate: updateMember } = useUpdate();
   const handleDeleteMember = (id: string) => {
     const hideLoading = message.loading('Đang xoá thành viên...', 0);
-    console.log('id', id);
     deleteMember(
       {
         resource: `workspaces/${currentWorkspaceId}/members`,
@@ -41,13 +40,45 @@ export const MemberRowActions: FC<MemberRowActionsProps> = ({ member }) => {
       },
     );
   };
+
+  console.log(member);
+
+  const handleChangeRoleMember = (id: string, role: MemberRole) => {
+    const hideLoading = message.loading('Đang cập nhật vai trò thành viên...', 0);
+    updateMember(
+      {
+        resource: `workspaces/${currentWorkspaceId}/members/${id}/role`,
+        id: '',
+        values: { role },
+        meta: { custom: true },
+      },
+      {
+        onSuccess: () => {
+          hideLoading();
+          invalidate({
+            resource: `workspaces/${currentWorkspaceId}/members`,
+            invalidates: ['list', 'detail', 'many'],
+          });
+          message.success('Cập nhật vai trò thành công');
+        },
+        onError: () => {
+          hideLoading();
+          message.error('Cập nhật vai trò thất bại');
+        },
+      },
+    );
+  };
+
   const menuItems: MenuProps['items'] = [
     {
       key: `admin-${member.id}`,
       icon: <IconBrightnessAuto color="#1890ff" size={18} />,
       label: member.role === MemberRole.MEMBER ? 'Đặt vai trò Admin' : 'Đặt vai trò là thành viên',
       onClick: () => {
-        console.log(`Change role of member ${member.id}`);
+        handleChangeRoleMember(
+          member.id,
+          member.role === MemberRole.MEMBER ? MemberRole.ADMIN : MemberRole.MEMBER,
+        );
       },
     },
     {
@@ -63,6 +94,7 @@ export const MemberRowActions: FC<MemberRowActionsProps> = ({ member }) => {
           cancelText: 'Huỷ',
           okButtonProps: { loading: isLoading },
           onOk() {
+            console.log(' hello');
             handleDeleteMember(member.id);
           },
         });
