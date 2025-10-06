@@ -66,7 +66,7 @@ const ModalEditActivity = () => {
     mutationMode: 'optimistic',
     invalidates: ['list'],
     mutationOptions: {
-      onSuccess: data => {
+      onSuccess: () => {
         const currentType = selectedItem?.type;
 
         invalidate({
