@@ -1,5 +1,5 @@
-import { IconSearch } from '@tabler/icons-react';
-import { Button, Space, Typography } from 'antd';
+import { IconFilter2 } from '@tabler/icons-react';
+import { Button, Popover, Space, Typography } from 'antd';
 import ActivityFeedbacks from './ActivityFeedbacks';
 
 interface ActivityFeedbackTabProps {
@@ -21,14 +21,28 @@ const ActivityFeedbackTab = ({ activityId }: ActivityFeedbackTabProps) => {
         }}
       >
         <Typography.Title level={4} style={{ margin: 0 }}>
-          Activity feedbacks
+          Đánh giá và Phản hồi
         </Typography.Title>
         <Space style={{ gap: 0 }}>
-          <Button
-            type="text"
-            icon={<IconSearch size={16} stroke={1.5} color="#646464" />}
-            style={{ borderRadius: 8 }}
-          />
+          <Popover
+            placement="bottomRight"
+            content={<div style={{ width: 200 }}>Lọc đánh giá và phản hồi</div>}
+            trigger={['click']}
+            arrow={false}
+          >
+            <Button
+              styles={{
+                icon: {
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+              }}
+              type="text"
+              icon={<IconFilter2 size={16} stroke={1.5} color="#646464" />}
+              style={{ borderRadius: 8 }}
+            />
+          </Popover>
         </Space>
       </div>
       <div style={{ background: '#f7f7f7ff', height: '100%', width: '100%' }}>

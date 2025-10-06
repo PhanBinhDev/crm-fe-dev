@@ -453,7 +453,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
               height: 32,
             }}
           >
-            <IconSend2 />
+            <IconSend2 size={16} />
           </Button>
         </div>
       </div>
