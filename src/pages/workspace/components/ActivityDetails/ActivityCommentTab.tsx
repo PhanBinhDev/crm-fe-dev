@@ -2,19 +2,23 @@ import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
-import { IconSend2, IconTrash } from '@tabler/icons-react';
+import { IconHeart, IconSend2, IconTrash } from '@tabler/icons-react';
 import { Avatar, Button, message, Popconfirm, Skeleton } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { axiosInstance } from './../../../../lib/axios';
+
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
 
 interface ActivityCommentTabProps {
   activityId: string;
 }
+
+type ReactionType = 'like' | null;
 
 interface Comment {
   id: string;
@@ -23,6 +27,12 @@ interface Comment {
   createdAt: string;
   parentCommentId?: string | null;
   replies?: Comment[];
+  reactions?: Record<string, boolean>;
+  reactionCounts?: Record<string, number>;
+  reactionSummary?: Record<string, number>;
+  currentUserReaction?: ReactionType;
+  hasUserReacted?: boolean;
+  totalReactions?: number;
 }
 
 const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
@@ -33,6 +43,9 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   const { mutate: createComment, isLoading: isCreating } = useCreate();
   const { mutate: updateComment } = useUpdate();
   const { mutate: deleteComment } = useDelete();
+
+  const { mutate: createReaction } = useCreate();
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [commentContent, setCommentContent] = useState('');
@@ -44,86 +57,81 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
     isLoading,
   } = useList<Comment>({
     resource: `activities/${activityId}/comments`,
-    queryOptions: {
-      refetchInterval: 10000,
-    },
+    queryOptions: { refetchInterval: false },
   });
+
+  const [localComments, setLocalComments] = useState<Comment[]>([]);
+  useEffect(() => {
+    if (comments?.data) setLocalComments(comments.data);
+  }, [comments]);
 
   const SKELETON_COUNT = 3;
 
-  if (isLoading) {
-    return (
-      <div
-        style={{
-          padding: '5px 10px 10px 10px',
-          background: '#f7f7f7ff',
-          flex: 1,
-        }}
-      >
-        {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
-          <div key={index} style={{ marginBottom: 15 }}>
-            <div
-              style={{ display: 'flex', gap: 8, padding: 10, background: '#fff', borderRadius: 8 }}
-            >
-              <Skeleton.Avatar active size={40} shape="circle" style={{ marginTop: 5 }} />
-              <Skeleton
-                active
-                title={false}
-                paragraph={{ rows: 2, width: ['90%', '50%'] }}
-                style={{ flex: 1, marginTop: 5 }}
-              />
-            </div>
+  const handleToggleTym = async (commentId: string) => {
+    if (!currentUser?.id) {
+      message.error('Không xác định người dùng hiện tại');
+      return;
+    }
+    setLocalComments(prev =>
+      prev.map(cmt => {
+        if (cmt.id !== commentId) return cmt;
 
-            {index > 0 && (
-              <div
-                style={{
-                  display: 'flex',
-                  gap: 8,
-                  padding: 10,
-                  background: '#fff',
-                  borderRadius: 8,
-                  marginLeft: 40,
-                  marginTop: 10,
-                }}
-              >
-                <Skeleton.Avatar active size={32} shape="circle" style={{ marginTop: 5 }} />
-                <Skeleton
-                  active
-                  title={false}
-                  paragraph={{ rows: 1, width: ['80%'] }}
-                  style={{ flex: 1, marginTop: 5 }}
-                />
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+        const prevHasReacted = !!cmt.hasUserReacted;
+        const prevCount = cmt.totalReactions || 0;
+        const nextHasReacted = !prevHasReacted;
+        const nextCount = Math.max(prevCount + (nextHasReacted ? 1 : -1), 0);
+        (async () => {
+          try {
+            const res = await axiosInstance.post(
+              `/activities/${activityId}/comments/${commentId}/reactions`,
+              { type: 'like' },
+            );
+
+            if (res.status !== 200) {
+              throw new Error('Phản hồi không hợp lệ');
+            }
+          } catch (error) {
+            console.error('Reaction update failed:', error);
+            message.error('Không thể cập nhật tym. Vui lòng thử lại!');
+            setLocalComments(old =>
+              old.map(x =>
+                x.id === commentId
+                  ? {
+                      ...x,
+                      hasUserReacted: prevHasReacted,
+                      totalReactions: prevCount,
+                    }
+                  : x,
+              ),
+            );
+          }
+        })();
+
+        return {
+          ...cmt,
+          hasUserReacted: nextHasReacted,
+          totalReactions: nextCount,
+        };
+      }),
     );
-  }
+  };
 
-  const buildCommentsTree = (comments: Comment[]) => {
+  const buildCommentsTree = (list: Comment[]) => {
     const map = new Map<string, Comment>();
     const roots: Comment[] = [];
-
-    comments.forEach(c => {
-      map.set(c.id, { ...c, replies: [] });
-    });
-
+    list.forEach(c => map.set(c.id, { ...c, replies: [] }));
     map.forEach(cmt => {
       if (cmt.parentCommentId) {
         const parent = map.get(cmt.parentCommentId);
-        if (parent) {
-          parent.replies?.push(cmt);
-        }
+        if (parent) parent.replies?.push(cmt);
       } else {
         roots.push(cmt);
       }
     });
-
     return roots;
   };
 
-  const organizedComments = buildCommentsTree(comments?.data || []);
+  const organizedComments = buildCommentsTree(localComments);
 
   const handleReplyClick = (parentId: string) => {
     setReplyToId(parentId);
@@ -140,10 +148,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
     };
 
     createComment(
-      {
-        resource: `activities/comments`,
-        values,
-      },
+      { resource: `activities/comments`, values },
       {
         onSuccess: () => {
           setCommentContent('');
@@ -188,10 +193,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
 
   const handleDelete = (id: string) => {
     deleteComment(
-      {
-        resource: `activities/${activityId}/comments`,
-        id,
-      },
+      { resource: `activities/${activityId}/comments`, id },
       {
         onSuccess: () => {
           refetch();
@@ -206,9 +208,17 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
 
   const renderComment = (cmt: Comment, isReply = false) => {
     const isAuthor = cmt.user.id === currentUser?.id;
+    const hasReacted = !!cmt.hasUserReacted;
+    const count = cmt.totalReactions || 0;
+    const anyoneReacted = count > 0;
+
+    const color = hasReacted ? '#ff4d4f' : anyoneReacted ? '#ff4d4f' : '#999';
+    const fill = hasReacted ? color : 'none';
+
     const now = dayjs();
     const createdAt = dayjs(cmt.createdAt);
     const isWithinOneWeek = now.diff(createdAt, 'days') < 7;
+
     return (
       <div
         key={cmt.id}
@@ -264,27 +274,32 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
                 )}
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    cursor: 'pointer',
+                    transition: 'transform 0.12s ease, color 0.2s ease',
+                  }}
+                  onClick={() => handleToggleTym(cmt.id)}
+                  onMouseDown={e => (e.currentTarget.style.transform = 'scale(1.12)')}
+                  onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  <IconHeart size={16} color={color} fill={fill} />
+                  <span style={{ fontSize: 12, color: '#555' }}>{count}</span>
+                </div>
                 {editingId === cmt.id ? (
                   <>
                     <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 550,
-                        cursor: 'pointer',
-                        color: '#1890ff',
-                      }}
+                      style={{ fontSize: 12, fontWeight: 550, cursor: 'pointer', color: '#1890ff' }}
                       onClick={() => handleSaveEdit(cmt.id)}
                     >
                       Lưu
                     </span>
                     <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 550,
-                        cursor: 'pointer',
-                        color: '#686868ff',
-                      }}
+                      style={{ fontSize: 12, fontWeight: 550, cursor: 'pointer', color: '#686868' }}
                       onClick={() => setEditingId(null)}
                     >
                       Hủy
@@ -298,7 +313,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
                           fontSize: 12,
                           fontWeight: 550,
                           cursor: 'pointer',
-                          color: '#686868ff',
+                          color: '#686868',
                         }}
                         onClick={() => handleStartEdit(cmt.id, cmt.content)}
                       >
@@ -313,7 +328,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
                           fontSize: 12,
                           fontWeight: 550,
                           cursor: 'pointer',
-                          color: '#686868ff',
+                          color: '#686868',
                         }}
                       >
                         Trả lời
@@ -334,7 +349,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
                 okButtonProps={{ danger: true }}
                 onConfirm={() => handleDelete(cmt.id)}
               >
-                <IconTrash size={14} color="#ff4f4fff" style={{ cursor: 'pointer' }} />
+                <IconTrash size={14} color="#ff4f4f" style={{ cursor: 'pointer' }} />
               </Popconfirm>
             </div>
           )}
@@ -343,11 +358,33 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <div style={{ padding: '5px 10px 10px 10px', background: '#f7f7f7', flex: 1 }}>
+        {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
+          <div key={index} style={{ marginBottom: 15 }}>
+            <div
+              style={{ display: 'flex', gap: 8, padding: 10, background: '#fff', borderRadius: 8 }}
+            >
+              <Skeleton.Avatar active size={40} shape="circle" style={{ marginTop: 5 }} />
+              <Skeleton
+                active
+                title={false}
+                paragraph={{ rows: 2, width: ['90%', '50%'] }}
+                style={{ flex: 1, marginTop: 5 }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <>
       <div
         style={{
-          background: '#f7f7f7ff',
+          background: '#f7f7f7',
           flex: 1,
           padding: '5px 10px 10px 10px',
           overflowY: 'auto',
@@ -370,8 +407,8 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
       <div
         style={{
           padding: 8,
-          borderTop: '1px solid #e0e0e0ff',
-          background: '#f7f7f7ff',
+          borderTop: '1px solid #e0e0e0',
+          background: '#f7f7f7',
         }}
       >
         {replyToId && (
