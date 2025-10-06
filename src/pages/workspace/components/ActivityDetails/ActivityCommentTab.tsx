@@ -10,6 +10,7 @@ import 'dayjs/locale/vi';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useEffect, useRef, useState } from 'react';
 import { axiosInstance } from './../../../../lib/axios';
+import { UserPopover } from './../../../users/list/components/UserPopover';
 
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
@@ -220,20 +221,22 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, flex: 1 }}>
-            {cmt.user?.avatar ? (
-              <Avatar size={isReply ? 32 : 40} src={cmt.user?.avatar} />
-            ) : (
-              <Avatar
-                size="small"
-                style={{
-                  backgroundColor: getColorFromName(cmt.user.name || AVATAR_PLACEHOLDER),
-                  color: '#fff',
-                  fontWeight: 'bold',
-                }}
-              >
-                {getInitials(cmt.user.name)}
-              </Avatar>
-            )}
+            <UserPopover userId={cmt.user.id}>
+              {cmt.user?.avatar ? (
+                <Avatar size={isReply ? 24 : 28} src={cmt.user?.avatar} />
+              ) : (
+                <Avatar
+                  size={isReply ? 24 : 28}
+                  style={{
+                    backgroundColor: getColorFromName(cmt.user.name || AVATAR_PLACEHOLDER),
+                    color: '#fff',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {getInitials(cmt.user.name)}
+                </Avatar>
+              )}
+            </UserPopover>
 
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
