@@ -86,12 +86,15 @@ export interface ActivityPriorityLevel {
   color: string;
 }
 
-export interface Checklist {
+export interface Checklist extends IBase {
   name: string;
+  totalItems: number;
+  completedItems: number;
+  progress: number;
   items: ChecklistItem[];
 }
 
-export interface ChecklistItem {
+export interface ChecklistItem extends IBase {
   content: string;
   isDone: boolean;
 }

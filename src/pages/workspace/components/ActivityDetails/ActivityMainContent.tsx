@@ -73,6 +73,7 @@ const ActivityMainContent = ({
         return {
           ...prev,
           stage,
+          stageId: stage.id,
           progress: calculateProgress({ ...prev, stage } as IActivity),
         };
       });

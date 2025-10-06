@@ -66,15 +66,25 @@ const ModalEditActivity = () => {
     mutationMode: 'optimistic',
     invalidates: ['list'],
     mutationOptions: {
-      onSuccess: () => {
+      onSuccess: data => {
+        const currentType = selectedItem?.type;
+
         invalidate({
           resource: `activities/${activityFromModal.id}/logs`,
           invalidates: ['list'],
         });
+
+        if (currentType === 'activity') {
+          invalidate({
+            resource: 'activities',
+            id: activityFromModal.id,
+            invalidates: ['detail'],
+          });
+        }
+
         invalidate({
-          resource: 'activities',
-          id: activityFromModal.id,
-          invalidates: ['detail'],
+          resource: `activities/${activityFromModal.id}/sub-activities`,
+          invalidates: ['list'],
         });
 
         if (selectedItem?.type === 'subactivity') {

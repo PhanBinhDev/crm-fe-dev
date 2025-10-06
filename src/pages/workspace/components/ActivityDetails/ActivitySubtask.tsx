@@ -223,7 +223,7 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
     <Space direction="vertical" style={{ width: '100%', textAlign: 'start' }} size={16}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Typography.Text style={{ fontSize: 18, fontWeight: 600, flexShrink: 0 }}>
+          <Typography.Text style={{ fontSize: 18, fontWeight: 600, flexShrink: 0, margin: 2 }}>
             Hoạt động phụ:
           </Typography.Text>
 
@@ -437,8 +437,8 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: 8,
+                    paddingBottom: 8,
                     width: '100%',
-                    borderBottom: '1px solid #f0f0f0',
                     gap: 8,
                   }}
                 >
@@ -577,7 +577,8 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: 8,
-                    padding: '8px 8px 8px 12px',
+                    padding: 8,
+                    borderTop: subTasks.length > 0 ? '1px solid #f0f0f0' : undefined,
                   }}
                 >
                   <Space
@@ -589,7 +590,44 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                       },
                     }}
                   >
-                    <IconCircleDashed size={16} stroke={3} color="#838383" />
+                    <Popover
+                      placement="rightBottom"
+                      trigger={['click']}
+                      content={
+                        <StatusContent
+                          currentStage={formData.stage || null}
+                          onChangeStage={(stage: IStage) => {
+                            setFormData(prev => ({ ...prev, stageId: stage.id, stage }));
+                          }}
+                          stages={stages}
+                        />
+                      }
+                      styles={{
+                        body: { padding: 0 },
+                      }}
+                    >
+                      <Button
+                        size="small"
+                        type="text"
+                        style={{
+                          padding: 4,
+                          borderRadius: 8,
+                        }}
+                        styles={{
+                          icon: {
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          },
+                        }}
+                      >
+                        <IconCircleDashed
+                          size={16}
+                          stroke={3}
+                          color={formData?.stage?.color || '#838383'}
+                        />
+                      </Button>
+                    </Popover>
 
                     <Input
                       style={{
