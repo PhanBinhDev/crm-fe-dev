@@ -281,13 +281,11 @@ const ModalEditActivity = () => {
           }}
           onBlur={e => {
             e.currentTarget.style.borderColor = 'transparent';
-            if (selectedItem.data.name !== itemData.name && selectedItem.data.name?.trim()) {
-              updateActivity({
-                values: {
-                  name: selectedItem.data.name,
-                },
-              });
-            }
+            updateActivity({
+              values: {
+                name: selectedItem.data.name,
+              },
+            });
           }}
           onKeyDown={e => {
             if (e.key === 'Enter') {
@@ -331,15 +329,15 @@ const ModalEditActivity = () => {
             e.currentTarget.style.background = 'transparent';
           }}
           onBlur={() => {
-            if (
-              selectedItem.data.description !== itemData.description &&
-              selectedItem.data.description?.trim()
-            ) {
-              updateActivity({
-                values: {
-                  description: selectedItem.data.description,
-                },
-              });
+            updateActivity({
+              values: {
+                description: selectedItem.data.description,
+              },
+            });
+          }}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+              e.currentTarget.blur();
             }
           }}
           name="description"

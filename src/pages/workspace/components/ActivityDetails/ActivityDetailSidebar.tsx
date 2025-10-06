@@ -4,7 +4,7 @@ import { SelectedActivityItem } from '@/components/modals/ModalEditActivity';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import '@/styles/overwrite/antd/collapse.css';
 import { getStageGroupColor, getStageGroupLabel, getStageGroupTextColor } from '@/utils/stage';
-import { useCreate, useDelete } from '@refinedev/core';
+import { useCreate, useDelete, useList } from '@refinedev/core';
 import {
   IconCheck,
   IconDeviceFloppy,
@@ -43,10 +43,24 @@ const ActivityDetailSidebar = ({
   const [hoveredParent, setHoveredParent] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [name, setName] = useState<string>('');
-  const subActivities = activity.subActivities || [];
   const { mutate: deleteActivity } = useDelete();
 
   const { currentWorkspace } = useWorkspaces();
+
+  const {
+    data: subActivitiesData,
+    isLoading: isLoadingSubActivities,
+    refetch: refetchSubActivities,
+  } = useList<IActivity>({
+    resource: `activities/${activity.id}/sub-activities`,
+    pagination: {
+      mode: 'off',
+    },
+    queryOptions: {
+      enabled: !!activity.id,
+      retry: false,
+    },
+  });
 
   const { mutate: createActivity, isPending: isCreating } = useCreate<IActivity>({
     resource: 'activities',
@@ -77,6 +91,7 @@ const ActivityDetailSidebar = ({
           setName('');
           onSelectItem({ type: 'subactivity', data });
           refetchActivity();
+          refetchSubActivities();
         },
         onError: error => {
           message.error(error.message || 'Tạo hoạt động phụ thất bại');
@@ -130,6 +145,12 @@ const ActivityDetailSidebar = ({
   const isActivitySelected = useMemo(() => {
     return selectedItem?.type === 'activity' && selectedItem?.data?.id === activity.id;
   }, [selectedItem, activity.id]);
+
+  const subActivities = useMemo(() => {
+    if (!subActivitiesData || isLoadingSubActivities) return [] as IActivity[];
+
+    return subActivitiesData.data;
+  }, [subActivitiesData, isLoadingSubActivities]);
 
   const items: CollapseProps['items'] = [
     {
