@@ -44,8 +44,6 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   const { mutate: updateComment } = useUpdate();
   const { mutate: deleteComment } = useDelete();
 
-  const { mutate: createReaction } = useCreate();
-
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [commentContent, setCommentContent] = useState('');
@@ -72,48 +70,38 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
       message.error('Không xác định người dùng hiện tại');
       return;
     }
+    const current = localComments.find(c => c.id === commentId);
+    if (!current) return;
+
+    const prevHasReacted = !!current.hasUserReacted;
+    const prevCount = current.totalReactions || 0;
+    const nextHasReacted = !prevHasReacted;
+    const nextCount = Math.max(prevCount + (nextHasReacted ? 1 : -1), 0);
     setLocalComments(prev =>
-      prev.map(cmt => {
-        if (cmt.id !== commentId) return cmt;
-
-        const prevHasReacted = !!cmt.hasUserReacted;
-        const prevCount = cmt.totalReactions || 0;
-        const nextHasReacted = !prevHasReacted;
-        const nextCount = Math.max(prevCount + (nextHasReacted ? 1 : -1), 0);
-        (async () => {
-          try {
-            const res = await axiosInstance.post(
-              `/activities/${activityId}/comments/${commentId}/reactions`,
-              { type: 'like' },
-            );
-
-            if (res.status !== 200) {
-              throw new Error('Phản hồi không hợp lệ');
-            }
-          } catch (error) {
-            console.error('Reaction update failed:', error);
-            message.error('Không thể cập nhật tym. Vui lòng thử lại!');
-            setLocalComments(old =>
-              old.map(x =>
-                x.id === commentId
-                  ? {
-                      ...x,
-                      hasUserReacted: prevHasReacted,
-                      totalReactions: prevCount,
-                    }
-                  : x,
-              ),
-            );
-          }
-        })();
-
-        return {
-          ...cmt,
-          hasUserReacted: nextHasReacted,
-          totalReactions: nextCount,
-        };
-      }),
+      prev.map(c =>
+        c.id === commentId
+          ? { ...c, hasUserReacted: nextHasReacted, totalReactions: nextCount }
+          : c,
+      ),
     );
+
+    try {
+      const res = await axiosInstance.post(
+        `/activities/${activityId}/comments/${commentId}/reactions`,
+        { type: 'like' },
+      );
+      if (res.status !== 200) throw new Error('Phản hồi không hợp lệ');
+    } catch (error) {
+      console.error('Reaction update failed:', error);
+      message.error('Không thể cập nhật tym. Vui lòng thử lại!');
+      setLocalComments(prev =>
+        prev.map(c =>
+          c.id === commentId
+            ? { ...c, hasUserReacted: prevHasReacted, totalReactions: prevCount }
+            : c,
+        ),
+      );
+    }
   };
 
   const buildCommentsTree = (list: Comment[]) => {
