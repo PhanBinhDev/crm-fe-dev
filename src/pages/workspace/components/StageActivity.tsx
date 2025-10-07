@@ -15,7 +15,7 @@ interface StageActivityProps {
 const StageActivity = ({ value, onChange, error }: StageActivityProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const userSelected = useRef(false);
-  const { data: modalData } = useModal();
+  const { data: modalData, type } = useModal();
   const { stageId } = modalData ?? {};
   const { currentWorkspace } = useWorkspaceStore();
 
@@ -25,7 +25,9 @@ const StageActivity = ({ value, onChange, error }: StageActivityProps) => {
     filters: [{ field: 'workspaceId', operator: 'eq', value: currentWorkspace?.id }],
   });
 
-  const stages = data?.data ?? [];
+  const stages = (data?.data ?? []).filter(stage =>
+    type === 'ModalAddActivity' ? stage.title?.toLowerCase() !== 'closed' : true,
+  );
 
   useEffect(() => {
     if (!userSelected.current && stageId && stages.length > 0) {
