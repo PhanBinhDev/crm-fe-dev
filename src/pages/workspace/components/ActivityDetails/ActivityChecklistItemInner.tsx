@@ -1,5 +1,4 @@
-import { Checklist, ChecklistItem, IActivity } from '@/common/types';
-import { useCreate, useInvalidate } from '@refinedev/core';
+import { ChecklistItem, IActivity } from '@/common/types';
 import {
   IconDots,
   IconPencil,
@@ -8,7 +7,7 @@ import {
   IconSquareRoundedX,
 } from '@tabler/icons-react';
 import { Button, Checkbox, Popover, Space } from 'antd';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 interface ActivityChecklistItemInnerProps {
   item: ChecklistItem;
@@ -20,12 +19,11 @@ interface ActivityChecklistItemInnerProps {
 const ActivityChecklistItemInner = ({
   item,
   isDeletingChecklist,
-  activity,
   handlehandleToggleChecked,
   handleDeleteChecklistItem,
 }: ActivityChecklistItemInnerProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  
+  const [_isEditing, setIsEditing] = useState(false);
+
   return (
     <div
       key={item.id}
