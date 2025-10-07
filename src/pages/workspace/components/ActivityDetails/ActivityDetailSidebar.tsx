@@ -40,7 +40,6 @@ const ActivityDetailSidebar = ({
 }: ActivityDetailSidebarProps) => {
   const [showInput, setShowInput] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
-  const [hoveredParent, setHoveredParent] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [name, setName] = useState<string>('');
   const { mutate: deleteActivity } = useDelete();
@@ -160,17 +159,8 @@ const ActivityDetailSidebar = ({
       onClick: () => {
         onSelectItem({ type: 'activity', data: activity });
       },
-      onMouseEnter: e => {
-        const target = e.currentTarget as HTMLElement;
-        if (target.children[0].classList.contains('custom-collapse-header')) {
-          setHoveredParent(true);
-        }
-      },
-      onMouseLeave: e => {
-        const target = e.currentTarget as HTMLElement;
-        if (target.children[0].classList.contains('custom-collapse-header')) {
-          setHoveredParent(false);
-        }
+      style: {
+        cursor: 'pointer',
       },
       label: (
         <div
@@ -184,26 +174,6 @@ const ActivityDetailSidebar = ({
           <Tooltip placement="top" title={activity.name}>
             {activity.name}
           </Tooltip>
-
-          <div
-            style={{
-              position: 'absolute',
-              top: '50%',
-              right: hoveredParent ? 4 : 12,
-              transform: 'translateY(-50%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {hoveredParent ? (
-              <Button type="text" size="small" style={{ borderRadius: 6, padding: '0 4px' }}>
-                <IconDotsVertical size={14} color="#838383" />
-              </Button>
-            ) : isActivitySelected ? (
-              <IconCheck size={14} color="#838383" />
-            ) : null}
-          </div>
         </div>
       ),
     },

@@ -75,7 +75,7 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
         name: newChecklist.name,
       },
     });
-  }, [setLocalChecklists]);
+  }, [setLocalChecklists, createChecklist]);
 
   const handleChecklistItemUpdate = useCallback(
     (updateChecklist: Checklist) => {

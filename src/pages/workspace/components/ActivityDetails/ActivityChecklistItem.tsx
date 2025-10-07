@@ -48,12 +48,22 @@ const ActivityChecklistItem = ({
 
   const handleDeleteChecklist = useCallback(
     (checklist: Checklist) => {
-      deleteChecklist({
-        id: checklist.id,
-        resource: `activities/${activity.id}/checklists`,
-      });
+      deleteChecklist(
+        {
+          id: checklist.id,
+          resource: `activities/${activity.id}/checklists`,
+        },
+        {
+          onSuccess: () => {
+            invalidate({
+              resource: `activities/${activity.id}/checklists`,
+              invalidates: ['list'],
+            });
+          },
+        },
+      );
     },
-    [checklist.id],
+    [checklist.id, deleteChecklist],
   );
 
   const handleUpdateName = useCallback(() => {
@@ -73,7 +83,7 @@ const ActivityChecklistItem = ({
     }
 
     setIsEditing(false);
-  }, [updateChecklist, onChecklistUpdate, formData]);
+  }, [updateChecklist, formData]);
 
   const handlehandleToggleChecked = useCallback(
     (item: ChecklistItem, checked: boolean) => {
@@ -107,14 +117,17 @@ const ActivityChecklistItem = ({
         },
       });
     },
-    [updateChecklist],
+    [updateChecklist, onChecklistUpdate],
   );
 
   const handleDeleteChecklistItem = useCallback(
     (item: ChecklistItem) => {
-      const newFormData = {};
+      deleteChecklist({
+        id: item.id,
+        resource: `activities/${activity.id}/checklists/${checklist.id}/items`,
+      });
     },
-    [updateChecklist],
+    [deleteChecklist],
   );
 
   return (
@@ -167,7 +180,6 @@ const ActivityChecklistItem = ({
                 width: '100%',
                 border: '1px solid #cecece',
                 borderRadius: 6,
-                height: 24,
                 maxWidth: 150,
               }}
               styles={{
@@ -329,7 +341,7 @@ const ActivityChecklistItem = ({
               padding: '0 8px 0 12px',
             }}
           >
-            <Space style={{}} size={8}>
+            <Space size={8}>
               <Checkbox
                 checked={item.isDone}
                 onChange={checked => handlehandleToggleChecked(item, checked.target.checked)}
@@ -412,6 +424,7 @@ const ActivityChecklistItem = ({
                         justifyContent: 'center',
                       },
                     }}
+                    loading={isDeletingChecklist}
                     onClick={() => handleDeleteChecklistItem(item)}
                   >
                     Xóa mục
@@ -442,6 +455,7 @@ const ActivityChecklistItem = ({
             </Popover>
           </div>
         ))}
+        {/* Create Area */}
         <div
           style={{
             display: 'flex',
@@ -449,11 +463,12 @@ const ActivityChecklistItem = ({
             height: 40,
             width: '100%',
             padding: '0 8px 0 12px',
-            gap: 8,
             justifyContent: 'space-between',
           }}
         >
-          <Space>Hello</Space>
+          <IconPlus size={14} color="#838383" strokeWidth={2.5} />
+
+          <Input variant="borderless" placeholder="Thêm mục mới" />
         </div>
       </Space>
     </div>
