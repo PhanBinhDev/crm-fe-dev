@@ -106,15 +106,23 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   };
 
   const buildCommentsTree = (list: Comment[]) => {
+    if (!list || !Array.isArray(list)) return [];
     const map = new Map<string, Comment>();
     const roots: Comment[] = [];
-    list.forEach(c => map.set(c.id, { ...c, replies: [] }));
-    map.forEach(cmt => {
-      if (cmt.parentCommentId) {
-        const parent = map.get(cmt.parentCommentId);
-        if (parent) parent.replies?.push(cmt);
+    list.forEach(c =>
+      map.set(c.id, {
+        ...c,
+        replies: Array.isArray(c.replies) ? c.replies : [],
+      }),
+    );
+    list.forEach(c => {
+      const parentId = c.parentCommentId;
+      if (parentId && map.has(parentId)) {
+        map.get(parentId)!.replies!.push(map.get(c.id)!);
+      } else if (!parentId || parentId === '' || parentId === null) {
+        roots.push(map.get(c.id)!);
       } else {
-        roots.push(cmt);
+        roots.push(map.get(c.id)!);
       }
     });
     return roots;
@@ -139,13 +147,24 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
     createComment(
       { resource: `activities/comments`, values },
       {
-        onSuccess: () => {
+        onSuccess: (data: any) => {
+          const newComment = {
+            ...data.data,
+            user: {
+              id: currentUser?.id,
+              name: currentUser?.name,
+              avatar: currentUser?.avatar,
+            },
+          };
+
           setCommentContent('');
           setReplyToId(null);
           setFocused(false);
-          refetch();
+          setLocalComments(prev => [...prev, newComment]);
           message.success(replyToId ? 'Đã trả lời' : 'Đã bình luận');
+          refetch();
         },
+
         onError: error => {
           console.error('Error creating comment:', error);
           message.error('Gửi thất bại');
