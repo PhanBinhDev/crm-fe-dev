@@ -1,7 +1,7 @@
 import { IUser } from '@/common/types';
 import { Input, Space } from 'antd';
 import dayjs from 'dayjs';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AssigneeActivity from './AssigneeActivity';
 import DuedateActivity from './DuedateActivity';
 import FileAttachments from './FileAttachments';
@@ -11,6 +11,7 @@ const { TextArea } = Input;
 
 interface FormAddReminderProps {
   openUploader: boolean;
+  onChange?: (payload: any) => void;
 }
 
 interface NotifyOption {
@@ -18,14 +19,29 @@ interface NotifyOption {
   value: number | 'none' | 'custom';
 }
 
-const FormAddReminder = ({ openUploader }: FormAddReminderProps) => {
+const FormAddReminder = ({ openUploader, onChange }: FormAddReminderProps) => {
   const [assignees, setAssignees] = useState<IUser[]>([]);
   const [notifyBefore, setNotifyBefore] = useState<NotifyOption | null>({
     label: 'Trước 10 phút',
     value: 10,
   });
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [content, setContent] = useState('');
+  const [dueDate, setDueDate] = useState<{ start: dayjs.Dayjs | null; end: dayjs.Dayjs | null }>({
+    start: null,
+    end: null,
+  });
 
+  useEffect(() => {
+    const payload = {
+      content: content.trim(),
+      dueDate: dueDate?.end ? dueDate.end.toISOString() : null,
+      assignees: assignees.map(u => u.id),
+      notifyBefore: notifyBefore?.value === 'none' ? null : notifyBefore?.value,
+      attachments,
+    };
+    onChange?.(payload);
+  }, [content, dueDate, assignees, notifyBefore, attachments, onChange]);
   const handleToggleUser = (user: IUser) => {
     setAssignees(prev => {
       const exists = prev.some(u => u.id === user.id);
@@ -66,6 +82,8 @@ const FormAddReminder = ({ openUploader }: FormAddReminderProps) => {
         onBlur={e => {
           e.currentTarget.style.borderColor = 'transparent';
         }}
+        value={content}
+        onChange={e => setContent(e.target.value)}
         name="reminderContent"
       />
 
@@ -80,7 +98,7 @@ const FormAddReminder = ({ openUploader }: FormAddReminderProps) => {
       >
         {/* Hạn */}
         <Space>
-          <DuedateActivity value={{ start: null, end: dayjs() }} onChange={() => {}} />
+          <DuedateActivity value={dueDate} onChange={setDueDate} />
 
           {/* Người phụ trách */}
           <AssigneeActivity

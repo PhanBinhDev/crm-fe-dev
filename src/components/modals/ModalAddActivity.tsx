@@ -34,6 +34,8 @@ const ModalAddActivity = () => {
     task: false,
     reminder: false,
   });
+  const [reminderPayload, setReminderPayload] = useState<any>(null);
+  const [loadingReminder, setLoadingReminder] = useState(false);
 
   const invalidate = useInvalidate();
   const { mutate: createActivity, isPending: isPendingCreateActivity } = useCreate<FormAddTaskData>(
@@ -88,7 +90,27 @@ const ModalAddActivity = () => {
     },
     [closeModal],
   );
+  const handleReminderChange = useCallback((payload: any) => {
+    setReminderPayload(payload);
+  }, []);
+  const handleCreateReminder = async () => {
+    if (!reminderPayload?.content) {
+      message.error('Vui lòng nhập nội dung nhắc nhở');
+      return;
+    }
 
+    try {
+      setLoadingReminder(true);
+      console.log('Reminder payload:', reminderPayload);
+      message.success('Tạo nhắc nhở thành công!');
+      closeModal();
+    } catch (error) {
+      console.error('Reminder create failed:', error);
+      message.error('Không thể tạo nhắc nhở');
+    } finally {
+      setLoadingReminder(false);
+    }
+  };
   return (
     <Modal
       title={
@@ -307,11 +329,9 @@ const ModalAddActivity = () => {
           ) : (
             <Button
               type="primary"
-              onClick={() => handleCreate('create-action')}
-              style={{
-                borderRadius: 8,
-              }}
-              loading={isPendingCreateActivity}
+              onClick={handleCreateReminder}
+              loading={loadingReminder}
+              style={{ borderRadius: 8 }}
             >
               Tạo nhắc nhở
             </Button>
@@ -322,7 +342,9 @@ const ModalAddActivity = () => {
       {activeTab === 'task' && (
         <FormAddTask openUploader={openUploader.task} ref={formRef} onSubmit={handleFormSubmit} />
       )}
-      {activeTab === 'reminder' && <FormAddReminder openUploader={openUploader.reminder} />}
+      {activeTab === 'reminder' && (
+        <FormAddReminder openUploader={openUploader.reminder} onChange={handleReminderChange} />
+      )}
     </Modal>
   );
 };
