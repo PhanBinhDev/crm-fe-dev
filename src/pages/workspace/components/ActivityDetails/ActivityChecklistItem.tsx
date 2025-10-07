@@ -1,15 +1,66 @@
-import { Checklist } from '@/common/types';
+import { Checklist, IActivity } from '@/common/types';
+import { useDelete, useInvalidate, useUpdate } from '@refinedev/core';
 import { IconDots, IconPencil, IconPlus, IconSquareRoundedX } from '@tabler/icons-react';
 import { Button, Input, Popover, Typography } from 'antd';
-import { useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 
 interface ActivityChecklistItemProps {
   checklist: Checklist;
+  activity: IActivity;
 }
 
-const ActivityChecklistItem = ({ checklist }: ActivityChecklistItemProps) => {
+const ActivityChecklistItem = ({ checklist, activity }: ActivityChecklistItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Checklist>(checklist);
+
+  const invalidate = useInvalidate();
+
+  const { mutate: updateChecklist } = useUpdate<Checklist>({
+    mutationOptions: {
+      retry: false,
+      onSuccess: () => {
+        invalidate({
+          resource: `activities/${activity.id}/checklists`,
+          invalidates: ['list'],
+        });
+      },
+    },
+  });
+
+  const { mutate: deleteChecklist, isPending: isDeletingChecklist } = useDelete<Checklist>({
+    mutationOptions: {
+      retry: false,
+    },
+  });
+
+  const handleDeleteChecklist = useCallback(
+    (checklist: Checklist) => {
+      deleteChecklist({
+        id: checklist.id,
+        resource: `activities/${activity.id}/checklists`,
+      });
+    },
+    [checklist.id],
+  );
+
+  const handleUpdateName = useCallback(() => {
+    if (formData.name.trim() === '') {
+      setFormData(checklist);
+      return;
+    }
+
+    if (formData.name !== checklist.name) {
+      setFormData({ ...formData, name: formData.name });
+
+      updateChecklist({
+        id: checklist.id,
+        resource: `activities/${activity.id}/checklists`,
+        values: { name: formData.name },
+      });
+    }
+
+    setIsEditing(false);
+  }, [updateChecklist]);
 
   return (
     <div
@@ -50,7 +101,8 @@ const ActivityChecklistItem = ({ checklist }: ActivityChecklistItemProps) => {
               autoFocus
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
-              onPressEnter={() => setIsEditing(false)}
+              onPressEnter={handleUpdateName}
+              onBlur={handleUpdateName}
               style={{
                 fontSize: 14,
                 fontWeight: 500,
@@ -86,7 +138,7 @@ const ActivityChecklistItem = ({ checklist }: ActivityChecklistItemProps) => {
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               onClick={() => setIsEditing(true)}
             >
-              {checklist.name}
+              {formData.name}
             </Typography.Text>
           )}
 
@@ -100,7 +152,7 @@ const ActivityChecklistItem = ({ checklist }: ActivityChecklistItemProps) => {
               flexShrink: 0,
             }}
           >
-            {checklist.completedItems}/{checklist.totalItems}
+            {formData.completedItems}/{formData.totalItems}
           </span>
         </div>
         <Popover
@@ -171,6 +223,8 @@ const ActivityChecklistItem = ({ checklist }: ActivityChecklistItemProps) => {
                     justifyContent: 'center',
                   },
                 }}
+                loading={isDeletingChecklist}
+                onClick={() => handleDeleteChecklist(formData)}
               >
                 Xóa danh sách
               </Button>
@@ -203,4 +257,4 @@ const ActivityChecklistItem = ({ checklist }: ActivityChecklistItemProps) => {
   );
 };
 
-export default ActivityChecklistItem;
+export default memo(ActivityChecklistItem);

@@ -220,7 +220,7 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
   );
 
   return (
-    <Space direction="vertical" style={{ width: '100%', textAlign: 'start' }} size={16}>
+    <Space direction="vertical" style={{ width: '100%', textAlign: 'start' }} size={12}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <Typography.Text style={{ fontSize: 18, fontWeight: 600, flexShrink: 0, margin: 2 }}>
@@ -589,6 +589,9 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                         justifyContent: 'center',
                       },
                     }}
+                    style={{
+                      gap: 0,
+                    }}
                   >
                     <Popover
                       placement="rightBottom"
@@ -846,11 +849,17 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                       <Button
                         style={{
                           gap: 4,
-                          backgroundColor: '#1890ff',
+                          backgroundColor: !value.trim() || isCreating ? '#77bdff' : '#1890ff',
                           color: '#fff',
                         }}
-                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#40a9ff')}
-                        onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#1890ff')}
+                        onMouseEnter={e => {
+                          if (!value.trim() || isCreating) return;
+                          e.currentTarget.style.backgroundColor = '#40a9ff';
+                        }}
+                        onMouseLeave={e => {
+                          if (!value.trim() || isCreating) return;
+                          e.currentTarget.style.backgroundColor = '#1890ff';
+                        }}
                         size="small"
                         icon={<IconCornerDownLeft size={14} stroke={3} />}
                         iconPosition="end"
