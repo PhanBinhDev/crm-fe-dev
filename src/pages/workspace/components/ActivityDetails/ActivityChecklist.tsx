@@ -35,7 +35,7 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
     if (isLoadingChecklist || !checklistData) return [];
 
     setLocalChecklists(checklistData?.data || []);
-  }, [checklistData]);
+  }, [checklistData, isLoadingChecklist]);
 
   const { totalItems, completedItems, progress } = useMemo(() => {
     if (!localChecklists.length) {
@@ -76,6 +76,15 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
       },
     });
   }, [setLocalChecklists]);
+
+  const handleChecklistItemUpdate = useCallback(
+    (updateChecklist: Checklist) => {
+      setLocalChecklists(prev =>
+        prev.map(checklist => (checklist.id === updateChecklist.id ? updateChecklist : checklist)),
+      );
+    },
+    [setLocalChecklists],
+  );
 
   return (
     <Space direction="vertical" style={{ width: '100%', textAlign: 'start' }} size={12}>
@@ -175,6 +184,7 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
                   key={checklist.id}
                   checklist={checklist}
                   activity={activity}
+                  onChecklistUpdate={handleChecklistItemUpdate}
                 />
               ))}
             </div>

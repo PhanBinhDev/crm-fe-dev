@@ -1,15 +1,27 @@
-import { Checklist, IActivity } from '@/common/types';
+import { Checklist, ChecklistItem, IActivity } from '@/common/types';
 import { useDelete, useInvalidate, useUpdate } from '@refinedev/core';
-import { IconDots, IconPencil, IconPlus, IconSquareRoundedX } from '@tabler/icons-react';
-import { Button, Input, Popover, Typography } from 'antd';
+import {
+  IconDots,
+  IconPencil,
+  IconPlus,
+  IconSquareRoundedCheck,
+  IconSquareRoundedCheckFilled,
+  IconSquareRoundedX,
+} from '@tabler/icons-react';
+import { Button, Checkbox, Input, Popover, Space, Typography } from 'antd';
 import { memo, useCallback, useState } from 'react';
 
 interface ActivityChecklistItemProps {
   checklist: Checklist;
   activity: IActivity;
+  onChecklistUpdate?: (updatedChecklist: Checklist) => void;
 }
 
-const ActivityChecklistItem = ({ checklist, activity }: ActivityChecklistItemProps) => {
+const ActivityChecklistItem = ({
+  checklist,
+  activity,
+  onChecklistUpdate,
+}: ActivityChecklistItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Checklist>(checklist);
 
@@ -18,7 +30,8 @@ const ActivityChecklistItem = ({ checklist, activity }: ActivityChecklistItemPro
   const { mutate: updateChecklist } = useUpdate<Checklist>({
     mutationOptions: {
       retry: false,
-      onSuccess: () => {
+      onSuccess: data => {
+        console.log('Update checklist success:', data);
         invalidate({
           resource: `activities/${activity.id}/checklists`,
           invalidates: ['list'],
@@ -60,7 +73,49 @@ const ActivityChecklistItem = ({ checklist, activity }: ActivityChecklistItemPro
     }
 
     setIsEditing(false);
-  }, [updateChecklist]);
+  }, [updateChecklist, onChecklistUpdate, formData]);
+
+  const handlehandleToggleChecked = useCallback(
+    (item: ChecklistItem, checked: boolean) => {
+      const newFormData = {
+        ...formData,
+        items: formData.items.map(i => (i.id === item.id ? { ...i, isDone: checked } : i)),
+        completedItems: checked ? formData.completedItems + 1 : formData.completedItems - 1,
+        progress: Math.round(
+          ((checked ? formData.completedItems + 1 : formData.completedItems - 1) /
+            formData.totalItems) *
+            100,
+        ),
+      };
+
+      setFormData(newFormData);
+
+      if (onChecklistUpdate) {
+        onChecklistUpdate(newFormData);
+      }
+
+      updateChecklist({
+        id: checklist.id,
+        resource: `activities/${activity.id}/checklists`,
+        values: {
+          items: [
+            {
+              id: item.id,
+              isDone: checked,
+            },
+          ],
+        },
+      });
+    },
+    [updateChecklist],
+  );
+
+  const handleDeleteChecklistItem = useCallback(
+    (item: ChecklistItem) => {
+      const newFormData = {};
+    },
+    [updateChecklist],
+  );
 
   return (
     <div
@@ -75,6 +130,7 @@ const ActivityChecklistItem = ({ checklist, activity }: ActivityChecklistItemPro
         overflow: 'hidden',
       }}
     >
+      {/* Header */}
       <div
         style={{
           height: 42,
@@ -253,6 +309,153 @@ const ActivityChecklistItem = ({ checklist, activity }: ActivityChecklistItemPro
           />
         </Popover>
       </div>
+      {/* List Item */}
+      <Space
+        size={4}
+        direction="vertical"
+        style={{
+          width: '100%',
+        }}
+      >
+        {formData.items.map(item => (
+          <div
+            key={item.id}
+            style={{
+              width: '100%',
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 8px 0 12px',
+            }}
+          >
+            <Space style={{}} size={8}>
+              <Checkbox
+                checked={item.isDone}
+                onChange={checked => handlehandleToggleChecked(item, checked.target.checked)}
+              />
+              {item.content}
+            </Space>
+            <Popover
+              placement="leftBottom"
+              trigger={['click']}
+              styles={{
+                body: { padding: 8 },
+              }}
+              arrow={false}
+              content={
+                <div style={{ width: 180 }}>
+                  <Button
+                    type="text"
+                    icon={<IconPencil size={16} />}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      justifyContent: 'flex-start',
+                      color: '#646464',
+                      padding: '0 8px',
+                    }}
+                    styles={{
+                      icon: {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      },
+                    }}
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Đổi tên danh sách
+                  </Button>
+
+                  <Button
+                    type="text"
+                    icon={
+                      !item.isDone ? (
+                        <IconSquareRoundedCheck size={16} />
+                      ) : (
+                        <IconSquareRoundedCheckFilled size={16} />
+                      )
+                    }
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      justifyContent: 'flex-start',
+                      color: item.isDone ? '#38a403' : '#646464',
+                      padding: '0 8px',
+                    }}
+                    styles={{
+                      icon: {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      },
+                    }}
+                    onClick={() => handlehandleToggleChecked(item, !item.isDone)}
+                  >
+                    {item.isDone ? 'Bỏ tích' : 'Tích hoàn thành'}
+                  </Button>
+
+                  <Button
+                    type="text"
+                    icon={<IconSquareRoundedX size={16} />}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      justifyContent: 'flex-start',
+                      color: '#ff4d4f',
+                      padding: '0 8px',
+                    }}
+                    styles={{
+                      icon: {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      },
+                    }}
+                    onClick={() => handleDeleteChecklistItem(item)}
+                  >
+                    Xóa mục
+                  </Button>
+                </div>
+              }
+            >
+              <Button
+                type="text"
+                size="small"
+                style={{
+                  gap: 4,
+                  color: '#646464',
+                  borderColor: '#cecece',
+                  fontWeight: 500,
+                  padding: '0 6px',
+                  borderRadius: 7,
+                }}
+                styles={{
+                  icon: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  },
+                }}
+                icon={<IconDots size={14} stroke={2.5} />}
+              />
+            </Popover>
+          </div>
+        ))}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            height: 40,
+            width: '100%',
+            padding: '0 8px 0 12px',
+            gap: 8,
+            justifyContent: 'space-between',
+          }}
+        >
+          <Space>Hello</Space>
+        </div>
+      </Space>
     </div>
   );
 };
