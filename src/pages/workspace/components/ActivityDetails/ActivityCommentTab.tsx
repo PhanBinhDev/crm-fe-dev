@@ -1,19 +1,14 @@
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
+import { formatTime } from '@/services/utils/formatter';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
 import { IconHeart, IconSend2, IconTrash } from '@tabler/icons-react';
 import { Avatar, Button, message, Popconfirm, Skeleton } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
-import dayjs from 'dayjs';
-import 'dayjs/locale/vi';
-import relativeTime from 'dayjs/plugin/relativeTime';
 import { useEffect, useRef, useState } from 'react';
 import { axiosInstance } from './../../../../lib/axios';
 import { UserPopover } from './../../../users/list/components/UserPopover';
-
-dayjs.extend(relativeTime);
-dayjs.locale('vi');
 
 interface ActivityCommentTabProps {
   activityId: string;
@@ -223,10 +218,6 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
     const color = hasReacted ? '#ff4d4f' : anyoneReacted ? '#ff4d4f' : '#999';
     const fill = hasReacted ? color : 'none';
 
-    const now = dayjs();
-    const createdAt = dayjs(cmt.createdAt);
-    const isWithinOneWeek = now.diff(createdAt, 'days') < 7;
-
     return (
       <div
         key={cmt.id}
@@ -260,9 +251,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <div style={{ fontSize: 13, fontWeight: 600 }}>{cmt.user.name}</div>
-                <div style={{ fontSize: 11, color: '#999' }}>
-                  {isWithinOneWeek ? createdAt.fromNow() : createdAt.format('DD/MM/YYYY HH:mm')}
-                </div>
+                <div style={{ fontSize: 11, color: '#999' }}>{formatTime(cmt.createdAt)}</div>
               </div>
 
               <div style={{ fontSize: 13, marginBottom: 6 }}>

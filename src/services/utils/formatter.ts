@@ -1,3 +1,10 @@
+import dayjs from 'dayjs';
+import 'dayjs/locale/vi';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
+dayjs.locale('vi');
+
 export const formatCurrency = (amount: number, currency = 'VND'): string => {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -34,4 +41,17 @@ export const formatPhone = (phone: string): string => {
 
 export const getInitials = (firstName: string, lastName: string): string => {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+};
+
+export const formatTime = (time: string | undefined): string => {
+  if (!time) return 'N/A';
+  const now = dayjs();
+  const createdAt = dayjs(time);
+  const isWithinOneWeek = now.diff(createdAt, 'hour') < 7 * 24;
+
+  if (isWithinOneWeek) {
+    return createdAt.fromNow();
+  } else {
+    return createdAt.format('DD/MM/YYYY HH:mm');
+  }
 };

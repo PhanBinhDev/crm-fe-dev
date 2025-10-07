@@ -100,3 +100,14 @@ export interface ChecklistItem extends IBase {
 }
 
 export type ModalAction = 'create-action' | 'create-another' | 'create-duplicate' | 'create-open';
+
+export interface IActivityLinks {
+  id: string;
+  title: string;
+  link: string;
+  description: string;
+  createdAt: string;
+  createdBy: string;
+  imageUrl: string;
+  username: string;
+}
