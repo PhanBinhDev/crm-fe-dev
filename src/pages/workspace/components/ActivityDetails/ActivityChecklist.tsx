@@ -3,6 +3,7 @@ import { useCreate, useList } from '@refinedev/core';
 import { IconPlus } from '@tabler/icons-react';
 import { Button, Progress, Space, Typography } from 'antd';
 import { useCallback, useMemo, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import ActivityChecklistItem from './ActivityChecklistItem';
 
 interface ActivityChecklistProps {
@@ -59,9 +60,17 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
     if (isCreatingChecklist) return;
 
     const newChecklist: Checklist = {
-      id: `temp-${Date.now()}`,
+      id: uuidv4(),
       name: 'Danh sách việc mới',
-      items: [],
+      items: [
+        {
+          id: uuidv4(),
+          content: 'Việc mới',
+          isDone: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
       completedItems: 0,
       totalItems: 0,
       progress: 0,
@@ -73,6 +82,7 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
     createChecklist({
       values: {
         name: newChecklist.name,
+        items: newChecklist.items,
       },
     });
   }, [setLocalChecklists, createChecklist]);
