@@ -9,6 +9,7 @@ interface ColorPickerProps {
   size?: number;
   radius?: number;
   disabled?: boolean;
+  stageTitle?: string;
 }
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({
@@ -17,6 +18,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   size = 8,
   radius = 999,
   disabled = false,
+  stageTitle,
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -98,12 +100,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
       placement="bottomLeft"
       styles={{ root: { zIndex: 1060 } }}
     >
-      <svg
-        width={14}
-        height={14}
-        viewBox="0 0 16 16"
-        style={{ flexShrink: 0, cursor: disabled ? 'not-allowed' : 'pointer' }}
-      >
+      <svg width={14} height={14} viewBox="0 0 16 16" style={{ cursor: 'pointer' }}>
         {(() => {
           const size = 14;
           const strokeWidth = 1.6;
@@ -111,17 +108,30 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           const circumference = 2 * Math.PI * radius;
           const dashCount = 8;
           const dashLength = circumference / (dashCount * 2);
+
           return (
-            <circle
-              cx="8"
-              cy="8"
-              r={radius}
-              fill="none"
-              stroke="#fff"
-              strokeWidth={strokeWidth}
-              strokeDasharray={`${dashLength} ${dashLength}`}
-              strokeLinecap="round"
-            />
+            <>
+              <circle
+                cx="8"
+                cy="8"
+                r={radius}
+                fill="none"
+                stroke="#fff"
+                strokeWidth={strokeWidth}
+                strokeDasharray={`${dashLength} ${dashLength}`}
+                strokeLinecap="round"
+              />
+              {stageTitle?.toLowerCase().includes('done') && (
+                <path
+                  d="M5.2 8.2l2 2.2 4-4.5"
+                  fill="none"
+                  stroke="#fff"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+            </>
           );
         })()}
       </svg>
