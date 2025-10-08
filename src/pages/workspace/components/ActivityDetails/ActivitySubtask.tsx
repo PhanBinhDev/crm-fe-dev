@@ -60,6 +60,7 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
   const headerScrollRef = useRef<HTMLDivElement>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const [subActivities, setSubActivities] = useState<IActivity[]>([]);
+  const [hoveredHeader, setHoveredHeader] = useState(false);
 
   useEffect(() => {
     const headerEl = headerScrollRef.current;
@@ -221,7 +222,11 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
 
   return (
     <Space direction="vertical" style={{ width: '100%', textAlign: 'start' }} size={12}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+        onMouseEnter={() => setHoveredHeader(true)}
+        onMouseLeave={() => setHoveredHeader(false)}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <Typography.Text style={{ fontSize: 18, fontWeight: 600, flexShrink: 0, margin: 2 }}>
             Hoạt động phụ:
@@ -249,6 +254,23 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
             />
           )}
         </div>
+        {hoveredHeader && (
+          <Button
+            type="text"
+            onClick={() => setIsAddingTask(true)}
+            icon={<IconPlus size={14} color="#838383" />}
+            style={{
+              borderRadius: 8,
+            }}
+            styles={{
+              icon: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+            }}
+          />
+        )}
       </div>
 
       {isLoadingSubActivities ? (

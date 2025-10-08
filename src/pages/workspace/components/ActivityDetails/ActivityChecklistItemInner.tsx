@@ -6,23 +6,38 @@ import {
   IconSquareRoundedCheckFilled,
   IconSquareRoundedX,
 } from '@tabler/icons-react';
-import { Button, Checkbox, Popover, Space } from 'antd';
+import { Button, Checkbox, Input, Popover, Space, Typography } from 'antd';
 import { useState } from 'react';
 
 interface ActivityChecklistItemInnerProps {
   item: ChecklistItem;
   isDeletingChecklist: boolean;
   activity: IActivity;
-  handlehandleToggleChecked: (item: ChecklistItem, isDone: boolean) => void;
+  handleToggleChecked: (item: ChecklistItem, isDone: boolean) => void;
   handleDeleteChecklistItem: (item: ChecklistItem) => void;
+  handleChangeName: (item: ChecklistItem, newName: string) => void;
 }
 const ActivityChecklistItemInner = ({
   item,
   isDeletingChecklist,
-  handlehandleToggleChecked,
+  handleToggleChecked,
   handleDeleteChecklistItem,
+  handleChangeName,
 }: ActivityChecklistItemInnerProps) => {
-  const [_isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [newName, setNewName] = useState(item.content);
+
+  const onChangeName = () => {
+    if (newName.trim() === item.content) {
+      setIsEditing(false);
+      return;
+    }
+
+    console.log('Change name:', newName);
+
+    handleChangeName(item, newName);
+    setIsEditing(false);
+  };
 
   return (
     <div
@@ -39,9 +54,24 @@ const ActivityChecklistItemInner = ({
       <Space size={8}>
         <Checkbox
           checked={item.isDone}
-          onChange={checked => handlehandleToggleChecked(item, checked.target.checked)}
+          onChange={checked => handleToggleChecked(item, checked.target.checked)}
         />
-        {item.content}
+        {isEditing ? (
+          <Input
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            autoFocus
+            onBlur={onChangeName}
+            onPressEnter={onChangeName}
+            variant="borderless"
+            size="small"
+            style={{
+              paddingLeft: 0,
+            }}
+          />
+        ) : (
+          <Typography.Text onClick={() => setIsEditing(true)}>{item.content}</Typography.Text>
+        )}
       </Space>
       <Popover
         placement="leftBottom"
@@ -71,7 +101,7 @@ const ActivityChecklistItemInner = ({
               }}
               onClick={() => setIsEditing(true)}
             >
-              Đổi tên danh sách
+              Đổi tên mục
             </Button>
 
             <Button
@@ -97,7 +127,7 @@ const ActivityChecklistItemInner = ({
                   justifyContent: 'center',
                 },
               }}
-              onClick={() => handlehandleToggleChecked(item, !item.isDone)}
+              onClick={() => handleToggleChecked(item, !item.isDone)}
             >
               {item.isDone ? 'Bỏ tích' : 'Tích hoàn thành'}
             </Button>

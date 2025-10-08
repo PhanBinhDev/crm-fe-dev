@@ -131,7 +131,7 @@ const ActivityChecklistItem = ({
     setIsEditing(false);
   }, [updateChecklist, formData]);
 
-  const handlehandleToggleChecked = useCallback(
+  const handleToggleChecked = useCallback(
     (item: ChecklistItem, checked: boolean) => {
       const newFormData = {
         ...formData,
@@ -160,7 +160,7 @@ const ActivityChecklistItem = ({
               isDone: checked,
             },
           ],
-        },
+        }, 
       });
     },
     [updateChecklist, onChecklistUpdate],
@@ -196,6 +196,31 @@ const ActivityChecklistItem = ({
       );
     },
     [deleteChecklist],
+  );
+
+  const handleChangeNameChecklistItem = useCallback(
+    (item: ChecklistItem, newName: string) => {
+      const newFormData = {
+        ...formData,
+        items: formData.items.map(i => (i.id === item.id ? { ...i, content: newName } : i)),
+      };
+
+      setFormData(newFormData);
+
+      updateChecklist({
+        id: checklist.id,
+        resource: `activities/${activity.id}/checklists`,
+        values: {
+          items: [
+            {
+              id: item.id,
+              content: newName,
+            },
+          ],
+        },
+      });
+    },
+    [updateChecklist],
   );
 
   return (
@@ -401,10 +426,11 @@ const ActivityChecklistItem = ({
           <ActivityChecklistItemInner
             key={item.id}
             item={item}
-            activity={activity}
-            handlehandleToggleChecked={handlehandleToggleChecked}
-            handleDeleteChecklistItem={handleDeleteChecklistItem}
             isDeletingChecklist={isDeletingChecklist}
+            activity={activity}
+            handleToggleChecked={handleToggleChecked}
+            handleDeleteChecklistItem={handleDeleteChecklistItem}
+            handleChangeName={handleChangeNameChecklistItem}
           />
         ))}
       </Space>
