@@ -15,8 +15,6 @@ interface ColorPickerProps {
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   value = '#EA580C',
   onChange,
-  size = 8,
-  radius = 999,
   disabled = false,
   stageTitle,
 }) => {
