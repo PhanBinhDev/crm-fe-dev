@@ -7,38 +7,69 @@ import { useList } from '@refinedev/core';
 import type { TabsProps } from 'antd';
 import { Avatar, List, Tabs, Tooltip, message } from 'antd';
 import VirtualList from 'rc-virtual-list';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-const AssignedTask: React.FC = () => {
+const AssignedTask = () => {
   const { currentWorkspace } = useWorkspaces();
 
-  const CONTAINER_HEIGHT = 400;
+  const CONTAINER_HEIGHT = 220;
   const PAGE_SIZE = 20;
   const assignees: any[] = [];
 
   const [page, setPage] = useState(1);
+  const [allActivities, setAllActivities] = useState<IActivity[]>([]);
+  const [hasMore, setHasMore] = useState(true);
 
   const { data } = useList<IActivity>({
-    resource: 'activities',
+    resource: 'activities/filter',
     pagination: {
       current: page,
       pageSize: PAGE_SIZE,
     },
     sorters: [{ field: 'createdAt', order: 'desc' }],
-    filters: [{ field: 'workspaceId', operator: 'eq', value: currentWorkspace?.id }],
-    queryOptions: { enabled: !!currentWorkspace?.id },
+    filters: [
+      {
+        field: 'workspaceId',
+        operator: 'eq',
+        value: currentWorkspace?.id,
+      },
+    ],
+    meta: {
+      query: {
+        queryType: 'assigned_to_me',
+        includeSubTasks: false,
+      },
+    },
+    queryOptions: { enabled: !!currentWorkspace?.id, keepPreviousData: true },
   });
 
-  const activities: IActivity[] = data?.data ?? [];
+  useEffect(() => {
+    const newActivities = data?.data ?? [];
+    const total = data?.total ?? 0;
 
-  const appendData = () => {
-    if (!activities.length) {
-      message.info('Không còn dữ liệu');
-      return;
+    if (newActivities.length > 0 && page > 1) {
+      setAllActivities(prev => {
+        const existingIds = new Set(prev.map(a => a.id));
+        const uniqueNewActivities = newActivities.filter(a => !existingIds.has(a.id));
+        return [...prev, ...uniqueNewActivities];
+      });
+    } else if (page === 1) {
+      setAllActivities(newActivities);
     }
 
+    if (allActivities.length + newActivities.length >= total && total > 0) {
+      setHasMore(false);
+      if (page > 1 && newActivities.length === 0) {
+        message.info('Không còn dữ liệu');
+      }
+    } else if (data && data.data && data.data.length > 0) {
+      setHasMore(true);
+    }
+  }, [data]);
+
+  const appendData = () => {
+    if (!hasMore) return;
     setPage(prev => prev + 1);
-    message.success(`${activities.length} items loaded!`);
   };
 
   const onScroll = (e: React.UIEvent<HTMLElement, UIEvent>) => {
@@ -52,11 +83,11 @@ const AssignedTask: React.FC = () => {
   const items: TabsProps['items'] = [
     {
       key: '1',
-      label: 'To Do',
+      label: `To Do (${allActivities.length})`,
       children: (
         <List>
           <VirtualList
-            data={activities}
+            data={allActivities}
             height={CONTAINER_HEIGHT}
             itemHeight={47}
             itemKey="id"
@@ -64,6 +95,7 @@ const AssignedTask: React.FC = () => {
           >
             {(item: IActivity) => (
               <List.Item key={item.id}>
+                <div>{item.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   {assignees?.length > 0 ? (
                     assignees.slice(0, 3).map((assignee, index) => (
@@ -107,7 +139,6 @@ const AssignedTask: React.FC = () => {
                     </Avatar>
                   )}
                 </div>
-                <div>{item.description}</div>
               </List.Item>
             )}
           </VirtualList>
@@ -131,7 +162,7 @@ const AssignedTask: React.FC = () => {
     },
   ];
 
-  return <Tabs defaultActiveKey="1" items={items} />;
+  return <Tabs defaultActiveKey="1" items={items} style={{ padding: '0 20px' }} />;
 };
 
 export default AssignedTask;

@@ -232,7 +232,7 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
                 ellipsis={{ rows: 2, expandable: false }}
                 style={{ fontSize: 12, lineHeight: 1.3 }}
               >
-                {item.description || item.linkPreview.siteDescription}
+                {item.description || item.linkPreview?.siteDescription}
               </Paragraph>
             </div>
             <LinkAvatar linkPreview={item.linkPreview} />
