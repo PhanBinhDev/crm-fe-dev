@@ -19,6 +19,7 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
   const [description, setDescription] = useState('');
   const invalidate = useInvalidate();
   const { mutate: addLink } = useCreate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isRequiredFieldsFilled = (): boolean => {
     if (!showForm) {
@@ -46,7 +47,7 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
 
   const handleAddLink = () => {
     if (isRequiredFieldsFilled()) {
-      const hideLoading = message.loading('Đang thêm liên kết...', 0);
+      setIsSubmitting(true);
       console.log(title, url, description);
       addLink(
         {
@@ -55,20 +56,20 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
         },
         {
           onSuccess: () => {
-            hideLoading();
+            setIsSubmitting(false);
             invalidate({
               resource: `activities/${activityId}/links`,
               invalidates: ['list'],
             });
             message.success('Thêm liên kết thành công');
+            handleCancel();
           },
           onError: () => {
-            hideLoading();
+            setIsSubmitting(false);
             message.error('Thêm liên kết thất bại');
           },
         },
       );
-      handleCancel();
     }
   };
 
@@ -199,6 +200,10 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
               <Input
                 placeholder="Nhập tiêu đề..."
                 value={title}
+                onPressEnter={e => {
+                  e.preventDefault();
+                  handleAddLink();
+                }}
                 onChange={e => setTitle(e.target.value)}
                 style={{
                   marginBottom: 12,
@@ -256,6 +261,7 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
                     fontWeight: 600,
                     borderRadius: 8,
                   }}
+                  loading={isSubmitting}
                 >
                   Thêm liên kết
                 </Button>

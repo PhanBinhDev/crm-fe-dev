@@ -8,7 +8,7 @@ import { Avatar, List, message, Tooltip } from 'antd';
 import VirtualList from 'rc-virtual-list';
 import React, { useState } from 'react';
 
-const CONTAINER_HEIGHT = 400;
+const CONTAINER_HEIGHT = 280;
 const PAGE_SIZE = 20;
 
 const TodayTask: React.FC = () => {
@@ -55,7 +55,7 @@ const TodayTask: React.FC = () => {
   };
 
   return (
-    <List>
+    <List style={{ padding: '0 20px' }}>
       <VirtualList
         data={activities}
         height={CONTAINER_HEIGHT}
@@ -65,6 +65,7 @@ const TodayTask: React.FC = () => {
       >
         {(item: IActivity) => (
           <List.Item key={item.name}>
+            <div>{item.name}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               {assignees?.length > 0 ? (
                 assignees.slice(0, 3).map((assignee, index) => (
@@ -108,7 +109,6 @@ const TodayTask: React.FC = () => {
                 </Avatar>
               )}
             </div>
-            <div>{item.description}</div>
           </List.Item>
         )}
       </VirtualList>

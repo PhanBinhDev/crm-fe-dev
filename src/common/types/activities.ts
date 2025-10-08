@@ -109,5 +109,12 @@ export interface IActivityLinks {
   createdAt: string;
   creator: { name: string };
   imageUrl: string;
-  username: string;
+  linkPreview: ILinkPreview;
+}
+
+export interface ILinkPreview {
+  thumbnail?: string;
+  siteName?: string;
+  favicon?: string;
+  siteDescription?: string;
 }
