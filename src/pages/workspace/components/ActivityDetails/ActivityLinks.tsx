@@ -1,13 +1,17 @@
-import { IActivityLinks } from '@/common/types';
+import { IActivityLinks, ILinkPreview } from '@/common/types';
 import { formatTime } from '@/services/utils/formatter';
 import { useDelete, useInvalidate, useList } from '@refinedev/core';
 import { IconPointFilled, IconX } from '@tabler/icons-react';
 import { Avatar, Card, List, message, Popconfirm, Skeleton, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
+import { useState } from 'react';
 const { Paragraph } = Typography;
 interface ActivityLinksProps {
   viewMode: 'list' | 'category';
   activityId: string;
+}
+interface LinkAvatarProps {
+  linkPreview?: ILinkPreview;
 }
 
 const LinkCardSkeleton = () => (
@@ -85,6 +89,34 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
           message.error('Xoá liên kết thất bại');
         },
       },
+    );
+  };
+
+  const LinkAvatar = ({ linkPreview }: LinkAvatarProps) => {
+    const [imgSrc, setImgSrc] = useState(linkPreview?.thumbnail || linkPreview?.favicon);
+    const [error, setError] = useState(false);
+
+    const handleError = () => {
+      if (imgSrc === linkPreview?.thumbnail && linkPreview?.favicon) {
+        setImgSrc(linkPreview.favicon);
+        return true;
+      } else {
+        setError(true);
+        return false;
+      }
+    };
+
+    return (
+      <Avatar
+        src={error ? undefined : imgSrc}
+        alt={linkPreview?.siteName}
+        shape="square"
+        size={100}
+        style={{ borderRadius: 8 }}
+        onError={handleError}
+      >
+        {linkPreview?.siteName?.charAt(0) || 'CRM'}
+      </Avatar>
     );
   };
 
@@ -200,15 +232,10 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
                 ellipsis={{ rows: 2, expandable: false }}
                 style={{ fontSize: 12, lineHeight: 1.3 }}
               >
-                {item.description}
+                {item.description || item.linkPreview.siteDescription}
               </Paragraph>
             </div>
-            <Avatar
-              src={item.imageUrl || 'https://via.placeholder.com/100'}
-              shape="square"
-              size={100}
-              style={{ borderRadius: 8 }}
-            />
+            <LinkAvatar linkPreview={item.linkPreview} />
           </Card>
           <Popconfirm
             title="Xác nhận xóa liên kết?"
