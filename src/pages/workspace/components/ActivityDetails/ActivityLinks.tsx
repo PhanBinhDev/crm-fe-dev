@@ -3,6 +3,7 @@ import { formatTime } from '@/services/utils/formatter';
 import { useDelete, useInvalidate, useList } from '@refinedev/core';
 import { IconPointFilled, IconX } from '@tabler/icons-react';
 import { Avatar, Card, List, message, Popconfirm, Skeleton, Tooltip, Typography } from 'antd';
+import dayjs from 'dayjs';
 const { Paragraph } = Typography;
 interface ActivityLinksProps {
   viewMode: 'list' | 'category';
@@ -64,7 +65,6 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
     );
   }
   const handleDeleteLink = (id: string) => {
-    console.log('link id', id);
     const hideLoading = message.loading('Đang xoá liên kết...', 0);
     deleteLink(
       {
@@ -116,9 +116,11 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
                     <IconPointFilled size={8} color="#888" style={{ marginRight: 3 }} />
                     <div style={{ fontSize: 11, color: '#909090ff' }}>
                       <span style={{ fontSize: 14, fontWeight: 600, marginRight: 5 }}>
-                        {item.username || 'Chưa xác định'}
+                        {item.creator.name || 'Chưa xác định'}
                       </span>
-                      {formatTime(item.createdAt)}
+                      <Tooltip title={dayjs(item.createdAt).format('DD/MM/YYYY HH:mm')}>
+                        {formatTime(item.createdAt)}
+                      </Tooltip>
                     </div>
                   </div>
                   <Popconfirm
@@ -136,7 +138,7 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
 
                 <div style={{ marginLeft: 10 }}>
                   <a
-                    href={item.imageUrl || '#'}
+                    href={item.url || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ fontSize: 13, color: '#1677ff' }}
@@ -173,17 +175,19 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
               body: { display: 'flex', gap: 16, padding: '10px 0' },
             }}
             onClick={() => {
-              if (item.link || '#') {
-                window.open(item.link, '_blank');
+              if (item.url || '#') {
+                window.open(item.url, '_blank');
               }
             }}
           >
             <div style={{ flex: 1, maxHeight: 100, overflow: 'hidden' }}>
               <span style={{ fontSize: 14, fontWeight: 600 }}>
-                {item.username || 'Chưa xác định'}
+                {item.creator.name || 'Chưa xác định'}
               </span>
               <p style={{ fontSize: 11, color: '#909090ff', marginBottom: 7 }}>
-                {formatTime(item.createdAt)}
+                <Tooltip title={dayjs(item.createdAt).format('DD/MM/YYYY HH:mm')}>
+                  {formatTime(item.createdAt)}
+                </Tooltip>
               </p>
               <Paragraph
                 strong

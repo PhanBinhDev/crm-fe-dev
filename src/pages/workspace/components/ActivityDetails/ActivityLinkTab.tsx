@@ -13,7 +13,7 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
   const [viewMode, setViewMode] = useState<'list' | 'category'>('category');
   const inputRef = useRef<InputRef>(null);
 
-  const [link, setLink] = useState('');
+  const [url, setUrl] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -22,9 +22,9 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
 
   const isRequiredFieldsFilled = (): boolean => {
     if (!showForm) {
-      return !!link.trim();
+      return !!url.trim();
     }
-    return !!link.trim() && !!title.trim();
+    return !!url.trim() && !!title.trim();
   };
 
   const handleAddLinks = () => {
@@ -37,7 +37,7 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
   };
 
   const handleCancel = () => {
-    setLink('');
+    setUrl('');
     setTitle('');
     setDescription('');
     setShowInput(false);
@@ -46,13 +46,16 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
 
   const handleAddLink = () => {
     if (isRequiredFieldsFilled()) {
+      const hideLoading = message.loading('Đang thêm liên kết...', 0);
+      console.log(title, url, description);
       addLink(
         {
           resource: `activities/${activityId}/links`,
-          values: { link, title, description },
+          values: { title, url, description },
         },
         {
           onSuccess: () => {
+            hideLoading();
             invalidate({
               resource: `activities/${activityId}/links`,
               invalidates: ['list'],
@@ -60,6 +63,7 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
             message.success('Thêm liên kết thành công');
           },
           onError: () => {
+            hideLoading();
             message.error('Thêm liên kết thất bại');
           },
         },
@@ -67,11 +71,10 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
       handleCancel();
     }
   };
-  console.log('id', activityId);
 
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setLink(value);
+    setUrl(value);
     if (value.trim() && !showForm) {
       setShowForm(true);
     }
@@ -83,7 +86,7 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
   };
 
   const handleOuterBlur = () => {
-    if (!link.trim() && !title.trim() && !description.trim()) {
+    if (!url.trim() && !title.trim() && !description.trim()) {
       setShowInput(false);
       setShowForm(false);
     }
@@ -170,7 +173,7 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
           <Input
             ref={inputRef}
             placeholder="Enter or paste a link..."
-            value={link}
+            value={url}
             onChange={handleLinkChange}
             style={{
               height: 36,

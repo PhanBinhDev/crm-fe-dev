@@ -4,8 +4,9 @@ import { formatTime } from '@/services/utils/formatter';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
 import { IconHeart, IconSend2, IconTrash } from '@tabler/icons-react';
-import { Avatar, Button, message, Popconfirm, Skeleton } from 'antd';
+import { Avatar, Button, message, Popconfirm, Skeleton, Tooltip } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
+import dayjs from 'dayjs';
 import { useEffect, useRef, useState } from 'react';
 import { axiosInstance } from './../../../../lib/axios';
 import { UserPopover } from './../../../users/list/components/UserPopover';
@@ -251,7 +252,11 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <div style={{ fontSize: 13, fontWeight: 600 }}>{cmt.user.name}</div>
-                <div style={{ fontSize: 11, color: '#999' }}>{formatTime(cmt.createdAt)}</div>
+                <div style={{ fontSize: 11, color: '#999' }}>
+                  <Tooltip title={dayjs(cmt.createdAt).format('DD/MM/YYYY HH:mm')}>
+                    {formatTime(cmt.createdAt)}
+                  </Tooltip>
+                </div>
               </div>
 
               <div style={{ fontSize: 13, marginBottom: 6 }}>

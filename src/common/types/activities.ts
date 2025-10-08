@@ -104,10 +104,10 @@ export type ModalAction = 'create-action' | 'create-another' | 'create-duplicate
 export interface IActivityLinks {
   id: string;
   title: string;
-  link: string;
+  url: string;
   description: string;
   createdAt: string;
-  createdBy: string;
+  creator: { name: string };
   imageUrl: string;
   username: string;
 }
