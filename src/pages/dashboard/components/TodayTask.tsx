@@ -60,11 +60,11 @@ const TodayTask: React.FC = () => {
         data={activities}
         height={CONTAINER_HEIGHT}
         itemHeight={47}
-        itemKey="email"
+        itemKey="id"
         onScroll={onScroll}
       >
-        {(item: IActivity) => (
-          <List.Item key={item.name}>
+        {(item: IActivity, index: number) => (
+          <List.Item key={`today-task-${item.id}-${index}`}>
             <div>{item.name}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               {assignees?.length > 0 ? (

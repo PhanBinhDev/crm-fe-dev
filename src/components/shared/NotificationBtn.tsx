@@ -1,5 +1,5 @@
 import { INotification, NotificationTab } from '@/common/types';
-import { useInfiniteList, useUpdate } from '@refinedev/core';
+import { useList, useUpdate } from '@refinedev/core';
 import { IconBell, IconChecks, IconX } from '@tabler/icons-react';
 import {
   Avatar,
@@ -10,7 +10,6 @@ import {
   List,
   Popover,
   Space,
-  Spin,
   Tabs,
   Typography,
 } from 'antd';
@@ -31,24 +30,20 @@ const NotificationBtn = () => {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<NotificationTab>('all');
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
-    useInfiniteList<INotification>({
-      resource: 'notifications',
-      pagination: { pageSize: 10 },
-      sorters: [{ field: 'createdAt', order: 'desc' }],
-      queryOptions: {
-        getNextPageParam: lastPage => {
-          console.log('lastPage', lastPage);
+  const {
+    data: notificationsData,
+    isLoading,
+    refetch,
+  } = useList<INotification>({
+    resource: 'notifications',
+    pagination: { pageSize: 100 },
+    sorters: [{ field: 'createdAt', order: 'desc' }],
+    queryOptions: {
+      retry: false,
+    },
+  });
 
-          return lastPage.pagination.afterCursor;
-        },
-        getPreviousPageParam: firstPage => {
-          return firstPage.pagination.beforeCursor;
-        },
-      },
-    });
-
-  console.log('data', data);
+  console.log('Notifications data:', notificationsData);
 
   const { mutate, isPending: isUpdating } = useUpdate({
     resource: 'notifications',
@@ -62,34 +57,18 @@ const NotificationBtn = () => {
   });
 
   const { notifications, unreadCount } = useMemo(() => {
-    const items: INotification[] = [];
-    const unreadCount = data?.pages[0]?.metadata?.unreadCount || 0;
-
-    data?.pages?.forEach(page => {
-      const pageItems: INotification[] = Array.isArray(page.data) ? page.data : [];
-      items.push(...pageItems);
-    });
-
-    const map = new Map<string, INotification>();
-    for (const it of items) {
-      if (!map.has(it.id)) {
-        map.set(it.id, it);
-      }
+    if (!notificationsData) {
+      return {
+        notifications: [],
+        unreadCount: 0,
+      };
     }
-    const deduped = Array.from(map.values());
 
     return {
-      notifications: deduped,
-      unreadCount,
+      notifications: notificationsData.data,
+      unreadCount: notificationsData.metadata.unreadCount || 0,
     };
-  }, [data]);
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    if (scrollHeight - scrollTop - clientHeight < 28 && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  };
+  }, [notificationsData]);
 
   const markAsRead = (noti: INotification) => {
     if (isUpdating || noti.isRead) return;
@@ -131,6 +110,7 @@ const NotificationBtn = () => {
         cursor: 'pointer',
         borderRadius: 6,
         position: 'relative',
+        marginTop: 4,
       }}
       key={item.id}
       onMouseEnter={e => {
@@ -259,7 +239,6 @@ const NotificationBtn = () => {
       <div
         style={{ flex: 1, overflowY: 'auto', maxHeight: 400, background: '#fff' }}
         className="hidden-scrollbar"
-        onScroll={handleScroll}
       >
         {isLoading ? (
           <div style={{ margin: '10px auto', display: 'block' }}>
@@ -272,10 +251,9 @@ const NotificationBtn = () => {
             dataSource={notifications}
             renderItem={renderItem}
             split={false}
-            style={{ padding: '0 8px', maxHeight: 300 }}
+            style={{ padding: '0 8px', maxHeight: 250 }}
           />
         )}
-        {isFetchingNextPage && <Spin style={{ margin: '12px auto', display: 'block' }} />}
       </div>
 
       <div
