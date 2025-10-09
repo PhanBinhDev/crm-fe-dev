@@ -57,7 +57,7 @@ const NotificationBtn = () => {
     },
   });
 
-  const notifications = useMemo(() => {
+  const { notifications, unreadCount } = useMemo(() => {
     const notificationMap = new Map();
 
     data?.pages.forEach(page => {
@@ -68,12 +68,14 @@ const NotificationBtn = () => {
       });
     });
 
-    return Array.from(notificationMap.values());
+    return {
+      notifications: Array.from(notificationMap.values()),
+      unreadCount: notificationMap.size,
+    };
   }, [data]);
 
-  const unreadCount = useMemo(() => {
-    return notifications.filter(n => !n.isRead).length;
-  }, [notifications]);
+
+  console.log('unreadCount', unreadCount);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;

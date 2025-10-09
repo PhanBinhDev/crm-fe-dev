@@ -20,8 +20,10 @@ import { semesterRoutes } from '@/pages/semester/routes';
 import { userRoutes } from '@/pages/users/routes';
 import { authProvider } from '@/providers/AuthProvider';
 import '@/styles/globals.css';
+import { Toaster } from 'sonner';
 import { ErrorComponent } from './components/common/ErrorBoundary';
 import Modals from './components/modals';
+import { NotificationHandler } from './components/shared/NotificationHandler';
 import { DisplayConfigProvider } from './contexts/DisplayConfig';
 import { materialRoutes } from './pages/course-materials/routes';
 import { DashboardPage } from './pages/dashboard';
@@ -74,6 +76,7 @@ function App() {
                       element={
                         <Authenticated key="auth" fallback={<Navigate to="/login" replace />}>
                           <CustomLayout>
+                            <NotificationHandler />
                             <Outlet />
                           </CustomLayout>
                         </Authenticated>
@@ -95,6 +98,7 @@ function App() {
 
                   <Modals />
                   <RefineKbar />
+                  <Toaster position="top-right" />
                   <UnsavedChangesNotifier />
                   <DocumentTitleHandler />
                 </Refine>

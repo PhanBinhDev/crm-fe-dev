@@ -530,44 +530,43 @@ const ActivityMainContent = ({
           </>
         }
         endContent={
-          <>
+          <Popover
+            placement="bottomLeft"
+            content={
+              <DatePicker
+                value={itemData.endTime ? dayjs(itemData.endTime) : null}
+                onChange={onDueDateChange}
+                format="DD/MM/YYYY"
+                allowClear
+                style={{ width: 200 }}
+                variant="borderless"
+              />
+            }
+            arrow={false}
+            trigger={['click']}
+          >
             <Space style={{ flex: 1, height: '100%', justifyContent: 'space-between' }}>
-              <Popover
-                placement="bottomLeft"
-                content={
-                  <DatePicker
-                    value={itemData.endTime ? dayjs(itemData.endTime) : null}
-                    onChange={onDueDateChange}
-                    format="DD/MM/YYYY"
-                    allowClear
-                    style={{ width: 180 }}
-                  />
-                }
-                arrow={false}
-                trigger={['click']}
+              <Button
+                type="text"
+                size="small"
+                style={{
+                  padding: '6px',
+                  color: '#8c8c8c',
+                  background: 'transparent',
+                  borderRadius: 7,
+                  fontSize: 14,
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
               >
-                <Button
-                  type="text"
-                  size="small"
-                  style={{
-                    padding: '6px',
-                    color: '#8c8c8c',
-                    background: 'transparent',
-                    borderRadius: 7,
-                    fontSize: 14,
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = 'transparent';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'transparent';
-                  }}
-                >
-                  {!itemData.endTime
-                    ? 'Trống'
-                    : new Date(itemData.endTime).toLocaleDateString('vi-VN')}
-                </Button>
-              </Popover>
+                {!itemData.endTime
+                  ? 'Trống'
+                  : new Date(itemData.endTime).toLocaleDateString('vi-VN')}
+              </Button>
 
               {Boolean(itemData.endTime) && (
                 <Button
@@ -586,7 +585,7 @@ const ActivityMainContent = ({
                 </Button>
               )}
             </Space>
-          </>
+          </Popover>
         }
       />
 
