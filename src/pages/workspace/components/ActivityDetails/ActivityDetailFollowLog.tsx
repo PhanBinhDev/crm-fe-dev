@@ -1,9 +1,33 @@
-import { IconBell, IconBellOff, IconCheck, IconUser, IconUserCheck } from '@tabler/icons-react';
+import { getUsername } from '@/utils/formatter';
+import { IconBell, IconBellOff, IconCheck } from '@tabler/icons-react';
 import { Avatar, Button, Divider, Input, Popover, Space } from 'antd';
 import { useState } from 'react';
 
+const mockedFollowers = [
+  { id: '1', name: 'John Doe', email: 'john.doe@example.com', avatar: '' },
+  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', avatar: '' },
+  { id: '3', name: 'Alice Johnson', email: 'alice.johnson@example.com', avatar: '' },
+];
+
+interface IFollower {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+}
+
 const ActivityDetailFollowLog = () => {
   const [showFilter, setShowFilter] = useState(false);
+
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+
+  const toggleFollow = () => {
+    setIsFollowing(!isFollowing);
+
+    // call API to update follow status
+    console.log('Toggle follow status:', !isFollowing);
+  };
+
   // const [selected, setSelected] = useState<string[]>(
   //   activityLogFilterOptions.map(opt => opt.value),
   // );
@@ -16,6 +40,39 @@ const ActivityDetailFollowLog = () => {
 
   // const handleSelectAll = () => setSelected(activityLogFilterOptions.map(opt => opt.value));
   // const handleUnselectAll = () => setSelected([]);
+
+  const renderFollowerAvatar = (follower: IFollower, size: number = 24) => {
+    if (follower?.avatar && typeof follower.avatar === 'string') {
+      const avatarUrl = follower.avatar.startsWith('http')
+        ? follower.avatar
+        : `${import.meta.env.VITE_API_BASE_URL}${follower.avatar}`;
+
+      return <Avatar size={size} src={avatarUrl} />;
+    }
+
+    return (
+      <div
+        style={{
+          padding: 2,
+          borderRadius: '50%',
+          backgroundColor: '#f9f9f9',
+        }}
+      >
+        <Avatar
+          size={size}
+          style={{
+            backgroundColor: 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'oklch(27.4% 0.006 286.033)',
+          }}
+        >
+          {getUsername(follower.name)}
+        </Avatar>
+      </div>
+    );
+  };
 
   const contentFilter = (
     <Space
@@ -53,6 +110,7 @@ const ActivityDetailFollowLog = () => {
             }}
             type="text"
             size="middle"
+            onClick={toggleFollow}
           >
             <div
               style={{
@@ -62,31 +120,17 @@ const ActivityDetailFollowLog = () => {
                 gap: 6,
               }}
             >
-              <IconBell size={14} color="#838383" />
-              Theo dõi
-            </div>
-            {true && <IconCheck size={14} color="#838383" />}
-          </Button>
-          <Button
-            style={{
-              width: '100%',
-              justifyContent: 'space-between',
-              padding: '6px',
-              alignItems: 'center',
-            }}
-            type="text"
-            size="middle"
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <IconBellOff size={14} color="#838383" />
-              Bỏ theo dõi
+              {isFollowing ? (
+                <>
+                  <IconBell size={14} color="#838383" />
+                  Theo dõi
+                </>
+              ) : (
+                <>
+                  <IconBellOff size={14} color="#838383" />
+                  Bỏ theo dõi
+                </>
+              )}
             </div>
             {true && <IconCheck size={14} color="#838383" />}
           </Button>
@@ -119,50 +163,31 @@ const ActivityDetailFollowLog = () => {
               marginLeft: 8,
             }}
           >
-            1 Theo dõi
+            {mockedFollowers.length} Theo dõi
           </span>
-          <Button
-            type="text"
-            style={{
-              padding: '20px 4px',
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-            }}
-          >
-            <Avatar icon={<IconUserCheck />} />
-            <div
+          {mockedFollowers.map(follower => (
+            <Button
+              key={follower.id}
+              type="text"
               style={{
+                padding: '20px 4px',
+                width: '100%',
                 display: 'flex',
-                textAlign: 'left',
+                justifyContent: 'flex-start',
+                alignItems: 'center',
               }}
             >
-              Invite people via email
-            </div>
-          </Button>
-          <Button
-            type="text"
-            style={{
-              padding: '20px 4px',
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-            }}
-          >
-            <Avatar icon={<IconUser />} />
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                textAlign: 'left',
-              }}
-            >
-              <span>Me</span>
-              <span>16 mins</span>
-            </div>
-          </Button>
+              {renderFollowerAvatar(follower, 30)}
+              <div
+                style={{
+                  display: 'flex',
+                  textAlign: 'left',
+                }}
+              >
+                {follower.name}
+              </div>
+            </Button>
+          ))}
         </Space>
       </Space>
     </Space>
