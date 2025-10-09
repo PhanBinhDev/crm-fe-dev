@@ -3,10 +3,12 @@ import { useCreate, useInvalidate } from '@refinedev/core';
 import { IconBell } from '@tabler/icons-react';
 import { getToken, onMessage } from 'firebase/messaging';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export const useNotification = () => {
   const invalidate = useInvalidate();
+  const navigate = useNavigate();
   const { mutate } = useCreate({
     resource: 'device-tokens',
     mutationOptions: {
@@ -35,7 +37,9 @@ export const useNotification = () => {
     }
   };
 
-  const handleNotificationClick = (_uri: string) => {};
+  const handleNotificationClick = (uri: string) => {
+    navigate(uri);
+  };
 
   useEffect(() => {
     const unsubscribe = onMessage(messaging, payload => {

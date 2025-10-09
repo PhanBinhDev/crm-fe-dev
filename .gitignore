@@ -245,4 +245,4 @@ sentry.properties
 
 .history
 
-public/firebase-messaging-sw.js
+/public/firebase-messaging-sw.js
