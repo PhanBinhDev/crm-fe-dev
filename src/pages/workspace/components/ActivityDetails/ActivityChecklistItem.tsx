@@ -85,7 +85,7 @@ const ActivityChecklistItem = ({
     });
   }, [
     isCreatingChecklist,
-    formData,
+    setFormData,
     onChecklistUpdate,
     createChecklistItem,
     activity.id,
@@ -109,7 +109,7 @@ const ActivityChecklistItem = ({
         },
       );
     },
-    [checklist.id, deleteChecklist],
+    [checklist.id],
   );
 
   const handleUpdateName = useCallback(() => {
@@ -129,99 +129,90 @@ const ActivityChecklistItem = ({
     }
 
     setIsEditing(false);
-  }, [updateChecklist, formData]);
+  }, []);
 
-  const handleToggleChecked = useCallback(
-    (item: ChecklistItem, checked: boolean) => {
-      const newFormData = {
-        ...formData,
-        items: formData.items.map(i => (i.id === item.id ? { ...i, isDone: checked } : i)),
-        completedItems: checked ? formData.completedItems + 1 : formData.completedItems - 1,
-        progress: Math.round(
-          ((checked ? formData.completedItems + 1 : formData.completedItems - 1) /
-            formData.totalItems) *
-            100,
-        ),
-      };
+  const handleToggleChecked = useCallback((item: ChecklistItem, checked: boolean) => {
+    const newFormData = {
+      ...formData,
+      items: formData.items.map(i => (i.id === item.id ? { ...i, isDone: checked } : i)),
+      completedItems: checked ? formData.completedItems + 1 : formData.completedItems - 1,
+      progress: Math.round(
+        ((checked ? formData.completedItems + 1 : formData.completedItems - 1) /
+          formData.totalItems) *
+          100,
+      ),
+    };
 
-      setFormData(newFormData);
+    setFormData(newFormData);
 
-      if (onChecklistUpdate) {
-        onChecklistUpdate(newFormData);
-      }
+    if (onChecklistUpdate) {
+      onChecklistUpdate(newFormData);
+    }
 
-      updateChecklist({
-        id: checklist.id,
-        resource: `activities/${activity.id}/checklists`,
-        values: {
-          items: [
-            {
-              id: item.id,
-              isDone: checked,
-            },
-          ],
-        }, 
-      });
-    },
-    [updateChecklist, onChecklistUpdate],
-  );
-
-  const handleDeleteChecklistItem = useCallback(
-    (item: ChecklistItem) => {
-      const newFormData = {
-        ...formData,
-        items: formData.items.filter(i => i.id !== item.id),
-        totalItems: formData.totalItems - 1,
-        completedItems: item.isDone ? formData.completedItems - 1 : formData.completedItems,
-        progress: Math.round(
-          ((item.isDone ? formData.completedItems - 1 : formData.completedItems) /
-            (formData.totalItems - 1)) *
-            100,
-        ),
-      };
-      setFormData(newFormData);
-      deleteChecklist(
-        {
-          id: item.id,
-          resource: `activities/${activity.id}/checklists/${checklist.id}/items`,
-        },
-        {
-          onSuccess: () => {
-            invalidate({
-              resource: `activities/${activity.id}/checklists`,
-              invalidates: ['list'],
-            });
+    updateChecklist({
+      id: checklist.id,
+      resource: `activities/${activity.id}/checklists`,
+      values: {
+        items: [
+          {
+            id: item.id,
+            isDone: checked,
           },
+        ],
+      },
+    });
+  }, []);
+
+  const handleDeleteChecklistItem = useCallback((item: ChecklistItem) => {
+    const newFormData = {
+      ...formData,
+      items: formData.items.filter(i => i.id !== item.id),
+      totalItems: formData.totalItems - 1,
+      completedItems: item.isDone ? formData.completedItems - 1 : formData.completedItems,
+      progress: Math.round(
+        ((item.isDone ? formData.completedItems - 1 : formData.completedItems) /
+          (formData.totalItems - 1)) *
+          100,
+      ),
+    };
+    setFormData(newFormData);
+    deleteChecklist(
+      {
+        id: item.id,
+        resource: `activities/${activity.id}/checklists/${checklist.id}/items`,
+      },
+      {
+        onSuccess: () => {
+          invalidate({
+            resource: `activities/${activity.id}/checklists`,
+            invalidates: ['list'],
+          });
         },
-      );
-    },
-    [deleteChecklist],
-  );
+      },
+    );
+  }, []);
 
-  const handleChangeNameChecklistItem = useCallback(
-    (item: ChecklistItem, newName: string) => {
-      const newFormData = {
-        ...formData,
-        items: formData.items.map(i => (i.id === item.id ? { ...i, content: newName } : i)),
-      };
+  const handleChangeNameChecklistItem = useCallback((item: ChecklistItem, newName: string) => {
+    const newFormData = {
+      ...formData,
+      items: formData.items.map(i => (i.id === item.id ? { ...i, content: newName } : i)),
+    };
 
-      setFormData(newFormData);
+    setFormData(newFormData);
 
-      updateChecklist({
-        id: checklist.id,
-        resource: `activities/${activity.id}/checklists`,
-        values: {
-          items: [
-            {
-              id: item.id,
-              content: newName,
-            },
-          ],
-        },
-      });
-    },
-    [updateChecklist],
-  );
+    updateChecklist({
+      id: checklist.id,
+      resource: `activities/${activity.id}/checklists`,
+      values: {
+        items: [
+          {
+            id: item.id,
+            content: newName,
+          },
+        ],
+      },
+    });
+  }, []);
 
   return (
     <div

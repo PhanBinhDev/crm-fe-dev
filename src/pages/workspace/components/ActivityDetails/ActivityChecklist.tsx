@@ -35,7 +35,18 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
   useMemo(() => {
     if (isLoadingChecklist || !checklistData) return [];
 
-    setLocalChecklists(checklistData?.data || []);
+    const newData = checklistData.data || [];
+
+    setLocalChecklists(prev => {
+      if (
+        prev.length === newData.length &&
+        prev.length > 0 &&
+        prev.every((p, i) => p.id === newData[i].id)
+      ) {
+        return prev;
+      }
+      return newData;
+    });
   }, [checklistData, isLoadingChecklist]);
 
   const { totalItems, completedItems, progress } = useMemo(() => {
@@ -85,7 +96,7 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
         items: newChecklist.items,
       },
     });
-  }, [setLocalChecklists, createChecklist]);
+  }, [setLocalChecklists, createChecklist, isCreatingChecklist]);
 
   const handleChecklistItemUpdate = useCallback(
     (updateChecklist: Checklist) => {

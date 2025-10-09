@@ -24,6 +24,7 @@ const ActivityChecklistItemInner = ({
   handleDeleteChecklistItem,
   handleChangeName,
 }: ActivityChecklistItemInnerProps) => {
+  const [popen, setPopen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(item.content);
 
@@ -32,8 +33,6 @@ const ActivityChecklistItemInner = ({
       setIsEditing(false);
       return;
     }
-
-    console.log('Change name:', newName);
 
     handleChangeName(item, newName);
     setIsEditing(false);
@@ -80,6 +79,8 @@ const ActivityChecklistItemInner = ({
           body: { padding: 8 },
         }}
         arrow={false}
+        open={popen}
+        onOpenChange={setPopen}
         content={
           <div style={{ width: 180 }}>
             <Button
@@ -99,7 +100,10 @@ const ActivityChecklistItemInner = ({
                   justifyContent: 'center',
                 },
               }}
-              onClick={() => setIsEditing(true)}
+              onClick={() => {
+                setIsEditing(true);
+                setPopen(false);
+              }}
             >
               Đổi tên mục
             </Button>
@@ -127,7 +131,10 @@ const ActivityChecklistItemInner = ({
                   justifyContent: 'center',
                 },
               }}
-              onClick={() => handleToggleChecked(item, !item.isDone)}
+              onClick={() => {
+                handleToggleChecked(item, !item.isDone);
+                setPopen(false);
+              }}
             >
               {item.isDone ? 'Bỏ tích' : 'Tích hoàn thành'}
             </Button>

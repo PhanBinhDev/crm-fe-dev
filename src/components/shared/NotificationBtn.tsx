@@ -38,6 +38,8 @@ const NotificationBtn = () => {
       sorters: [{ field: 'createdAt', order: 'desc' }],
       queryOptions: {
         getNextPageParam: lastPage => {
+          console.log('lastPage', lastPage);
+
           return lastPage.pagination.afterCursor;
         },
         getPreviousPageParam: firstPage => {
@@ -45,6 +47,8 @@ const NotificationBtn = () => {
         },
       },
     });
+
+  console.log('data', data);
 
   const { mutate, isPending: isUpdating } = useUpdate({
     resource: 'notifications',
@@ -58,24 +62,27 @@ const NotificationBtn = () => {
   });
 
   const { notifications, unreadCount } = useMemo(() => {
-    const notificationMap = new Map();
+    const items: INotification[] = [];
+    const unreadCount = data?.pages[0]?.metadata?.unreadCount || 0;
 
-    data?.pages.forEach(page => {
-      page.data.forEach(notification => {
-        if (!notificationMap.has(notification.id)) {
-          notificationMap.set(notification.id, notification);
-        }
-      });
+    data?.pages?.forEach(page => {
+      const pageItems: INotification[] = Array.isArray(page.data) ? page.data : [];
+      items.push(...pageItems);
     });
 
+    const map = new Map<string, INotification>();
+    for (const it of items) {
+      if (!map.has(it.id)) {
+        map.set(it.id, it);
+      }
+    }
+    const deduped = Array.from(map.values());
+
     return {
-      notifications: Array.from(notificationMap.values()),
-      unreadCount: notificationMap.size,
+      notifications: deduped,
+      unreadCount,
     };
   }, [data]);
-
-
-  console.log('unreadCount', unreadCount);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
@@ -265,7 +272,7 @@ const NotificationBtn = () => {
             dataSource={notifications}
             renderItem={renderItem}
             split={false}
-            style={{ padding: '0 8px' }}
+            style={{ padding: '0 8px', maxHeight: 300 }}
           />
         )}
         {isFetchingNextPage && <Spin style={{ margin: '12px auto', display: 'block' }} />}

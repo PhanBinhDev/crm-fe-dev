@@ -23,6 +23,8 @@ export const standardDataProvider = (
 
     const { data } = response;
 
+    console.log('Get list response:', data);
+
     return data;
   },
 
