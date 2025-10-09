@@ -29,7 +29,8 @@ import {
   IconUsers,
   IconX,
 } from '@tabler/icons-react';
-import { Avatar, Button, Popover, Space, Tooltip } from 'antd';
+import { Avatar, Button, DatePicker, Popover, Space, Tooltip } from 'antd';
+import dayjs from 'dayjs';
 import { memo, useCallback, useMemo } from 'react';
 import ActivityContentItem from './ActivityContentItem';
 
@@ -196,6 +197,20 @@ const ActivityMainContent = ({
         values: {
           studentCount: count,
         },
+      });
+    },
+    [setFormData, onUpdate],
+  );
+
+  const onDueDateChange = useCallback(
+    (date: dayjs.Dayjs | null) => {
+      const value = date ? date.toDate() : undefined;
+      setFormData(prev => ({
+        ...prev,
+        endTime: value,
+      }));
+      onUpdate({
+        values: { endTime: value ? value.toISOString() : undefined },
       });
     },
     [setFormData, onUpdate],
@@ -516,42 +531,61 @@ const ActivityMainContent = ({
         }
         endContent={
           <>
-            <Popover>
-              <Button
-                type="text"
-                size="small"
-                style={{
-                  padding: '6px',
-                  color: '#8c8c8c',
-                  background: 'transparent',
-                  borderRadius: 7,
-                  fontSize: 14,
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
+            <Space style={{ flex: 1, height: '100%', justifyContent: 'space-between' }}>
+              <Popover
+                placement="bottomLeft"
+                content={
+                  <DatePicker
+                    value={itemData.endTime ? dayjs(itemData.endTime) : null}
+                    onChange={onDueDateChange}
+                    format="DD/MM/YYYY"
+                    allowClear
+                    style={{ width: 180 }}
+                  />
+                }
+                arrow={false}
+                trigger={['click']}
               >
-                {!itemData.endTime
-                  ? 'Trống'
-                  : new Date(itemData.endTime).toLocaleDateString('vi-VN')}
-              </Button>
-            </Popover>
+                <Button
+                  type="text"
+                  size="small"
+                  style={{
+                    padding: '6px',
+                    color: '#8c8c8c',
+                    background: 'transparent',
+                    borderRadius: 7,
+                    fontSize: 14,
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  {!itemData.endTime
+                    ? 'Trống'
+                    : new Date(itemData.endTime).toLocaleDateString('vi-VN')}
+                </Button>
+              </Popover>
 
-            {Boolean(itemData.endTime) && (
-              <Button
-                type="text"
-                size="small"
-                style={{
-                  borderRadius: 6,
-                  padding: '0 6px',
-                }}
-              >
-                <IconX size={15} color={'#838383'} />
-              </Button>
-            )}
+              {Boolean(itemData.endTime) && (
+                <Button
+                  type="text"
+                  size="small"
+                  style={{
+                    borderRadius: 6,
+                    padding: '0 6px',
+                  }}
+                  onClick={e => {
+                    e.stopPropagation();
+                    onDueDateChange(null);
+                  }}
+                >
+                  <IconX size={15} color={'#838383'} />
+                </Button>
+              )}
+            </Space>
           </>
         }
       />
