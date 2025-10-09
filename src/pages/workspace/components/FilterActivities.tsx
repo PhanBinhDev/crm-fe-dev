@@ -1,5 +1,6 @@
-import { IUser } from '@/common/types';
+import { IStage, IUser } from '@/common/types';
 import AssigneeActivity from '@/pages/workspace/components/AssigneeActivity';
+import { toTitleCase } from '@/utils/formatter';
 import { IconAdjustmentsHorizontal } from '@tabler/icons-react';
 import { Button, DatePicker, Divider, Popover, Select, Space, Tooltip, Typography } from 'antd';
 import { Dayjs } from 'dayjs';
@@ -19,7 +20,13 @@ export interface FilterParams {
   assigneeId?: string;
 }
 
-const FilterActivities = ({ onApply }: { onApply?: (params: FilterParams) => void }) => {
+const FilterActivities = ({
+  onApply,
+  stages,
+}: {
+  onApply?: (params: FilterParams) => void;
+  stages: IStage[];
+}) => {
   const [filters, setFilters] = useState<{
     endDate: Dayjs | null;
     priority?: string;
@@ -133,12 +140,7 @@ const FilterActivities = ({ onApply }: { onApply?: (params: FilterParams) => voi
           value={filters.stageId}
           onChange={val => setFilters({ ...filters, stageId: val })}
           style={{ width: '100%' }}
-          options={[
-            { label: 'Todo', value: '206af35c-b8d3-4875-aeca-6d5fca418701' },
-            { label: 'In Progress', value: 'b833ae4c-dd1f-45e9-93fb-dd556e759ef7' },
-            { label: 'Done', value: '452c0784-2b3b-45ad-ae49-2891d3826cbd' },
-            { label: 'Complete', value: '98a2c2ec-58cb-4dcf-b5d2-81e3cdbb9e53' },
-          ]}
+          options={stages.map(stage => ({ label: toTitleCase(stage.title), value: stage.id }))}
         />
       </div>
 

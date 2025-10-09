@@ -68,6 +68,7 @@ const KanbanWorkspaces = () => {
       operator?: Exclude<CrudOperators, 'or' | 'and'>;
     }> = [
       { field: 'priority', value: filterParams.priority },
+      { field: 'assignees', value: filterParams.assigneeId },
       { field: 'stageId', value: filterParams.stageId },
       { field: 'category', value: filterParams.category },
       { field: 'type', value: filterParams.type },
@@ -82,6 +83,8 @@ const KanbanWorkspaces = () => {
 
     return [...baseFilters, ...conditionalFilters];
   }, [searchValue, filterParams, workspaceData?.data.id]);
+
+  console.log(activityFilters);
 
   const { data: activitiesData, isLoading: isLoadingActivities } = useList<IActivity>({
     resource: 'activities',
@@ -407,7 +410,7 @@ const KanbanWorkspaces = () => {
         >
           <SearchActivities onSearch={onSearch} />
           <SortActive activities={activities} onSorted={() => {}} />
-          <FilterActivities onApply={handleApplyFilters} />
+          <FilterActivities stages={stagesData?.data || []} onApply={handleApplyFilters} />
           <SettingsActivities />
           <Tooltip title="Thêm mới hoạt động">
             <Button

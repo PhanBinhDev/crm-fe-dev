@@ -40,3 +40,13 @@ export const formatMinutesToText = (minutes: number): string => {
     return `${months} tháng`;
   }
 };
+
+export function toTitleCase(input: string): string {
+  if (!input) return '';
+  return input
+    .toLowerCase()
+    .split(' ')
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
