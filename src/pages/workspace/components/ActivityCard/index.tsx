@@ -1,3 +1,4 @@
+import { StageGroup } from '@/common/enum/stage';
 import { IActivity, IStage } from '@/common/types';
 import { DragDropType, getActivityLabel, getPriorityColor, getPriorityLabel } from '@/constants';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
@@ -93,12 +94,14 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
             (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.03)';
           }
         }}
-        onClick={() =>
+        onClick={() => {
+          if (activity.stage.stageGroup === StageGroup.CLOSED) return;
+
           openModal('ModalEditActivity', {
             activity,
             stage: stages?.find(s => s.id === activity.stageId),
-          })
-        }
+          });
+        }}
       >
         {/* Tiêu đề */}
         <div style={{ width: '100%', position: 'relative', marginBottom: 6 }}>
