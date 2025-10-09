@@ -35,7 +35,7 @@ export const useNotification = () => {
     }
   };
 
-  const handleNotificationClick = (uri: string) => {};
+  const handleNotificationClick = (_uri: string) => {};
 
   useEffect(() => {
     const unsubscribe = onMessage(messaging, payload => {

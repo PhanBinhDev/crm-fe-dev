@@ -46,6 +46,13 @@ const NotificationActivityBtn = ({ workspaceId }: NotificationActivityBtnProps) 
             borderRadius: 8,
           }}
           icon={<IconBell size={16} />}
+          styles={{
+            icon: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+          }}
         >
           <span style={{ fontSize: 12, color: '#838383' }}>{selected.length}</span>
         </Button>
