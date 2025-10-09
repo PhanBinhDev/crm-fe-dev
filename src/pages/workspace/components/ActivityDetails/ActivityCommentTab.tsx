@@ -2,7 +2,7 @@ import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
 import { formatTime } from '@/services/utils/formatter';
 import { getColorFromName, getInitials } from '@/utils/activity';
-import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
+import { useCreate, useCustomMutation, useDelete, useList, useUpdate } from '@refinedev/core';
 import { IconHeart, IconSend2, IconTrash } from '@tabler/icons-react';
 import { Avatar, Button, message, Popconfirm, Skeleton, Tooltip } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
@@ -40,6 +40,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   const { mutate: createComment, isLoading: isCreating } = useCreate();
   const { mutate: updateComment } = useUpdate();
   const { mutate: deleteComment } = useDelete();
+  const { mutate: updateReactionComments } = useCustomMutation();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
@@ -57,48 +58,94 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
 
   const [localComments, setLocalComments] = useState<Comment[]>([]);
   useEffect(() => {
-    if (comments?.data) setLocalComments(comments.data);
+    if (!comments) return;
+    const raw = Array.isArray(comments.data)
+      ? comments.data
+      : Array.isArray((comments as any).data?.data)
+        ? (comments as any).data.data
+        : [];
+
+    if (raw.length) {
+      setLocalComments(raw as Comment[]);
+    }
   }, [comments]);
 
   const SKELETON_COUNT = 3;
-
+  const updateCommentReaction = (
+    comments: Comment[],
+    id: string,
+    updated: Partial<Comment>,
+  ): Comment[] => {
+    return comments.map(c => {
+      if (c.id === id) return { ...c, ...updated };
+      if (c.replies && c.replies.length) {
+        return { ...c, replies: updateCommentReaction(c.replies, id, updated) };
+      }
+      return c;
+    });
+  };
   const handleToggleTym = async (commentId: string) => {
     if (!currentUser?.id) {
       message.error('Không xác định người dùng hiện tại');
       return;
     }
-    const current = localComments.find(c => c.id === commentId);
+
+    const parentComment = localComments.find(
+      c => c.id === commentId || c.replies?.some(r => r.id === commentId),
+    );
+    const current =
+      parentComment?.id === commentId
+        ? parentComment
+        : parentComment?.replies?.find(r => r.id === commentId);
+
     if (!current) return;
 
     const prevHasReacted = !!current.hasUserReacted;
     const prevCount = current.totalReactions || 0;
     const nextHasReacted = !prevHasReacted;
     const nextCount = Math.max(prevCount + (nextHasReacted ? 1 : -1), 0);
+
+    const prevState = [...localComments];
+
     setLocalComments(prev =>
-      prev.map(c =>
-        c.id === commentId
-          ? { ...c, hasUserReacted: nextHasReacted, totalReactions: nextCount }
-          : c,
-      ),
+      prev.map(c => {
+        if (c.id === commentId) {
+          return { ...c, hasUserReacted: nextHasReacted, totalReactions: nextCount };
+        }
+        if (c.replies?.find(r => r.id === commentId)) {
+          return {
+            ...c,
+            replies: c.replies.map(r => {
+              if (r.id === commentId) {
+                return { ...r, hasUserReacted: nextHasReacted, totalReactions: nextCount };
+              }
+              return r;
+            }),
+          };
+        }
+        return c;
+      }),
     );
 
-    try {
-      const res = await axiosInstance.post(
-        `/activities/${activityId}/comments/${commentId}/reactions`,
-        { type: 'like' },
-      );
-      if (res.status !== 200) throw new Error('Phản hồi không hợp lệ');
-    } catch (error) {
-      console.error('Reaction update failed:', error);
-      message.error('Không thể cập nhật tym. Vui lòng thử lại!');
-      setLocalComments(prev =>
-        prev.map(c =>
-          c.id === commentId
-            ? { ...c, hasUserReacted: prevHasReacted, totalReactions: prevCount }
-            : c,
-        ),
-      );
-    }
+    updateReactionComments(
+      {
+        url: `activities/${activityId}/comments/${commentId}/reactions`,
+        method: 'post',
+        values: {
+          type: 'like',
+        },
+      },
+      {
+        onSuccess: () => {
+          refetch();
+          message.success('Cập nhật bình luận thành công');
+        },
+        onError: () => {
+          message.error('Cập nhật bình luận thất bại');
+          setLocalComments(prevState);
+        },
+      },
+    );
   };
 
   const buildCommentsTree = (list: Comment[]) => {
@@ -131,42 +178,49 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 
-  const handleSendComment = () => {
+  const handleSendComment = async () => {
     if (!commentContent.trim()) return;
 
     const values = {
       activityId,
-      content: commentContent,
-      parentCommentId: replyToId || '',
+      content: commentContent.trim(),
+      parentCommentId: replyToId || null,
     };
 
-    createComment(
-      { resource: `activities/comments`, values },
-      {
-        onSuccess: (data: any) => {
-          const newComment = {
-            ...data.data,
-            user: {
-              id: currentUser?.id,
-              name: currentUser?.name,
-              avatar: currentUser?.avatar,
-            },
-          };
+    try {
+      const res = await axiosInstance.post(`/activities/comments`, values);
+      if (res.status !== 201 && res.status !== 200) throw new Error('Không thể gửi bình luận');
 
-          setCommentContent('');
-          setReplyToId(null);
-          setFocused(false);
-          setLocalComments(prev => [...prev, newComment]);
-          message.success(replyToId ? 'Đã trả lời' : 'Đã bình luận');
-          refetch();
-        },
+      const newComment = res.data?.data;
 
-        onError: error => {
-          console.error('Error creating comment:', error);
-          message.error('Gửi thất bại');
-        },
-      },
-    );
+      if (!newComment) {
+        await refetch();
+        return;
+      }
+      if (replyToId) {
+        setLocalComments(prev =>
+          prev.map(c =>
+            c.id === replyToId
+              ? {
+                  ...c,
+                  replies: [...(c.replies || []), newComment],
+                }
+              : c,
+          ),
+        );
+      } else {
+        setLocalComments(prev => [...prev, newComment]);
+      }
+      setCommentContent('');
+      setReplyToId(null);
+      setFocused(false);
+
+      message.success(replyToId ? 'Đã trả lời' : 'Đã bình luận');
+      await refetch();
+    } catch (error) {
+      console.error('Error creating comment:', error);
+      message.error('Không thể gửi bình luận. Vui lòng thử lại.');
+    }
   };
 
   const handleSaveEdit = (id: string) => {
