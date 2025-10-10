@@ -188,3 +188,7 @@ body {
 .ant-progress-circle-path {
   stroke-linecap: round !important; /* làm đầu stroke tròn */
 }
+
+.rc-virtual-list-scrollbar-thumb {
+  display: none;
+}
