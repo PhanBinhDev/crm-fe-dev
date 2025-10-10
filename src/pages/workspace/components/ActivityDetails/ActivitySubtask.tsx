@@ -1,9 +1,21 @@
 import { ActivityType } from '@/common/enum/activity';
 import { StageGroup } from '@/common/enum/stage';
-import { IActivity, IStage } from '@/common/types';
+import { ActivityPriorityLevel, IActivity, IStage } from '@/common/types';
+import { IAssignee } from '@/common/types/assignee';
+import ActivityTypeContent from '@/components/shared/ActivityTypeContent';
+import AssigneeContent from '@/components/shared/AssigneeContent';
+import PriorityContent from '@/components/shared/PriorityContent';
 import StatusContent from '@/components/shared/StatusContent';
 import { useWorkspaceStore } from '@/hooks/useWorkspaces';
-import { getActivityTypeLabel, getColumnLabel, getColumnWidth } from '@/utils/activity';
+import {
+  getActivityPriorityColor,
+  getActivityPriorityLabel,
+  getActivityTypeLabel,
+  getColorFromName,
+  getColumnLabel,
+  getColumnWidth,
+  getInitials,
+} from '@/utils/activity';
 import { useCreate, useInvalidate, useList, useUpdate } from '@refinedev/core';
 import {
   IconBox,
@@ -13,6 +25,7 @@ import {
   IconCornerDownLeft,
   IconDots,
   IconFlag,
+  IconFlagFilled,
   IconLocation,
   IconPencil,
   IconPlus,
@@ -23,6 +36,7 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import {
+  Avatar,
   Button,
   Checkbox,
   Input,
@@ -33,6 +47,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
+import dayjs from 'dayjs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 
@@ -217,7 +232,39 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
         mutationMode: 'optimistic',
       });
     },
+    [updateActivity, setSubActivities],
+  );
+
+  const handleOnPriorityChange = useCallback(
+    (priority: ActivityPriorityLevel | null, activityId: string) => {
+      setSubActivities(prev =>
+        prev.map(act =>
+          act.id === activityId ? { ...act, priority: priority?.value || null } : act,
+        ),
+      );
+
+      updateActivity({
+        resource: 'activities',
+        id: activityId,
+        values: { priority: priority?.value || null },
+        mutationMode: 'optimistic',
+      });
+    },
     [updateActivity],
+  );
+
+  const handleOnActivityTypeClick = useCallback(
+    (type: ActivityType, activityId: string) => {
+      setSubActivities(prev => prev.map(act => (act.id === activityId ? { ...act, type } : act)));
+
+      updateActivity({
+        resource: 'activities',
+        id: activityId,
+        values: { type },
+        mutationMode: 'optimistic',
+      });
+    },
+    [updateActivity, setSubActivities],
   );
 
   return (
@@ -281,7 +328,6 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
             border: '1px solid #f0f0f0',
           }}
         >
-          {/* Header row skeleton */}
           <div
             ref={headerScrollRef}
             style={{
@@ -719,6 +765,7 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                             borderColor: '#f0f0f0',
                             fontWeight: 500,
                             padding: '0 6px',
+                            borderRadius: 7,
                           }}
                           icon={<IconDots size={14} stroke={2.5} />}
                           onClick={() => setIsAddingTask(true)}
@@ -726,37 +773,130 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                       </Popover>
                     ) : (
                       <>
-                        <Tooltip title="Chọn loại hoạt động" placement="top">
-                          <Button
-                            type="text"
-                            size="small"
-                            style={{
-                              gap: 4,
-                              color: '#646464',
-                              borderColor: '#f0f0f0',
-                              fontWeight: 500,
-                              padding: '0 6px',
-                            }}
-                            icon={<IconBox size={14} stroke={2.5} />}
-                          />
-                        </Tooltip>
+                        <Popover
+                          placement="topRight"
+                          trigger={['click']}
+                          styles={{ body: { padding: '8px 0 0', width: 200 } }}
+                          content={
+                            <ActivityTypeContent
+                              selectedType={formData.type || null}
+                              onActivityTypeClick={(type: ActivityType) => {
+                                setFormData(prev => ({ ...prev, type }));
+                              }}
+                            />
+                          }
+                          arrow={false}
+                        >
+                          <Tooltip
+                            title={!formData.type ? 'Chọn loại hoạt động' : undefined}
+                            placement="left"
+                          >
+                            <Button
+                              type="text"
+                              size="small"
+                              style={{
+                                gap: 4,
+                                color: '#646464',
+                                borderColor: '#f0f0f0',
+                                fontWeight: 500,
+                                padding: '0 6px',
+                                borderRadius: 7,
+                              }}
+                              icon={<IconBox size={14} stroke={2.5} />}
+                            >
+                              {formData.type && getActivityTypeLabel(formData.type)}
+                            </Button>
+                          </Tooltip>
+                        </Popover>
 
-                        <Tooltip title="Chọn người thực hiện" placement="top">
-                          <Button
-                            type="text"
-                            size="small"
-                            style={{
-                              gap: 4,
-                              color: '#646464',
-                              borderColor: '#f0f0f0',
-                              fontWeight: 500,
-                              padding: '0 6px',
-                            }}
-                            icon={<IconUsers size={14} stroke={2.5} />}
-                          />
-                        </Tooltip>
+                        <Popover
+                          placement="topRight"
+                          trigger={['click']}
+                          arrow={false}
+                          content={
+                            <AssigneeContent
+                              currentAssignees={formData.assignees || []}
+                              onChangeAssignees={(assignees: IAssignee[]) =>
+                                setFormData(prev => ({ ...prev, assignees }))
+                              }
+                            />
+                          }
+                          styles={{
+                            body: {
+                              padding: 0,
+                            },
+                          }}
+                        >
+                          <Tooltip
+                            title={!formData.assignees ? 'Chọn người thực hiện' : undefined}
+                            placement="left"
+                          >
+                            <Button
+                              type="text"
+                              size="small"
+                              style={{
+                                gap: 4,
+                                color: '#646464',
+                                borderColor: '#f0f0f0',
+                                fontWeight: 500,
+                                padding: '0 6px',
+                                borderRadius: 7,
+                              }}
+                              icon={<IconUsers size={14} stroke={2.5} />}
+                            >
+                              {formData.assignees && formData.assignees.length > 0 ? (
+                                <>
+                                  {formData.assignees && formData.assignees.length > 0 ? (
+                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                      {formData.assignees.slice(0, 2).map((assignee, index) => (
+                                        <Tooltip
+                                          key={assignee.id}
+                                          title={assignee.user.name}
+                                          placement="top"
+                                        >
+                                          <Avatar
+                                            size="small"
+                                            src={assignee.user.avatar}
+                                            style={{
+                                              width: 20,
+                                              height: 20,
+                                              fontSize: 11,
+                                              backgroundColor: getColorFromName(assignee.user.name),
+                                              marginLeft: index > 0 ? -6 : 0,
+                                              border: '2px solid white',
+                                              cursor: 'pointer',
+                                            }}
+                                          >
+                                            {getInitials(assignee.user.name)}
+                                          </Avatar>
+                                        </Tooltip>
+                                      ))}
+                                      {formData.assignees.length > 2 && (
+                                        <Avatar
+                                          size="small"
+                                          style={{
+                                            width: 20,
+                                            height: 20,
+                                            fontSize: 10,
+                                            backgroundColor: '#f0f0f0',
+                                            color: '#838383',
+                                            marginLeft: -6,
+                                            border: '2px solid white',
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          +{formData.assignees.length - 2}
+                                        </Avatar>
+                                      )}
+                                    </div>
+                                  ) : null}
+                                </>
+                              ) : null}
+                            </Button>
+                          </Tooltip>
+                        </Popover>
 
-                        <Tooltip title="Thiết lập thời hạn" placement="top">
+                        <Tooltip title="Thiết lập thời hạn" placement="left">
                           <Button
                             type="text"
                             size="small"
@@ -766,12 +906,13 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                               borderColor: '#f0f0f0',
                               fontWeight: 500,
                               padding: '0 6px',
+                              borderRadius: 7,
                             }}
                             icon={<IconCalendarStats size={14} stroke={2.5} />}
                           />
                         </Tooltip>
 
-                        <Tooltip title="Độ ưu tiên" placement="top">
+                        <Tooltip title="Độ ưu tiên" placement="left">
                           <Button
                             type="text"
                             size="small"
@@ -781,13 +922,14 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                               borderColor: '#f0f0f0',
                               fontWeight: 500,
                               padding: '0 6px',
+                              borderRadius: 7,
                             }}
                             icon={<IconFlag size={14} stroke={2.5} />}
                           />
                         </Tooltip>
                         {formData.type === ActivityType.EVENT && (
                           <>
-                            <Tooltip title="Vị trí tổ chức" placement="top">
+                            <Tooltip title="Vị trí tổ chức" placement="left">
                               <Button
                                 type="text"
                                 size="small"
@@ -797,12 +939,13 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                                   borderColor: '#f0f0f0',
                                   fontWeight: 500,
                                   padding: '0 6px',
+                                  borderRadius: 7,
                                 }}
                                 icon={<IconLocation size={14} stroke={2.5} />}
                               />
                             </Tooltip>
 
-                            <Tooltip title="Loại sự kiện" placement="top">
+                            <Tooltip title="Loại sự kiện" placement="left">
                               <Button
                                 type="text"
                                 size="small"
@@ -812,12 +955,13 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                                   borderColor: '#f0f0f0',
                                   fontWeight: 500,
                                   padding: '0 6px',
+                                  borderRadius: 7,
                                 }}
                                 icon={<IconProgress size={14} stroke={2.5} />}
                               />
                             </Tooltip>
 
-                            <Tooltip title="Số lượng giảng viên ước tính" placement="top">
+                            <Tooltip title="Số lượng giảng viên ước tính" placement="left">
                               <Button
                                 type="text"
                                 size="small"
@@ -827,12 +971,13 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                                   borderColor: '#f0f0f0',
                                   fontWeight: 500,
                                   padding: '0 6px',
+                                  borderRadius: 7,
                                 }}
                                 icon={<IconChalkboardTeacher size={14} stroke={2.5} />}
                               />
                             </Tooltip>
 
-                            <Tooltip title="Số lượng sinh viên ước tính" placement="top">
+                            <Tooltip title="Số lượng sinh viên ước tính" placement="left">
                               <Button
                                 type="text"
                                 size="small"
@@ -842,6 +987,7 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                                   borderColor: '#f0f0f0',
                                   fontWeight: 500,
                                   padding: '0 6px',
+                                  borderRadius: 7,
                                 }}
                                 icon={<IconSchool size={14} stroke={2.5} />}
                               />
@@ -859,6 +1005,7 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                           borderColor: '#f0f0f0',
                           fontWeight: 500,
                           padding: '0 6px',
+                          borderRadius: 7,
                         }}
                         type="text"
                         size="small"
@@ -873,6 +1020,7 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                           gap: 4,
                           backgroundColor: !value.trim() || isCreating ? '#77bdff' : '#1890ff',
                           color: '#fff',
+                          borderRadius: 7,
                         }}
                         onMouseEnter={e => {
                           if (!value.trim() || isCreating) return;
@@ -903,7 +1051,8 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                   style={{
                     width: '100%',
                     borderTop: '1px solid #f0f0f0',
-                    overflow: 'auto',
+                    overflowX: 'auto',
+                    overflowY: 'auto',
                     maxHeight: 400,
                   }}
                 >
@@ -914,120 +1063,255 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
                         padding: 8,
                         borderBottom: '1px solid #f0f0f0',
                         display: 'flex',
-                        minWidth: totalMinWidth,
+                        minWidth: totalMinWidth + 40,
                         position: 'relative',
                       }}
                     >
-                      {visibleColumns.map(key => {
-                        const width = getColumnWidth(key);
-                        let content = null;
+                      <div style={{ display: 'flex', flex: 1, minWidth: 0 }}>
+                        {visibleColumns.map(key => {
+                          const width = getColumnWidth(key);
+                          let content = null;
 
-                        switch (key) {
-                          case 'name':
-                            content = sub.name;
-                            break;
-                          case 'type':
-                            content = getActivityTypeLabel(sub.type);
-                            break;
-                          case 'stage':
-                            content = (
-                              <Popover
-                                placement="rightBottom"
-                                trigger={['click']}
-                                content={
-                                  <StatusContent
-                                    currentStage={sub.stage}
-                                    onChangeStage={(stage: IStage) =>
-                                      handleOnStageChange(stage, sub.id)
-                                    }
-                                    stages={stages}
-                                  />
-                                }
-                                styles={{
-                                  body: { padding: 0 },
-                                }}
-                              >
-                                <Button
-                                  size="small"
-                                  type="text"
-                                  style={{
-                                    padding: 4,
-                                    borderRadius: 8,
-                                  }}
+                          switch (key) {
+                            case 'name':
+                              content = sub.name;
+                              break;
+                            case 'type':
+                              content = (
+                                <Popover
+                                  placement="topRight"
+                                  trigger={['click']}
+                                  arrow={false}
+                                  content={
+                                    <ActivityTypeContent
+                                      selectedType={sub.type}
+                                      onActivityTypeClick={(type: ActivityType) =>
+                                        handleOnActivityTypeClick(type, sub.id)
+                                      }
+                                    />
+                                  }
                                   styles={{
-                                    icon: {
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
+                                    body: {
+                                      padding: '8px 0 0',
+                                      width: 200,
                                     },
                                   }}
                                 >
-                                  <IconCircleDashed
-                                    size={16}
-                                    stroke={3}
-                                    color={sub.stage?.color || '#838383'}
-                                  />
-                                </Button>
-                              </Popover>
-                            );
-                            break;
-                          case 'assignees':
-                            content =
-                              sub.assignees
-                                ?.map(
-                                  a => a.user.name.charAt(0).toUpperCase() + a.user.name.slice(1),
-                                )
-                                .join(', ') || '-';
-                            break;
-                          case 'startDate':
-                            content = sub.startTime?.toISOString() || '-';
-                            break;
-                          case 'dueDate':
-                            content = sub.endTime?.toISOString() || '-';
-                            break;
-                          case 'priority':
-                            content = sub.priority || '-';
-                            break;
-                          case 'location':
-                            content = sub.location || '-';
-                            break;
-                          case 'description':
-                            content = sub.description || '-';
-                            break;
-                          default:
-                            content = '-';
-                        }
+                                  <Button
+                                    size="small"
+                                    type="text"
+                                    style={{
+                                      padding: '2px 6px',
+                                      borderRadius: 7,
+                                      justifyContent: 'flex-start',
+                                      minWidth: 90,
+                                    }}
+                                  >
+                                    {getActivityTypeLabel(sub.type)}
+                                  </Button>
+                                </Popover>
+                              );
+                              break;
+                            case 'stage':
+                              content = (
+                                <Popover
+                                  placement="rightBottom"
+                                  trigger={['click']}
+                                  content={
+                                    <StatusContent
+                                      currentStage={sub.stage}
+                                      onChangeStage={(stage: IStage) =>
+                                        handleOnStageChange(stage, sub.id)
+                                      }
+                                      stages={stages}
+                                    />
+                                  }
+                                  styles={{
+                                    body: { padding: 0 },
+                                  }}
+                                >
+                                  <Button
+                                    size="small"
+                                    type="text"
+                                    style={{
+                                      padding: 4,
+                                      borderRadius: 8,
+                                    }}
+                                    styles={{
+                                      icon: {
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                      },
+                                    }}
+                                  >
+                                    <IconCircleDashed
+                                      size={16}
+                                      stroke={3}
+                                      color={sub.stage?.color || '#838383'}
+                                    />
+                                  </Button>
+                                </Popover>
+                              );
+                              break;
+                            case 'assignees':
+                              content =
+                                sub.assignees && sub.assignees.length > 0 ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    {sub.assignees.slice(0, 3).map((assignee, index) => (
+                                      <Tooltip
+                                        key={assignee.id}
+                                        title={assignee.user.name}
+                                        placement="top"
+                                      >
+                                        <Avatar
+                                          src={assignee.user.avatar}
+                                          size="small"
+                                          style={{
+                                            backgroundColor: getColorFromName(assignee.user.name),
+                                            width: 24,
+                                            height: 24,
+                                            fontSize: 12,
+                                            marginLeft: index > 0 ? -8 : 0,
+                                            border: '2px solid white',
+                                            cursor: 'pointer',
+                                          }}
+                                        >
+                                          {getInitials(assignee.user.name)}
+                                        </Avatar>
+                                      </Tooltip>
+                                    ))}
+                                    {sub.assignees.length > 3 && (
+                                      <Avatar
+                                        size="small"
+                                        style={{
+                                          backgroundColor: '#f0f0f0',
+                                          color: '#838383',
+                                          width: 24,
+                                          height: 24,
+                                          fontSize: 11,
+                                          marginLeft: -8,
+                                          border: '2px solid white',
+                                          fontWeight: 600,
+                                        }}
+                                      >
+                                        +{sub.assignees.length - 3}
+                                      </Avatar>
+                                    )}
+                                  </div>
+                                ) : (
+                                  '-'
+                                );
+                              break;
+                            case 'startDate':
+                              content = sub.startTime
+                                ? dayjs(sub.startTime).format('DD/MM/YYYY')
+                                : '-';
+                              break;
+                            case 'dueDate':
+                              content = sub.endTime ? dayjs(sub.endTime).format('DD/MM/YYYY') : '-';
+                              break;
+                            case 'priority':
+                              content = (
+                                <Popover
+                                  placement="topRight"
+                                  trigger={['click']}
+                                  arrow={false}
+                                  content={
+                                    <PriorityContent
+                                      priority={
+                                        sub.priority
+                                          ? {
+                                              color: getActivityPriorityColor(sub.priority),
+                                              label: getActivityPriorityLabel(sub.priority),
+                                              value: sub.priority,
+                                            }
+                                          : null
+                                      }
+                                      onChangePriority={priority =>
+                                        handleOnPriorityChange(priority, sub.id)
+                                      }
+                                    />
+                                  }
+                                  styles={{
+                                    body: { padding: '8px 0', width: 180 },
+                                  }}
+                                >
+                                  <Button
+                                    size="small"
+                                    type="text"
+                                    style={{
+                                      padding: '2px 6px',
+                                      borderRadius: 7,
+                                      minWidth: 110,
+                                      justifyContent: 'flex-start',
+                                    }}
+                                    icon={
+                                      sub.priority ? (
+                                        <IconFlagFilled
+                                          size={14}
+                                          color={getActivityPriorityColor(sub.priority)}
+                                        />
+                                      ) : (
+                                        <IconFlag size={14} color="#838383" />
+                                      )
+                                    }
+                                    styles={{
+                                      icon: {
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                      },
+                                    }}
+                                  >
+                                    {sub.priority
+                                      ? getActivityPriorityLabel(sub.priority)
+                                      : 'Độ ưu tiên'}
+                                  </Button>
+                                </Popover>
+                              );
+                              break;
+                            case 'location':
+                              content = sub.location || '-';
+                              break;
+                            case 'description':
+                              content = sub.description || '-';
+                              break;
+                            default:
+                              content = '-';
+                          }
 
-                        return (
-                          <div
-                            key={key}
-                            style={{
-                              minWidth: width,
-                              flex: visibleColumns.length === 1 ? 1 : `0 0 ${width}px`,
-                              padding: `0 ${key === 'stage' ? 0 : 8}px`,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              display: 'flex',
-                              alignItems: 'center',
-                            }}
-                          >
-                            {content}
-                          </div>
-                        );
-                      })}
+                          return (
+                            <div
+                              key={key}
+                              style={{
+                                minWidth: width,
+                                flex: visibleColumns.length === 1 ? 1 : `0 0 ${width}px`,
+                                padding: `0 ${key === 'name' ? 8 : 0}px`,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                display: 'flex',
+                                alignItems: 'center',
+                              }}
+                            >
+                              {content}
+                            </div>
+                          );
+                        })}
+                      </div>
 
                       <div
                         style={{
                           position: 'sticky',
                           right: 0,
-                          marginLeft: 'auto',
                           display: 'flex',
                           alignItems: 'center',
-                          background: 'white',
+                          background: 'linear-gradient(to right, transparent, white 20%)',
+                          paddingLeft: 16,
+                          // paddingRight: 8,
                           height: '100%',
                           zIndex: 5,
-                          paddingRight: isTablet ? 8 : 0,
                         }}
                       >
                         <Popover

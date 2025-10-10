@@ -1,7 +1,8 @@
 import { ActivityType } from '@/common/enum/activity';
+import ActivityTypeContent from '@/components/shared/ActivityTypeContent';
 import { getActivityTypeLabel } from '@/utils';
 import { IconCalendarTime, IconCheck, IconCircleDashed } from '@tabler/icons-react';
-import { Button, message, Popover, Skeleton, Space, Tooltip, Typography } from 'antd';
+import { Button, message, Popover, Skeleton, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
 
 interface SelectActivityTypeProps {
@@ -62,83 +63,6 @@ const SelectActivityType = ({ onChange, value, id }: SelectActivityTypeProps) =>
     onChange(type);
   };
 
-  const contentType = (
-    <Space
-      direction="vertical"
-      style={{
-        width: '100%',
-        gap: 0,
-      }}
-    >
-      <Typography
-        style={{
-          padding: '3px 12px 0',
-          fontWeight: 600,
-        }}
-      >
-        Loại hoạt động
-      </Typography>
-
-      <Space
-        direction="vertical"
-        style={{
-          gap: 4,
-          width: '100%',
-          padding: 8,
-        }}
-        styles={{
-          item: {
-            width: '100%',
-          },
-        }}
-      >
-        <Button
-          type="text"
-          style={{
-            width: '100%',
-            justifyContent: 'flex-start',
-            padding: '0 6px',
-          }}
-          onClick={() => {
-            onActivityTypeClick(ActivityType.TASK);
-            setOpen(false);
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {<IconCircleDashed size={14} />}
-            Công việc
-          </div>
-
-          {selectedType === ActivityType.TASK && (
-            <IconCheck size={14} color="#838383" style={{ marginLeft: 'auto', display: 'block' }} />
-          )}
-        </Button>
-
-        <Button
-          type="text"
-          style={{
-            width: '100%',
-            justifyContent: 'flex-start',
-            padding: '0 6px',
-          }}
-          onClick={() => {
-            onActivityTypeClick(ActivityType.EVENT);
-            setOpen(false);
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <IconCalendarTime size={14} />
-            Sự kiện
-          </div>
-
-          {selectedType === ActivityType.EVENT && (
-            <IconCheck size={14} color="#838383" style={{ marginLeft: 'auto', display: 'block' }} />
-          )}
-        </Button>
-      </Space>
-    </Space>
-  );
-
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
       <Popover
@@ -153,7 +77,12 @@ const SelectActivityType = ({ onChange, value, id }: SelectActivityTypeProps) =>
         open={open}
         onOpenChange={setOpen}
         arrow={false}
-        content={contentType}
+        content={
+          <ActivityTypeContent
+            selectedType={selectedType}
+            onActivityTypeClick={onActivityTypeClick}
+          />
+        }
       >
         <Button
           style={{

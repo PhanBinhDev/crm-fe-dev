@@ -351,7 +351,7 @@ export const getColumnWidth = (key: string) => {
     assignees: 150,
     startDate: 120,
     dueDate: 120,
-    priority: 100,
+    priority: 120,
     location: 150,
     description: 200,
   };

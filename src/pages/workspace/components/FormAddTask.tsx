@@ -38,11 +38,7 @@ interface Category {
 
 interface FormAddTaskProps {
   openUploader: boolean;
-  onSubmit?: (params: {
-    data: FormAddActivityPayload;
-    action: ModalAction;
-    callback: () => void;
-  }) => void;
+  onSubmit?: (params: { data: FormAddActivityPayload; callback: () => void }) => void;
 }
 const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, ref) => {
   const [form] = Form.useForm();
@@ -310,7 +306,6 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
 
       onSubmit?.({
         data: formData,
-        action: actionRef.current || 'create-action',
         callback: () => handleReset(),
       });
     } catch (error) {

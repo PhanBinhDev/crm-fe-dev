@@ -355,7 +355,7 @@ const KanbanWorkspaces = () => {
         display: 'flex',
         flexDirection: 'column',
         gap: 12,
-        minHeight: 'calc(100vh - 136px)',
+        height: 'calc(100vh - 136px)',
       }}
     >
       {/* Headers */}

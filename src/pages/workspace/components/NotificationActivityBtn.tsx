@@ -1,25 +1,17 @@
+import { IAssignee } from '@/common/types/assignee';
 import AssigneeContent from '@/components/shared/AssigneeContent';
-import { useList } from '@refinedev/core';
 import { IconBell } from '@tabler/icons-react';
 import { Button, Popover, Tooltip } from 'antd';
-import { useMemo, useState } from 'react';
 
 interface NotificationActivityBtnProps {
-  workspaceId: string;
+  currentAssignees: IAssignee[];
+  onChangeAssignees: (assignees: IAssignee[]) => void;
 }
 
-const NotificationActivityBtn = ({ workspaceId }: NotificationActivityBtnProps) => {
-  const { data } = useList({
-    resource: `workspaces/${workspaceId}/members`,
-    pagination: { mode: 'off' },
-    queryOptions: { enabled: !!workspaceId },
-  });
-  const members = useMemo(() => {
-    return data?.data?.map((m: any) => m.user) || [];
-  }, [data]);
-
-  const [selected, setSelected] = useState<string[]>([]);
-
+const NotificationActivityBtn = ({
+  currentAssignees,
+  onChangeAssignees,
+}: NotificationActivityBtnProps) => {
   return (
     <Popover
       trigger={['click']}
@@ -27,8 +19,8 @@ const NotificationActivityBtn = ({ workspaceId }: NotificationActivityBtnProps) 
       arrow={false}
       content={
         <AssigneeContent
-          currentAssignees={members.filter(m => selected.includes(m.id))}
-          onChangeAssignees={users => setSelected(users.map(u => u.id))}
+          currentAssignees={currentAssignees}
+          onChangeAssignees={onChangeAssignees}
         />
       }
       styles={{
@@ -54,7 +46,7 @@ const NotificationActivityBtn = ({ workspaceId }: NotificationActivityBtnProps) 
             },
           }}
         >
-          <span style={{ fontSize: 12, color: '#838383' }}>{selected.length}</span>
+          <span style={{ fontSize: 12, color: '#838383' }}>{currentAssignees.length}</span>
         </Button>
       </Tooltip>
     </Popover>

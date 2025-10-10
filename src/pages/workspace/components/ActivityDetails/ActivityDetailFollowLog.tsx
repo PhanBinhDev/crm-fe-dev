@@ -28,19 +28,6 @@ const ActivityDetailFollowLog = () => {
     console.log('Toggle follow status:', !isFollowing);
   };
 
-  // const [selected, setSelected] = useState<string[]>(
-  //   activityLogFilterOptions.map(opt => opt.value),
-  // );
-
-  // const allSelected = selected.length === activityLogFilterOptions.length;
-
-  // const handleToggle = (value: string) => {
-  //   setSelected(prev => (prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]));
-  // };
-
-  // const handleSelectAll = () => setSelected(activityLogFilterOptions.map(opt => opt.value));
-  // const handleUnselectAll = () => setSelected([]);
-
   const renderFollowerAvatar = (follower: IFollower, size: number = 24) => {
     if (follower?.avatar && typeof follower.avatar === 'string') {
       const avatarUrl = follower.avatar.startsWith('http')

@@ -1,14 +1,14 @@
 import { FormAddActivityPayload, FormAddTaskData, ModalAction } from '@/common/types';
+import { IAssignee } from '@/common/types/assignee';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaceStore } from '@/hooks/useWorkspaces';
 import FormAddReminder from '@/pages/workspace/components/FormAddReminder';
 import FormAddTask from '@/pages/workspace/components/FormAddTask';
 import NotificationActivityBtn from '@/pages/workspace/components/NotificationActivityBtn';
 import { cleanPayload } from '@/utils/payload';
-import { DownOutlined } from '@ant-design/icons';
 import { useCreate, useInvalidate } from '@refinedev/core';
 import { IconArrowDownRight, IconPaperclip, IconX } from '@tabler/icons-react';
-import { Button, Dropdown, message, Modal, Space, Tabs, Tooltip } from 'antd';
+import { Button, message, Modal, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useRef, useState } from 'react';
 
 const modalTabs = [
@@ -28,7 +28,6 @@ const ModalAddActivity = () => {
   const { isOpen, type, closeModal } = useModal();
   const isOpenModal = isOpen && type === 'ModalAddActivity';
   const formRef = useRef<FormAddTaskRef>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ModalTabKey>('task');
   const [openUploader, setOpenUploader] = useState({
     task: false,
@@ -36,6 +35,7 @@ const ModalAddActivity = () => {
   });
   const [reminderPayload, setReminderPayload] = useState<any>(null);
   const [loadingReminder, setLoadingReminder] = useState(false);
+  const [follows, setFollows] = useState<IAssignee[]>([]);
 
   const invalidate = useInvalidate();
   const { mutate: createActivity, isPending: isPendingCreateActivity } = useCreate<FormAddTaskData>(
@@ -54,45 +54,43 @@ const ModalAddActivity = () => {
   );
 
   const handleFormSubmit = useCallback(
-    ({
-      data,
-      action,
-      callback,
-    }: {
-      data: FormAddActivityPayload;
-      action: ModalAction;
-      callback: () => void;
-    }) => {
-      switch (action) {
-        case 'create-action': {
-          createActivity(
-            {
+    ({ data, callback }: { data: FormAddActivityPayload; callback: () => void }) => {
+      const followIds = follows.map((user: IAssignee) => user.user.id);
+
+      const payload = followIds
+        ? {
+            ...cleanPayload(data),
+            follows: followIds,
+          }
+        : cleanPayload(data);
+
+      createActivity(
+        {
+          resource: 'activities',
+          values: payload,
+        },
+        {
+          onSuccess: () => {
+            callback();
+            invalidate({
               resource: 'activities',
-              values: cleanPayload(data),
-            },
-            {
-              onSuccess: () => {
-                callback();
-                invalidate({
-                  resource: 'activities',
-                  invalidates: ['list'],
-                });
-                message.success('Tạo hoạt động thành công');
-                closeModal();
-              },
-              onError: () => {
-                message.error('Tạo hoạt động thất bại, vui lòng thử lại');
-              },
-            },
-          );
-        }
-      }
+              invalidates: ['list'],
+            });
+            message.success('Tạo hoạt động thành công');
+            closeModal();
+          },
+          onError: () => {
+            message.error('Tạo hoạt động thất bại, vui lòng thử lại');
+          },
+        },
+      );
     },
     [closeModal],
   );
   const handleReminderChange = useCallback((payload: any) => {
     setReminderPayload(payload);
   }, []);
+
   const handleCreateReminder = async () => {
     if (!reminderPayload?.content) {
       message.error('Vui lòng nhập nội dung nhắc nhở');
@@ -111,6 +109,11 @@ const ModalAddActivity = () => {
       setLoadingReminder(false);
     }
   };
+
+  const handleOnNotificationUsersChange = useCallback((assignee: IAssignee[]) => {
+    setFollows(assignee);
+  }, []);
+
   return (
     <Modal
       title={
@@ -277,65 +280,22 @@ const ModalAddActivity = () => {
           </Tooltip>
 
           {activeTab !== 'reminder' && workspaceId && (
-            <NotificationActivityBtn workspaceId={workspaceId} />
+            <NotificationActivityBtn
+              currentAssignees={follows}
+              onChangeAssignees={handleOnNotificationUsersChange}
+            />
           )}
 
-          {activeTab !== 'reminder' ? (
-            <Dropdown.Button
-              type="primary"
-              loading={isPendingCreateActivity}
-              onClick={() => handleCreate('create-action')}
-              menu={{
-                items: [
-                  {
-                    key: 'create',
-                    label: 'Tạo mới và mở',
-                    onClick: () => handleCreate('create-open'),
-                  },
-                  {
-                    key: 'create-another',
-                    label: 'Tạo và tạo thêm',
-                    onClick: () => handleCreate('create-another'),
-                  },
-                  {
-                    key: 'duplicate',
-                    label: 'Tạo và nhân bản',
-                    onClick: () => handleCreate('create-duplicate'),
-                  },
-                ],
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderRadius: 8,
-              }}
-              destroyOnHidden
-              placement="bottomRight"
-              icon={
-                <DownOutlined
-                  size={16}
-                  style={{
-                    transition: 'transform 0.2s',
-                    transform: menuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                  }}
-                />
-              }
-              trigger={['click']}
-              onOpenChange={setMenuOpen}
-            >
-              Tạo hoạt động
-            </Dropdown.Button>
-          ) : (
-            <Button
-              type="primary"
-              onClick={handleCreateReminder}
-              loading={loadingReminder}
-              style={{ borderRadius: 8 }}
-            >
-              Tạo nhắc nhở
-            </Button>
-          )}
+          <Button
+            type="primary"
+            onClick={
+              activeTab === 'reminder' ? handleCreateReminder : () => handleCreate('create-action')
+            }
+            loading={isPendingCreateActivity}
+            style={{ borderRadius: 8 }}
+          >
+            Tạo {activeTab === 'reminder' ? 'nhắc nhở' : 'hoạt động'}
+          </Button>
         </Space>
       }
     >

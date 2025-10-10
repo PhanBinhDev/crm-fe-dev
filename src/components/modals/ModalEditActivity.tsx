@@ -21,6 +21,7 @@ import {
 import { Button, Input, Layout, Modal, Space, Tooltip, Typography } from 'antd';
 import _ from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Spinner from '../ui/Spinner';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -48,6 +49,9 @@ const ModalEditActivity = () => {
     duplicate: false,
     delete: false,
   });
+
+  const originalNameRef = useRef<string>('');
+  const originalDescriptionRef = useRef<string>('');
 
   const invalidate = useInvalidate();
   const {
@@ -113,6 +117,9 @@ const ModalEditActivity = () => {
           progress: calculateProgress(activity),
         },
       });
+
+      originalNameRef.current = activity.name || '';
+      originalDescriptionRef.current = activity.description || '';
     }
   }, [activity, isOpenModal, setSelectedItem]);
 
@@ -141,41 +148,63 @@ const ModalEditActivity = () => {
     };
   }, [collapsedLeft, isOverlay]);
 
-  const handleSelectItem = useCallback((item: { type: ActivityItemType; data: IActivity }) => {
-    setSelectedItem({
-      type: item.type,
-      data: {
-        ...item.data,
-        progress: calculateProgress(item.data),
-      },
-    });
-  }, []);
-
-  const handleSelectSubtask = useCallback((subtask: IActivity) => {
-    setSelectedItem({
-      type: 'subactivity',
-      data: {
-        ...subtask,
-        progress: calculateProgress(subtask),
-      },
-    });
-  }, []);
-
-  const updateActivityData = useCallback((updates: Partial<IActivity>) => {
-    setSelectedItem(prev => {
-      if (!prev) return prev;
-      const hasChanges = !_.isEqual(_.pick(prev.data, Object.keys(updates)), updates);
-      if (!hasChanges) return prev;
-
-      return {
-        ...prev,
+  const handleSelectItem = useCallback(
+    (item: { type: ActivityItemType; data: IActivity }) => {
+      setSelectedItem({
+        type: item.type,
         data: {
-          ...prev.data,
-          ...updates,
+          ...item.data,
+          progress: calculateProgress(item.data),
         },
-      };
-    });
-  }, []);
+      });
+
+      originalNameRef.current = item.data.name || '';
+      originalDescriptionRef.current = item.data.description || '';
+    },
+    [setSelectedItem],
+  );
+
+  const handleSelectSubtask = useCallback(
+    (subtask: IActivity) => {
+      setSelectedItem({
+        type: 'subactivity',
+        data: {
+          ...subtask,
+          progress: calculateProgress(subtask),
+        },
+      });
+
+      originalNameRef.current = subtask.name || '';
+      originalDescriptionRef.current = subtask.description || '';
+    },
+    [setSelectedItem],
+  );
+
+  const updateActivityData = useCallback(
+    (updates: Partial<IActivity>) => {
+      console.log('update', { ...updates });
+
+      setSelectedItem(prev => {
+        if (!prev) return prev;
+        const hasChanges = !_.isEqual(_.pick(prev.data, Object.keys(updates)), updates);
+
+        console.log('nothing changed');
+
+        if (!hasChanges) return prev;
+
+        console.log('run changed');
+
+        return {
+          ...prev,
+          data: {
+            ...prev.data,
+            ...updates,
+          },
+        };
+      });
+    },
+    [setSelectedItem],
+  );
 
   useEffect(() => {
     if (!selectedItem && activity && Object.keys(activity).length > 0) {
@@ -186,6 +215,9 @@ const ModalEditActivity = () => {
           progress: calculateProgress(activity),
         },
       });
+
+      originalNameRef.current = activity.name || '';
+      originalDescriptionRef.current = activity.description || '';
     }
   }, [selectedItem, activity]);
 
@@ -200,11 +232,99 @@ const ModalEditActivity = () => {
     [updateActivity],
   );
 
+  const handleNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newValue = e.target.value;
+      const isEmpty = !newValue.trim();
+
+      if (isEmpty) {
+        e.currentTarget.style.borderColor = '#ff4d4f';
+      } else {
+        e.currentTarget.style.borderColor = 'transparent';
+      }
+
+      updateActivityData({ name: newValue });
+    },
+    [updateActivityData],
+  );
+
+  const handleNameBlur = useCallback(
+    (e: React.FocusEvent<HTMLTextAreaElement>) => {
+      e.currentTarget.style.borderColor = 'transparent';
+
+      const currentValue = selectedItem?.data.name?.trim() ?? '';
+      const originalValue = originalNameRef.current.trim();
+
+      if (currentValue === '') {
+        e.currentTarget.style.borderColor = '#ff4d4f';
+        return;
+      }
+
+      e.currentTarget.style.borderColor = 'transparent';
+
+      if (
+        selectedItem &&
+        currentValue !== originalValue &&
+        !(currentValue === '' && originalValue === '')
+      ) {
+        updateActivity({
+          values: {
+            name: selectedItem.data.name,
+          },
+        });
+        originalNameRef.current = selectedItem.data.name || '';
+      }
+    },
+    [selectedItem, updateActivity],
+  );
+
+  const handleDescriptionChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newValue = e.target.value;
+      updateActivityData({ description: newValue });
+    },
+    [updateActivityData],
+  );
+
+  const handleDescriptionBlur = useCallback(() => {
+    const currentValue = selectedItem?.data.description?.trim() ?? '';
+    const originalValue = originalDescriptionRef.current.trim();
+
+    if (
+      selectedItem &&
+      currentValue !== originalValue &&
+      !(currentValue === '' && originalValue === '')
+    ) {
+      updateActivity({
+        values: {
+          description: selectedItem.data.description,
+        },
+      });
+      originalDescriptionRef.current = selectedItem.data.description || '';
+    }
+  }, [selectedItem, updateActivity]);
+
   const renderContent = useMemo(() => {
     if (!selectedItem) return null;
 
     const { type, data: itemData } = selectedItem;
     const isMainActivity = type === 'activity';
+
+    if (isLoadingActivity) {
+      return (
+        <div
+          style={{
+            padding: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Spinner size={35} />
+        </div>
+      );
+    }
+
     return (
       <div
         style={{
@@ -274,13 +394,12 @@ const ModalEditActivity = () => {
             paddingBottom: 0,
           }}
           value={selectedItem.data.name}
-          onChange={e => {
-            const newValue = e.target.value;
-            updateActivityData({ name: newValue });
-          }}
+          onChange={handleNameChange}
           autoSize={{ minRows: 1, maxRows: 4 }}
           onMouseEnter={e => {
-            e.currentTarget.style.background = '#f0f0f0';
+            if (selectedItem.data.name.trim()) {
+              e.currentTarget.style.background = '#f0f0f0';
+            }
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = 'transparent';
@@ -289,14 +408,7 @@ const ModalEditActivity = () => {
             e.currentTarget.style.background = 'transparent';
             e.currentTarget.style.borderColor = '#f0f0f0';
           }}
-          onBlur={e => {
-            e.currentTarget.style.borderColor = 'transparent';
-            updateActivity({
-              values: {
-                name: selectedItem.data.name,
-              },
-            });
-          }}
+          onBlur={handleNameBlur}
           onKeyDown={e => {
             if (e.key === 'Enter') {
               e.currentTarget.blur();
@@ -324,10 +436,7 @@ const ModalEditActivity = () => {
             lineHeight: '22px',
           }}
           value={selectedItem.data.description}
-          onChange={e => {
-            const newValue = e.target.value;
-            updateActivityData({ description: newValue });
-          }}
+          onChange={handleDescriptionChange}
           autoSize={{ minRows: 3, maxRows: 6 }}
           onMouseEnter={e => {
             e.currentTarget.style.background = '#f0f0f0';
@@ -338,13 +447,7 @@ const ModalEditActivity = () => {
           onFocus={e => {
             e.currentTarget.style.background = 'transparent';
           }}
-          onBlur={() => {
-            updateActivity({
-              values: {
-                description: selectedItem.data.description,
-              },
-            });
-          }}
+          onBlur={handleDescriptionBlur}
           onKeyDown={e => {
             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
               e.currentTarget.blur();
@@ -534,7 +637,6 @@ const ModalEditActivity = () => {
               activity={activity}
               selectedItem={selectedItem}
               onSelectItem={handleSelectItem}
-              loading={isLoadingActivity}
               refetchActivity={refetch}
               showActions={showActions}
               onShowAction={action =>

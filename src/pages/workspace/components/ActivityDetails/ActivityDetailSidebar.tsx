@@ -22,7 +22,6 @@ const { Text } = Typography;
 interface ActivityDetailSidebarProps {
   activity: IActivity;
   selectedItem: SelectedActivityItem | null;
-  loading: boolean;
   onSelectItem: (item: SelectedActivityItem) => void;
   refetchActivity: any;
   showActions: {

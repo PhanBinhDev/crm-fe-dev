@@ -2,7 +2,7 @@ import { Checklist, IActivity } from '@/common/types';
 import { useCreate, useList } from '@refinedev/core';
 import { IconPlus } from '@tabler/icons-react';
 import { Button, Progress, Space, Typography } from 'antd';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import ActivityChecklistItem from './ActivityChecklistItem';
 
@@ -32,8 +32,8 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
     },
   });
 
-  useMemo(() => {
-    if (isLoadingChecklist || !checklistData) return [];
+  useEffect(() => {
+    if (isLoadingChecklist || !checklistData) return;
 
     const newData = checklistData.data || [];
 
@@ -47,7 +47,7 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
       }
       return newData;
     });
-  }, [checklistData, isLoadingChecklist]);
+  }, [checklistData?.data, isLoadingChecklist]);
 
   const { totalItems, completedItems, progress } = useMemo(() => {
     if (!localChecklists.length) {

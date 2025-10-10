@@ -1,5 +1,6 @@
 import { IActivity } from '@/common/types';
 import { getProgressColor, getProgressText } from '@/utils/colors';
+import { useOne } from '@refinedev/core';
 import { IconChevronDown } from '@tabler/icons-react';
 import { Button, Card, Progress, Typography } from 'antd';
 import confetti from 'canvas-confetti';
@@ -12,6 +13,8 @@ interface ProgressBarProps {
 const ProgressBar = ({ activity }: ProgressBarProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const previousProgressRef = useRef<number | null>(null);
+
+  // const {} = useOne
 
   useEffect(() => {
     const progress = activity.progress || 0;

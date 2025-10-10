@@ -9,7 +9,7 @@ import PriorityContent from '@/components/shared/PriorityContent';
 import StatusContent from '@/components/shared/StatusContent';
 import UserCountContent from '@/components/shared/UserCountContent';
 import { getPriorityLabel, mapToActivityPriorityFilter } from '@/constants';
-import { calculateProgress, getActivityPriorityColor } from '@/utils/activity';
+import { getActivityPriorityColor } from '@/utils/activity';
 import { formatMinutesToText } from '@/utils/formatter';
 import { getNextStage } from '@/utils/stage';
 import { parseTimeEstimate } from '@/utils/times';
@@ -70,19 +70,14 @@ const ActivityMainContent = ({
 
   const onStageChange = useCallback(
     (stage: IStage) => {
-      setFormData(prev => {
-        return {
-          ...prev,
-          stage,
-          stageId: stage.id,
-          progress: calculateProgress({ ...prev, stage } as IActivity),
-        };
-      });
+      const updates = {
+        stage,
+        stageId: stage.id,
+      };
+
+      setFormData(updates);
       onUpdate({
-        values: {
-          stage,
-          stageId: stage.id,
-        },
+        values: updates,
       });
     },
     [setFormData, onUpdate, stages],
@@ -97,10 +92,9 @@ const ActivityMainContent = ({
         })),
       );
 
-      setFormData(prev => ({
-        ...prev,
+      setFormData({
         assignees,
-      }));
+      });
 
       onUpdate({
         values: {
@@ -113,29 +107,29 @@ const ActivityMainContent = ({
 
   const onPriorityChange = useCallback(
     (priority: ActivityPriorityLevel | null) => {
-      setFormData(prev => ({
-        ...prev,
-        priority: priority?.value,
-      }));
+      const update = {
+        priority: priority?.value || null,
+      };
+
+      setFormData(update);
       onUpdate({
-        values: {
-          priority: priority?.value || null,
-        },
+        values: update,
       });
     },
     [setFormData, onUpdate],
   );
 
   const onEstimateChange = useCallback(
-    (estimateTime: string) => {
-      const { minutes } = parseTimeEstimate(estimateTime) || {};
+    (estimate: string) => {
+      const { minutes: estimateTime } = parseTimeEstimate(estimate) || {};
 
-      setFormData(prev => ({
-        ...prev,
-        estimateTime: minutes,
-      }));
+      const update = {
+        estimateTime,
+      };
+
+      setFormData(update);
       onUpdate({
-        values: { estimateTime: minutes },
+        values: update,
       });
     },
     [setFormData, onUpdate],
@@ -143,14 +137,13 @@ const ActivityMainContent = ({
 
   const onLocationChange = useCallback(
     (location: string | undefined) => {
-      setFormData(prev => ({
-        ...prev,
-        location: location || undefined,
-      }));
+      const updates = {
+        location,
+      };
+
+      setFormData(updates);
       onUpdate({
-        values: {
-          location,
-        },
+        values: updates,
       });
     },
     [setFormData, onUpdate],
@@ -158,15 +151,14 @@ const ActivityMainContent = ({
 
   const onCategoryChange = useCallback(
     (category: ICategory | undefined) => {
-      setFormData(prev => ({
-        ...prev,
+      const updates = {
         category,
-      }));
+        categoryId: category ? category.id : undefined,
+      };
+
+      setFormData(updates);
       onUpdate({
-        values: {
-          categoryId: category ? category.id : undefined,
-          category,
-        },
+        values: updates,
       });
     },
     [setFormData, onUpdate],
@@ -174,14 +166,13 @@ const ActivityMainContent = ({
 
   const onInstructorCountChange = useCallback(
     (count: number | undefined) => {
-      setFormData(prev => ({
-        ...prev,
+      const updates = {
         instructorCount: count,
-      }));
+      };
+
+      setFormData(updates);
       onUpdate({
-        values: {
-          instructorCount: count,
-        },
+        values: updates,
       });
     },
     [setFormData, onUpdate],
@@ -189,14 +180,13 @@ const ActivityMainContent = ({
 
   const onStudentCountChange = useCallback(
     (count: number | undefined) => {
-      setFormData(prev => ({
-        ...prev,
+      const updates = {
         studentCount: count,
-      }));
+      };
+
+      setFormData(updates);
       onUpdate({
-        values: {
-          studentCount: count,
-        },
+        values: updates,
       });
     },
     [setFormData, onUpdate],
@@ -205,12 +195,13 @@ const ActivityMainContent = ({
   const onDueDateChange = useCallback(
     (date: dayjs.Dayjs | null) => {
       const value = date ? date.toDate() : undefined;
-      setFormData(prev => ({
-        ...prev,
+      const update = {
         endTime: value,
-      }));
+      };
+
+      setFormData(update);
       onUpdate({
-        values: { endTime: value ? value.toISOString() : undefined },
+        values: update,
       });
     },
     [setFormData, onUpdate],
