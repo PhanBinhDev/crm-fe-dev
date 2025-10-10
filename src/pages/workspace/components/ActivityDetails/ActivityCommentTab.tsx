@@ -185,6 +185,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
       content: commentContent.trim(),
       parentCommentId: replyToId || null,
     };
+    
     createComment(
       {
         resource: 'activities/comments',
