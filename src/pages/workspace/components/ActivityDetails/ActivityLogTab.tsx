@@ -51,7 +51,7 @@ const ActivityLogTab = ({ activityId }: ActivityLogTabProps) => {
               borderRadius: 8,
             }}
           />
-          <ActivityDetailFollowLog />
+          <ActivityDetailFollowLog activityId={activityId} />
           <ActivityDetailFilterLog />
         </Space>
 
