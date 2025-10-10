@@ -1,4 +1,5 @@
 import { PRESET_COLORS } from '@/constants';
+import { IconCircleDashed } from '@tabler/icons-react';
 import { ColorPicker as AntdColorPicker, Popover } from 'antd';
 import { useState } from 'react';
 import { useDebounceCallback } from 'usehooks-ts';
@@ -10,13 +11,15 @@ interface ColorPickerProps {
   radius?: number;
   disabled?: boolean;
   stageTitle?: string;
+  iconColor?: string;
 }
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   value = '#EA580C',
   onChange,
+  size = 14,
   disabled = false,
-  stageTitle,
+  iconColor = '#fff',
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -59,7 +62,6 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
         ))}
       </div>
 
-      {/* Custom color picker button */}
       <AntdColorPicker
         value={value}
         onChange={debouncedCustomColorChange}
@@ -98,41 +100,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
       placement="bottomLeft"
       styles={{ root: { zIndex: 1060 } }}
     >
-      <svg width={14} height={14} viewBox="0 0 16 16" style={{ cursor: 'pointer' }}>
-        {(() => {
-          const size = 14;
-          const strokeWidth = 1.6;
-          const radius = (size - strokeWidth) / 2;
-          const circumference = 2 * Math.PI * radius;
-          const dashCount = 8;
-          const dashLength = circumference / (dashCount * 2);
-
-          return (
-            <>
-              <circle
-                cx="8"
-                cy="8"
-                r={radius}
-                fill="none"
-                stroke="#fff"
-                strokeWidth={strokeWidth}
-                strokeDasharray={`${dashLength} ${dashLength}`}
-                strokeLinecap="round"
-              />
-              {stageTitle?.toLowerCase().includes('done') && (
-                <path
-                  d="M5.2 8.2l2 2.2 4-4.5"
-                  fill="none"
-                  stroke="#fff"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              )}
-            </>
-          );
-        })()}
-      </svg>
+      <IconCircleDashed size={size} color={iconColor} />
     </Popover>
   );
 };
