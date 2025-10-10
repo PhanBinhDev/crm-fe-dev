@@ -8,7 +8,6 @@ import { Avatar, Button, message, Popconfirm, Skeleton, Tooltip } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import dayjs from 'dayjs';
 import { useEffect, useRef, useState } from 'react';
-import { axiosInstance } from './../../../../lib/axios';
 import { UserPopover } from './../../../users/list/components/UserPopover';
 
 interface ActivityCommentTabProps {
@@ -37,7 +36,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<any>(null);
 
-  const { mutate: createComment, isLoading: isCreating } = useCreate();
+  const { mutate: createComment, isPending: isCreating } = useCreate();
   const { mutate: updateComment } = useUpdate();
   const { mutate: deleteComment } = useDelete();
   const { mutate: updateReactionComments } = useCustomMutation();
@@ -186,41 +185,45 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
       content: commentContent.trim(),
       parentCommentId: replyToId || null,
     };
-
-    try {
-      const res = await axiosInstance.post(`/activities/comments`, values);
-      if (res.status !== 201 && res.status !== 200) throw new Error('Không thể gửi bình luận');
-
-      const newComment = res.data?.data;
-
-      if (!newComment) {
-        await refetch();
-        return;
-      }
-      if (replyToId) {
-        setLocalComments(prev =>
-          prev.map(c =>
-            c.id === replyToId
-              ? {
-                  ...c,
-                  replies: [...(c.replies || []), newComment],
+    
+    createComment(
+      {
+        resource: 'activities/comments',
+        values,
+      },
+      {
+        onSuccess: data => {
+          const newComment = data?.data as Comment;
+          if (!newComment) {
+            refetch();
+            return;
+          }
+          if (replyToId) {
+            setLocalComments(prev =>
+              prev.map(c => {
+                if (c.id === replyToId) {
+                  return {
+                    ...c,
+                    replies: [...(c.replies || []), newComment] as Comment[],
+                  };
                 }
-              : c,
-          ),
-        );
-      } else {
-        setLocalComments(prev => [...prev, newComment]);
-      }
-      setCommentContent('');
-      setReplyToId(null);
-      setFocused(false);
-
-      message.success(replyToId ? 'Đã trả lời' : 'Đã bình luận');
-      await refetch();
-    } catch (error) {
-      console.error('Error creating comment:', error);
-      message.error('Không thể gửi bình luận. Vui lòng thử lại.');
-    }
+                return c;
+              }),
+            );
+          } else {
+            setLocalComments(prev => [...prev, newComment]);
+          }
+          setCommentContent('');
+          setReplyToId(null);
+          setFocused(false);
+          refetch();
+        },
+        onError: error => {
+          console.error('Error creating comment:', error);
+          message.error('Không thể gửi bình luận. Vui lòng thử lại.');
+        },
+      },
+    );
   };
 
   const handleSaveEdit = (id: string) => {
