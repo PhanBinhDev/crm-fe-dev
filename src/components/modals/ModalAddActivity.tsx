@@ -5,10 +5,9 @@ import FormAddReminder from '@/pages/workspace/components/FormAddReminder';
 import FormAddTask from '@/pages/workspace/components/FormAddTask';
 import NotificationActivityBtn from '@/pages/workspace/components/NotificationActivityBtn';
 import { cleanPayload } from '@/utils/payload';
-import { DownOutlined } from '@ant-design/icons';
 import { useCreate, useInvalidate } from '@refinedev/core';
 import { IconArrowDownRight, IconPaperclip, IconX } from '@tabler/icons-react';
-import { Button, Dropdown, message, Modal, Space, Tabs, Tooltip } from 'antd';
+import { Button, message, Modal, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useRef, useState } from 'react';
 
 const modalTabs = [
@@ -281,51 +280,14 @@ const ModalAddActivity = () => {
           )}
 
           {activeTab !== 'reminder' ? (
-            <Dropdown.Button
+            <Button
               type="primary"
               loading={isPendingCreateActivity}
               onClick={() => handleCreate('create-action')}
-              menu={{
-                items: [
-                  {
-                    key: 'create',
-                    label: 'Tạo mới và mở',
-                    onClick: () => handleCreate('create-open'),
-                  },
-                  {
-                    key: 'create-another',
-                    label: 'Tạo và tạo thêm',
-                    onClick: () => handleCreate('create-another'),
-                  },
-                  {
-                    key: 'duplicate',
-                    label: 'Tạo và nhân bản',
-                    onClick: () => handleCreate('create-duplicate'),
-                  },
-                ],
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderRadius: 8,
-              }}
-              destroyOnHidden
-              placement="bottomRight"
-              icon={
-                <DownOutlined
-                  size={16}
-                  style={{
-                    transition: 'transform 0.2s',
-                    transform: menuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                  }}
-                />
-              }
-              trigger={['click']}
-              onOpenChange={setMenuOpen}
+              style={{ borderRadius: 8 }}
             >
               Tạo hoạt động
-            </Dropdown.Button>
+            </Button>
           ) : (
             <Button
               type="primary"

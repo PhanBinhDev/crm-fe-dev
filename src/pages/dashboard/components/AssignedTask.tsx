@@ -1,8 +1,7 @@
 import { IActivity } from '@/common/types';
 import { getPriorityColor, getPriorityLabel } from '@/constants';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { useAuth } from '@/hooks/useAuth';
 import { formatDate } from '@/services/utils/formatter';
-import { getActivityTypeLabel } from '@/utils';
 import { useList } from '@refinedev/core';
 import { IconFlagFilled, IconPointFilled } from '@tabler/icons-react';
 import type { TabsProps } from 'antd';
@@ -11,7 +10,7 @@ import VirtualList from 'rc-virtual-list';
 import React, { useEffect, useState } from 'react';
 
 const AssignedTask = () => {
-  const { currentWorkspace } = useWorkspaces();
+  const { user: currentUser } = useAuth();
 
   const CONTAINER_HEIGHT = 220;
   const PAGE_SIZE = 20;
@@ -29,9 +28,9 @@ const AssignedTask = () => {
     sorters: [{ field: 'createdAt', order: 'desc' }],
     filters: [
       {
-        field: 'workspaceId',
+        field: 'assigneeId',
         operator: 'eq',
-        value: currentWorkspace?.id,
+        value: currentUser?.id,
       },
     ],
     meta: {
@@ -40,7 +39,7 @@ const AssignedTask = () => {
         includeSubTasks: false,
       },
     },
-    queryOptions: { enabled: !!currentWorkspace?.id, keepPreviousData: true },
+    queryOptions: { enabled: !!currentUser?.id, keepPreviousData: true },
   });
 
   useEffect(() => {
@@ -142,7 +141,7 @@ const AssignedTask = () => {
                       fontSize: 12,
                     }}
                   >
-                    Tên Workspace / {getActivityTypeLabel(item.type)}
+                    {/* {item.wo} / {getActivityTypeLabel(item.type)} */}
                   </div>
                 </div>
               </div>
