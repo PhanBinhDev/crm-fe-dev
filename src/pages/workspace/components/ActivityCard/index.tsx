@@ -20,10 +20,17 @@ interface ActivityCardProps {
   activity: IActivity;
   isPortal?: boolean;
   isCompletedStage?: boolean;
+  isClosedStage?: boolean;
   stages?: IStage[];
 }
 
-const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: ActivityCardProps) => {
+const ActivityCard = ({
+  activity,
+  isPortal,
+  isCompletedStage,
+  isClosedStage,
+  stages,
+}: ActivityCardProps) => {
   const { config } = useDisplayConfig();
   const { openModal } = useModal();
   const [isHovered, setIsHovered] = useState(false);
@@ -368,7 +375,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
           </Button>
         )}
 
-        {showActions && (
+        {showActions && !isClosedStage && (
           <ToolbarActivityCard
             activity={activity}
             isCompletedStage={!!isCompletedStage}

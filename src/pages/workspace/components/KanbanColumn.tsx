@@ -105,6 +105,10 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
     return stage.isCompleted && stage.isBuiltIn && stage.stageGroup === StageGroup.DONE;
   }, [stage]);
 
+  const isClosedStage = useMemo(() => {
+    return stage.stageGroup === StageGroup.CLOSED;
+  }, [stage]);
+
   return (
     <>
       <Col
@@ -265,41 +269,44 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
                           key={activity.id}
                           activity={activity}
                           isCompletedStage={isCompletedStage}
+                          isClosedStage={isClosedStage}
                           stages={allStages}
                         />
                       );
                     })}
                     {/* Button addcard */}
-                    <Button
-                      onClick={() => openModal('ModalAddActivity', { stageId: stage.id })}
-                      style={{
-                        width: '100%',
-                        height: '36px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'flex-start',
-                        gap: '6px',
-                        color: '#8c8c8c',
-                        fontSize: '13px',
-                        fontWeight: 400,
-                        backgroundColor: '#fff',
-                        padding: '8px 12px',
-                        transition: 'all 0.2s ease',
-                        borderRadius: '6px',
-                      }}
-                      type="text"
-                      icon={<IconPlus size={14} stroke={1.5} color="#8c8c8c" />}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.background = '#f0f0f0';
-                        e.currentTarget.style.color = '#595959';
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = '#8c8c8c';
-                      }}
-                    >
-                      <span style={{ marginLeft: '2px' }}>Thêm hoạt động</span>
-                    </Button>
+                    {!isClosedStage && (
+                      <Button
+                        onClick={() => openModal('ModalAddActivity', { stageId: stage.id })}
+                        style={{
+                          width: '100%',
+                          height: '36px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'flex-start',
+                          gap: '6px',
+                          color: '#8c8c8c',
+                          fontSize: '13px',
+                          fontWeight: 400,
+                          backgroundColor: '#fff',
+                          padding: '8px 12px',
+                          transition: 'all 0.2s ease',
+                          borderRadius: '6px',
+                        }}
+                        type="text"
+                        icon={<IconPlus size={14} stroke={1.5} color="#8c8c8c" />}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.background = '#f0f0f0';
+                          e.currentTarget.style.color = '#595959';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.color = '#8c8c8c';
+                        }}
+                      >
+                        <span style={{ marginLeft: '2px' }}>Thêm hoạt động</span>
+                      </Button>
+                    )}
                   </>
                 ) : (
                   <div
