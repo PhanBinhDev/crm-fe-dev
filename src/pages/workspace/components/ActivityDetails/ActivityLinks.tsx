@@ -1,10 +1,10 @@
 import { IActivityLinks, ILinkPreview } from '@/common/types';
 import { formatTime } from '@/services/utils/formatter';
-import { useDelete, useInvalidate, useList } from '@refinedev/core';
+import { useDelete, useList } from '@refinedev/core';
 import { IconPointFilled, IconX } from '@tabler/icons-react';
 import { Avatar, Card, List, message, Popconfirm, Skeleton, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 const { Paragraph } = Typography;
 interface ActivityLinksProps {
   viewMode: 'list' | 'category';
@@ -33,15 +33,22 @@ const LinkCardSkeleton = () => (
 );
 
 const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
-  const invalidate = useInvalidate();
   const { mutate: deleteLink } = useDelete();
+  const [links, setLinks] = useState<IActivityLinks[]>([]);
   const { data, isLoading } = useList<IActivityLinks>({
     resource: `activities/${activityId}/links`,
     queryOptions: {
       enabled: !!activityId,
+      onSuccess: res => {
+        setLinks(res.data);
+      },
     },
   });
-  const listLink = data?.data;
+
+  const listLink = useMemo(() => {
+    if (!data?.data || isLoading) return [] as IActivityLinks[];
+    return data.data;
+  }, [data, isLoading]);
 
   if (isLoading) {
     return (
@@ -69,7 +76,9 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
     );
   }
   const handleDeleteLink = (id: string) => {
-    const hideLoading = message.loading('Đang xoá liên kết...', 0);
+    const oldLinks = [...links];
+
+    setLinks(prev => prev.filter(l => l.id !== id));
     deleteLink(
       {
         resource: `activities/${activityId}/links`,
@@ -77,16 +86,11 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
       },
       {
         onSuccess: () => {
-          hideLoading();
-          invalidate({
-            resource: `activities/${activityId}/links`,
-            invalidates: ['list'],
-          });
-          message.success('Xoá liên kết thành công');
+          console.log(message.success);
         },
-        onError: () => {
-          hideLoading();
-          message.error('Xoá liên kết thất bại');
+        onError: error => {
+          setLinks(oldLinks);
+          console.log(error);
         },
       },
     );
@@ -112,7 +116,7 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
         alt={linkPreview?.siteName}
         shape="square"
         size={100}
-        style={{ borderRadius: 8 }}
+        style={{ borderRadius: 8, objectFit: 'contain' }}
         onError={handleError}
       >
         {linkPreview?.siteName?.charAt(0) || 'CRM'}
@@ -206,10 +210,10 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
             styles={{
               body: { display: 'flex', gap: 16, padding: '10px 0' },
             }}
-            onClick={() => {
-              if (item.url || '#') {
-                window.open(item.url, '_blank');
-              }
+            onDoubleClick={e => {
+              e.stopPropagation();
+              navigator.clipboard.writeText(item.url || '');
+              message.success('Đã sao chép liên kết!');
             }}
           >
             <div style={{ flex: 1, maxHeight: 100, overflow: 'hidden' }}>
@@ -225,6 +229,11 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
                 strong
                 ellipsis={{ rows: 2 }}
                 style={{ marginBottom: 5, fontSize: 13, lineHeight: 1.2 }}
+                onClick={() => {
+                  if (item.url || '#') {
+                    window.open(item.url, '_blank');
+                  }
+                }}
               >
                 {item.title}
               </Paragraph>

@@ -1,6 +1,6 @@
 import { useCreate, useInvalidate } from '@refinedev/core';
 import { IconCategory, IconLink, IconList, IconPlus } from '@tabler/icons-react';
-import { Button, Input, InputRef, message, Space, Tooltip, Typography } from 'antd';
+import { Button, Input, InputRef, Space, Tooltip, Typography } from 'antd';
 import { useRef, useState } from 'react';
 import ActivityLinks from './ActivityLinks';
 
@@ -61,12 +61,10 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
               resource: `activities/${activityId}/links`,
               invalidates: ['list'],
             });
-            message.success('Thêm liên kết thành công');
             handleCancel();
           },
           onError: () => {
             setIsSubmitting(false);
-            message.error('Thêm liên kết thất bại');
           },
         },
       );
@@ -91,6 +89,40 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
       setShowInput(false);
       setShowForm(false);
     }
+  };
+
+  const ViewModeToggle = ({
+    viewMode,
+    setViewMode,
+  }: {
+    viewMode: 'category' | 'list';
+    setViewMode: React.Dispatch<React.SetStateAction<'category' | 'list'>>;
+  }) => {
+    const toggleView = () => {
+      setViewMode(prev => (prev === 'category' ? 'list' : 'category'));
+    };
+
+    return (
+      <Tooltip
+        title={viewMode === 'category' ? 'Chuyển sang dạng danh sách' : 'Chuyển sang dạng danh mục'}
+      >
+        <Button
+          onClick={toggleView}
+          type="text"
+          icon={
+            viewMode === 'category' ? (
+              <IconCategory size={16} stroke={1.5} color="#646464" />
+            ) : (
+              <IconList size={16} stroke={1.5} color="#646464" />
+            )
+          }
+          style={{
+            borderRadius: 8,
+            background: '#f0f0f0',
+          }}
+        />
+      </Tooltip>
+    );
   };
 
   return (
@@ -123,24 +155,7 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
               }}
             />
           </Tooltip>
-          <Button
-            onClick={() => setViewMode('category')}
-            type="text"
-            icon={<IconCategory size={16} stroke={1.5} color="#646464" />}
-            style={{
-              borderRadius: 8,
-              background: viewMode === 'category' ? '#f0f0f0' : undefined,
-            }}
-          />
-          <Button
-            onClick={() => setViewMode('list')}
-            type="text"
-            icon={<IconList size={16} stroke={1.5} color="#646464" />}
-            style={{
-              borderRadius: 8,
-              background: viewMode === 'list' ? '#f0f0f0' : undefined,
-            }}
-          />
+          <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
         </Space>
       </div>
 
