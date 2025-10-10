@@ -2,7 +2,7 @@
 import type { IFileUploadResponse, IUser } from '@/common/types';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
-import { useCustomMutation, useOne, useUpdate } from '@refinedev/core';
+import { useCustomMutation, useInvalidate, useOne, useUpdate } from '@refinedev/core';
 import {
   IconCalendar,
   IconCamera,
@@ -22,7 +22,6 @@ import {
   Card,
   DatePicker,
   Input,
-  message,
   Result,
   Skeleton,
   Space,
@@ -40,6 +39,7 @@ const { Title, Text } = Typography;
 
 export const ProfilePage: React.FC = () => {
   const { user: authUser, isLoading: authLoading } = useAuth();
+  const invalidate = useInvalidate();
 
   const {
     data: userDetail,
@@ -52,6 +52,8 @@ export const ProfilePage: React.FC = () => {
       enabled: !!authUser?.id,
     },
   });
+  const [isSaving, setIsSaving] = useState(false);
+  const [optimisticData, setOptimisticData] = useState<Partial<IUser> | null>(null);
 
   const identity = userDetail?.data || authUser;
   const isLoading = authLoading || userLoading;
@@ -140,6 +142,9 @@ export const ProfilePage: React.FC = () => {
       setIsEditing(false);
       return;
     }
+    setIsSaving(true);
+    setOptimisticData(editData);
+    setIsEditing(false);
 
     updateUser(
       {
@@ -149,13 +154,18 @@ export const ProfilePage: React.FC = () => {
       },
       {
         onSuccess: () => {
-          setIsEditing(false);
-          message.success('Cập nhật thông tin thành công');
-          refetch();
+          invalidate({
+            resource: 'users',
+            invalidates: ['detail'],
+          });
         },
-        onError: error => {
-          console.error('Update error:', error);
-          message.error('Cập nhật thông tin thất bại');
+        onError: () => {
+          setOptimisticData(null);
+          setIsEditing(true);
+        },
+        onSettled: () => {
+          setIsSaving(false);
+          setOptimisticData(null);
         },
       },
     );
@@ -200,23 +210,26 @@ export const ProfilePage: React.FC = () => {
                 setAvatarUrl(fullUrl);
                 onSuccess?.(res.data, file as any);
                 setUploading(false);
-                message.success('Cập nhật ảnh đại diện thành công');
+                invalidate({
+                  resource: 'auth',
+                  invalidates: ['all'],
+                });
+                invalidate({
+                  resource: 'users',
+                  invalidates: ['all'],
+                });
                 refetch();
               },
               onError: error => {
-                console.error('Update avatar error:', error);
                 setUploading(false);
                 onError?.(error as any);
-                message.error('Cập nhật ảnh đại diện thất bại');
               },
             },
           );
         },
         onError: error => {
-          console.error('Upload error:', error);
           setUploading(false);
           onError?.(error as any);
-          message.error('Tải ảnh lên thất bại');
         },
       },
     );
@@ -225,6 +238,8 @@ export const ProfilePage: React.FC = () => {
   const handleAvatarError = () => {
     setAvatarUrl(AVATAR_PLACEHOLDER);
   };
+
+  const currentIdentity = optimisticData ? { ...identity, ...optimisticData } : identity;
 
   return (
     <div
@@ -250,7 +265,6 @@ export const ProfilePage: React.FC = () => {
             maxWidth: '100%',
           }}
         >
-          {/* Avatar with upload functionality */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <Upload
               name="avatar"
@@ -318,7 +332,7 @@ export const ProfilePage: React.FC = () => {
                 width: 18,
                 height: 18,
                 borderRadius: '50%',
-                backgroundColor: identity.isActive ? '#10B981' : '#EF4444',
+                backgroundColor: currentIdentity.isActive ? '#10B981' : '#EF4444',
                 border: '2px solid #fff',
               }}
             />
@@ -327,7 +341,7 @@ export const ProfilePage: React.FC = () => {
           {/* Name and info */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <Title level={5} style={{ marginBottom: 2, fontSize: 19, fontWeight: 600 }}>
-              {identity.name}
+              {currentIdentity.name}
             </Title>
             <Text
               style={{
@@ -337,7 +351,7 @@ export const ProfilePage: React.FC = () => {
                 marginBottom: 4,
               }}
             >
-              Chuyên ngành: {identity.major || 'Chưa cập nhật'}
+              Chuyên ngành: {currentIdentity.major || 'Chưa cập nhật'}
             </Text>
           </div>
         </div>
@@ -388,14 +402,21 @@ export const ProfilePage: React.FC = () => {
                 <Card
                   extra={
                     <Space>
-                      {isEditing && (
+                      {(isEditing || isSaving) && (
                         <>
                           <Button
                             type="text"
                             size="small"
-                            icon={<IconCheck size={16} stroke={1.5} />}
-                            onClick={handleSave}
+                            icon={
+                              isSaving ? (
+                                <Spin size="small" />
+                              ) : (
+                                <IconCheck size={16} stroke={1.5} />
+                              )
+                            }
+                            onClick={!isSaving ? handleSave : undefined}
                             style={{ color: '#10B981' }}
+                            disabled={isSaving}
                           />
                           <Button
                             type="text"
@@ -403,10 +424,11 @@ export const ProfilePage: React.FC = () => {
                             icon={<IconX size={16} stroke={1.5} />}
                             onClick={handleEditToggle}
                             style={{ color: '#EF4444' }}
+                            disabled={isSaving}
                           />
                         </>
                       )}
-                      {!isEditing && (
+                      {!isEditing && !isSaving && (
                         <Button
                           type="text"
                           size="small"
@@ -417,13 +439,6 @@ export const ProfilePage: React.FC = () => {
                       )}
                     </Space>
                   }
-                  style={{
-                    borderRadius: 12,
-                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-                  }}
-                  styles={{
-                    body: { padding: '24px' },
-                  }}
                 >
                   <Space direction="vertical" size="large" style={{ width: '100%' }}>
                     {/* Email */}
@@ -449,7 +464,7 @@ export const ProfilePage: React.FC = () => {
                           Email
                         </Text>
                         <a
-                          href={`mailto:${identity.email}`}
+                          href={`mailto:${currentIdentity.email}`}
                           style={{
                             fontSize: 15,
                             fontWeight: 500,
@@ -457,7 +472,7 @@ export const ProfilePage: React.FC = () => {
                             textDecoration: 'none',
                           }}
                         >
-                          {identity.email}
+                          {currentIdentity.email}
                         </a>
                       </div>
                     </div>
@@ -487,12 +502,13 @@ export const ProfilePage: React.FC = () => {
                           <Input
                             value={editData.phone}
                             onChange={e => handleInputChange('phone', e.target.value)}
+                            onPressEnter={handleSave}
                             placeholder="Nhập số điện thoại"
                             style={{ fontSize: 15, fontWeight: 500 }}
                           />
                         ) : (
                           <a
-                            href={`tel:${identity.phone}`}
+                            href={`tel:${currentIdentity.phone}`}
                             style={{
                               fontSize: 15,
                               fontWeight: 500,
@@ -500,7 +516,7 @@ export const ProfilePage: React.FC = () => {
                               textDecoration: 'none',
                             }}
                           >
-                            {identity.phone || '-'}
+                            {currentIdentity.phone || '-'}
                           </a>
                         )}
                       </div>
@@ -531,12 +547,13 @@ export const ProfilePage: React.FC = () => {
                           <Input
                             value={editData.username}
                             onChange={e => handleInputChange('username', e.target.value)}
+                            onPressEnter={handleSave}
                             placeholder="Nhập username"
                             style={{ fontSize: 15, fontWeight: 500 }}
                           />
                         ) : (
                           <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
-                            {identity.username || '-'}
+                            {currentIdentity.username || '-'}
                           </Text>
                         )}
                       </div>
@@ -578,8 +595,8 @@ export const ProfilePage: React.FC = () => {
                           />
                         ) : (
                           <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
-                            {identity.dateOfBirth
-                              ? dayjs(identity.dateOfBirth).format('DD/MM/YYYY')
+                            {currentIdentity.dateOfBirth
+                              ? dayjs(currentIdentity.dateOfBirth).format('DD/MM/YYYY')
                               : '-'}
                           </Text>
                         )}
@@ -611,12 +628,13 @@ export const ProfilePage: React.FC = () => {
                           <Input
                             value={editData.major}
                             onChange={e => handleInputChange('major', e.target.value)}
+                            onPressEnter={handleSave}
                             placeholder="Nhập chuyên ngành"
                             style={{ fontSize: 15, fontWeight: 500 }}
                           />
                         ) : (
                           <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
-                            {identity.major || '-'}
+                            {currentIdentity.major || '-'}
                           </Text>
                         )}
                       </div>
@@ -679,8 +697,8 @@ export const ProfilePage: React.FC = () => {
                           Ngày tạo tài khoản
                         </Text>
                         <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
-                          {identity.createdAt
-                            ? new Date(identity.createdAt).toLocaleDateString('vi-VN', {
+                          {currentIdentity.createdAt
+                            ? new Date(currentIdentity.createdAt).toLocaleDateString('vi-VN', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric',
@@ -712,8 +730,8 @@ export const ProfilePage: React.FC = () => {
                           Cập nhật lần cuối
                         </Text>
                         <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
-                          {identity.updatedAt
-                            ? new Date(identity.updatedAt).toLocaleDateString('vi-VN', {
+                          {currentIdentity.updatedAt
+                            ? new Date(currentIdentity.updatedAt).toLocaleDateString('vi-VN', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric',

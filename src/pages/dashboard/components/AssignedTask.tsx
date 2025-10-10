@@ -1,23 +1,22 @@
 import { IActivity } from '@/common/types';
-import { AVATAR_PLACEHOLDER } from '@/constants/app';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { getColorFromName, getInitials } from '@/utils/activity';
-import { UserOutlined } from '@ant-design/icons';
+import { getPriorityColor, getPriorityLabel } from '@/constants';
+import { useAuth } from '@/hooks/useAuth';
+import { formatDate } from '@/services/utils/formatter';
 import { useList } from '@refinedev/core';
+import { IconFlagFilled, IconPointFilled } from '@tabler/icons-react';
 import type { TabsProps } from 'antd';
-import { Avatar, List, Tabs, Tooltip, message } from 'antd';
+import { List, Tabs, Tooltip, message } from 'antd';
 import VirtualList from 'rc-virtual-list';
 import React, { useEffect, useState } from 'react';
 
 const AssignedTask = () => {
-  const { currentWorkspace } = useWorkspaces();
+  const { user: currentUser } = useAuth();
 
   const CONTAINER_HEIGHT = 220;
   const PAGE_SIZE = 20;
-  const assignees: any[] = [];
 
   const [page, setPage] = useState(1);
-  const [allActivities, setAllActivities] = useState<IActivity[]>([]);
+  const [allAssignedActivities, setAllAssignedActivities] = useState<IActivity[]>([]);
   const [hasMore, setHasMore] = useState(true);
 
   const { data } = useList<IActivity>({
@@ -29,9 +28,9 @@ const AssignedTask = () => {
     sorters: [{ field: 'createdAt', order: 'desc' }],
     filters: [
       {
-        field: 'workspaceId',
+        field: 'assigneeId',
         operator: 'eq',
-        value: currentWorkspace?.id,
+        value: currentUser?.id,
       },
     ],
     meta: {
@@ -40,7 +39,7 @@ const AssignedTask = () => {
         includeSubTasks: false,
       },
     },
-    queryOptions: { enabled: !!currentWorkspace?.id, keepPreviousData: true },
+    queryOptions: { enabled: !!currentUser?.id, keepPreviousData: true },
   });
 
   useEffect(() => {
@@ -48,16 +47,16 @@ const AssignedTask = () => {
     const total = data?.total ?? 0;
 
     if (newActivities.length > 0 && page > 1) {
-      setAllActivities(prev => {
+      setAllAssignedActivities(prev => {
         const existingIds = new Set(prev.map(a => a.id));
         const uniqueNewActivities = newActivities.filter(a => !existingIds.has(a.id));
         return [...prev, ...uniqueNewActivities];
       });
     } else if (page === 1) {
-      setAllActivities(newActivities);
+      setAllAssignedActivities(newActivities);
     }
 
-    if (allActivities.length + newActivities.length >= total && total > 0) {
+    if (allAssignedActivities.length + newActivities.length >= total && total > 0) {
       setHasMore(false);
       if (page > 1 && newActivities.length === 0) {
         message.info('Không còn dữ liệu');
@@ -80,70 +79,99 @@ const AssignedTask = () => {
     }
   };
 
+  const renderContent = (content: IActivity[]) => {
+    return (
+      <List>
+        <VirtualList
+          data={content}
+          height={CONTAINER_HEIGHT}
+          itemHeight={47}
+          itemKey="id"
+          onScroll={onScroll}
+        >
+          {(item: IActivity) => (
+            <List.Item
+              key={item.id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  minWidth: 0,
+                  flex: 1,
+                }}
+              >
+                {item.priority ? (
+                  <Tooltip title={`Ưu tiên: ${getPriorityLabel(item.priority)}`}>
+                    <IconFlagFilled size={15} color={getPriorityColor(item.priority)} />
+                  </Tooltip>
+                ) : (
+                  <div>
+                    <IconFlagFilled size={15} color={'#fff'} />
+                  </div>
+                )}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    flex: 1,
+                    minWidth: 0,
+                  }}
+                >
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>
+                    {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
+                  </div>
+                  <IconPointFilled size={7} color="#999" />
+                  <div
+                    style={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 1,
+                      fontSize: 12,
+                    }}
+                  >
+                    {/* {item.wo} / {getActivityTypeLabel(item.type)} */}
+                  </div>
+                </div>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 13,
+                  marginLeft: 5,
+                }}
+              >
+                <span> {item.startTime && `${formatDate(item.startTime)} -`}</span>
+                <Tooltip title="Hạn hoàn thành">
+                  {' '}
+                  {item.endTime && formatDate(item.endTime)}
+                </Tooltip>
+              </div>
+            </List.Item>
+          )}
+        </VirtualList>
+      </List>
+    );
+  };
+
   const items: TabsProps['items'] = [
     {
       key: '1',
-      label: `To Do (${allActivities.length})`,
-      children: (
-        <List>
-          <VirtualList
-            data={allActivities}
-            height={CONTAINER_HEIGHT}
-            itemHeight={47}
-            itemKey="id"
-            onScroll={onScroll}
-          >
-            {(item: IActivity) => (
-              <List.Item key={item.id}>
-                <div>{item.name}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  {assignees?.length > 0 ? (
-                    assignees.slice(0, 3).map((assignee, index) => (
-                      <Tooltip key={index} title={assignee.user.name}>
-                        {assignee.user.avatar ? (
-                          <Avatar
-                            size="small"
-                            src={assignee.user.avatar}
-                            style={{ marginLeft: index > 0 ? -8 : 0 }}
-                          />
-                        ) : (
-                          <Avatar
-                            size="small"
-                            style={{
-                              backgroundColor: getColorFromName(
-                                assignee.user.name || AVATAR_PLACEHOLDER,
-                              ),
-                              color: '#fff',
-                              fontWeight: 'bold',
-                              marginLeft: index > 0 ? -8 : 0,
-                            }}
-                          >
-                            {getInitials(assignee.user.name)}
-                          </Avatar>
-                        )}
-                      </Tooltip>
-                    ))
-                  ) : (
-                    <Tooltip title="Chưa có người thực hiện">
-                      <Avatar size="small" style={{ backgroundColor: '#f5f5f5', color: '#8c8c8c' }}>
-                        <UserOutlined />
-                      </Avatar>
-                    </Tooltip>
-                  )}
-                  {assignees?.length > 3 && (
-                    <Avatar
-                      size="small"
-                      style={{ backgroundColor: '#f5f5f5', color: '#999', marginLeft: -8 }}
-                    >
-                      +{assignees.length - 3}
-                    </Avatar>
-                  )}
-                </div>
-              </List.Item>
-            )}
-          </VirtualList>
-        </List>
-      ),
+      label: `To Do (${allAssignedActivities.length})`,
+      children: renderContent(allAssignedActivities),
     },
     {
       key: '2',

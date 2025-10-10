@@ -4,7 +4,7 @@ import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { UserOutlined } from '@ant-design/icons';
 import { useList } from '@refinedev/core';
-import { Avatar, List, message, Tooltip } from 'antd';
+import { Avatar, List, Tooltip } from 'antd';
 import VirtualList from 'rc-virtual-list';
 import React, { useState } from 'react';
 
@@ -38,12 +38,10 @@ const TodayTask: React.FC = () => {
 
   const appendData = () => {
     if (!activities.length) {
-      message.info('Không còn dữ liệu');
       return;
     }
 
     setPage(prev => prev + 1);
-    message.success(`${activities.length} items loaded!`);
   };
 
   const onScroll = (e: React.UIEvent<HTMLElement, UIEvent>) => {
