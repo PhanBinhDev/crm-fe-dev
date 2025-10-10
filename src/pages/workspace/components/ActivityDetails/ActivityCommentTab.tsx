@@ -185,7 +185,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
       content: commentContent.trim(),
       parentCommentId: replyToId || null,
     };
-    
+
     createComment(
       {
         resource: 'activities/comments',
@@ -459,7 +459,15 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
             </div>
           ))
         ) : (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '20px',
+              color: '#999',
+              borderRadius: 8,
+              background: '#f0f0f0',
+            }}
+          >
             Chưa có bình luận
           </div>
         )}

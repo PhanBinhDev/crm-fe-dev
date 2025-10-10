@@ -12,8 +12,8 @@ const ActivityDetailFollowLog = ({ activityId }: { activityId: string }) => {
   const [usersSelected, setUsersSelected] = useState<string[]>([]);
 
   const { user, isLoading } = useAuth();
-  const { mutate: followActivity, isPending: isFollowingPending } = useCustomMutation();
-  const { mutate: unfollowActivity, isPending: isUnfollowingPending } = useCustomMutation();
+  const { mutate: followActivity } = useCustomMutation();
+  const { mutate: unfollowActivity } = useCustomMutation();
 
   const isCurrentUserFollowing = (followers: IFollower[] | undefined) => {
     if (!user || isLoading || !followers) return false;

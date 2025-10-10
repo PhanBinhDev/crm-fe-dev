@@ -34,7 +34,6 @@ const ModalAddActivity = () => {
     reminder: false,
   });
   const [reminderPayload, setReminderPayload] = useState<any>(null);
-  const [loadingReminder, setLoadingReminder] = useState(false);
   const [follows, setFollows] = useState<IAssignee[]>([]);
 
   const invalidate = useInvalidate();
@@ -98,15 +97,12 @@ const ModalAddActivity = () => {
     }
 
     try {
-      setLoadingReminder(true);
       console.log('Reminder payload:', reminderPayload);
       message.success('Tạo nhắc nhở thành công!');
       closeModal();
     } catch (error) {
       console.error('Reminder create failed:', error);
       message.error('Không thể tạo nhắc nhở');
-    } finally {
-      setLoadingReminder(false);
     }
   };
 
