@@ -1,38 +1,82 @@
 import { getUsername } from '@/utils/formatter';
+import { useCustomMutation, useList } from '@refinedev/core';
 import { IconBell, IconBellOff, IconCheck } from '@tabler/icons-react';
-import { Avatar, Button, Divider, Input, Popover, Space } from 'antd';
+import { Avatar, Button, Divider, Input, Popover, Space, Tooltip } from 'antd';
 import { useState } from 'react';
 
-const mockedFollowers = [
-  { id: '1', name: 'John Doe', email: 'john.doe@example.com', avatar: '' },
-  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', avatar: '' },
-  { id: '3', name: 'Alice Johnson', email: 'alice.johnson@example.com', avatar: '' },
-];
+import { IFollower } from '@/common/types/follower';
+import { useAuth } from '@/hooks/useAuth';
 
-interface IFollower {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-}
-
-const ActivityDetailFollowLog = () => {
+const ActivityDetailFollowLog = ({ activityId }: { activityId: string }) => {
   const [showFilter, setShowFilter] = useState(false);
+  const [usersSelected, setUsersSelected] = useState<string[]>([]);
 
-  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const { user, isLoading } = useAuth();
+  const { mutate: followActivity, isPending: isFollowingPending } = useCustomMutation();
+  const { mutate: unfollowActivity, isPending: isUnfollowingPending } = useCustomMutation();
 
-  const toggleFollow = () => {
+  const isCurrentUserFollowing = (followers: IFollower[] | undefined) => {
+    if (!user || isLoading || !followers) return false;
+    return followers.some(follower => follower.userId === user.id);
+  };
+
+  const { data: activityFollowers, refetch } = useList<IFollower>({
+    resource: `activities/${activityId}/follows`,
+    config: { pagination: { mode: 'off' } },
+  });
+
+  const [isFollowing, setIsFollowing] = useState<boolean>(
+    isCurrentUserFollowing(activityFollowers?.data),
+  );
+
+  console.log('user', user);
+
+  const toggleFollowByCurrentUser = () => {
     setIsFollowing(!isFollowing);
-
-    // call API to update follow status
-    console.log('Toggle follow status:', !isFollowing);
+    if (!user) return;
+    if (isFollowing) {
+      return unfollowActivity(
+        {
+          url: `activities/${activityId}/follow/batch`,
+          method: 'delete',
+          values: { userIds: [user?.id] },
+        },
+        {
+          onSuccess: () => {
+            console.log('Cập nhật theo dõi thành công');
+            refetch();
+          },
+          onError: () => {
+            setIsFollowing(isFollowing);
+            console.error('Cập nhật theo dõi thất bại');
+          },
+        },
+      );
+    }
+    return followActivity(
+      {
+        url: `activities/${activityId}/follow/batch`,
+        method: 'post',
+        values: { userIds: [user?.id] },
+      },
+      {
+        onSuccess: () => {
+          console.log('Cập nhật theo dõi thành công');
+          refetch();
+        },
+        onError: () => {
+          setIsFollowing(isFollowing);
+          console.error('Cập nhật theo dõi thất bại');
+        },
+      },
+    );
   };
 
   const renderFollowerAvatar = (follower: IFollower, size: number = 24) => {
-    if (follower?.avatar && typeof follower.avatar === 'string') {
-      const avatarUrl = follower.avatar.startsWith('http')
-        ? follower.avatar
-        : `${import.meta.env.VITE_API_BASE_URL}${follower.avatar}`;
+    if (follower?.user?.avatar && typeof follower?.user.avatar === 'string') {
+      const avatarUrl = follower?.user.avatar.startsWith('http')
+        ? follower?.user.avatar
+        : `${import.meta.env.VITE_API_BASE_URL}${follower?.user.avatar}`;
 
       return <Avatar size={size} src={avatarUrl} />;
     }
@@ -55,7 +99,7 @@ const ActivityDetailFollowLog = () => {
             color: 'oklch(27.4% 0.006 286.033)',
           }}
         >
-          {getUsername(follower.name)}
+          {getUsername(follower?.user.username)}
         </Avatar>
       </div>
     );
@@ -97,7 +141,7 @@ const ActivityDetailFollowLog = () => {
             }}
             type="text"
             size="middle"
-            onClick={toggleFollow}
+            onClick={toggleFollowByCurrentUser}
           >
             <div
               style={{
@@ -107,7 +151,7 @@ const ActivityDetailFollowLog = () => {
                 gap: 6,
               }}
             >
-              {isFollowing ? (
+              {!isFollowing ? (
                 <>
                   <IconBell size={14} color="#838383" />
                   Theo dõi
@@ -144,37 +188,48 @@ const ActivityDetailFollowLog = () => {
           }}
         >
           <Input placeholder="Tìm kiếm..." />
-          <span
-            style={{
-              color: '#838383',
-              marginLeft: 8,
-            }}
-          >
-            {mockedFollowers.length} Theo dõi
-          </span>
-          {mockedFollowers.map(follower => (
-            <Button
-              key={follower.id}
-              type="text"
+          <Space align="center" style={{ justifyContent: 'space-between', width: '100%' }}>
+            <span
               style={{
-                padding: '20px 4px',
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'flex-start',
-                alignItems: 'center',
+                color: '#838383',
+                marginLeft: 8,
               }}
             >
-              {renderFollowerAvatar(follower, 30)}
-              <div
+              {activityFollowers?.data.length} Theo dõi
+            </span>
+
+            <Tooltip title="Chọn tất cả">('')</Tooltip>
+          </Space>
+          {activityFollowers?.data?.map(follower => {
+            const isSelected = usersSelected.includes(follower.userId);
+            return (
+              <Button
+                key={follower.id}
+                type="text"
                 style={{
+                  padding: '8px 4px',
+                  width: '100%',
                   display: 'flex',
-                  textAlign: 'left',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  backgroundColor: isSelected ? '#f5f5f5' : 'transparent',
                 }}
+                onClick={() =>
+                  setUsersSelected(prev =>
+                    prev.includes(follower.userId)
+                      ? prev.filter(id => id !== follower.userId)
+                      : [...prev, follower.userId],
+                  )
+                }
               >
-                {follower.name}
-              </div>
-            </Button>
-          ))}
+                <Space align="center">
+                  {renderFollowerAvatar(follower, 30)}
+                  <div style={{ textAlign: 'left' }}>{follower?.user.username}</div>
+                </Space>
+                {isSelected && <IconCheck size={14} color="blue" />}
+              </Button>
+            );
+          })}
         </Space>
       </Space>
     </Space>
