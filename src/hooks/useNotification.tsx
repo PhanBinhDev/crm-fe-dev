@@ -25,6 +25,8 @@ export const useNotification = () => {
           vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
         });
 
+        console.log('FCM Token:', token);
+
         mutate({
           values: {
             tokens: [token],

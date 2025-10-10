@@ -1,24 +1,12 @@
 import { UserRole } from '@/common/enum/user';
 import {
-  IconAlertCircle,
-  IconAward,
-  IconBan,
-  IconBrandAsana,
   IconCalendar,
-  IconCalendarCheck,
   IconCalendarEvent,
-  IconChartLine,
-  IconClipboardList,
-  IconClock,
-  IconFileAnalytics,
   IconFileText,
   IconFolders,
   IconLayoutDashboard,
   IconPresentation,
-  IconProgressCheck,
-  IconReport,
   IconSettings,
-  IconTarget,
   IconTrophy,
 } from '@tabler/icons-react';
 
@@ -56,66 +44,6 @@ export const resources: ResourceConfig[] = [
       canDelete: true,
       menuPath: '/workspaces',
     },
-  },
-  {
-    name: 'my-work',
-    meta: {
-      label: 'Công việc của tôi',
-      icon: <IconTarget size={16} />,
-      menuPath: '/my-work',
-    },
-    children: [
-      {
-        name: 'assigned-tasks',
-        identifier: 'my-work/assigned',
-        meta: {
-          label: 'Công việc được giao',
-          icon: <IconBrandAsana size={14} />,
-          parent: 'my-work',
-          menuPath: '/my-work/assigned',
-        },
-      },
-      {
-        name: 'today-tasks',
-        identifier: 'my-work/today',
-        meta: {
-          label: 'Hôm nay',
-          icon: <IconCalendarCheck size={14} />,
-          parent: 'my-work',
-          menuPath: '/my-work/today',
-        },
-      },
-      {
-        name: 'overdue-tasks',
-        identifier: 'my-work/overdue',
-        meta: {
-          label: 'Quá hạn',
-          icon: <IconAlertCircle size={14} />,
-          parent: 'my-work',
-          menuPath: '/my-work/overdue',
-        },
-      },
-      {
-        name: 'upcoming-tasks',
-        identifier: 'my-work/upcoming',
-        meta: {
-          label: 'Sắp tới',
-          icon: <IconClock size={14} />,
-          parent: 'my-work',
-          menuPath: '/my-work/upcoming',
-        },
-      },
-      {
-        name: 'my-created-tasks',
-        identifier: 'my-work/created',
-        meta: {
-          label: 'Tôi tạo',
-          icon: <IconProgressCheck size={14} />,
-          parent: 'my-work',
-          menuPath: '/my-work/created',
-        },
-      },
-    ],
   },
   {
     name: 'semester-management',
@@ -181,66 +109,6 @@ export const resources: ResourceConfig[] = [
     },
   },
   {
-    name: 'reports',
-    meta: {
-      label: 'Báo cáo',
-      icon: <IconReport size={16} />,
-      menuPath: '/reports',
-    },
-    children: [
-      {
-        name: 'academic-reports',
-        identifier: 'reports/academic',
-        meta: {
-          label: 'Báo cáo học tập',
-          icon: <IconChartLine size={14} />,
-          parent: 'reports',
-          menuPath: '/reports/academic',
-        },
-      },
-      {
-        name: 'teaching-reports',
-        identifier: 'reports/teaching',
-        meta: {
-          label: 'Báo cáo giảng dạy',
-          icon: <IconClipboardList size={14} />,
-          parent: 'reports',
-          menuPath: '/reports/teaching',
-        },
-      },
-      {
-        name: 'department-reports',
-        identifier: 'reports/department',
-        meta: {
-          label: 'Báo cáo bộ môn',
-          icon: <IconFileAnalytics size={14} />,
-          parent: 'reports',
-          menuPath: '/reports/department',
-        },
-      },
-      {
-        name: 'semester-reports',
-        identifier: 'reports/semester',
-        meta: {
-          label: 'Báo cáo kỳ học',
-          icon: <IconAward size={14} />,
-          parent: 'reports',
-          menuPath: '/reports/semester',
-        },
-      },
-      {
-        name: 'activity-reports',
-        identifier: 'reports/activities',
-        meta: {
-          label: 'Báo cáo hoạt động',
-          icon: <IconBan size={14} />,
-          parent: 'reports',
-          menuPath: '/reports/activities',
-        },
-      },
-    ],
-  },
-  {
     name: 'settings',
     meta: {
       label: 'Cài đặt',
@@ -272,7 +140,6 @@ export const getResourcesByRole = (role: UserRole): ResourceConfig[] => {
   }
 };
 
-// Utility function để set workspace
 export const setCurrentWorkspace = (workspaceId: string): void => {
   localStorage.setItem('currentWorkspace', workspaceId);
 };

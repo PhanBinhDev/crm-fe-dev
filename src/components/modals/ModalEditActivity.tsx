@@ -114,7 +114,7 @@ const ModalEditActivity = () => {
         },
       });
     }
-  }, [activity, isOpenModal]);
+  }, [activity, isOpenModal, setSelectedItem]);
 
   const checkContentWidth = useCallback(() => {
     if (contentRef.current) {
@@ -141,7 +141,7 @@ const ModalEditActivity = () => {
     };
   }, [collapsedLeft, isOverlay]);
 
-  const handleSelectItem = (item: { type: ActivityItemType; data: IActivity }) => {
+  const handleSelectItem = useCallback((item: { type: ActivityItemType; data: IActivity }) => {
     setSelectedItem({
       type: item.type,
       data: {
@@ -149,7 +149,7 @@ const ModalEditActivity = () => {
         progress: calculateProgress(item.data),
       },
     });
-  };
+  }, []);
 
   const handleSelectSubtask = useCallback((subtask: IActivity) => {
     setSelectedItem({
@@ -197,7 +197,7 @@ const ModalEditActivity = () => {
 
       updateActivity({ values: { type } });
     },
-    [updateActivity, updateActivityData],
+    [updateActivity],
   );
 
   const renderContent = useMemo(() => {
@@ -242,7 +242,7 @@ const ModalEditActivity = () => {
             }}
             icon={<IconCornerLeftUp size={14} color="#838383" />}
             onClick={() =>
-              setSelectedItem({
+              handleSelectItem({
                 type: 'activity',
                 data: {
                   ...activity,
@@ -533,9 +533,7 @@ const ModalEditActivity = () => {
             <ActivityDetailSidebar
               activity={activity}
               selectedItem={selectedItem}
-              onSelectItem={item => {
-                handleSelectItem(item);
-              }}
+              onSelectItem={handleSelectItem}
               loading={isLoadingActivity}
               refetchActivity={refetch}
               showActions={showActions}
