@@ -208,7 +208,6 @@ export const getColorFromName = (name: any) => {
   return colors[Math.abs(hash) % colors.length];
 };
 
-// Hàm lấy chữ cái đầu từ tên
 export const getInitials = (name: any) => {
   if (!name) return 'U';
   return name

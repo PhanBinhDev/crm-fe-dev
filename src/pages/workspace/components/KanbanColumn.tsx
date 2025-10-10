@@ -170,7 +170,6 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
                   <ColorPicker
                     value={color}
                     onChange={handleColorChange}
-                    size={8}
                     stageTitle={stage?.title}
                   />
                   <Text

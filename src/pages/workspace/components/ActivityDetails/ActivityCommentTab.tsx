@@ -447,7 +447,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
         style={{
           background: '#f7f7f7',
           flex: 1,
-          padding: '5px 10px 10px 10px',
+          padding: 10,
           overflowY: 'auto',
         }}
       >
