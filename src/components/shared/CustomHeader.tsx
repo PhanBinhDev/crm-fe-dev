@@ -5,6 +5,7 @@ import { useLogout } from '@refinedev/core';
 import { IconLogout, IconSettings, IconUser, IconUserCircle } from '@tabler/icons-react';
 import { Avatar, Button, Drawer, Dropdown, Layout, MenuProps, Skeleton, Space } from 'antd';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CustomBreadcrumb from './CustomBreadcrumb';
 import NotificationBtn from './NotificationBtn';
 
@@ -16,6 +17,7 @@ interface CustomHeaderProps {
 
 export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
   const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
   const { mutate: logout } = useLogout();
   const [profileTab, setProfileTab] = useState(false);
 
@@ -33,6 +35,9 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
     {
       key: 'settings',
       icon: <IconSettings size={16} />,
+      onClick: () => {
+        navigate('/settings');
+      },
       label: 'Cài đặt',
       type: 'item',
       style: {

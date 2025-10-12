@@ -12,11 +12,11 @@ import { buildFilterCondition } from '@/utils/filters';
 import { CrudFilter, CrudOperators, useList, useOne } from '@refinedev/core';
 import { IconCalendar, IconLayoutKanban, IconList, IconPlus } from '@tabler/icons-react';
 import { Button, Card, Row, Skeleton, Space, Tabs, Tooltip } from 'antd';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMediaQuery } from 'usehooks-ts';
 
-type TabKey = 'kanban' | 'list' | 'calendar' | 'table';
+type TabKey = 'kanban' | 'list' | 'calendar';
 
 const KanbanWorkspaces = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('kanban');
@@ -25,6 +25,8 @@ const KanbanWorkspaces = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isTablet = useMediaQuery('(max-width: 992px)');
   const { isLoading } = useWorkspaceStore();
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const prevWorkspaceIdRef = useRef<string | undefined>();
 
   const { workspaceId } = useParams();
   const { openModal } = useModal();
@@ -98,6 +100,23 @@ const KanbanWorkspaces = () => {
     setFilterParams(Object.keys(params).length === 0 ? {} : params);
   }, []);
 
+  // Xử lý initial load và workspace transition
+  useEffect(() => {
+    if (workspaceId && prevWorkspaceIdRef.current && workspaceId !== prevWorkspaceIdRef.current) {
+      // Workspace changed - show skeleton
+      setIsInitialLoad(true);
+    }
+
+    prevWorkspaceIdRef.current = workspaceId;
+  }, [workspaceId]);
+
+  // Tắt initial load khi đã load xong data
+  useEffect(() => {
+    if (isInitialLoad && !isLoadingWorkspace && !isLoadingActivities && workspaceData?.data) {
+      setIsInitialLoad(false);
+    }
+  }, [isLoadingWorkspace, isLoadingActivities, workspaceData, isInitialLoad]);
+
   const tabItems = useMemo(
     () => [
       {
@@ -118,9 +137,6 @@ const KanbanWorkspaces = () => {
     ],
     [],
   );
-
-  console.log('Rerender KanbanWorkspaces workspace', isLoadingWorkspace);
-  console.log('Rerender KanbanWorkspaces activities', isLoadingActivities);
 
   const renderTabLabel = (item: (typeof tabItems)[0]) => {
     const Icon = item.icon;
@@ -167,16 +183,10 @@ const KanbanWorkspaces = () => {
       default:
         return null;
     }
-  }, [
-    activeTab,
-    activities,
-    stagesData?.data,
-    users?.data,
-    workspaceData?.data,
-    isLoadingWorkspace,
-  ]);
+  }, [activeTab, activities, stagesData?.data, users?.data]);
 
-  if (isLoadingWorkspace || isLoadingActivities || isLoading) {
+  // Chỉ hiện skeleton khi initial load hoặc workspace transition
+  if (isInitialLoad || isLoading) {
     return (
       <div
         style={{
