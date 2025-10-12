@@ -1,4 +1,5 @@
 import { Checklist, IActivity } from '@/common/types';
+import ActivityChecklistSkeleton from '@/components/skeletons/ActivityChecklistSkeleton';
 import { useCreate, useList } from '@refinedev/core';
 import { IconPlus } from '@tabler/icons-react';
 import { Button, Progress, Space, Typography } from 'antd';
@@ -30,6 +31,7 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
     mutationOptions: {
       retry: false,
     },
+    invalidates: [],
   });
 
   useEffect(() => {
@@ -83,7 +85,7 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
         },
       ],
       completedItems: 0,
-      totalItems: 0,
+      totalItems: 1,
       progress: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -161,7 +163,7 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
       </div>
 
       {isLoadingChecklist ? (
-        <div>loading...</div>
+        <ActivityChecklistSkeleton />
       ) : (
         <>
           {!localChecklists.length ? (
@@ -200,9 +202,9 @@ const ActivityChecklist = ({ activity }: ActivityChecklistProps) => {
                 width: '100%',
               }}
             >
-              {localChecklists.map(checklist => (
+              {localChecklists.map((checklist, index) => (
                 <ActivityChecklistItem
-                  key={checklist.id}
+                  key={`${checklist.id}-${index}`}
                   checklist={checklist}
                   activity={activity}
                   onChecklistUpdate={handleChecklistItemUpdate}

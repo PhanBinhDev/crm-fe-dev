@@ -99,8 +99,6 @@ export interface ChecklistItem extends IBase {
   isDone: boolean;
 }
 
-export type ModalAction = 'create-action' | 'create-another' | 'create-duplicate' | 'create-open';
-
 export interface IActivityLinks {
   id: string;
   title: string;
@@ -117,4 +115,16 @@ export interface ILinkPreview {
   siteName?: string;
   favicon?: string;
   siteDescription?: string;
+}
+
+export interface FormAddReminderPayload {
+  content: string;
+  assignees: string[];
+  date: Date;
+  notifyBefore: NotifyOption;
+}
+
+export interface NotifyOption {
+  label: string;
+  value: number | 'none' | 'custom';
 }

@@ -1,9 +1,9 @@
 import { IActivity } from '@/common/types';
 import { getProgressColor, getProgressText } from '@/utils/colors';
+import { useOne } from '@refinedev/core';
 import { IconChevronDown } from '@tabler/icons-react';
 import { Button, Card, Progress, Typography } from 'antd';
-import confetti from 'canvas-confetti';
-import { useEffect, useRef } from 'react';
+import { memo, useRef } from 'react';
 
 interface ProgressBarProps {
   activity: IActivity;
@@ -11,61 +11,16 @@ interface ProgressBarProps {
 
 const ProgressBar = ({ activity }: ProgressBarProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const previousProgressRef = useRef<number | null>(null);
 
-  // const {} = useOne
-
-  useEffect(() => {
-    const progress = activity.progress || 0;
-
-    if (
-      progress === 100 &&
-      previousProgressRef.current !== null &&
-      previousProgressRef.current < 100
-    ) {
-      fireConfetti();
-    }
-
-    previousProgressRef.current = progress;
-  }, [activity.progress]);
-
-  const fireConfetti = () => {
-    if (!containerRef.current) return;
-
-    const rect = containerRef.current.getBoundingClientRect();
-
-    const myCanvas = document.createElement('canvas');
-    myCanvas.style.position = 'fixed';
-    myCanvas.style.top = '0';
-    myCanvas.style.left = '0';
-    myCanvas.style.width = '100vw';
-    myCanvas.style.height = '100vh';
-    myCanvas.style.pointerEvents = 'none';
-    myCanvas.style.zIndex = '9999';
-
-    document.body.appendChild(myCanvas);
-
-    const myConfetti = confetti.create(myCanvas, {
-      resize: true,
-      useWorker: true,
-    });
-
-    const originX = (rect.left + rect.width / 2) / window.innerWidth;
-    const originY = rect.bottom / window.innerHeight;
-
-    myConfetti({
-      particleCount: 80,
-      spread: 60,
-      origin: { x: originX, y: originY },
-      colors: ['#1677ff', '#52c41a', '#faad14', '#f759ab', '#722ed1'],
-      gravity: 1.2,
-      scalar: 1.2,
-    });
-
-    setTimeout(() => {
-      document.body.removeChild(myCanvas);
-    }, 3000);
-  };
+  const { data: progressData } = useOne({
+    resource: `activities/${activity.id}/progress`,
+    id: '',
+    queryOptions: {
+      enabled: !!activity.id,
+      retry: false,
+      queryKey: ['activity-progress', activity.id],
+    },
+  });
 
   return (
     <Card
@@ -114,13 +69,13 @@ const ProgressBar = ({ activity }: ProgressBarProps) => {
           type="secondary"
           style={{ fontSize: 13, marginBottom: 4, display: 'block' }}
         >
-          {getProgressText(activity.progress || 0)}
+          {getProgressText(progressData?.data?.progress || 0)}
         </Typography.Text>
 
         <div style={{ marginTop: 'auto' }}>
           <Progress
-            percent={activity.progress || 0}
-            strokeColor={getProgressColor(activity.progress || 0)}
+            percent={progressData?.data?.progress || 0}
+            strokeColor={getProgressColor(progressData?.data?.progress || 0)}
             strokeWidth={8}
             style={{ borderRadius: 8, height: 'fit-content' }}
           />
@@ -130,4 +85,4 @@ const ProgressBar = ({ activity }: ProgressBarProps) => {
   );
 };
 
-export default ProgressBar;
+export default memo(ProgressBar);

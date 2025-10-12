@@ -4,14 +4,16 @@ import { useWorkspaceStore } from '@/hooks/useWorkspaces';
 import { useList } from '@refinedev/core';
 import { IconCheck, IconSearch, IconUsers } from '@tabler/icons-react';
 import { Avatar, Button, Input, List, Popover, Tooltip } from 'antd';
+import { AbstractTooltipProps } from 'antd/lib/tooltip';
 import { useMemo, useState } from 'react';
 import { useDebounceValue } from 'usehooks-ts';
 
 interface AssigneeActivityProps {
   children?: React.ReactNode;
   selectedUser: IUser[];
-  title?: string;
   onToggleSelectUser: (user: IUser) => void;
+  title?: string;
+  placement?: AbstractTooltipProps['placement'];
 }
 
 const MAX_DISPLAY_COUNT = 3;
@@ -21,6 +23,7 @@ const AssigneeActivity = ({
   selectedUser,
   onToggleSelectUser,
   title = 'Phụ trách',
+  placement,
 }: AssigneeActivityProps) => {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspaceStore();
@@ -106,7 +109,7 @@ const AssigneeActivity = ({
               minHeight: 180,
               maxHeight: 200,
               overflowY: 'auto',
-              margin: '0 8px',
+              margin: '0 8px 8px',
             }}
             renderItem={(item: IMember) => {
               const member = item.user;
@@ -149,17 +152,7 @@ const AssigneeActivity = ({
         </div>
       }
       trigger={['click']}
-      placement="bottomLeft"
-      builtinPlacements={{
-        bottomLeft: {
-          points: ['tl', 'bl'],
-          offset: [0, 4],
-          overflow: {
-            adjustX: true,
-            adjustY: false,
-          },
-        },
-      }}
+      placement={placement || 'bottomLeft'}
       arrow={false}
       destroyOnHidden
       styles={{

@@ -1,6 +1,5 @@
-import { LoadingPage } from '@/components/common';
 import { PlusOutlined } from '@ant-design/icons';
-import { useCreate, useOne } from '@refinedev/core';
+import { useCreate } from '@refinedev/core';
 import { Button, Form, Input, Radio, Typography, Upload, message } from 'antd';
 import { useParams } from 'react-router-dom';
 
@@ -25,8 +24,6 @@ const options = [
 const FeedbackForm = () => {
   const [form] = Form.useForm();
   const { id } = useParams();
-
-  const { data: eventInfo, isLoading, isError } = useOne({ resource: 'activities', id: id });
 
   const { mutate: createFeedback, isPending: isPendingCreateFeedback } = useCreate({
     mutationOptions: {
@@ -73,28 +70,6 @@ const FeedbackForm = () => {
     );
   };
 
-  if (isLoading) return <LoadingPage />;
-
-  if (isError)
-    return (
-      <div
-        style={{
-          width: '800px',
-          height: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto',
-          padding: '20px',
-          fontSize: '30px',
-          fontWeight: 'bold',
-          color: 'red',
-        }}
-      >
-        Có lỗi sảy ra, vui lòng thử lại sau!!
-      </div>
-    );
-
   return (
     <div
       style={{
@@ -109,7 +84,7 @@ const FeedbackForm = () => {
         Phiếu Đánh Giá
       </Typography.Title>
       <Typography.Title level={3} style={{ textAlign: 'left' }}>
-        Sự kiện: {eventInfo?.data.name}
+        Sự kiện
       </Typography.Title>
 
       <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{}}>

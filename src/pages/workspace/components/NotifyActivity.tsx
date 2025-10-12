@@ -1,22 +1,17 @@
-import { IconBan, IconBell, IconChevronLeft } from '@tabler/icons-react';
+import { NotifyOption } from '@/common/types';
+import { IconBell, IconCheck, IconChevronLeft } from '@tabler/icons-react';
 import { Button, InputNumber, List, Popover, Select, Space, Typography } from 'antd';
 import { useState } from 'react';
 
-interface NotifyOption {
-  label: string;
-  value: number | 'none' | 'custom';
-}
-
 interface NotifyActivityProps {
-  value: NotifyOption | null;
-  onChange: (option: NotifyOption | null) => void;
+  value: NotifyOption;
+  onChange: (option: NotifyOption) => void;
 }
 
 const notifyOptions: NotifyOption[] = [
-  { label: 'Đúng hạn', value: 0 },
+  { label: 'Đúng giờ', value: 0 },
   { label: 'Trước 10 phút', value: 10 },
   { label: 'Trước 1 giờ', value: 60 },
-  { label: 'Không nhắc nhở', value: 'none' },
   { label: 'Tùy chỉnh...', value: 'custom' },
 ];
 
@@ -85,7 +80,7 @@ const NotifyActivity = ({ value, onChange }: NotifyActivityProps) => {
   ) : (
     <Space direction="vertical" style={{ width: '100%' }}>
       <Typography style={{ padding: '3px 12px 0', fontWeight: 600 }}>Thời gian nhắc nhở</Typography>
-      <List style={{ paddingBottom: 8, borderBottom: '1px solid #f0f0f0' }}>
+      <List>
         {notifyOptions.map(option => (
           <div key={option.value} style={{ padding: '0 8px' }}>
             <List.Item
@@ -114,40 +109,14 @@ const NotifyActivity = ({ value, onChange }: NotifyActivityProps) => {
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
               {option.label}
+
+              {option.value === value?.value && (
+                <IconCheck size={14} style={{ marginLeft: 'auto', color: '#838383' }} />
+              )}
             </List.Item>
           </div>
         ))}
       </List>
-
-      <div style={{ padding: '0 8px' }}>
-        <Button
-          onClick={() => {
-            setOpen(false);
-            onChange(null);
-          }}
-          type="text"
-          size="small"
-          style={{
-            color: '#ff4d4f',
-            fontSize: 14,
-            width: '100%',
-            height: 28,
-            gap: 2,
-            justifyContent: 'flex-start',
-            borderRadius: 8,
-          }}
-          styles={{
-            icon: {
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
-          }}
-          icon={<IconBan size={14} style={{ marginRight: 8 }} />}
-        >
-          Xóa nhắc nhở
-        </Button>
-      </div>
     </Space>
   );
 
@@ -171,7 +140,7 @@ const NotifyActivity = ({ value, onChange }: NotifyActivityProps) => {
         style={{
           borderRadius: 6,
           gap: 4,
-          color: value ? '#1890ff' : '#838383',
+          color: '#838383',
         }}
         icon={<IconBell size={14} />}
       >

@@ -1,7 +1,7 @@
-import { IUser } from '@/common/types';
-import { Input, Space } from 'antd';
+import { FormAddReminderPayload, IUser } from '@/common/types';
+import { Form, Input, Space } from 'antd';
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import AssigneeActivity from './AssigneeActivity';
 import DuedateActivity from './DuedateActivity';
 import FileAttachments from './FileAttachments';
@@ -11,7 +11,7 @@ const { TextArea } = Input;
 
 interface FormAddReminderProps {
   openUploader: boolean;
-  onChange?: (payload: any) => void;
+  onSubmit?: (params: { data: any; callback: () => void }) => void;
 }
 
 interface NotifyOption {
@@ -19,12 +19,25 @@ interface NotifyOption {
   value: number | 'none' | 'custom';
 }
 
-const FormAddReminder = ({ openUploader, onChange }: FormAddReminderProps) => {
-  const [assignees, setAssignees] = useState<IUser[]>([]);
-  const [notifyBefore, setNotifyBefore] = useState<NotifyOption | null>({
-    label: 'Trước 10 phút',
-    value: 10,
+const FormAddReminder = forwardRef(({ openUploader, onSubmit }: FormAddReminderProps, ref) => {
+  const [form] = Form.useForm();
+  const [formData, setFormData] = useState<FormAddReminderPayload>({
+    content: '',
+    assignees: [],
+    notifyBefore: {
+      label: 'Đúng giờ',
+      value: 0,
+    },
+    date: new Date(),
   });
+
+  useImperativeHandle(ref, () => ({
+    submitForm: () => {
+      form.submit();
+    },
+  }));
+
+  const [assignees, setAssignees] = useState<IUser[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [content, setContent] = useState('');
   const [dueDate, setDueDate] = useState<{ start: dayjs.Dayjs | null; end: dayjs.Dayjs | null }>({
@@ -32,22 +45,16 @@ const FormAddReminder = ({ openUploader, onChange }: FormAddReminderProps) => {
     end: null,
   });
 
-  useEffect(() => {
-    const payload = {
-      content: content.trim(),
-      dueDate: dueDate?.end ? dueDate.end.toISOString() : null,
-      assignees: assignees.map(u => u.id),
-      notifyBefore: notifyBefore?.value === 'none' ? null : notifyBefore?.value,
-      attachments,
-    };
-    onChange?.(payload);
-  }, [content, dueDate, assignees, notifyBefore, attachments, onChange]);
   const handleToggleUser = (user: IUser) => {
     setAssignees(prev => {
       const exists = prev.some(u => u.id === user.id);
       return exists ? prev.filter(u => u.id !== user.id) : [...prev, user];
     });
   };
+
+  const onNotifyBeforeChange = useCallback((option: NotifyOption) => {
+    setFormData(prev => ({ ...prev, notifyBefore: option }));
+  }, []);
 
   return (
     <div
@@ -57,7 +64,6 @@ const FormAddReminder = ({ openUploader, onChange }: FormAddReminderProps) => {
         gap: 16,
       }}
     >
-      {/* Nội dung nhắc nhở */}
       <TextArea
         placeholder="Nhập nội dung nhắc nhở..."
         size="middle"
@@ -100,22 +106,19 @@ const FormAddReminder = ({ openUploader, onChange }: FormAddReminderProps) => {
         <Space>
           <DuedateActivity value={dueDate} onChange={setDueDate} />
 
-          {/* Người phụ trách */}
           <AssigneeActivity
             title={'Người nhận'}
             selectedUser={assignees}
             onToggleSelectUser={handleToggleUser}
           />
 
-          {/* Thời gian nhắc nhở */}
-          <NotifyActivity value={notifyBefore} onChange={setNotifyBefore} />
+          <NotifyActivity value={formData.notifyBefore} onChange={onNotifyBeforeChange} />
         </Space>
 
-        {/* File đính kèm */}
         {openUploader && <FileAttachments value={attachments} onChange={setAttachments} />}
       </Space>
     </div>
   );
-};
+});
 
 export default FormAddReminder;

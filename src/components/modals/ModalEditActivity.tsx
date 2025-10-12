@@ -18,10 +18,12 @@ import {
   IconShare,
   IconX,
 } from '@tabler/icons-react';
-import { Button, Input, Layout, Modal, Space, Tooltip, Typography } from 'antd';
+import { Button, Input, Layout, Modal, Skeleton, Space, Tooltip, Typography } from 'antd';
 import _ from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Spinner from '../ui/Spinner';
+import ActivityMainContentSkeleton from '../skeletons/ActivityMainContentSkeleton';
+import ProgressBarSkeleton from '../skeletons/ProgressBarSkeleton';
+import { SelectActivityTypeSkeleton } from '../skeletons/SelectActivityTypeSkeleton';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -35,8 +37,7 @@ export type SelectedActivityItem = {
 };
 
 const ModalEditActivity = () => {
-  const { isOpen, type, data, closeModal, setData } = useModal();
-  const isOpenModal = isOpen && type === 'ModalEditActivity';
+  const { data, closeModal, setData } = useModal();
   const [collapsedLeft, setCollapsedLeft] = useState(true);
   const layoutRef = useRef<HTMLDivElement>(null);
   const [isOverlay, setIsOverlay] = useState(false);
@@ -63,6 +64,8 @@ const ModalEditActivity = () => {
     id: activityFromModal?.id,
     queryOptions: { enabled: !!activityFromModal?.id },
   });
+
+  
 
   const { mutate: updateActivity } = useUpdate<IActivity>({
     resource: 'activities',
@@ -109,7 +112,7 @@ const ModalEditActivity = () => {
   }, [activityData, isLoadingActivity]);
 
   useEffect(() => {
-    if (activity && isOpenModal) {
+    if (activity) {
       setSelectedItem({
         type: 'activity',
         data: {
@@ -121,7 +124,7 @@ const ModalEditActivity = () => {
       originalNameRef.current = activity.name || '';
       originalDescriptionRef.current = activity.description || '';
     }
-  }, [activity, isOpenModal, setSelectedItem]);
+  }, [activity, setSelectedItem]);
 
   const checkContentWidth = useCallback(() => {
     if (contentRef.current) {
@@ -310,21 +313,6 @@ const ModalEditActivity = () => {
     const { type, data: itemData } = selectedItem;
     const isMainActivity = type === 'activity';
 
-    if (isLoadingActivity) {
-      return (
-        <div
-          style={{
-            padding: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Spinner size={35} />
-        </div>
-      );
-    }
-
     return (
       <div
         style={{
@@ -340,121 +328,154 @@ const ModalEditActivity = () => {
           gap: 16,
         }}
       >
-        {/* Progress bar */}
-        <ProgressBar activity={itemData} />
+        {isLoadingActivity ? (
+          <>
+            <ProgressBarSkeleton />
+            <SelectActivityTypeSkeleton />
+            <Skeleton.Input
+              active
+              style={{
+                width: '100%',
+                height: 39,
+                borderRadius: 6,
+              }}
+              size="large"
+            />
+            <ActivityMainContentSkeleton
+              isContentNarrow={isContentNarrow}
+              isEvent={selectedItem?.data?.type === ActivityType.EVENT}
+            />
 
-        {!isMainActivity && (
-          <Button
-            type="text"
-            size="small"
-            style={{
-              alignSelf: 'flex-start',
-              padding: '0 6px',
-              borderRadius: 6,
-              gap: 4,
-            }}
-            styles={{
-              icon: {
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              },
-            }}
-            icon={<IconCornerLeftUp size={14} color="#838383" />}
-            onClick={() =>
-              handleSelectItem({
-                type: 'activity',
-                data: {
-                  ...activity,
-                  progress: calculateProgress(activity),
-                },
-              })
-            }
-          >
-            Quay lại{' '}
-            <span>
-              {activity?.name?.length > 20 ? activity?.name.slice(0, 20) + '...' : activity?.name}
-            </span>
-          </Button>
+            <Skeleton.Input
+              active
+              style={{
+                width: '100%',
+                height: 76,
+                borderRadius: 6,
+              }}
+              size="large"
+            />
+          </>
+        ) : (
+          <>
+            <ProgressBar activity={itemData} />
+
+            {!isMainActivity && (
+              <Button
+                type="text"
+                size="small"
+                style={{
+                  alignSelf: 'flex-start',
+                  padding: '0 6px',
+                  borderRadius: 6,
+                  gap: 4,
+                }}
+                styles={{
+                  icon: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  },
+                }}
+                icon={<IconCornerLeftUp size={14} color="#838383" />}
+                onClick={() =>
+                  handleSelectItem({
+                    type: 'activity',
+                    data: {
+                      ...activity,
+                      progress: calculateProgress(activity),
+                    },
+                  })
+                }
+              >
+                Quay lại{' '}
+                <span>
+                  {activity?.name?.length > 20
+                    ? activity?.name.slice(0, 20) + '...'
+                    : activity?.name}
+                </span>
+              </Button>
+            )}
+
+            <SelectActivityType id={itemData.id} value={itemData.type} onChange={onTypeChange} />
+
+            <TextArea
+              placeholder={`Nhập tên ${itemData.type === ActivityType.TASK ? 'nhiệm vụ' : 'sự kiện'}...`}
+              size="middle"
+              variant="borderless"
+              style={{
+                fontWeight: 600,
+                fontSize: 22,
+                border: '1px solid transparent',
+                paddingLeft: 4,
+                lineHeight: '37px',
+                paddingTop: 0,
+                paddingBottom: 0,
+              }}
+              value={selectedItem.data.name}
+              onChange={handleNameChange}
+              autoSize={{ minRows: 1, maxRows: 4 }}
+              onMouseEnter={e => {
+                if (selectedItem.data.name.trim()) {
+                  e.currentTarget.style.background = '#f0f0f0';
+                }
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+              onFocus={e => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.borderColor = '#f0f0f0';
+              }}
+              onBlur={handleNameBlur}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.currentTarget.blur();
+                }
+              }}
+              name="name"
+            />
+
+            <ActivityMainContent
+              itemData={itemData}
+              isContentNarrow={isContentNarrow}
+              onUpdate={updateActivity}
+              setFormData={updateActivityData as any}
+            />
+
+            <TextArea
+              placeholder={`Nhập mô tả...`}
+              size="middle"
+              variant="borderless"
+              style={{
+                fontWeight: 600,
+                fontSize: 16,
+                border: '1px solid #f0f0f0',
+                paddingLeft: 4,
+                lineHeight: '22px',
+              }}
+              value={selectedItem.data.description}
+              onChange={handleDescriptionChange}
+              autoSize={{ minRows: 3, maxRows: 6 }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#f0f0f0';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+              onFocus={e => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+              onBlur={handleDescriptionBlur}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                  e.currentTarget.blur();
+                }
+              }}
+              name="description"
+            />
+          </>
         )}
-
-        <SelectActivityType id={itemData.id} value={itemData.type} onChange={onTypeChange} />
-
-        <TextArea
-          placeholder={`Nhập tên ${itemData.type === ActivityType.TASK ? 'nhiệm vụ' : 'sự kiện'}...`}
-          size="middle"
-          variant="borderless"
-          style={{
-            fontWeight: 600,
-            fontSize: 22,
-            border: '1px solid transparent',
-            paddingLeft: 4,
-            lineHeight: '37px',
-            paddingTop: 0,
-            paddingBottom: 0,
-          }}
-          value={selectedItem.data.name}
-          onChange={handleNameChange}
-          autoSize={{ minRows: 1, maxRows: 4 }}
-          onMouseEnter={e => {
-            if (selectedItem.data.name.trim()) {
-              e.currentTarget.style.background = '#f0f0f0';
-            }
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'transparent';
-          }}
-          onFocus={e => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.borderColor = '#f0f0f0';
-          }}
-          onBlur={handleNameBlur}
-          onKeyDown={e => {
-            if (e.key === 'Enter') {
-              e.currentTarget.blur();
-            }
-          }}
-          name="name"
-        />
-
-        <ActivityMainContent
-          itemData={itemData}
-          isContentNarrow={isContentNarrow}
-          onUpdate={updateActivity}
-          setFormData={updateActivityData as any}
-        />
-
-        <TextArea
-          placeholder={`Nhập mô tả...`}
-          size="middle"
-          variant="borderless"
-          style={{
-            fontWeight: 600,
-            fontSize: 16,
-            border: '1px solid #f0f0f0',
-            paddingLeft: 4,
-            lineHeight: '22px',
-          }}
-          value={selectedItem.data.description}
-          onChange={handleDescriptionChange}
-          autoSize={{ minRows: 3, maxRows: 6 }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = '#f0f0f0';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'transparent';
-          }}
-          onFocus={e => {
-            e.currentTarget.style.background = 'transparent';
-          }}
-          onBlur={handleDescriptionBlur}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-              e.currentTarget.blur();
-            }
-          }}
-          name="description"
-        />
 
         {/* Sub task */}
         {isMainActivity && (
@@ -478,7 +499,7 @@ const ModalEditActivity = () => {
 
   return (
     <Modal
-      open={isOpenModal}
+      open
       onCancel={() => {
         closeModal();
         setData({});

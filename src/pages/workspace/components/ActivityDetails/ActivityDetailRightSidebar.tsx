@@ -1,4 +1,11 @@
-import { IconFilePencil, IconLink, IconMessage, IconMessageCircle, IconPaperclip } from '@tabler/icons-react';
+import {
+  IconFilePencil,
+  IconFilter2Up,
+  IconLink,
+  IconMessage,
+  IconMessageCircle,
+  IconPaperclip,
+} from '@tabler/icons-react';
 import { Button, Divider, Layout, Tooltip, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import ActivityCommentTab from './ActivityCommentTab';
@@ -96,6 +103,15 @@ const ActivityDetailRightSidebar = ({
               <Typography.Title level={4} style={{ margin: 0 }}>
                 Bình luận
               </Typography.Title>
+
+              <Button
+                type="text"
+                icon={<IconFilter2Up size={16} stroke={1.5} color="#838383" />}
+                style={{
+                  borderRadius: 8,
+                }}
+                onClick={() => {}}
+              />
             </div>
             <ActivityCommentTab activityId={activityId} />
           </div>

@@ -59,9 +59,6 @@ const ActivityDetailFollowLog = ({ activityId }: ActivityDetailFollowLogProps) =
   const { mutate: updateFollow } = useCreate<IFollower>({
     mutationOptions: {
       retry: false,
-      onSuccess: () => {
-        refetchFollows();
-      },
     },
   });
 
@@ -410,7 +407,7 @@ const ActivityDetailFollowLog = ({ activityId }: ActivityDetailFollowLogProps) =
         }}
       >
         {!isLoadingFollows && (
-          <span style={{ fontSize: 14, color: '#646464', fontWeight: 500 }}>
+          <span style={{ fontSize: 13, color: '#646464', fontWeight: 500 }}>
             {followers.length}
           </span>
         )}

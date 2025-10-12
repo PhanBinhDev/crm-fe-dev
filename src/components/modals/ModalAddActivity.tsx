@@ -1,4 +1,4 @@
-import { FormAddActivityPayload, FormAddTaskData, ModalAction } from '@/common/types';
+import { FormAddActivityPayload, FormAddTaskData } from '@/common/types';
 import { IAssignee } from '@/common/types/assignee';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaceStore } from '@/hooks/useWorkspaces';
@@ -18,8 +18,8 @@ const modalTabs = [
 
 type ModalTabKey = (typeof modalTabs)[number]['key'];
 
-export interface FormAddTaskRef {
-  submitForm: (action: ModalAction) => void;
+export interface FormRef {
+  submitForm: () => void;
 }
 
 const ModalAddActivity = () => {
@@ -27,13 +27,13 @@ const ModalAddActivity = () => {
   const workspaceId = currentWorkspace?.id;
   const { isOpen, type, closeModal } = useModal();
   const isOpenModal = isOpen && type === 'ModalAddActivity';
-  const formRef = useRef<FormAddTaskRef>(null);
+  const formRef = useRef<FormRef>(null);
+  const reminderRef = useRef<FormRef>(null);
   const [activeTab, setActiveTab] = useState<ModalTabKey>('task');
   const [openUploader, setOpenUploader] = useState({
     task: false,
     reminder: false,
   });
-  const [reminderPayload, setReminderPayload] = useState<any>(null);
   const [follows, setFollows] = useState<IAssignee[]>([]);
 
   const invalidate = useInvalidate();
@@ -45,12 +45,9 @@ const ModalAddActivity = () => {
     },
   );
 
-  const handleCreate = useCallback(
-    (action: ModalAction) => {
-      formRef.current?.submitForm(action);
-    },
-    [formRef],
-  );
+  const handleCreate = useCallback(() => {
+    formRef.current?.submitForm();
+  }, [formRef]);
 
   const handleFormSubmit = useCallback(
     ({ data, callback }: { data: FormAddActivityPayload; callback: () => void }) => {
@@ -86,25 +83,17 @@ const ModalAddActivity = () => {
     },
     [closeModal],
   );
-  const handleReminderChange = useCallback((payload: any) => {
-    setReminderPayload(payload);
-  }, []);
 
-  const handleCreateReminder = async () => {
-    if (!reminderPayload?.content) {
-      message.error('Vui lòng nhập nội dung nhắc nhở');
-      return;
-    }
+  const handleCreateReminder = useCallback(() => {
+    reminderRef.current?.submitForm();
+  }, [reminderRef]);
 
-    try {
-      console.log('Reminder payload:', reminderPayload);
-      message.success('Tạo nhắc nhở thành công!');
-      closeModal();
-    } catch (error) {
-      console.error('Reminder create failed:', error);
-      message.error('Không thể tạo nhắc nhở');
-    }
-  };
+  const handleReminderSubmit = useCallback(
+    ({ data, callback }: { data: any; callback: () => void }) => {
+      console.log('Reminder data:', data);
+    },
+    [],
+  );
 
   const handleOnNotificationUsersChange = useCallback((assignee: IAssignee[]) => {
     setFollows(assignee);
@@ -284,9 +273,7 @@ const ModalAddActivity = () => {
 
           <Button
             type="primary"
-            onClick={
-              activeTab === 'reminder' ? handleCreateReminder : () => handleCreate('create-action')
-            }
+            onClick={activeTab === 'reminder' ? handleCreateReminder : handleCreate}
             loading={isPendingCreateActivity}
             style={{ borderRadius: 8 }}
           >
@@ -299,7 +286,11 @@ const ModalAddActivity = () => {
         <FormAddTask openUploader={openUploader.task} ref={formRef} onSubmit={handleFormSubmit} />
       )}
       {activeTab === 'reminder' && (
-        <FormAddReminder openUploader={openUploader.reminder} onChange={handleReminderChange} />
+        <FormAddReminder
+          openUploader={openUploader.reminder}
+          ref={reminderRef}
+          onSubmit={handleReminderSubmit}
+        />
       )}
     </Modal>
   );

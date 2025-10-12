@@ -43,8 +43,6 @@ const NotificationBtn = () => {
     },
   });
 
-  console.log('Notifications data:', notificationsData);
-
   const { mutate, isPending: isUpdating } = useUpdate({
     resource: 'notifications',
     invalidates: ['list'],

@@ -14,6 +14,10 @@ const ActivityChangedHistory = ({ activityId }: ActivityChangedHistoryProps) => 
   const { data, isLoading } = useList({
     resource: `activities/${activityId}/logs`,
     sorters: [{ field: 'createdAt', order: 'desc' }],
+    queryOptions: {
+      enabled: !!activityId,
+      retry: false,
+    },
   });
 
   const { latestLog, otherLogs } = useMemo(() => {

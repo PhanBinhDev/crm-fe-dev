@@ -1,10 +1,11 @@
+import { StageGroup } from '@/common/enum/stage';
 import { IStage } from '@/common/types/stage';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaceStore } from '@/hooks/useWorkspaces';
 import { useList } from '@refinedev/core';
 import { IconBan, IconCheck } from '@tabler/icons-react';
 import { Button, List, Popover, Space, Spin, Typography } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface StageActivityProps {
   value: IStage | null;
@@ -15,7 +16,7 @@ interface StageActivityProps {
 const StageActivity = ({ value, onChange, error }: StageActivityProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const userSelected = useRef(false);
-  const { data: modalData, type } = useModal();
+  const { data: modalData } = useModal();
   const { stageId } = modalData ?? {};
   const { currentWorkspace } = useWorkspaceStore();
 
@@ -25,18 +26,28 @@ const StageActivity = ({ value, onChange, error }: StageActivityProps) => {
     filters: [{ field: 'workspaceId', operator: 'eq', value: currentWorkspace?.id }],
   });
 
-  const stages = (data?.data ?? []).filter(stage =>
-    type === 'ModalAddActivity' ? stage.title?.toLowerCase() !== 'closed' : true,
-  );
+  const { stages, defaultTodoState } = useMemo(() => {
+    if (isLoading || !data) return { stages: [], defaultTodoState: null };
+
+    const filteredStages = data.data.filter(stage => stage.stageGroup !== StageGroup.CLOSED);
+    const defaultStage = filteredStages.find(
+      stage =>
+        stage.isBuiltIn &&
+        stage.stageGroup === StageGroup.NOT_STARTED &&
+        stage.title.toLocaleUpperCase() === 'TO DO',
+    );
+
+    return { stages: filteredStages, defaultTodoState: defaultStage };
+  }, [data, isLoading]);
 
   useEffect(() => {
-    if (!userSelected.current && stageId && stages.length > 0) {
-      const defaultStage = stages.find(s => s.id === stageId);
-      if (defaultStage && (!value || value.id !== defaultStage.id)) {
-        onChange(defaultStage);
+    if (!userSelected.current && stages.length > 0) {
+      const targetStage = stageId ? stages.find(s => s.id === stageId) : defaultTodoState;
+      if (targetStage && (!value || value.id !== targetStage.id)) {
+        onChange(targetStage);
       }
     }
-  }, [stageId, stages, onChange, value]);
+  }, [stageId, stages, onChange, value, defaultTodoState]);
 
   const handleSelect = (stage: IStage | null) => {
     userSelected.current = true;
