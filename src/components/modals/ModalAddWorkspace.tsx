@@ -1,7 +1,6 @@
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useCustomMutation } from '@refinedev/core';
-import { useList } from '@refinedev/core';
+import { useCustomMutation, useList } from '@refinedev/core';
 import { Button, Form, Input, message, Modal, Select, Switch } from 'antd';
 import React, { useState } from 'react';
 import { UserRole } from '../../common/enum/user';
@@ -56,8 +55,8 @@ const ModalAddWorkspace: React.FC = () => {
             values: payload,
           },
           {
-            onSuccess: (res) => resolve(res),
-            onError: (error) => reject(error),
+            onSuccess: res => resolve(res),
+            onError: error => reject(error),
           },
         );
       });
@@ -87,7 +86,7 @@ const ModalAddWorkspace: React.FC = () => {
     <Modal
       title={
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
-          <span style={{ fontSize: 23, fontWeight: 600, color: '#000000ff', letterSpacing: 0.1 }}>
+          <span style={{ fontSize: 22, fontWeight: 600, color: '#000000ff', letterSpacing: 0.1 }}>
             Tạo Workspace mới
           </span>
         </div>

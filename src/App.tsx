@@ -29,6 +29,7 @@ import { materialRoutes } from './pages/course-materials/routes';
 import { DashboardPage } from './pages/dashboard';
 import FeedbackForm from './pages/feedback/FeebackForm';
 import InviteWorkspace from './pages/invite/page';
+import { settingsRoutes } from './pages/settings/routes';
 import { workspaceRoutes } from './pages/workspace/routes';
 import { AccessControlProviderCustom } from './providers/AccessControlProviderCustom';
 import { standardDataProvider } from './providers/nestjs/standardProvider';
@@ -89,6 +90,7 @@ function App() {
                       {profileRoutes}
                       {semesterRoutes}
                       {materialRoutes}
+                      {settingsRoutes}
                       <Route path="*" element={<ErrorComponent />} />
                     </Route>
                     <Route element={<GoogleLoginPage />} path="/login" />

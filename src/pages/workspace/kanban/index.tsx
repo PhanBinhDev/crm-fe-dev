@@ -8,10 +8,9 @@ import SortActive from '@/pages/workspace/components/SortActive';
 import CalendarView from '@/pages/workspace/views/CalendarView';
 import KanbanView from '@/pages/workspace/views/KanbanView';
 import ListView from '@/pages/workspace/views/ListView';
-import TableView from '@/pages/workspace/views/TableView';
 import { buildFilterCondition } from '@/utils/filters';
 import { CrudFilter, CrudOperators, useList, useOne } from '@refinedev/core';
-import { IconCalendar, IconLayoutKanban, IconList, IconPlus, IconTable } from '@tabler/icons-react';
+import { IconCalendar, IconLayoutKanban, IconList, IconPlus } from '@tabler/icons-react';
 import { Button, Card, Row, Skeleton, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -34,7 +33,7 @@ const KanbanWorkspaces = () => {
     setSearchValue(value);
   }, []);
 
-  const { data: workspaceData, isLoading: isLoadingWorkspace } = useOne<IWorkspace>({
+  const { data: workspaceData, isFetching: isLoadingWorkspace } = useOne<IWorkspace>({
     resource: 'workspaces',
     id: workspaceId || '',
     queryOptions: { enabled: !!workspaceId },
@@ -84,7 +83,7 @@ const KanbanWorkspaces = () => {
     return [...baseFilters, ...conditionalFilters];
   }, [searchValue, filterParams, workspaceData?.data.id]);
 
-  const { data: activitiesData, isLoading: isLoadingActivities } = useList<IActivity>({
+  const { data: activitiesData, isFetching: isLoadingActivities } = useList<IActivity>({
     resource: 'activities',
     pagination: { mode: 'off' },
     filters: activityFilters,
@@ -116,14 +115,12 @@ const KanbanWorkspaces = () => {
         icon: IconCalendar,
         label: 'Lịch',
       },
-      {
-        key: 'table',
-        icon: IconTable,
-        label: 'Bảng dữ liệu',
-      },
     ],
     [],
   );
+
+  console.log('Rerender KanbanWorkspaces workspace', isLoadingWorkspace);
+  console.log('Rerender KanbanWorkspaces activities', isLoadingActivities);
 
   const renderTabLabel = (item: (typeof tabItems)[0]) => {
     const Icon = item.icon;
@@ -167,12 +164,17 @@ const KanbanWorkspaces = () => {
         return <ListView {...commonProps} />;
       case 'calendar':
         return <CalendarView stages={commonProps.stages} activities={commonProps.activities} />;
-      case 'table':
-        return <TableView {...commonProps} />;
       default:
         return null;
     }
-  }, [activeTab, activities, stagesData?.data, users?.data, workspaceData?.data]);
+  }, [
+    activeTab,
+    activities,
+    stagesData?.data,
+    users?.data,
+    workspaceData?.data,
+    isLoadingWorkspace,
+  ]);
 
   if (isLoadingWorkspace || isLoadingActivities || isLoading) {
     return (
@@ -323,7 +325,7 @@ const KanbanWorkspaces = () => {
                   />
                 </div>
 
-                <div style={{ flex: 1, padding: 8, overflowY: 'auto' }}>
+                <div style={{ flex: 1, padding: '0 8px 8px', overflowY: 'auto' }}>
                   {Array.from({ length: colIndex + 1 }).map((_, index) => (
                     <Card
                       key={index}

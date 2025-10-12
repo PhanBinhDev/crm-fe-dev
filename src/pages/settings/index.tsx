@@ -1,6 +1,11 @@
 const SettingsPage = () => {
   return (
-    <div>
+    <div
+      style={{
+        display: 'flex',
+        height: '100%',
+      }}
+    >
       <h1>Settings</h1>
     </div>
   );

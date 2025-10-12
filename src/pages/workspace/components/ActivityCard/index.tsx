@@ -1,4 +1,3 @@
-import { StageGroup } from '@/common/enum/stage';
 import { IActivity, IStage } from '@/common/types';
 import { DragDropType, getActivityLabel, getPriorityColor, getPriorityLabel } from '@/constants';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
@@ -102,8 +101,6 @@ const ActivityCard = ({
           }
         }}
         onClick={() => {
-          if (activity.stage.stageGroup === StageGroup.CLOSED) return;
-
           openModal('ModalEditActivity', {
             activity,
             stage: stages?.find(s => s.id === activity.stageId),

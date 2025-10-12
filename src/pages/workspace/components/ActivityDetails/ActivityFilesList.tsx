@@ -1,6 +1,7 @@
+import Spinner from '@/components/ui/Spinner';
 import { getFileIcon } from '@/utils/activity';
 import { IconDownload } from '@tabler/icons-react';
-import { Card, Skeleton, Typography, Button, Tooltip } from 'antd';
+import { Button, Card, Tooltip, Typography } from 'antd';
 
 const { Text, Paragraph } = Typography;
 
@@ -16,8 +17,16 @@ interface ActivityFilesListProps {
 const ActivityFilesList = ({ files, loading }: ActivityFilesListProps) => {
   if (loading) {
     return (
-      <div style={{ padding: 12 }}>
-        <Skeleton active paragraph={{ rows: 3 }} />
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '20px',
+          color: '#999',
+          borderRadius: 8,
+          background: '#f0f0f0',
+        }}
+      >
+        <Spinner size={24} />
       </div>
     );
   }
@@ -26,12 +35,19 @@ const ActivityFilesList = ({ files, loading }: ActivityFilesListProps) => {
     return (
       <div
         style={{
-          padding: 24,
           textAlign: 'center',
+          padding: '20px',
           color: '#999',
+          borderRadius: 8,
+          background: '#f0f0f0',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 12,
         }}
       >
-        <Text type="secondary">Chưa có tệp đính kèm nào</Text>
+        <Typography.Text>Chưa có tệp đính kèm</Typography.Text>
+        <Button type="text">Tải lên</Button>
       </div>
     );
   }
@@ -53,11 +69,11 @@ const ActivityFilesList = ({ files, loading }: ActivityFilesListProps) => {
           <Card
             key={index}
             hoverable
-            style={{ 
-              borderRadius: 8, 
+            style={{
+              borderRadius: 8,
               boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
               border: '1px solid #f0f0f0',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
             styles={{
               body: { display: 'flex', gap: 12, padding: 12 },
@@ -92,7 +108,7 @@ const ActivityFilesList = ({ files, loading }: ActivityFilesListProps) => {
                   styles={{
                     icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
                   }}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     // Download file
                     const link = document.createElement('a');
