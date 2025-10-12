@@ -19,7 +19,7 @@ interface NotifyOption {
   value: number | 'none' | 'custom';
 }
 
-const FormAddReminder = forwardRef(({ openUploader, onSubmit }: FormAddReminderProps, ref) => {
+const FormAddReminder = forwardRef(({ openUploader }: FormAddReminderProps, ref) => {
   const [form] = Form.useForm();
   const [formData, setFormData] = useState<FormAddReminderPayload>({
     content: '',

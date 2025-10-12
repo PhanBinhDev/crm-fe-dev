@@ -29,11 +29,7 @@ const ActivityDetailFollowLog = ({ activityId }: ActivityDetailFollowLogProps) =
   const { currentWorkspace } = useWorkspaceStore();
   const { user, isLoading } = useAuth();
 
-  const {
-    data: followersData,
-    isLoading: isLoadingFollows,
-    refetch: refetchFollows,
-  } = useList<IFollower>({
+  const { data: followersData, isLoading: isLoadingFollows } = useList<IFollower>({
     resource: `activities/${activityId}/follows`,
     queryOptions: {
       enabled: !!activityId,

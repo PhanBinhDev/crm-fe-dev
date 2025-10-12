@@ -88,12 +88,9 @@ const ModalAddActivity = () => {
     reminderRef.current?.submitForm();
   }, [reminderRef]);
 
-  const handleReminderSubmit = useCallback(
-    ({ data, callback }: { data: any; callback: () => void }) => {
-      console.log('Reminder data:', data);
-    },
-    [],
-  );
+  const handleReminderSubmit = useCallback(({ data }: { data: any; callback: () => void }) => {
+    console.log('Reminder data:', data);
+  }, []);
 
   const handleOnNotificationUsersChange = useCallback((assignee: IAssignee[]) => {
     setFollows(assignee);

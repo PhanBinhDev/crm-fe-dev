@@ -54,7 +54,6 @@ import {
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
-import { debounce } from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 
@@ -352,18 +351,18 @@ const ActivitySubtask = ({ activity, onSelectSubtask }: ActivitySubtaskProps) =>
     [updateActivity, setSubActivities],
   );
 
-  const debouncedUpdateActivity = useMemo(
-    () =>
-      debounce((activityId: string, newAssignees: IAssignee[]) => {
-        updateActivity({
-          resource: 'activities',
-          id: activityId,
-          values: { assignees: newAssignees.map(a => ({ userId: a.user.id })) },
-          mutationMode: 'optimistic',
-        });
-      }, 500),
-    [updateActivity],
-  );
+  // const debouncedUpdateActivity = useMemo(
+  //   () =>
+  //     debounce((activityId: string, newAssignees: IAssignee[]) => {
+  //       updateActivity({
+  //         resource: 'activities',
+  //         id: activityId,
+  //         values: { assignees: newAssignees.map(a => ({ userId: a.user.id })) },
+  //         mutationMode: 'optimistic',
+  //       });
+  //     }, 500),
+  //   [updateActivity],
+  // );
 
   // const handleOnAssigneeChange = useCallback(
   //   (user: IUser, activityId: string) => {
