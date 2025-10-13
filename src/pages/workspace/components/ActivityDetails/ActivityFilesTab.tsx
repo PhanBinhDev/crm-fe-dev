@@ -8,7 +8,7 @@ interface ActivityFilesTabProps {
   activityId: string;
 }
 
-const ActivityFilesTab = ({ activityId }: ActivityFilesTabProps) => {
+const ActivityFilesTab = ({}: ActivityFilesTabProps) => {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div

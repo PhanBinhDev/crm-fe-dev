@@ -19,11 +19,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   onChange,
   size = 16,
   disabled = false,
-  iconColor = '#fff',
   stageTitle,
 }) => {
   const [open, setOpen] = useState(false);
-  const isDone = stageTitle?.toLowerCase().includes('done');
 
   const handleColorSelect = (color: string) => {
     if (disabled) return;
