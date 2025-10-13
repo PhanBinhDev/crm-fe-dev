@@ -31,7 +31,7 @@ export const UserDrawer: React.FC<{
   return (
     <Drawer
       placement="right"
-      width={600}
+      width={450}
       onClose={onClose}
       open={open}
       title={null}
