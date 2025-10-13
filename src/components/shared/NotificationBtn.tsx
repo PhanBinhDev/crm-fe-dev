@@ -1,4 +1,5 @@
 import { INotification, NotificationTab } from '@/common/types';
+import { useModal } from '@/hooks/useModal';
 import { useList, useUpdate } from '@refinedev/core';
 import { IconBell, IconChecks, IconX } from '@tabler/icons-react';
 import {
@@ -15,6 +16,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import { memo, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Spinner from '../ui/Spinner';
 
 const modalTabs: {
@@ -29,6 +31,8 @@ const modalTabs: {
 const NotificationBtn = () => {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<NotificationTab>('all');
+  const { openModal } = useModal();
+  const navigate = useNavigate();
 
   const {
     data: notificationsData,
@@ -69,6 +73,11 @@ const NotificationBtn = () => {
   }, [notificationsData]);
 
   const markAsRead = (noti: INotification) => {
+    // 
+
+    navigate(noti.data.uri);
+    openModal('ModalEditActivity', { activity: noti.data.open });
+    setOpen(false);
     if (isUpdating || noti.isRead) return;
 
     mutate({
@@ -78,6 +87,8 @@ const NotificationBtn = () => {
         notificationId: noti.id,
       },
     });
+
+    console.log('Navigating to:', noti);
   };
 
   const markAllAsRead = () => {

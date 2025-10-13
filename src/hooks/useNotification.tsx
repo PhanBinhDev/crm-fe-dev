@@ -5,6 +5,7 @@ import { getToken, onMessage } from 'firebase/messaging';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useModal } from './useModal';
 
 export const useNotification = () => {
   const invalidate = useInvalidate();
@@ -15,6 +16,8 @@ export const useNotification = () => {
       retry: false,
     },
   });
+
+  const { openModal } = useModal();
 
   const requestPermission = async () => {
     try {
@@ -37,8 +40,13 @@ export const useNotification = () => {
     }
   };
 
-  const handleNotificationClick = (uri: string) => {
-    navigate(uri);
+  const handleNotificationClick = (data: any) => {
+    console.log('Navigating to:', data.uri);
+
+    navigate(data.uri);
+    openModal('ModalEditActivity', {
+      activity: data.open,
+    });
   };
 
   useEffect(() => {
@@ -46,6 +54,8 @@ export const useNotification = () => {
       const title = payload.notification?.title || 'Thông báo mới';
       const body = payload.notification?.body || '';
       const uri = payload.data?.uri || payload.fcmOptions?.link || '/';
+
+      console.log('Message received. ', payload);
 
       toast(title, {
         duration: 8000,
