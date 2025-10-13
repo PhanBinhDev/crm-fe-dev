@@ -170,7 +170,7 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
                   <ColorPicker
                     value={color}
                     onChange={handleColorChange}
-                    stageTitle={stage?.title}
+                    stageTitle={stage?.stageGroup || stage?.title}
                   />
                   <Text
                     style={{
@@ -241,6 +241,7 @@ const KanbanColumn = ({ id, stage, activities, allStages = [] }: KanbanColumnPro
                 onCollapseGroup={() => setCollapsed(v => !v)}
                 onAddActivity={() => openModal('ModalAddActivity', { stageId: stage.id })}
                 onEditStatuses={() => setEditStatusesOpen(true)}
+                isClosedStage={isClosedStage}
               />
             </div>
           }

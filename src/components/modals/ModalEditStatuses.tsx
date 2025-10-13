@@ -16,7 +16,8 @@ const StageItem: React.FC<{
   stage: IStage;
   onEdit: (stage: IStage) => void;
   onDelete: (id: string) => void;
-}> = ({ stage, onEdit, onDelete }) => {
+  onUpdateColor: (id: string, newColor: string) => void;
+}> = ({ stage, onEdit, onDelete, onUpdateColor }) => {
   const items: MenuProps['items'] = [
     { key: 'edit', label: 'Chỉnh sửa', onClick: () => onEdit(stage) },
     {
@@ -43,8 +44,29 @@ const StageItem: React.FC<{
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <IconGripVertical size={14} color="#838383" style={{ cursor: 'grab' }} />
-        <ColorPicker value={stage.color} />
-        <Typography.Text>{stage.title}</Typography.Text>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            backgroundColor: stage.color || '#e5e7eb',
+            color: stage.color ? '#fff' : '#333',
+            padding: '1px 8px',
+            borderRadius: 6,
+            fontWeight: 500,
+            transition: 'all 0.3s ease',
+          }}
+        >
+          <ColorPicker
+            size={14}
+            value={stage.color}
+            stageTitle={stage.title}
+            onChange={newColor => onUpdateColor(stage.id, newColor)}
+          />
+          <Typography.Text style={{ color: stage.color ? '#fff' : '#333' }}>
+            {stage.title}
+          </Typography.Text>
+        </div>
       </div>
       <Dropdown menu={{ items }} trigger={['click']}>
         <MoreOutlined style={{ cursor: 'pointer' }} />
@@ -52,7 +74,6 @@ const StageItem: React.FC<{
     </div>
   );
 };
-
 const StageModal: React.FC<{
   visible: boolean;
   onCancel: () => void;
@@ -61,7 +82,6 @@ const StageModal: React.FC<{
   loading?: boolean;
 }> = ({ visible, onCancel, onFinish, initialValues, loading }) => {
   const [form] = Form.useForm();
-
   return (
     <Modal
       open={visible}
@@ -135,6 +155,15 @@ const StageSettings: React.FC = () => {
       info: 'Các trạng thái đã đóng hoặc không còn theo dõi, ví dụ: Cancelled, Closed.',
     },
   ];
+  const handleUpdateColor = (id: string, newColor: string) => {
+    updateStage({
+      resource: 'stages',
+      id,
+      values: { color: newColor },
+      mutationMode: 'optimistic',
+      successNotification: false,
+    });
+  };
 
   // =================== CREATE ===================
   const handleCreate = (values: any) => {
@@ -254,6 +283,7 @@ const StageSettings: React.FC = () => {
                   stage={stage}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onUpdateColor={handleUpdateColor}
                 />
               ))}
 
