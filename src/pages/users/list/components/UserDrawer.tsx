@@ -1,4 +1,5 @@
 import type { IUser } from '@/common/types';
+import { getUserRoleLabel } from '@/utils';
 import { useOne } from '@refinedev/core';
 import {
   IconCalendar,
@@ -71,7 +72,7 @@ export const UserDrawer: React.FC<{
                 {user.name}
               </Title>
               <Text type="secondary" style={{ fontSize: 14 }}>
-                Chuyên ngành: {user.major || 'Chưa cập nhật'}
+                Vai trò: {getUserRoleLabel(user.role) || 'Chưa cập nhật'}
               </Text>
             </div>
           </div>

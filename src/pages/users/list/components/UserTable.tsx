@@ -1,8 +1,7 @@
 import type { IUser } from '@/common/types';
 import { paginationConfigOptions } from '@/config/pagination';
-import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { getUserRoleLabel } from '@/utils';
-import { Avatar, Badge, Table, Tag, Tooltip, type TableProps } from 'antd';
+import { Badge, Table, type TableProps } from 'antd';
 import { ColumnType } from 'antd/lib/table';
 import { FC } from 'react';
 import { UserRowActions } from './UserRowActions';
@@ -17,30 +16,33 @@ export const UserTable: FC<UserTableProps> = ({ tableProps, onPageSizeChange }) 
 
   const columns: ColumnType<IUser>[] = [
     {
-      title: 'Avatar',
-      dataIndex: 'avatar',
-      render: (avatar: string, record: IUser) => (
-        <Tooltip title={getUserRoleLabel(record.role)}>
-          <Avatar
-            src={avatar || AVATAR_PLACEHOLDER}
-            size={40}
-            style={{ border: '1px solid #eee', background: '#f6f6f6' }}
-          >
-            {(record.name || 'U').charAt(0).toUpperCase()}
-          </Avatar>
-        </Tooltip>
+      title: 'STT',
+      dataIndex: 'id',
+      key: 'stt',
+      align: 'center',
+      render: (_: any, __: any, index: number) => (
+        <span
+          style={{
+            display: 'inline-block',
+            minWidth: 40,
+            maxWidth: 80,
+            textAlign: 'center',
+          }}
+        >
+          {index + 1}
+        </span>
       ),
-      width: 80,
     },
+
     {
       title: 'Trạng thái',
       dataIndex: 'isActive',
       align: 'center',
-      width: 120,
+      width: 180,
       render: (isActive: boolean) => (
         <Badge
           status={isActive ? 'success' : 'error'}
-          text={isActive ? 'Active' : 'Inactive'}
+          text={isActive ? 'Hoạt động' : 'Vô hiệu hoá'}
           style={{
             fontSize: 14,
             padding: '2px 8px',
@@ -56,42 +58,23 @@ export const UserTable: FC<UserTableProps> = ({ tableProps, onPageSizeChange }) 
       title: 'Họ tên',
       dataIndex: 'name',
       sorter: true,
-      render: (_: string, record: IUser) => (
-        <div>
-          <span>{record.name}</span>
-          {record.isActive === false && (
-            <Tag color="error" style={{ marginLeft: 8, fontSize: 10 }}>
-              Không hoạt động
-            </Tag>
-          )}
-        </div>
-      ),
     },
-    {
-      title: 'Username',
-      dataIndex: 'username',
-      sorter: true,
-    },
+
     {
       title: 'Email',
       dataIndex: 'email',
       sorter: true,
     },
     {
+      title: 'Vai trò',
+      dataIndex: 'role',
+      sorter: true,
+      render: (_: string, record: IUser) => getUserRoleLabel(record.role) || '-',
+    },
+    {
       title: 'Chuyên ngành',
       dataIndex: 'major',
       render: (major: string) => major || '-',
-    },
-    {
-      title: 'Ngày sinh',
-      dataIndex: 'dateOfBirth',
-      render: (date: string) => (date ? new Date(date).toLocaleDateString('vi-VN') : '-'),
-    },
-    {
-      title: 'Ngày tạo',
-      dataIndex: 'createdAt',
-      sorter: true,
-      render: (date: string) => new Date(date).toLocaleDateString('vi-VN'),
     },
     {
       title: 'Thao tác',

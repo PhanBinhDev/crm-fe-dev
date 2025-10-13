@@ -4,7 +4,7 @@ import { useDelete, useList } from '@refinedev/core';
 import { IconPointFilled, IconX } from '@tabler/icons-react';
 import { Avatar, Card, List, message, Popconfirm, Skeleton, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 const { Paragraph } = Typography;
 interface ActivityLinksProps {
   viewMode: 'list' | 'category';
@@ -45,10 +45,7 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
     },
   });
 
-  const listLink = useMemo(() => {
-    if (!data?.data || isLoading) return [] as IActivityLinks[];
-    return data.data;
-  }, [data, isLoading]);
+  const listLink = !data?.data || isLoading ? [] : data.data;
 
   if (isLoading) {
     return (
