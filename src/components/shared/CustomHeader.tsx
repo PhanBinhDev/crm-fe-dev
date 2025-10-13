@@ -170,7 +170,7 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
 
       <Drawer
         title="Hồ sơ cá nhân"
-        width={500}
+        width={450}
         open={profileTab}
         onClose={() => setProfileTab(false)}
         mask={true}

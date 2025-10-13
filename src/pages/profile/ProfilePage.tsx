@@ -2,6 +2,7 @@
 import type { IFileUploadResponse, IUser } from '@/common/types';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
+import { getMajorOptionsForRole } from '@/utils/majorGroups';
 import { useCustomMutation, useInvalidate, useOne, useUpdate } from '@refinedev/core';
 import {
   IconCalendar,
@@ -23,6 +24,7 @@ import {
   DatePicker,
   Input,
   Result,
+  Select,
   Skeleton,
   Space,
   Spin,
@@ -33,7 +35,7 @@ import {
 import dayjs from 'dayjs';
 import type { UploadRequestOption } from 'rc-upload/lib/interface';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const { Title, Text } = Typography;
 
@@ -70,6 +72,12 @@ export const ProfilePage: React.FC = () => {
 
   const { mutate: uploadFile } = useCustomMutation<IFileUploadResponse>();
   const { mutate: updateUser } = useUpdate<IUser>();
+
+  // Get major options based on user's role
+  const majorOptions = useMemo(() => {
+    if (!identity?.role) return [];
+    return getMajorOptionsForRole(identity.role);
+  }, [identity?.role]);
 
   useEffect(() => {
     if (identity?.avatar) {
@@ -338,7 +346,6 @@ export const ProfilePage: React.FC = () => {
             />
           </div>
 
-          {/* Name and info */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <Title level={5} style={{ marginBottom: 2, fontSize: 19, fontWeight: 600 }}>
               {currentIdentity.name}
@@ -625,12 +632,16 @@ export const ProfilePage: React.FC = () => {
                           Chuyên ngành
                         </Text>
                         {isEditing ? (
-                          <Input
+                          <Select
                             value={editData.major}
-                            onChange={e => handleInputChange('major', e.target.value)}
-                            onPressEnter={handleSave}
-                            placeholder="Nhập chuyên ngành"
-                            style={{ fontSize: 15, fontWeight: 500 }}
+                            onChange={value => handleInputChange('major', value)}
+                            placeholder="Chọn chuyên ngành"
+                            style={{ width: '100%', fontSize: 15, fontWeight: 500 }}
+                            options={majorOptions}
+                            showSearch
+                            filterOption={(input, option: any) =>
+                              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                            }
                           />
                         ) : (
                           <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>

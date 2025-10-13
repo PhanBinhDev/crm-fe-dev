@@ -1,5 +1,7 @@
 import { UserRole } from '@/common/enum/user';
 import type { IUser } from '@/common/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { useTable } from '@refinedev/antd';
 import { Card, Col, Row } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
@@ -68,6 +70,9 @@ export const UserList = () => {
     }
   }, [location.state, tableQueryResult]);
 
+  const { user: currentUser } = useAuth();
+  const { canEdit } = useUserPermissions(currentUser);
+
   return (
     <Card>
       <Row gutter={[0, 16]}>
@@ -90,7 +95,7 @@ export const UserList = () => {
               onStatusFilter={value => setFilters(prev => ({ ...prev, isActive: value }))}
               onReset={handleReset}
             />
-            <UserActions />
+            {canEdit && <UserActions />}
           </div>
         </Col>
         <Col span={24}>
