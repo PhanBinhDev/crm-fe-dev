@@ -8,6 +8,7 @@ interface MoreOptionColumnProps {
   onCollapseGroup: () => void;
   onAddActivity: () => void;
   onEditStatuses: () => void;
+  isClosedStage?: boolean;
 }
 
 const MoreOptionColumn = ({
@@ -16,6 +17,7 @@ const MoreOptionColumn = ({
   onCollapseGroup,
   onAddActivity,
   onEditStatuses,
+  isClosedStage = false,
 }: MoreOptionColumnProps) => {
   const [open, setOpen] = useState(false);
 
@@ -72,6 +74,29 @@ const MoreOptionColumn = ({
         <IconPencil size={14} color="#8c8c8c" />
         Sửa cột
       </div>
+      {!isClosedStage && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: '4px 8px',
+            cursor: 'pointer',
+            borderRadius: 5,
+            fontSize: 14,
+            transition: 'background 0.2s',
+          }}
+          onClick={() => {
+            onAddActivity();
+            setOpen(false);
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f5')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+        >
+          <IconPlus size={14} color="#8c8c8c" />
+          Thêm hoạt động
+        </div>
+      )}
       <div
         style={{
           display: 'flex',
@@ -84,28 +109,7 @@ const MoreOptionColumn = ({
           transition: 'background 0.2s',
         }}
         onClick={() => {
-          onAddActivity();
-          setOpen(false);
-        }}
-        onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f5')}
-        onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-      >
-        <IconPlus size={14} color="#8c8c8c" />
-        Thêm hoạt động
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-          padding: '4px 8px',
-          cursor: 'pointer',
-          borderRadius: 5,
-          fontSize: 14,
-          transition: 'background 0.2s',
-        }}
-        onClick={() => {
-          onEditStatuses?.(); 
+          onEditStatuses?.();
           setOpen(false);
         }}
         onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f5')}

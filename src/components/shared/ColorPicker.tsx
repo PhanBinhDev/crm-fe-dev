@@ -1,5 +1,5 @@
 import { PRESET_COLORS } from '@/constants';
-import { IconCircleDashed } from '@tabler/icons-react';
+import { IconCircleDashed, IconCircleDashedCheck } from '@tabler/icons-react';
 import { ColorPicker as AntdColorPicker, Popover } from 'antd';
 import { useState } from 'react';
 import { useDebounceCallback } from 'usehooks-ts';
@@ -17,11 +17,13 @@ interface ColorPickerProps {
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   value = '#EA580C',
   onChange,
-  size = 14,
+  size = 16,
   disabled = false,
   iconColor = '#fff',
+  stageTitle,
 }) => {
   const [open, setOpen] = useState(false);
+  const isDone = stageTitle?.toLowerCase().includes('done');
 
   const handleColorSelect = (color: string) => {
     if (disabled) return;
@@ -100,7 +102,11 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
       placement="bottomLeft"
       styles={{ root: { zIndex: 1060 } }}
     >
-      <IconCircleDashed size={size} color={iconColor} />
+      {stageTitle?.toLowerCase().includes('done') ? (
+        <IconCircleDashedCheck size={size} color={value ? '#fff' : '#8c8c8c'} stroke={2} />
+      ) : (
+        <IconCircleDashed size={size} color={value ? '#fff' : '#8c8c8c'} stroke={2} />
+      )}
     </Popover>
   );
 };
