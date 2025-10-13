@@ -276,7 +276,7 @@ const NotificationBtn = () => {
               justifyContent: 'center',
             },
           }}
-          icon={<IconX size={14} />}
+          icon={<IconX size={14} stroke={1.5} />}
           disabled={!notifications.length || isUpdating}
           onClick={clearAll}
         >
