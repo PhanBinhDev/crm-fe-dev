@@ -1,11 +1,11 @@
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
-import { useAuth } from '@/hooks/useAuth';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
-import { useLogout } from '@refinedev/core';
+import { useGetIdentity, useLogout } from '@refinedev/core';
 import { IconLogout, IconSettings, IconUser, IconUserCircle } from '@tabler/icons-react';
 import { Avatar, Button, Drawer, Dropdown, Layout, MenuProps, Skeleton, Space } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { IUser } from '../../common/types/users';
 import CustomBreadcrumb from './CustomBreadcrumb';
 import NotificationBtn from './NotificationBtn';
 
@@ -16,52 +16,37 @@ interface CustomHeaderProps {
 }
 
 export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
-  const { user, isLoading } = useAuth();
+  const { data: user, isLoading, refetch } = useGetIdentity<IUser>();
   const navigate = useNavigate();
   const { mutate: logout } = useLogout();
   const [profileTab, setProfileTab] = useState(false);
+  useEffect(() => {
+    if (!profileTab) refetch?.();
+  }, [profileTab]);
 
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
       icon: <IconUserCircle size={16} />,
       label: 'Hồ sơ cá nhân',
-      type: 'item',
       onClick: () => setProfileTab(true),
-      style: {
-        borderRadius: 8,
-      },
+      style: { borderRadius: 8 },
     },
     {
       key: 'settings',
       icon: <IconSettings size={16} />,
-      onClick: () => {
-        navigate('/settings');
-      },
+      onClick: () => navigate('/settings'),
       label: 'Cài đặt',
-      type: 'item',
-      style: {
-        borderRadius: 8,
-      },
+      style: { borderRadius: 8 },
     },
     { type: 'divider' },
     {
       key: 'logout',
-      style: {
-        borderRadius: 8,
-      },
-      icon: (
-        <IconLogout
-          size={16}
-          style={{
-            color: 'inherit',
-          }}
-        />
-      ),
+      icon: <IconLogout size={16} style={{ color: 'inherit' }} />,
       label: 'Đăng xuất',
       danger: true,
-      type: 'item',
       onClick: () => logout(),
+      style: { borderRadius: 8 },
     },
   ];
 
@@ -86,17 +71,7 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
       >
         <CustomBreadcrumb />
 
-        <Space
-          size={8}
-          align="center"
-          styles={{
-            item: {
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
-          }}
-        >
+        <Space size={8} align="center">
           <NotificationBtn />
           <Dropdown
             menu={{
@@ -143,8 +118,8 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
                     src={
                       user?.avatar
                         ? user.avatar.startsWith('http')
-                          ? user.avatar
-                          : `${import.meta.env.VITE_API_BASE_URL}${user?.avatar}`
+                          ? `${user.avatar}?t=${Date.now()}`
+                          : `${import.meta.env.VITE_API_BASE_URL}${user.avatar}?t=${Date.now()}`
                         : AVATAR_PLACEHOLDER
                     }
                     icon={<IconUser size={18} />}
@@ -173,17 +148,12 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
         width={500}
         open={profileTab}
         onClose={() => setProfileTab(false)}
-        mask={true}
-        maskClosable={true}
+        mask
+        maskClosable
+        destroyOnClose
         styles={{
-          body: {
-            padding: 0,
-            height: '100%',
-          },
-          mask: {
-            backgroundColor: 'rgba(0, 0, 0, 0.45)',
-            position: 'fixed',
-          },
+          body: { padding: 0, height: '100%' },
+          mask: { backgroundColor: 'rgba(0, 0, 0, 0.45)', position: 'fixed' },
         }}
       >
         <ProfilePage />
