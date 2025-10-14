@@ -1,3 +1,5 @@
+import { ActivityType } from '@/common/enum/activity';
+import { IActivity } from '@/common/types';
 import {
   IconFilePencil,
   IconFilter2Up,
@@ -22,14 +24,14 @@ interface ActivityDetailRightSidebarProps {
   isOverlay: boolean;
   collapsedLeft: boolean;
   setCollapsedLeft: (val: boolean) => void;
-  activityId: string;
+  activity: IActivity;
 }
 
 const ActivityDetailRightSidebar = ({
   isOverlay,
   collapsedLeft,
   setCollapsedLeft,
-  activityId,
+  activity,
 }: ActivityDetailRightSidebarProps) => {
   const [collapsedRight, setCollapsedRight] = useState(false);
   const [activeTab, setActiveTab] = useState<RightSidebarTab>('logs');
@@ -82,11 +84,11 @@ const ActivityDetailRightSidebar = ({
               }),
         }}
       >
-        {!collapsedRight && activeTab === 'logs' && <ActivityLogTab activityId={activityId} />}
-        {!collapsedRight && activeTab === 'links' && <ActivityLinkTab activityId={activityId} />}
-        {!collapsedRight && activeTab === 'files' && <ActivityFilesTab activityId={activityId} />}
+        {!collapsedRight && activeTab === 'logs' && <ActivityLogTab activityId={activity.id} />}
+        {!collapsedRight && activeTab === 'links' && <ActivityLinkTab activityId={activity.id} />}
+        {!collapsedRight && activeTab === 'files' && <ActivityFilesTab activityId={activity.id} />}
         {!collapsedRight && activeTab === 'feedback' && (
-          <ActivityFeedbackTab activityId={activityId} />
+          <ActivityFeedbackTab activityId={activity.id} />
         )}
         {!collapsedRight && activeTab === 'comment' && (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -113,7 +115,7 @@ const ActivityDetailRightSidebar = ({
                 onClick={() => {}}
               />
             </div>
-            <ActivityCommentTab activityId={activityId} />
+            <ActivityCommentTab activityId={activity.id} />
           </div>
         )}
       </Sider>
@@ -205,27 +207,30 @@ const ActivityDetailRightSidebar = ({
             onClick={() => handleTabClick('comment')}
           />
         </Tooltip>
-
-        <Divider
-          style={{
-            margin: '12px 0',
-          }}
-        />
-
-        <Tooltip placement="left" title={'Đánh giá'}>
-          <Button
-            type="text"
-            icon={<IconFilePencil size={16} stroke={1.5} color="#838383" />}
+        {activity.type === ActivityType.EVENT && (
+          <Divider
             style={{
-              background: activeTab === 'feedback' ? '#f0f0f0' : 'transparent',
-              borderRadius: 8,
+              margin: '12px 0',
             }}
-            styles={{
-              icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
-            }}
-            onClick={() => handleTabClick('feedback')}
           />
-        </Tooltip>
+        )}
+
+        {activity.type === ActivityType.EVENT && (
+          <Tooltip placement="left" title={'Đánh giá'}>
+            <Button
+              type="text"
+              icon={<IconFilePencil size={16} stroke={1.5} color="#838383" />}
+              style={{
+                background: activeTab === 'feedback' ? '#f0f0f0' : 'transparent',
+                borderRadius: 8,
+              }}
+              styles={{
+                icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+              }}
+              onClick={() => handleTabClick('feedback')}
+            />
+          </Tooltip>
+        )}
       </div>
     </>
   );

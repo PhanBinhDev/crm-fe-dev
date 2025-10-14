@@ -65,8 +65,6 @@ const ModalEditActivity = () => {
     queryOptions: { enabled: !!activityFromModal?.id },
   });
 
-  
-
   const { mutate: updateActivity } = useUpdate<IActivity>({
     resource: 'activities',
     id: selectedItem?.data?.id,
@@ -690,7 +688,7 @@ const ModalEditActivity = () => {
             {renderContent}
           </Content>
           <ActivityDetailRightSidebar
-            activityId={activity.id}
+            activity={activity}
             isOverlay={isOverlay}
             collapsedLeft={collapsedLeft}
             setCollapsedLeft={setCollapsedLeft}
