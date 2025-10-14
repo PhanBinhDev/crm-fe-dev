@@ -1,5 +1,5 @@
 import { NotifyOption } from '@/common/types';
-import { IconBell, IconCheck, IconChevronLeft } from '@tabler/icons-react';
+import { IconAlarm, IconCheck, IconChevronLeft } from '@tabler/icons-react';
 import { Button, InputNumber, List, Popover, Select, Space, Typography } from 'antd';
 import { useState } from 'react';
 
@@ -22,22 +22,30 @@ const NotifyActivity = ({ value, onChange }: NotifyActivityProps) => {
   const [customUnit, setCustomUnit] = useState<'minutes' | 'hours'>('minutes');
 
   const notifyContent = customOpen ? (
-    <Space direction="vertical" style={{ width: '100%', padding: '0 12px 8px' }}>
+    <Space direction="vertical" style={{ width: '100%', padding: 8 }}>
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          padding: '3px 0',
         }}
       >
-        <IconChevronLeft
-          size={16}
-          style={{ cursor: 'pointer' }}
-          onClick={() => setCustomOpen(false)}
-        />
-        <Typography.Text strong style={{ fontSize: 12 }}>
-          Thời gian nhắc nhở
+        <Button
+          type="text"
+          size="small"
+          style={{
+            padding: '0 4px',
+            borderRadius: 7,
+          }}
+        >
+          <IconChevronLeft
+            size={14}
+            style={{ cursor: 'pointer' }}
+            onClick={() => setCustomOpen(false)}
+          />
+        </Button>
+        <Typography.Text strong style={{ fontSize: 13 }}>
+          Tùy chỉnh
         </Typography.Text>
       </div>
 
@@ -63,7 +71,7 @@ const NotifyActivity = ({ value, onChange }: NotifyActivityProps) => {
       <Button
         type="primary"
         size="small"
-        style={{ marginTop: 8, width: '100%' }}
+        style={{ marginTop: 8, width: '100%', height: 28, borderRadius: 8 }}
         onClick={() => {
           const minutes = customUnit === 'minutes' ? customValue : customValue * 60;
           onChange({
@@ -78,11 +86,11 @@ const NotifyActivity = ({ value, onChange }: NotifyActivityProps) => {
       </Button>
     </Space>
   ) : (
-    <Space direction="vertical" style={{ width: '100%' }}>
-      <Typography style={{ padding: '3px 12px 0', fontWeight: 600 }}>Thời gian nhắc nhở</Typography>
+    <Space direction="vertical" style={{ width: '100%', padding: 8 }}>
+      <Typography style={{ fontWeight: 600, paddingLeft: 6 }}>Thời gian nhắc nhở</Typography>
       <List>
         {notifyOptions.map(option => (
-          <div key={option.value} style={{ padding: '0 8px' }}>
+          <div key={option.value}>
             <List.Item
               onClick={() => {
                 if (option.value === 'custom') {
@@ -126,7 +134,7 @@ const NotifyActivity = ({ value, onChange }: NotifyActivityProps) => {
       onOpenChange={setOpen}
       styles={{
         body: {
-          padding: '8px 0',
+          padding: 0,
           width: 200,
         },
       }}
@@ -137,14 +145,16 @@ const NotifyActivity = ({ value, onChange }: NotifyActivityProps) => {
     >
       <Button
         size="small"
+        type="text"
         style={{
           borderRadius: 6,
           gap: 4,
           color: '#838383',
+          border: '1px solid #d9d9d9',
         }}
-        icon={<IconBell size={14} />}
+        icon={<IconAlarm size={14} />}
       >
-        {value ? value.label : 'Thông báo'}
+        {value ? value.label : 'Nhắc trước...'}
       </Button>
     </Popover>
   );

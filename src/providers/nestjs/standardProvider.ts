@@ -129,7 +129,6 @@ export const standardDataProvider = (
 
     const { data } = await httpClient.delete(url);
 
-    // Handle backend ResponseDto structure
     return {
       data: data.data || data,
     };
@@ -150,7 +149,6 @@ export const standardDataProvider = (
   },
 
   custom: async ({ url, method, meta, filters, sorters, payload, query, headers }) => {
-    // Build standard query params
     const standardParams = buildStandardQuery(filters, undefined, sorters, meta);
 
     let requestUrl = url;

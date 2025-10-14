@@ -14,6 +14,7 @@ interface AssigneeActivityProps {
   onToggleSelectUser: (user: IUser) => void;
   title?: string;
   placement?: AbstractTooltipProps['placement'];
+  tooltipTitle?: string;
 }
 
 const MAX_DISPLAY_COUNT = 3;
@@ -23,6 +24,7 @@ const AssigneeActivity = ({
   selectedUser,
   onToggleSelectUser,
   title = 'Phụ trách',
+  tooltipTitle = 'Chọn người phụ trách',
   placement,
 }: AssigneeActivityProps) => {
   const { user } = useAuth();
@@ -51,8 +53,15 @@ const AssigneeActivity = ({
 
   const members = useMemo(() => {
     if (isLoading) return [];
-    return data?.data ?? [];
-  }, [isLoading, data]);
+
+    const membersList = data?.data ?? [];
+
+    return membersList.sort((a, b) => {
+      if (a.user.id === user?.id) return -1;
+      if (b.user.id === user?.id) return 1;
+      return 0;
+    });
+  }, [isLoading, data, user?.id]);
 
   return (
     <Popover
@@ -183,15 +192,15 @@ const AssigneeActivity = ({
                 e.currentTarget.style.background = 'transparent';
               }}
             >
-              {selectedUser.slice(0, MAX_DISPLAY_COUNT).map(user => (
+              {selectedUser.slice(0, MAX_DISPLAY_COUNT).map((user, index) => (
                 <Tooltip title={user.name} key={user.id}>
                   <Avatar
                     size={18}
                     src={user.avatar}
                     style={{
                       background: '#7c3aed',
-
                       border: '1px solid #fff',
+                      marginLeft: index === 0 ? 0 : -8,
                     }}
                   >
                     <span
@@ -227,24 +236,29 @@ const AssigneeActivity = ({
               )}
             </div>
           ) : (
-            <Button
-              size="small"
-              style={{
-                borderRadius: 6,
-                gap: 4,
-                color: '#838383',
-              }}
-              styles={{
-                icon: {
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                },
-              }}
-              icon={<IconUsers size={12} />}
-            >
-              {title}
-            </Button>
+            <Tooltip title={tooltipTitle} arrow={false} placement="topRight">
+              <Button
+                size="small"
+                type="text"
+                style={{
+                  borderRadius: 6,
+                  gap: 4,
+                  color: '#838383',
+                  border: '1px solid #d9d9d9',
+                  boxShadow: 'none',
+                }}
+                styles={{
+                  icon: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  },
+                }}
+                icon={<IconUsers size={12} />}
+              >
+                {title}
+              </Button>
+            </Tooltip>
           )}
         </>
       )}
