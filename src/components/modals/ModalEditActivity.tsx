@@ -1,5 +1,6 @@
 import { ActivityType } from '@/common/enum/activity';
-import { IActivity } from '@/common/types';
+import { IActivity, IStage } from '@/common/types';
+import ModalRenderLinkFeedbackEvent from '@/components/modals/ModalRenderLinkFeedbackEvent';
 import { useModal } from '@/hooks/useModal';
 import ActivityChecklist from '@/pages/workspace/components/ActivityDetails/ActivityChecklist';
 import ActivityDetailRightSidebar from '@/pages/workspace/components/ActivityDetails/ActivityDetailRightSidebar';
@@ -9,7 +10,7 @@ import ActivitySubtask from '@/pages/workspace/components/ActivityDetails/Activi
 import ProgressBar from '@/pages/workspace/components/ActivityDetails/ProgressBar';
 import SelectActivityType from '@/pages/workspace/components/SelectActivityType';
 import { calculateProgress } from '@/utils/activity';
-import { useInvalidate, useOne, useUpdate } from '@refinedev/core';
+import { useInvalidate, useList, useOne, useUpdate } from '@refinedev/core';
 import {
   IconCalendar,
   IconCornerLeftUp,
@@ -50,6 +51,7 @@ const ModalEditActivity = () => {
     duplicate: false,
     delete: false,
   });
+  const [openModalFeedbackLink, setOpenModalFeedbackLink] = useState(false);
 
   const originalNameRef = useRef<string>('');
   const originalDescriptionRef = useRef<string>('');
@@ -64,8 +66,6 @@ const ModalEditActivity = () => {
     id: activityFromModal?.id,
     queryOptions: { enabled: !!activityFromModal?.id },
   });
-
-  
 
   const { mutate: updateActivity } = useUpdate<IActivity>({
     resource: 'activities',
@@ -110,6 +110,8 @@ const ModalEditActivity = () => {
 
     return activityData.data;
   }, [activityData, isLoadingActivity]);
+
+  console.log('activity', activity);
 
   useEffect(() => {
     if (activity) {
@@ -388,7 +390,7 @@ const ModalEditActivity = () => {
                   })
                 }
               >
-                Quay lại{' '}
+                Quay lại
                 <span>
                   {activity?.name?.length > 20
                     ? activity?.name.slice(0, 20) + '...'
@@ -497,6 +499,39 @@ const ModalEditActivity = () => {
     updateActivity,
   ]);
 
+  const { data: stagesData, isLoading: isLoadingStages } = useList<IStage>({
+    resource: 'stages',
+    filters: [
+      {
+        field: 'workspaceId',
+        operator: 'eq',
+        value: selectedItem?.data.workspaceId,
+      },
+    ],
+    pagination: {
+      mode: 'off',
+    },
+  });
+
+  const closedStage = useMemo(() => {
+    if (!stagesData?.data || isLoadingStages) return undefined;
+
+    return stagesData.data.find(stage => stage.title === 'CLOSED');
+  }, [stagesData, isLoadingStages]);
+
+  const handleCloseModalFeedbackLink = () => {
+    const updateStage = closedStage
+      ? {
+          stage: closedStage,
+          stageId: closedStage.id,
+        }
+      : undefined;
+    updateActivity({ values: updateStage });
+    setOpenModalFeedbackLink(false);
+    closeModal();
+    setData({});
+  };
+
   return (
     <Modal
       open
@@ -576,7 +611,7 @@ const ModalEditActivity = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <IconCalendar style={{ color: '#8c8c8c', fontSize: 12 }} size={12} />
               <Text style={{ fontSize: 13, display: 'block' }}>
-                Ngày tạo:{' '}
+                Ngày tạo:
                 {new Date(activity?.createdAt).toLocaleDateString('vi-VN', {
                   day: '2-digit',
                   month: '2-digit',
@@ -590,15 +625,37 @@ const ModalEditActivity = () => {
                 })}
               </Text>
             </div>
+            {/* Chia sẻ */}
+            {activity.type === ActivityType.EVENT && activity.stage.title === 'DONE' ? (
+              <>
+                <Button
+                  styles={{
+                    icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+                  }}
+                  icon={<IconX size={16} />}
+                  danger
+                  onClick={() => setOpenModalFeedbackLink(true)}
+                >
+                  Đóng sự kiện
+                </Button>
+                {openModalFeedbackLink && (
+                  <ModalRenderLinkFeedbackEvent
+                    activity={activity}
+                    setOpenModal={handleCloseModalFeedbackLink}
+                  />
+                )}
+              </>
+            ) : (
+              <Button
+                styles={{
+                  icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+                }}
+                icon={<IconShare size={16} />}
+              >
+                Chia sẻ
+              </Button>
+            )}
 
-            <Button
-              styles={{
-                icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
-              }}
-              icon={<IconShare size={16} />}
-            >
-              Chia sẻ
-            </Button>
             <Tooltip title="Đóng">
               <Button
                 type="text"
