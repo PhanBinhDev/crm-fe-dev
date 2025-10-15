@@ -39,29 +39,41 @@ const ModalAddWorkspace: React.FC = () => {
       if (inviteMembers.length > 0) {
         payload.members = inviteMembers.map(m => m.email);
       }
-
-      // Chỉ thêm avatar nếu có
       if (avatarData) {
         payload.avatar = avatarData;
       }
 
-      console.log('Creating workspace with payload:', payload);
+      if (avatarData) {
+        const formData = new FormData();
 
-      const result = await new Promise((resolve, reject) => {
+        Object.entries(payload).forEach(([key, value]) => {
+          if (Array.isArray(value)) {
+            value.forEach((item, idx) => {
+              formData.append(`${key}[${idx}]`, item);
+            });
+          } else {
+            formData.append(key, String(value));
+          }
+        });
+        formData.append('avatar', avatarData as any);
+
         createWorkspace(
           {
             url: '/workspaces',
             method: 'post',
-            values: payload,
+            config: {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            },
+            values: formData,
           },
           {
-            onSuccess: res => resolve(res),
-            onError: error => reject(error),
+            onSuccess: () => {},
+            onError: () => {},
           },
         );
-      });
-      console.log('Workspace creation result:', result);
-
+      }
       message.success('Tạo workspace thành công!');
       refreshWorkspaces();
       form.resetFields();
