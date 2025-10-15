@@ -73,6 +73,23 @@ const ModalAddWorkspace: React.FC = () => {
             onError: () => {},
           },
         );
+      } else {
+        createWorkspace(
+          {
+            method: 'post',
+            url: '/workspaces',
+            config: {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            },
+            values: payload,
+          },
+          {
+            onSuccess: () => {},
+            onError: () => {},
+          },
+        );
       }
       message.success('Tạo workspace thành công!');
       refreshWorkspaces();
