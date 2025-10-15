@@ -118,8 +118,8 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
                     src={
                       user?.avatar
                         ? user.avatar.startsWith('http')
-                          ? `${user.avatar}?t=${Date.now()}`
-                          : `${import.meta.env.VITE_API_BASE_URL}${user.avatar}?t=${Date.now()}`
+                          ? `${user.avatar}?t=${user.updatedAt}`
+                          : `${import.meta.env.VITE_API_BASE_URL}${user.avatar}?t=${user.updatedAt}`
                         : AVATAR_PLACEHOLDER
                     }
                     icon={<IconUser size={18} />}

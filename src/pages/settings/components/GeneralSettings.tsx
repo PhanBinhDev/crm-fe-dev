@@ -90,7 +90,7 @@ const GeneralSettings = () => {
 
           invalidate({
             resource: 'auth',
-            invalidates: ['detail'],
+            invalidates: ['all'],
           });
         },
         onSettled: () => {
@@ -134,11 +134,11 @@ const GeneralSettings = () => {
                 onSuccess?.(res.data, file as any);
                 invalidate({
                   resource: 'auth',
-                  invalidates: ['detail'],
+                  invalidates: ['all'],
                 });
                 invalidate({
                   resource: 'users',
-                  invalidates: ['detail'],
+                  invalidates: ['all'],
                   id: identity?.id,
                 });
               },
@@ -192,7 +192,7 @@ const GeneralSettings = () => {
           </Space>
         }
         bordered={false}
-        style={{ height: '100%' }}
+        style={{ height: '100%', boxShadow: 'none' }}
       >
         <div
           style={{
@@ -212,17 +212,35 @@ const GeneralSettings = () => {
               gap: 15,
             }}
           >
-            <Avatar
-              size={130}
-              icon={<UserOutlined />}
-              src={avatarUrl !== AVATAR_PLACEHOLDER ? avatarUrl : undefined}
-              style={{ backgroundColor: '#667EEA' }}
-              onError={() => {
-                handleAvatarError();
-                return false;
-              }}
-            />
-            {uploading && <Spinner />}
+            <div style={{ position: 'relative' }}>
+              <Avatar
+                size={130}
+                icon={<UserOutlined />}
+                src={avatarUrl !== AVATAR_PLACEHOLDER ? avatarUrl : undefined}
+                style={{
+                  backgroundColor: '#ffffffff',
+                  opacity: uploading ? 0.4 : 1,
+                  transition: 'opacity 0.3s',
+                }}
+                onError={() => {
+                  handleAvatarError();
+                  return false;
+                }}
+              />
+              {uploading && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                >
+                  <Spinner />
+                </div>
+              )}
+            </div>
+
             <Upload
               showUploadList={false}
               accept=".jpg,.jpeg,.png"
@@ -233,6 +251,7 @@ const GeneralSettings = () => {
                 icon={<CameraOutlined />}
                 type="text"
                 style={{ border: '1px solid #d8d8d8ff' }}
+                disabled={uploading}
               >
                 Thay đổi
               </Button>

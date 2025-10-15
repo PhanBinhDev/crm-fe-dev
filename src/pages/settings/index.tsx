@@ -1,12 +1,5 @@
-import {
-  BellOutlined,
-  CloseOutlined,
-  GlobalOutlined,
-  SaveOutlined,
-  TeamOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
-import { Button, Menu, message } from 'antd';
+import { BellOutlined, GlobalOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import { Menu } from 'antd';
 import { useState } from 'react';
 import GeneralSettings from './components/GeneralSettings';
 import NotificationsSettings from './components/NotificationsSettings';
@@ -23,16 +16,6 @@ const SettingsPage = () => {
     { key: 'notifications', icon: <BellOutlined />, label: 'Thông báo' },
     { key: 'preferences', icon: <GlobalOutlined />, label: 'Tùy chọn hiển thị' },
   ];
-
-  const handleSave = () => {
-    message.success('Đã lưu thay đổi thành công!');
-    setHasChanges(false);
-  };
-
-  const handleReset = () => {
-    setHasChanges(false);
-    message.info('Đã hoàn tác thay đổi');
-  };
 
   const renderContent = () => {
     switch (activeSection) {
@@ -53,7 +36,7 @@ const SettingsPage = () => {
     <div
       style={{
         display: 'flex',
-        background: '#f0f2f5',
+        background: '#ffffffff',
         height: 'calc(100vh - 136px)',
       }}
     >
@@ -61,7 +44,7 @@ const SettingsPage = () => {
         style={{
           width: 210,
           background: '#fff',
-          padding: '24px 0',
+          padding: '15px 0',
           borderRight: '1px solid #f0f0f0',
           height: '100%',
           overflowY: 'auto',
@@ -106,31 +89,6 @@ const SettingsPage = () => {
       >
         <div style={{ margin: '0 auto' }}>{renderContent()}</div>
       </div>
-      {/* Action Buttons */}
-      {hasChanges && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 280,
-            right: 0,
-            padding: '16px 24px',
-            background: '#fff',
-            borderTop: '1px solid #f0f0f0',
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 12,
-            zIndex: 100,
-          }}
-        >
-          <Button icon={<CloseOutlined />} onClick={handleReset}>
-            Hủy bỏ
-          </Button>
-          <Button type="primary" icon={<SaveOutlined />} onClick={handleSave}>
-            Lưu thay đổi
-          </Button>
-        </div>
-      )}
     </div>
   );
 };
