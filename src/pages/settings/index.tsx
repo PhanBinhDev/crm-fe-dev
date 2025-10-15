@@ -1,9 +1,8 @@
-import { BellOutlined, GlobalOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import { BellOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { Menu } from 'antd';
 import { useState } from 'react';
 import GeneralSettings from './components/GeneralSettings';
 import NotificationsSettings from './components/NotificationsSettings';
-import PreferencesSettings from './components/PreferencesSettings';
 import WorkspacesSettings from './components/WorkspacesSettings';
 
 const SettingsPage = () => {
@@ -14,7 +13,6 @@ const SettingsPage = () => {
     { key: 'general', icon: <UserOutlined />, label: 'Thông tin chung' },
     { key: 'workspaces', icon: <TeamOutlined />, label: 'Workspaces' },
     { key: 'notifications', icon: <BellOutlined />, label: 'Thông báo' },
-    { key: 'preferences', icon: <GlobalOutlined />, label: 'Tùy chọn hiển thị' },
   ];
 
   const renderContent = () => {
@@ -25,8 +23,6 @@ const SettingsPage = () => {
         return <WorkspacesSettings />;
       case 'notifications':
         return <NotificationsSettings />;
-      case 'preferences':
-        return <PreferencesSettings />;
       default:
         return <GeneralSettings />;
     }

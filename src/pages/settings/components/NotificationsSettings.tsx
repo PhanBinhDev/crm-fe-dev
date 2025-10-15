@@ -1,14 +1,4 @@
-import {
-  Card,
-  Checkbox,
-  Divider,
-  Radio,
-  Select,
-  Space,
-  Switch,
-  TimePicker,
-  Typography,
-} from 'antd';
+import { Card, Checkbox, Divider, Select, Space, Switch, TimePicker, Typography } from 'antd';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -84,31 +74,6 @@ const NotificationsSettings = () => {
             </Space>
           </div>
         </Space>
-      </Card>
-
-      <Card title="Tần suất thông báo" bordered={false}>
-        <Radio.Group defaultValue="realtime" style={{ width: '100%' }}>
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <Radio value="realtime">
-              <div>
-                <div style={{ fontWeight: 500 }}>Thời gian thực</div>
-                <div style={{ fontSize: 12, color: '#8c8c8c' }}>Nhận thông báo ngay lập tức</div>
-              </div>
-            </Radio>
-            <Radio value="batch">
-              <div>
-                <div style={{ fontWeight: 500 }}>Gộp theo giờ</div>
-                <div style={{ fontSize: 12, color: '#8c8c8c' }}>Nhận thông báo mỗi giờ</div>
-              </div>
-            </Radio>
-            <Radio value="daily">
-              <div>
-                <div style={{ fontWeight: 500 }}>Tóm tắt hàng ngày</div>
-                <div style={{ fontSize: 12, color: '#8c8c8c' }}>Nhận 1 email tóm tắt mỗi ngày</div>
-              </div>
-            </Radio>
-          </Space>
-        </Radio.Group>
       </Card>
     </Space>
   );
