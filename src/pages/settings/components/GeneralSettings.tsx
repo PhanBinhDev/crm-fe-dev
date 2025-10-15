@@ -24,7 +24,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import type { UploadRequestOption } from 'rc-upload/lib/interface';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 const { Text } = Typography;
 
@@ -34,52 +34,33 @@ const GeneralSettings = () => {
   const { user: authUser } = useAuth();
   const invalidate = useInvalidate();
 
-  const [cachedUser, setCachedUser] = useState<IUser | null>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('userDetail');
-    if (stored) {
-      setCachedUser(JSON.parse(stored));
-    }
-  }, []);
-
-  const { data: userDetail } = useOne<IUser>({
+  const { data: userDetail, isLoading } = useOne<IUser>({
     resource: 'users',
     id: authUser?.id || '',
     queryOptions: {
       enabled: !!authUser?.id,
-      initialData: cachedUser ? { data: cachedUser } : undefined,
-      staleTime: 1000 * 60 * 5,
     },
   });
 
-  useEffect(() => {
-    if (userDetail?.data) {
-      localStorage.setItem('userDetail', JSON.stringify(userDetail.data));
-    }
-  }, [userDetail]);
-
   const [isSaving, setIsSaving] = useState(false);
-  const [optimisticData, setOptimisticData] = useState<Partial<IUser> | null>(null);
-
-  const identity = userDetail?.data || authUser;
-
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>(AVATAR_PLACEHOLDER);
 
   const { mutate: uploadFile } = useCustomMutation<IFileUploadResponse>();
   const { mutate: updateUser } = useUpdate<IUser>();
 
+  const identity = userDetail?.data || authUser;
+
   const majorOptions = useMemo(() => {
     if (!identity?.role) return [];
     return getMajorOptionsForRole(identity.role);
   }, [identity?.role]);
 
-  useEffect(() => {
+  useMemo(() => {
     if (identity?.avatar) {
       setAvatarUrl(identity.avatar);
     }
-  }, [identity]);
+  }, [identity?.avatar]);
 
   const handleFieldUpdate = (field: keyof EditableFields, value: string) => {
     const oldValue = (identity as IUser)?.[field] || '';
@@ -91,27 +72,29 @@ const GeneralSettings = () => {
     const updatedValues = { [field]: value };
 
     setIsSaving(true);
-    setOptimisticData(updatedValues);
 
     updateUser(
       {
         resource: 'users',
         id: identity?.id,
         values: updatedValues,
+        mutationMode: 'optimistic',
       },
       {
         onSuccess: () => {
           invalidate({
             resource: 'users',
             invalidates: ['detail'],
+            id: identity?.id,
           });
-        },
-        onError: () => {
-          setOptimisticData(null);
+
+          invalidate({
+            resource: 'auth',
+            invalidates: ['detail'],
+          });
         },
         onSettled: () => {
           setIsSaving(false);
-          setOptimisticData(null);
         },
       },
     );
@@ -143,24 +126,27 @@ const GeneralSettings = () => {
               resource: 'users',
               id: identity?.id,
               values: { avatar: fullUrl },
+              mutationMode: 'optimistic',
             },
             {
               onSuccess: () => {
                 setAvatarUrl(fullUrl);
                 onSuccess?.(res.data, file as any);
-                setUploading(false);
                 invalidate({
                   resource: 'auth',
-                  invalidates: ['all'],
+                  invalidates: ['detail'],
                 });
                 invalidate({
                   resource: 'users',
-                  invalidates: ['all'],
+                  invalidates: ['detail'],
+                  id: identity?.id,
                 });
               },
               onError: error => {
-                setUploading(false);
                 onError?.(error as any);
+              },
+              onSettled: () => {
+                setUploading(false);
               },
             },
           );
@@ -177,8 +163,6 @@ const GeneralSettings = () => {
     setAvatarUrl(AVATAR_PLACEHOLDER);
   };
 
-  const currentIdentity = optimisticData ? { ...identity, ...optimisticData } : identity;
-
   const readOnlyFieldStyle: React.CSSProperties = {
     fontSize: '14px',
     height: '32px',
@@ -190,6 +174,14 @@ const GeneralSettings = () => {
     backgroundColor: '#f5f5f5',
   };
 
+  if (isLoading && !identity) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: 50 }}>
+        <Spinner />
+      </div>
+    );
+  }
+
   return (
     <Space direction="vertical" size="large" style={{ width: '100%', height: '100%' }}>
       <Card
@@ -200,9 +192,7 @@ const GeneralSettings = () => {
           </Space>
         }
         bordered={false}
-        style={{
-          height: '100%',
-        }}
+        style={{ height: '100%' }}
       >
         <div
           style={{
@@ -256,7 +246,7 @@ const GeneralSettings = () => {
                   <label style={{ fontWeight: 500 }}>Họ và tên</label>
                 </div>
                 <Input
-                  value={currentIdentity?.name || ''}
+                  value={identity?.name || ''}
                   onChange={e => handleFieldUpdate('name', e.target.value)}
                   placeholder="Nhập họ và tên"
                 />
@@ -267,7 +257,7 @@ const GeneralSettings = () => {
                   <label style={{ fontWeight: 500 }}>Chuyên ngành</label>
                 </div>
                 <Select
-                  value={currentIdentity?.major || undefined}
+                  value={identity?.major || undefined}
                   onChange={value => handleFieldUpdate('major', value)}
                   placeholder="Chọn chuyên ngành"
                   style={{ width: '100%' }}
@@ -283,7 +273,7 @@ const GeneralSettings = () => {
                 <div style={{ marginBottom: 8 }}>
                   <label style={{ fontWeight: 500 }}>Email</label>
                 </div>
-                <div style={readOnlyFieldStyle}>{currentIdentity?.email || 'N/A'}</div>
+                <div style={readOnlyFieldStyle}>{identity?.email || 'N/A'}</div>
               </Col>
 
               <Col xs={24} md={12}>
@@ -294,7 +284,7 @@ const GeneralSettings = () => {
                   </Tooltip>
                 </div>
                 <div style={readOnlyFieldStyle}>
-                  {getUserRoleLabel(currentIdentity?.role as UserRole) || 'N/A'}
+                  {getUserRoleLabel(identity?.role as UserRole) || 'N/A'}
                 </div>
               </Col>
 
@@ -303,7 +293,7 @@ const GeneralSettings = () => {
                   <label style={{ fontWeight: 500 }}>Số điện thoại</label>
                 </div>
                 <Input
-                  value={currentIdentity?.phone || ''}
+                  value={identity?.phone || ''}
                   onChange={e => handleFieldUpdate('phone', e.target.value)}
                   placeholder="Nhập số điện thoại"
                 />
@@ -314,7 +304,7 @@ const GeneralSettings = () => {
                   <label style={{ fontWeight: 500 }}>Mã giảng viên</label>
                 </div>
                 <Input
-                  value={currentIdentity?.username || ''}
+                  value={identity?.username || ''}
                   onChange={e => handleFieldUpdate('username', e.target.value)}
                   placeholder="Nhập mã giảng viên"
                 />
@@ -325,7 +315,7 @@ const GeneralSettings = () => {
                   <label style={{ fontWeight: 500 }}>Ngày sinh</label>
                 </div>
                 <DatePicker
-                  value={currentIdentity?.dateOfBirth ? dayjs(currentIdentity.dateOfBirth) : null}
+                  value={identity?.dateOfBirth ? dayjs(identity.dateOfBirth) : null}
                   onChange={date =>
                     handleFieldUpdate('dateOfBirth', date ? date.format('YYYY-MM-DD') : '')
                   }
@@ -343,7 +333,7 @@ const GeneralSettings = () => {
                   </Tooltip>
                 </div>
                 <div style={readOnlyFieldStyle}>
-                  {getUserStatusLabel(currentIdentity?.isActive) || 'N/A'}
+                  {getUserStatusLabel(identity?.isActive) || 'N/A'}
                 </div>
               </Col>
             </Row>

@@ -2,7 +2,6 @@ import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { getColorFromName } from '@/utils/activity';
 import { TeamOutlined } from '@ant-design/icons';
-import { IconPointFilled } from '@tabler/icons-react';
 import { Avatar, Button, Card, Divider, Space, Tag, Typography } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -63,15 +62,13 @@ const WorkspacesSettings = () => {
                         fontWeight: 500,
                         fontSize: 17,
                         cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 3,
                       }}
                       onClick={() => navigate(`/workspaces/${currentWorkspace?.id}`)}
                     >
                       {currentWorkspace?.name}
-                      <IconPointFilled size={13} />
-                      <span style={{ fontSize: 12, color: 'blue' }}>Đang hoạt động</span>
+                      <span style={{ fontSize: 12, color: '#1890ff', marginLeft: 10 }}>
+                        Đang hoạt động
+                      </span>
                     </div>
 
                     <div style={{ fontSize: 12, color: '#8c8c8c' }}>

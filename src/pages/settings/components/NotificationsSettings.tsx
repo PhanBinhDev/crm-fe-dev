@@ -1,11 +1,29 @@
-import { Card, Checkbox, Divider, Radio, Select, Space, Switch, TimePicker } from 'antd';
+import {
+  Card,
+  Checkbox,
+  Divider,
+  Radio,
+  Select,
+  Space,
+  Switch,
+  TimePicker,
+  Typography,
+} from 'antd';
 
 const { Option } = Select;
+const { Text } = Typography;
 
 const NotificationsSettings = () => {
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <Card title="Thông báo email" bordered={false}>
+    <Space direction="vertical" size="small" style={{ width: '100%' }}>
+      <Card
+        title={
+          <Space>
+            <Text style={{ fontSize: 20 }}>Thông báo</Text>
+          </Space>
+        }
+        bordered={false}
+      >
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           <Checkbox defaultChecked>Khi được giao công việc mới</Checkbox>
           <Checkbox defaultChecked>Khi có bình luận trong công việc của tôi</Checkbox>

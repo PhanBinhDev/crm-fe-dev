@@ -14,25 +14,42 @@ export const UserList = () => {
   const [filters, setFilters] = useState<{
     role?: UserRole;
     isActive?: boolean;
-  }>({
-    role: undefined,
-    isActive: undefined,
-  });
+  }>({});
+
   const location = useLocation();
+  const { user: currentUser } = useAuth();
+  const { canEdit } = useUserPermissions(currentUser);
 
   const dynamicFilters = useMemo(() => {
-    const filterList: Array<{ field: string; operator: 'contains' | 'eq'; value: any }> = [];
+    const filterList: Array<{
+      field: string;
+      operator: 'contains' | 'eq';
+      value: any;
+    }> = [];
 
-    if (searchText) {
-      filterList.push({ field: 'q', operator: 'contains', value: searchText });
+    const trimmedSearch = searchText.trim();
+    if (trimmedSearch) {
+      filterList.push({
+        field: 'q',
+        operator: 'contains',
+        value: trimmedSearch,
+      });
     }
 
-    if (filters.role !== undefined) {
-      filterList.push({ field: 'role', operator: 'eq', value: filters.role });
+    if (filters.role != null) {
+      filterList.push({
+        field: 'role',
+        operator: 'eq',
+        value: filters.role,
+      });
     }
 
-    if (filters.isActive !== undefined) {
-      filterList.push({ field: 'isActive', operator: 'eq', value: filters.isActive });
+    if (filters.isActive != null) {
+      filterList.push({
+        field: 'isActive',
+        operator: 'eq',
+        value: filters.isActive,
+      });
     }
 
     return filterList;
@@ -55,23 +72,23 @@ export const UserList = () => {
       ],
     },
     queryOptions: {
-      retry: false,
+      keepPreviousData: true,
     },
+
+    syncWithLocation: true,
   });
 
   const handleReset = () => {
     setSearchText('');
-    setFilters({ role: undefined, isActive: undefined });
+    setFilters({});
   };
 
   useEffect(() => {
-    if (location.state?.reload && tableQueryResult?.refetch) {
-      tableQueryResult.refetch();
+    if (location.state?.reload) {
+      tableQueryResult?.refetch();
+      window.history.replaceState({}, document.title);
     }
-  }, [location.state, tableQueryResult]);
-
-  const { user: currentUser } = useAuth();
-  const { canEdit } = useUserPermissions(currentUser);
+  }, [location.state?.reload, tableQueryResult]);
 
   return (
     <div>

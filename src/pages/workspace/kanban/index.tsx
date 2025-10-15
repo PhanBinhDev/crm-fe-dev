@@ -38,7 +38,9 @@ const KanbanWorkspaces = () => {
   const { data: workspaceData, isFetching: isLoadingWorkspace } = useOne<IWorkspace>({
     resource: 'workspaces',
     id: workspaceId || '',
-    queryOptions: { enabled: !!workspaceId },
+    queryOptions: {
+      enabled: !!workspaceId,
+    },
   });
 
   const { data: stagesData } = useList<IStage>({
@@ -46,14 +48,20 @@ const KanbanWorkspaces = () => {
     pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
     filters: [{ field: 'workspaceId', operator: 'eq', value: workspaceData?.data.id }],
-    queryOptions: { enabled: !!workspaceData?.data.id },
+    queryOptions: {
+      enabled: !!workspaceData?.data.id,
+      keepPreviousData: true,
+    },
   });
 
   const { data: users } = useList<IUser>({
     resource: 'users/all',
     pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
-    queryOptions: { enabled: !!workspaceData?.data.id },
+    queryOptions: {
+      enabled: !!workspaceData?.data.id,
+      keepPreviousData: true,
+    },
   });
 
   const activityFilters = useMemo((): CrudFilter[] => {
@@ -91,6 +99,7 @@ const KanbanWorkspaces = () => {
     filters: activityFilters,
     queryOptions: {
       enabled: !!workspaceData?.data.id,
+      keepPreviousData: true,
     },
   });
 
@@ -100,17 +109,14 @@ const KanbanWorkspaces = () => {
     setFilterParams(Object.keys(params).length === 0 ? {} : params);
   }, []);
 
-  // Xử lý initial load và workspace transition
   useEffect(() => {
     if (workspaceId && prevWorkspaceIdRef.current && workspaceId !== prevWorkspaceIdRef.current) {
-      // Workspace changed - show skeleton
       setIsInitialLoad(true);
     }
 
     prevWorkspaceIdRef.current = workspaceId;
   }, [workspaceId]);
 
-  // Tắt initial load khi đã load xong data
   useEffect(() => {
     if (isInitialLoad && !isLoadingWorkspace && !isLoadingActivities && workspaceData?.data) {
       setIsInitialLoad(false);
@@ -185,7 +191,6 @@ const KanbanWorkspaces = () => {
     }
   }, [activeTab, activities, stagesData?.data, users?.data]);
 
-  // Chỉ hiện skeleton khi initial load hoặc workspace transition
   if (isInitialLoad || isLoading) {
     return (
       <div
