@@ -2,36 +2,103 @@ import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { getColorFromName } from '@/utils/activity';
 import { TeamOutlined } from '@ant-design/icons';
-import { Avatar, Button, Card, Divider, Space, Tag, Typography } from 'antd';
-import { useState } from 'react';
+import { Avatar, Button, Card, Space, Tag, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
 const { Text } = Typography;
 
 const WorkspacesSettings = () => {
   const { workspaces, currentWorkspace } = useWorkspaces();
-  const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();
   const { openModal } = useModal();
 
-  const handleError = () => {
-    setImgError(true);
-    return false;
-  };
-
   return (
-    <Space direction="vertical" size="small" style={{ width: '100%' }}>
+    <Card
+      title={
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 12,
+          }}
+        >
+          <Text style={{ fontSize: 20 }}>Không gian làm việc </Text>
+          <Button
+            type="primary"
+            icon={<TeamOutlined />}
+            onClick={() => openModal('ModalAddWorkspace')}
+            style={{ minWidth: 'fit-content' }}
+          >
+            Tạo workspace mới
+          </Button>
+        </div>
+      }
+      style={{
+        width: '100%',
+        margin: 0,
+        padding: 0,
+        boxShadow: 'none',
+        background: '#fcfcfcff',
+      }}
+      bordered={false}
+      styles={{
+        header: {
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
+          background: '#fcfcfcff',
+          borderBottom: '1px solid #f0f0f0',
+          boxShadow: '0 0 0 5px #fcfcfc',
+        },
+      }}
+    >
+      <Card
+        title={<Text style={{ fontSize: 17 }}>Lời mời tham gia</Text>}
+        style={{ marginBottom: 10, padding: 5 }}
+        size="small"
+      >
+        <div
+          style={{
+            padding: '10px 15px',
+            background: '#fff7e6',
+            border: '1px solid #ffd591',
+            borderRadius: 8,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 12,
+            }}
+          >
+            <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+              <div style={{ fontWeight: 500, wordBreak: 'break-word' }}>Marketing Team</div>
+              <div style={{ fontSize: 12, color: '#8c8c8c', wordBreak: 'break-word' }}>
+                Nguyễn Văn B đã mời bạn tham gia
+              </div>
+            </div>
+            <Space style={{ flexShrink: 0 }}>
+              <Button size="small">Từ chối</Button>
+              <Button type="primary" size="small">
+                Chấp nhận
+              </Button>
+            </Space>
+          </div>
+        </div>
+      </Card>
       {workspaces.length > 1 ? (
         <Card
           title={
-            <Space>
-              <Text style={{ fontSize: 20 }}>
-                Không gian làm việc của bạn ({workspaces.length})
-              </Text>
-            </Space>
+            <Text style={{ fontSize: 17 }}>Tất cả ({workspaces?.length || 'Chưa cập nhật'})</Text>
           }
-          bordered={false}
+          size="small"
+          style={{ padding: 5 }}
         >
-          <div style={{ maxHeight: 400, overflowY: 'auto', paddingRight: 8, marginBottom: 8 }}>
+          <div style={{ paddingRight: 8, marginBottom: 8 }}>
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
               <div
                 style={{
@@ -46,8 +113,17 @@ const WorkspacesSettings = () => {
                 }}
               >
                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                  {currentWorkspace?.avatar && !imgError ? (
-                    <Avatar src={currentWorkspace?.avatar} size={48} onError={handleError} />
+                  {currentWorkspace?.avatar ? (
+                    <Avatar
+                      src={
+                        currentWorkspace?.avatar &&
+                        `${import.meta.env.VITE_API_BASE_URL}${currentWorkspace?.avatar}?t=${currentWorkspace?.updatedAt}`
+                      }
+                      size={48}
+                      style={{ background: getColorFromName(currentWorkspace?.name) }}
+                    >
+                      {currentWorkspace?.name.charAt(0).toUpperCase()}
+                    </Avatar>
                   ) : (
                     <Avatar
                       size={48}
@@ -83,7 +159,7 @@ const WorkspacesSettings = () => {
                       : 'orange'
                   }
                 >
-                  {currentWorkspace?.visibility}
+                  {currentWorkspace?.visibility === 'private' ? 'Riêng tư' : 'Công khai'}
                 </Tag>
               </div>
 
@@ -104,8 +180,17 @@ const WorkspacesSettings = () => {
                     }}
                   >
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      {workspace.avatar && !imgError ? (
-                        <Avatar src={workspace.avatar} size={48} onError={handleError} />
+                      {workspace.avatar ? (
+                        <Avatar
+                          src={
+                            workspace?.avatar &&
+                            `${import.meta.env.VITE_API_BASE_URL}${workspace?.avatar}?t=${currentWorkspace?.updatedAt}`
+                          }
+                          size={48}
+                          style={{ background: getColorFromName(workspace?.name) }}
+                        >
+                          {workspace?.name.charAt(0).toUpperCase()}
+                        </Avatar>
                       ) : (
                         <Avatar size={48} style={{ background: getColorFromName(workspace.name) }}>
                           {workspace.name.charAt(0).toUpperCase()}
@@ -131,23 +216,12 @@ const WorkspacesSettings = () => {
                           : 'orange'
                       }
                     >
-                      {workspace.visibility}
+                      {workspace?.visibility === 'private' ? 'Riêng tư' : 'Công khai'}
                     </Tag>
                   </div>
                 ))}
             </Space>
           </div>
-
-          <Divider />
-
-          <Button
-            type="dashed"
-            block
-            icon={<TeamOutlined />}
-            onClick={() => openModal('ModalAddWorkspace')}
-          >
-            Tạo workspace mới
-          </Button>
         </Card>
       ) : (
         <div
@@ -162,39 +236,7 @@ const WorkspacesSettings = () => {
           Không còn workspace nào khác.
         </div>
       )}
-
-      <Card title="Lời mời tham gia" bordered={false}>
-        <div
-          style={{
-            padding: 16,
-            background: '#fff7e6',
-            border: '1px solid #ffd591',
-            borderRadius: 8,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 12,
-            }}
-          >
-            <div>
-              <div style={{ fontWeight: 500 }}>Marketing Team</div>
-              <div style={{ fontSize: 12, color: '#8c8c8c' }}>Nguyễn Văn B đã mời bạn tham gia</div>
-            </div>
-            <Space>
-              <Button size="small">Từ chối</Button>
-              <Button type="primary" size="small">
-                Chấp nhận
-              </Button>
-            </Space>
-          </div>
-        </div>
-      </Card>
-    </Space>
+    </Card>
   );
 };
 

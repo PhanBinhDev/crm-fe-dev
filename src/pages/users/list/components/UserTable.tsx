@@ -1,6 +1,6 @@
 import type { IUser } from '@/common/types';
 import { paginationConfigOptions } from '@/config/pagination';
-import { getUserRoleLabel } from '@/utils';
+import { getUserRoleLabel } from '@/constants/user';
 import { Badge, Table, type TableProps } from 'antd';
 import { ColumnType } from 'antd/lib/table';
 import { FC } from 'react';

@@ -1,5 +1,5 @@
 import type { IUser } from '@/common/types';
-import { getUserRoleLabel } from '@/utils';
+import { getUserRoleLabel } from '@/constants/user';
 import { useOne } from '@refinedev/core';
 import {
   IconCalendar,
