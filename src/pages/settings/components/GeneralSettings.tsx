@@ -5,8 +5,9 @@ import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { getUserRoleLabel } from '@/constants/user';
 import { useAuth } from '@/hooks/useAuth';
 import { getUserStatusLabel } from '@/utils';
+import { getColorFromName, getInitials } from '@/utils/activity';
 import { getMajorOptionsForRole } from '@/utils/majorGroups';
-import { CameraOutlined, UserOutlined } from '@ant-design/icons';
+import { CameraOutlined } from '@ant-design/icons';
 import { useCustomMutation, useInvalidate, useOne, useUpdate } from '@refinedev/core';
 import { IconInfoHexagon } from '@tabler/icons-react';
 import {
@@ -182,7 +183,6 @@ const GeneralSettings = () => {
       </div>
     );
   }
-
   return (
     <Space direction="vertical" size="large" style={{ width: '100%', height: '100%' }}>
       <Card
@@ -216,18 +216,27 @@ const GeneralSettings = () => {
             <div style={{ position: 'relative' }}>
               <Avatar
                 size={130}
-                icon={<UserOutlined />}
-                src={avatarUrl !== AVATAR_PLACEHOLDER ? avatarUrl : undefined}
+                src={avatarUrl && avatarUrl !== AVATAR_PLACEHOLDER ? avatarUrl : undefined}
                 style={{
-                  backgroundColor: '#ffffffff',
+                  backgroundColor:
+                    avatarUrl && avatarUrl !== AVATAR_PLACEHOLDER
+                      ? '#ffffff'
+                      : getColorFromName(identity?.name),
+                  color: avatarUrl && avatarUrl !== AVATAR_PLACEHOLDER ? 'transparent' : '#fff',
+                  fontSize: 48,
+                  fontWeight: 600,
                   opacity: uploading ? 0.4 : 1,
                   transition: 'opacity 0.3s',
+                  border: 'none',
                 }}
                 onError={() => {
                   handleAvatarError();
                   return false;
                 }}
-              />
+              >
+                {(!avatarUrl || avatarUrl === AVATAR_PLACEHOLDER) && getInitials(identity?.name)}
+              </Avatar>
+
               {uploading && (
                 <div
                   style={{

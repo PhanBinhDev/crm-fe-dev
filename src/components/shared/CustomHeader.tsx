@@ -1,7 +1,7 @@
-import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
+import { getColorFromName, getInitials } from '@/utils/activity';
 import { useGetIdentity, useLogout } from '@refinedev/core';
-import { IconLogout, IconSettings, IconUser, IconUserCircle } from '@tabler/icons-react';
+import { IconLogout, IconSettings, IconUserCircle } from '@tabler/icons-react';
 import { Avatar, Button, Drawer, Dropdown, Layout, MenuProps, Skeleton, Space } from 'antd';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -114,17 +114,24 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
               ) : (
                 <>
                   <Avatar
-                    size={28}
+                    size={25}
                     src={
                       user?.avatar
                         ? user.avatar.startsWith('http')
                           ? `${user.avatar}?t=${user.updatedAt}`
                           : `${import.meta.env.VITE_API_BASE_URL}${user.avatar}?t=${user.updatedAt}`
-                        : AVATAR_PLACEHOLDER
+                        : undefined
                     }
-                    icon={<IconUser size={18} />}
-                    style={{ backgroundColor: '#1890ff', flexShrink: 0 }}
-                  />
+                    style={{
+                      backgroundColor: getColorFromName(user?.name),
+                      color: '#fff',
+                      fontSize: 14,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {getInitials(user?.name)}
+                  </Avatar>
+
                   <span
                     style={{
                       marginLeft: 6,

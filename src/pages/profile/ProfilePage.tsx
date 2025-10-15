@@ -4,6 +4,7 @@ import Spinner from '@/components/ui/Spinner';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { getUserRoleLabel } from '@/constants/user';
 import { useAuth } from '@/hooks/useAuth';
+import { getColorFromName, getInitials } from '@/utils/activity';
 import { getMajorOptionsForRole } from '@/utils/majorGroups';
 import { useCustomMutation, useInvalidate, useOne, useUpdate } from '@refinedev/core';
 import {
@@ -286,14 +287,27 @@ export const ProfilePage: React.FC = () => {
               <div style={{ position: 'relative', cursor: 'pointer' }}>
                 <Avatar
                   size={80}
-                  src={avatarUrl !== AVATAR_PLACEHOLDER ? avatarUrl : undefined}
-                  icon={<IconUser size={32} stroke={1.5} />}
-                  style={{ backgroundColor: '#667EEA', border: '2px solid #fff' }}
+                  src={avatarUrl && avatarUrl !== AVATAR_PLACEHOLDER ? avatarUrl : undefined}
+                  style={{
+                    backgroundColor:
+                      avatarUrl && avatarUrl !== AVATAR_PLACEHOLDER
+                        ? '#ffffff'
+                        : getColorFromName(currentIdentity?.name),
+                    color: avatarUrl && avatarUrl !== AVATAR_PLACEHOLDER ? 'transparent' : '#fff',
+                    fontSize: 48,
+                    fontWeight: 600,
+                    opacity: uploading ? 0.4 : 1,
+                    transition: 'opacity 0.3s',
+                    border: 'none',
+                  }}
                   onError={() => {
                     handleAvatarError();
                     return false;
                   }}
-                />
+                >
+                  {(!avatarUrl || avatarUrl === AVATAR_PLACEHOLDER) &&
+                    getInitials(currentIdentity?.name)}
+                </Avatar>
                 {uploading && (
                   <div
                     style={{
