@@ -747,7 +747,7 @@ const ModalEditActivity = () => {
             {renderContent}
           </Content>
           <ActivityDetailRightSidebar
-            activityId={activity.id}
+            activity={activity}
             isOverlay={isOverlay}
             collapsedLeft={collapsedLeft}
             setCollapsedLeft={setCollapsedLeft}
