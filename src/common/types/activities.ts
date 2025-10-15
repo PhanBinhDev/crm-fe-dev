@@ -12,6 +12,7 @@ import {
 
 import { IAssignee, PayloadAssignee } from './assignee';
 import { ISemester } from './semester';
+import { ReminderType } from '../enum/notifications';
 
 export interface IActivity extends IBase {
   name: string;
@@ -118,10 +119,13 @@ export interface ILinkPreview {
 }
 
 export interface FormAddReminderPayload {
-  content: string;
-  assignees: string[];
+  title: string;
+  description: string;
+  receivers: string[];
   date: Date;
+  type: ReminderType;
   notifyBefore: NotifyOption;
+  attachments: File[];
 }
 
 export interface NotifyOption {

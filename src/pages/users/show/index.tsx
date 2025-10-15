@@ -86,7 +86,7 @@ export const UserShow = () => {
   // Helper function to get role label from constants
   const getRoleLabel = (role: string) => {
     const roleOption = userRoleFilterOptions.find(option => option.value === role);
-    return roleOption ? roleOption.text : role;
+    return roleOption ? roleOption.label : role;
   };
 
   return (

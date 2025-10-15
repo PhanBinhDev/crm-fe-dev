@@ -1,4 +1,4 @@
-import { FormAddActivityPayload, FormAddTaskData } from '@/common/types';
+import { FormAddActivityPayload, FormAddReminderPayload, FormAddTaskData } from '@/common/types';
 import { IAssignee } from '@/common/types/assignee';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaceStore } from '@/hooks/useWorkspaces';
@@ -6,7 +6,7 @@ import FormAddReminder from '@/pages/workspace/components/FormAddReminder';
 import FormAddTask from '@/pages/workspace/components/FormAddTask';
 import NotificationActivityBtn from '@/pages/workspace/components/NotificationActivityBtn';
 import { cleanPayload } from '@/utils/payload';
-import { useCreate, useInvalidate } from '@refinedev/core';
+import { useCreate, useCustomMutation, useInvalidate } from '@refinedev/core';
 import { IconArrowDownRight, IconPaperclip, IconX } from '@tabler/icons-react';
 import { Button, message, Modal, Space, Tabs, Tooltip } from 'antd';
 import { useCallback, useRef, useState } from 'react';
@@ -44,6 +44,13 @@ const ModalAddActivity = () => {
       },
     },
   );
+
+  const { mutate: createReminder, isPending: isPendingCreateReminder } =
+    useCustomMutation<FormAddReminderPayload>({
+      mutationOptions: {
+        retry: false,
+      },
+    });
 
   const handleCreate = useCallback(() => {
     formRef.current?.submitForm();
@@ -88,9 +95,78 @@ const ModalAddActivity = () => {
     reminderRef.current?.submitForm();
   }, [reminderRef]);
 
-  const handleReminderSubmit = useCallback(({ data }: { data: any; callback: () => void }) => {
-    console.log('Reminder data:', data);
-  }, []);
+  const handleReminderSubmit = useCallback(
+    ({ data, callback }: { data: FormAddReminderPayload; callback: () => void }) => {
+      console.log('Creating reminder with data:', data);
+
+      if (data.attachments && data.attachments.length > 0) {
+        const formData = new FormData();
+
+        Object.entries(data).forEach(([key, value]) => {
+          if (key === 'receivers' && Array.isArray(value)) {
+            value.forEach((id: string, index: number) => {
+              formData.append(`receivers[${index}]`, id);
+            });
+          } else if (key !== 'attachments') {
+            formData.append(key, String(value));
+          }
+        });
+
+        data.attachments.forEach(file => {
+          formData.append('attachments', file);
+        });
+
+        createReminder(
+          {
+            method: 'post',
+            url: 'notifications/reminder',
+            config: {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            },
+            values: formData,
+          },
+          {
+            onSuccess: () => {
+              callback();
+              message.success('Tạo nhắc nhở thành công');
+              closeModal();
+            },
+            onError: error => {
+              console.error('Error creating reminder:', error);
+              message.error('Tạo nhắc nhở thất bại, vui lòng thử lại');
+            },
+          },
+        );
+      } else {
+        createReminder(
+          {
+            method: 'post',
+            url: 'notifications/reminder',
+            config: {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            },
+            values: data,
+          },
+          {
+            onSuccess: () => {
+              callback();
+              message.success('Tạo nhắc nhở thành công');
+              closeModal();
+            },
+            onError: error => {
+              console.error('Error creating reminder:', error);
+              message.error('Tạo nhắc nhở thất bại, vui lòng thử lại');
+            },
+          },
+        );
+      }
+    },
+    [createReminder, closeModal],
+  );
 
   const handleOnNotificationUsersChange = useCallback((assignee: IAssignee[]) => {
     setFollows(assignee);
@@ -271,7 +347,7 @@ const ModalAddActivity = () => {
           <Button
             type="primary"
             onClick={activeTab === 'reminder' ? handleCreateReminder : handleCreate}
-            loading={isPendingCreateActivity}
+            loading={isPendingCreateActivity || isPendingCreateReminder}
             style={{ borderRadius: 8 }}
           >
             Tạo {activeTab === 'reminder' ? 'nhắc nhở' : 'hoạt động'}

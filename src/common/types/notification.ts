@@ -12,7 +12,7 @@ export interface INotification extends IBase {
   senderId: string | null;
   isRead: boolean;
   isDeleted: boolean;
-  readAt: Date | null;
+  readAt: string | null;
 }
 
 export type NotificationTab = 'all' | 'unread' | 'mentions';
