@@ -23,7 +23,10 @@ export const standardDataProvider = (
 
     const { data } = response;
 
-    return data;
+    return {
+    ...data,
+    total: data.pagination?.totalRecords ?? data.data?.length ?? 0,
+  };
   },
 
   getMany: async ({ resource, ids, meta }) => {
