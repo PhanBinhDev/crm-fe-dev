@@ -24,6 +24,7 @@ const StageActivity = ({ value, onChange, error }: StageActivityProps) => {
     resource: 'stages',
     pagination: { mode: 'off' },
     filters: [{ field: 'workspaceId', operator: 'eq', value: currentWorkspace?.id }],
+    queryOptions: { enabled: !!currentWorkspace?.id },
   });
 
   const { stages, defaultTodoState } = useMemo(() => {

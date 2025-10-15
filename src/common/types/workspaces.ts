@@ -17,3 +17,4 @@ export interface IMember extends IBase {
   status: MemberStatus;
   createdBy: string;
 }
+

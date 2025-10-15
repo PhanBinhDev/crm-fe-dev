@@ -1,6 +1,6 @@
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { getColorFromName } from '@/utils/activity';
+import { getColorFromName, getInitials } from '@/utils/activity';
 import { TeamOutlined } from '@ant-design/icons';
 import { Avatar, Button, Card, Space, Tag, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -122,14 +122,14 @@ const WorkspacesSettings = () => {
                       size={48}
                       style={{ background: getColorFromName(currentWorkspace?.name) }}
                     >
-                      {currentWorkspace?.name.charAt(0).toUpperCase()}
+                      {getInitials(currentWorkspace?.name)}
                     </Avatar>
                   ) : (
                     <Avatar
                       size={48}
                       style={{ background: getColorFromName(currentWorkspace?.name) }}
                     >
-                      {currentWorkspace?.name.charAt(0).toUpperCase()}
+                      {getInitials(currentWorkspace?.name)}
                     </Avatar>
                   )}
                   <div>

@@ -125,6 +125,7 @@ const StageSettings: React.FC = () => {
     pagination: { pageSize: 100 },
     sorters: [{ field: 'position', order: 'asc' }],
     filters: [{ field: 'workspaceId', operator: 'eq', value: currentWorkspace?.id }],
+    queryOptions: { enabled: !!currentWorkspace?.id },
   });
 
   const { mutate: createStage, isPending: createLoading } = useCreate();

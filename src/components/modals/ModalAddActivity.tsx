@@ -97,8 +97,6 @@ const ModalAddActivity = () => {
 
   const handleReminderSubmit = useCallback(
     ({ data, callback }: { data: FormAddReminderPayload; callback: () => void }) => {
-      console.log('Creating reminder with data:', data);
-
       if (data.attachments && data.attachments.length > 0) {
         const formData = new FormData();
 

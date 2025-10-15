@@ -511,6 +511,9 @@ const ModalEditActivity = () => {
     pagination: {
       mode: 'off',
     },
+    queryOptions: {
+      enabled: !!selectedItem?.data.workspaceId,
+    },
   });
 
   const closedStage = useMemo(() => {

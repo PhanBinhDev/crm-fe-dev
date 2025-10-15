@@ -1,112 +1,188 @@
+import { WorkspaceVisibility } from '@/common/enum/workspace';
+import { ICreateWorkspacePayload } from '@/common/interfaces/workspaces';
+import { IWorkspace } from '@/common/types';
+import { IUser } from '@/common/types/users';
+import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { getColorFromName, getInitials } from '@/utils/activity';
 import { useCustomMutation, useList } from '@refinedev/core';
-import { Button, Form, Input, message, Modal, Select, Switch } from 'antd';
-import React, { useState } from 'react';
-import { UserRole } from '../../common/enum/user';
-import { IUser } from '../../common/types/users';
-import AvatarUpload from '../shared/AvatarUpload';
+import { IconUpload, IconX } from '@tabler/icons-react';
+import { Avatar, Button, Form, Input, Modal, Select, Space, Switch, Typography } from 'antd';
+import { BaseOptionType, DefaultOptionType } from 'antd/es/select';
+import React, { useCallback, useMemo, useState } from 'react';
+
+type OptionSelect = BaseOptionType | DefaultOptionType;
 
 const ModalAddWorkspace: React.FC = () => {
   const { type, isOpen, closeModal } = useModal();
+  const { user: currentUser } = useAuth();
   const isModalOpen = type === 'ModalAddWorkspace' && isOpen;
-  const { refreshWorkspaces } = useWorkspaces();
-  const { mutate: createWorkspace } = useCustomMutation();
+  const [form] = Form.useForm();
+  const [formData, setFormData] = useState<ICreateWorkspacePayload>({
+    name: '',
+    description: '',
+    visibility: WorkspaceVisibility.PUBLIC,
+    members: [],
+    avatar: undefined,
+  });
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
 
-  const { data: usersData } = useList({
+  const { refreshWorkspaces, switchWorkspace } = useWorkspaces();
+  const { mutate: createWorkspace, isPending: isPendingCreate } = useCustomMutation<IWorkspace>();
+  const { data: usersData, isLoading: isLoadingUsers } = useList<IUser>({
     resource: 'users/all',
     config: { pagination: { mode: 'off' } },
     queryOptions: { enabled: isModalOpen },
   });
-  const [form] = Form.useForm();
-  const [isPrivate, setIsPrivate] = useState(false);
-  const [inviteMembers, setInviteMembers] = useState<IUser[]>([]);
-  const [avatarData, setAvatarData] = useState<string | null>(null);
 
-  const [loading, setLoading] = useState(false);
+  const users = useMemo(() => {
+    if (isLoadingUsers || !usersData) return [] as OptionSelect[];
 
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      setLoading(true);
+    return usersData.data
+      .filter(u => u.id !== currentUser?.id)
+      .map(u => {
+        return {
+          label: (
+            <div>
+              <Avatar size={24} style={{ background: getColorFromName(u?.name) }}>
+                <Typography.Text style={{ color: '#fff', fontWeight: 500, fontSize: 11 }}>
+                  {getInitials(u?.name)}
+                </Typography.Text>
+              </Avatar>
+              <span style={{ marginLeft: 8 }}>{u.name}</span>
+            </div>
+          ),
+          value: u.id,
+        };
+      }) as OptionSelect[];
+  }, [isLoadingUsers, usersData, currentUser]);
 
-      const payload: any = {
-        name: values.name,
-        description: values.description || '',
-        visibility: isPrivate ? 'private' : 'public',
-      };
+  const handleSubmit = () => {
+    const formDataToSend = new FormData();
+    formDataToSend.append('name', formData.name);
+    formDataToSend.append('description', formData.description || '');
+    formDataToSend.append('visibility', formData.visibility);
 
-      if (inviteMembers.length > 0) {
-        payload.members = inviteMembers.map(m => m.email);
-      }
-      if (avatarData) {
-        payload.avatar = avatarData;
-      }
-
-      if (avatarData) {
-        const formData = new FormData();
-
-        Object.entries(payload).forEach(([key, value]) => {
-          if (Array.isArray(value)) {
-            value.forEach((item, idx) => {
-              formData.append(`${key}[${idx}]`, item);
-            });
-          } else {
-            formData.append(key, String(value));
-          }
-        });
-        formData.append('avatar', avatarData as any);
-
-        createWorkspace(
-          {
-            url: '/workspaces',
-            method: 'post',
-            config: {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
-            },
-            values: formData,
-          },
-          {
-            onSuccess: () => {},
-            onError: () => {},
-          },
-        );
-      }
-      message.success('Tạo workspace thành công!');
-      refreshWorkspaces();
-      form.resetFields();
-      setInviteMembers([]);
-      setIsPrivate(false);
-      setAvatarData(null);
-      closeModal();
-    } catch (err) {
-      console.error('Workspace creation error:', err);
-      message.error('Tạo workspace thất bại!');
-    } finally {
-      setLoading(false);
+    if (formData.avatar) {
+      formDataToSend.append('avatar', formData.avatar);
     }
+
+    if (Array.isArray(formData.members)) {
+      formData.members.forEach((id, idx) => {
+        formDataToSend.append(`members[${idx}]`, id);
+      });
+    }
+
+    createWorkspace(
+      {
+        url: 'workspaces',
+        method: 'post',
+        config: {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        },
+        values: formDataToSend,
+      },
+      {
+        onSuccess: data => {
+          closeModal();
+          form.resetFields();
+          setFormData({
+            name: '',
+            description: '',
+            visibility: WorkspaceVisibility.PUBLIC,
+            members: [],
+            avatar: undefined,
+          });
+          setAvatarPreview(undefined);
+          refreshWorkspaces();
+          switchWorkspace(data.data.id);
+        },
+      },
+    );
   };
 
-  const handleTogglePrivate = (checked: boolean) => {
-    setIsPrivate(checked);
-    form.setFieldsValue({ isPrivate: checked });
-  };
+  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      name,
+    }));
+    form.setFieldValue('name', name);
+  }, []);
+
+  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const description = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      description,
+    }));
+    form.setFieldValue('description', description);
+  }, []);
+
+  const handleTogglePrivate = useCallback((checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      visibility: checked ? WorkspaceVisibility.PRIVATE : WorkspaceVisibility.PUBLIC,
+    }));
+    form.setFieldValue(
+      'visibility',
+      checked ? WorkspaceVisibility.PRIVATE : WorkspaceVisibility.PUBLIC,
+    );
+  }, []);
+
+  const handleInviteMembersChange = useCallback((members: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      members,
+    }));
+
+    form.setFieldValue('members', members);
+  }, []);
 
   return (
     <Modal
       title={
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
-          <span style={{ fontSize: 22, fontWeight: 600, color: '#000000ff', letterSpacing: 0.1 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 4,
+          }}
+        >
+          <Typography.Text
+            style={{ fontSize: 22, fontWeight: 600, color: '#000000ff', letterSpacing: 0.1 }}
+          >
             Tạo Workspace mới
-          </span>
+          </Typography.Text>
+
+          <Button
+            type="text"
+            onClick={closeModal}
+            style={{
+              borderRadius: 7,
+              color: '#555',
+              alignSelf: 'flex-start',
+            }}
+            icon={<IconX size={14} stroke={1.5} />}
+            size="small"
+            styles={{
+              icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+            }}
+          />
         </div>
       }
       open={isModalOpen}
       onCancel={closeModal}
       footer={null}
-      width={600}
+      width={500}
+      styles={{
+        content: {
+          padding: 18,
+        },
+      }}
+      closeIcon={null}
       centered
       destroyOnHidden
     >
@@ -114,198 +190,149 @@ const ModalAddWorkspace: React.FC = () => {
         Tạo Space cho các nhóm làm việc, phòng ban hoặc các dự án riêng.
       </div>
 
-      <Form layout="vertical" form={form} initialValues={{ permission: 'full' }}>
+      <Form layout="vertical" form={form} initialValues={formData} onFinish={handleSubmit}>
         <Form.Item
-          label={
-            <span style={{ fontWeight: 600, fontSize: 15 }}>
-              <span style={{ color: 'red' }}></span> Tên Workspace
-            </span>
-          }
-          style={{ marginBottom: 24 }}
+          label={<span style={{ fontWeight: 600, fontSize: 15 }}>Tên Workspace</span>}
+          rules={[
+            {
+              required: true,
+              message: (
+                <span style={{ display: 'inline-block', marginLeft: 50 }}>
+                  Vui lòng nhập tên Space
+                </span>
+              ),
+            },
+          ]}
+          style={{ marginBottom: 18 }}
           required
+          name="name"
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-              <AvatarUpload value={avatarData} onChange={setAvatarData} size={36} />
-            </div>
-            <Form.Item
-              name="name"
-              rules={[
-                {
-                  required: true,
-                  message: (
-                    <span style={{ display: 'inline-block', marginLeft: 50 }}>
-                      Vui lòng nhập tên Space
-                    </span>
-                  ),
-                },
-              ]}
-              style={{ marginBottom: 0, width: '100%' }}
-              noStyle
-            >
-              <Input
-                placeholder="VD: Marketing, Kỹ thuật, Nhân sự"
+            <div>
+              <Avatar
+                size={36}
+                src={avatarPreview}
                 style={{
-                  height: 36,
-                  fontSize: 14,
-                  borderRadius: 8,
-                  background: '#fff',
-                  border: '1px solid #e0e0e0',
-                  fontWeight: 400,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: avatarPreview ? undefined : getColorFromName(formData.name),
+                }}
+                onClick={() => document.getElementById('workspace-avatar-input')?.click()}
+              >
+                {!avatarPreview && (
+                  <>{formData.name?.[0]?.toUpperCase() || <IconUpload size={16} />}</>
+                )}
+              </Avatar>
+              <input
+                id="workspace-avatar-input"
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setAvatarPreview(URL.createObjectURL(file));
+                    setFormData(prev => ({ ...prev, avatar: file }));
+                    form.setFieldValue('avatar', file);
+                  }
                 }}
               />
-            </Form.Item>
+            </div>
+            <Input
+              placeholder="VD: Marketing, Kỹ thuật, Nhân sự"
+              style={{
+                height: 36,
+                fontSize: 14,
+                borderRadius: 8,
+                background: '#fff',
+                border: '1px solid #e0e0e0',
+                fontWeight: 400,
+              }}
+              value={formData.name}
+              onChange={handleNameChange}
+            />
           </div>
         </Form.Item>
 
         <Form.Item
-          label={
-            <span style={{ fontWeight: 600, fontSize: 15 }}>
-              Mô tả <span style={{ fontWeight: 400, fontSize: 14 }}>( tùy chọn )</span>
-            </span>
-          }
+          label={<span style={{ fontWeight: 600, fontSize: 15 }}>Mô tả</span>}
           name="description"
           style={{ marginBottom: 24 }}
         >
           <Input.TextArea
-            rows={2}
+            autoSize={{ minRows: 2, maxRows: 4 }}
             placeholder="Nhập mô tả cho Space (không bắt buộc)"
             style={{
               fontSize: 14,
               fontWeight: 400,
-              height: 36,
               minHeight: 36,
               borderRadius: 8,
               background: '#fff',
               border: '1px solid #e0e0e0',
             }}
+            value={formData.description}
+            onChange={handleDescriptionChange}
           />
         </Form.Item>
 
-        {/* {!isPrivate && (
-          <Form.Item style={{ marginBottom: 24 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 16,
-              }}
-            >
-              <span style={{ fontWeight: 600, fontSize: 15 }}>
-                Phân quyền mặc định
-                <Tooltip
-                  title={
-                    <div>
-                      <p>
-                        <strong>Toàn quyền sửa</strong>
-                        <br />
-                        Có thể tạo và chỉnh sửa các thực thể trong Space này. Chủ sở hữu và quản trị
-                        viên có thể quản lý cài đặt Space.
-                      </p>
-                      <p>
-                        <strong>Chỉnh sửa</strong>
-                        <br />
-                        Có thể tạo và chỉnh sửa các thực thể trong Space này. Không thể quản lý cài
-                        đặt Space hoặc xóa các thực thể.
-                      </p>
-                      <p>
-                        <strong>Bình luận</strong>
-                        <br />
-                        Có thể bình luận về các thực thể trong Space này. Không thể quản lý cài đặt
-                        Space hoặc chỉnh sửa các thực thể.
-                      </p>
-                      <p>
-                        <strong>Chỉ xem</strong>
-                        <br />
-                        Chỉ đọc. Không thể chỉnh sửa hoặc bình luận về các thực thể trong Space này
-                        ngoài Chat. Có thể cộng tác trong Chat.
-                      </p>
-                    </div>
-                  }
-                >
-                  <InfoCircleOutlined style={{ marginLeft: 4, color: '#8c8c8c' }} />
-                </Tooltip>
-              </span>
-              <Form.Item name="permission" noStyle>
-                <Select
-                  style={{ width: 180, fontSize: 14, fontWeight: 400 }}
-                  options={[
-                    { value: 'full', label: 'Toàn quyền sửa' },
-                    { value: 'edit', label: 'Chỉnh sửa' },
-                    { value: 'comment', label: 'Bình luận' },
-                    { value: 'view', label: 'Chỉ xem' },
-                  ]}
-                />
-              </Form.Item>
-            </div>
-          </Form.Item>
-        )} */}
-
-        <Form.Item style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
+        <Form.Item style={{ marginBottom: 24 }} name="visibility">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#f5f5f5',
+              padding: '8px 12px',
+              borderRadius: 8,
+            }}
+          >
+            <Space direction="vertical" size={1}>
               <span style={{ fontWeight: 600, fontSize: 15 }}>Tạo Space riêng tư</span>
-              <br />
               <span style={{ fontSize: 14, color: '#888', fontWeight: 400 }}>
                 Chỉ bạn và các thành viên được mời mới có quyền truy cập.
               </span>
-            </div>
-            <Switch checked={isPrivate} onChange={handleTogglePrivate} />
+            </Space>
+            <Switch
+              size="small"
+              checked={formData.visibility === WorkspaceVisibility.PRIVATE}
+              onChange={handleTogglePrivate}
+            />
           </div>
         </Form.Item>
 
-        {isPrivate && (
-          <Form.Item label="Chia sẻ chỉ với:" name="inviteMembers" style={{ marginTop: 12 }}>
+        {formData.visibility === WorkspaceVisibility.PRIVATE && (
+          <Form.Item
+            label={<span style={{ fontWeight: 600, fontSize: 15 }}>Mời thành viên</span>}
+            name="members"
+            style={{ marginTop: 12 }}
+          >
             <Select
               mode="multiple"
               style={{ width: '100%' }}
               placeholder="Nhập email thành viên để mời"
-              value={inviteMembers.map(m => m.email)}
-              onChange={emails => {
-                const newMembers = emails.map(email => ({
-                  id: email,
-                  email: email,
-                  name: '',
-                  username: '',
-                  phone: '',
-                  role: UserRole.CNBM,
-                  dateOfBirth: '',
-                  avatar: '',
-                  major: '',
-                  isActive: true,
-                  assignedActivities: [],
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
-                }));
-                setInviteMembers(newMembers);
-              }}
-              options={
-                Array.isArray(usersData?.data)
-                  ? (usersData.data as IUser[]).map(u => ({
-                      value: u.email,
-                      label: u.email,
-                    }))
-                  : []
-              }
+              value={formData.members}
+              onChange={handleInviteMembersChange}
+              options={users}
+              size="large"
             />
           </Form.Item>
         )}
       </Form>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 32 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
         <Button
           type="primary"
-          onClick={handleSubmit}
-          loading={loading}
+          onClick={form.submit}
+          loading={isPendingCreate}
           style={{
             minWidth: 120,
-            background: '#1890ff',
-            borderColor: '#1890ff',
             fontWeight: 500,
             fontSize: 15,
+            borderRadius: 8,
           }}
         >
-          Tiếp tục
+          Tạo Space
         </Button>
       </div>
     </Modal>

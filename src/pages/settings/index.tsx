@@ -7,7 +7,7 @@ import WorkspacesSettings from './components/WorkspacesSettings';
 
 const SettingsPage = () => {
   const [activeSection, setActiveSection] = useState('general');
-  const [hasChanges, setHasChanges] = useState(false);
+  const [hasChanges] = useState(false);
 
   const menuItems = [
     { key: 'general', icon: <UserOutlined />, label: 'Thông tin chung' },
