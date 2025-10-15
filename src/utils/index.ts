@@ -14,4 +14,4 @@ export {
 export { getSemesterColor, getSemesterLabel } from './semester';
 
 // User utilities
-export { getUserRoleColor, getUserRoleLabel, getUserStatusColor, getUserStatusLabel } from './user';
+export { getUserRoleColor, getUserStatusColor, getUserStatusLabel } from './user';

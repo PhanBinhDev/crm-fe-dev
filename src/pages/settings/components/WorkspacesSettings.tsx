@@ -46,7 +46,7 @@ const WorkspacesSettings = () => {
         header: {
           position: 'sticky',
           top: 0,
-          zIndex: 99,
+          zIndex: 1,
           background: '#fcfcfcff',
           borderBottom: '1px solid #f0f0f0',
           boxShadow: '0 0 0 5px #fcfcfc',

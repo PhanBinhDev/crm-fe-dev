@@ -2,6 +2,7 @@
 import type { IFileUploadResponse, IUser } from '@/common/types';
 import Spinner from '@/components/ui/Spinner';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
+import { getUserRoleLabel } from '@/constants/user';
 import { useAuth } from '@/hooks/useAuth';
 import { getMajorOptionsForRole } from '@/utils/majorGroups';
 import { useCustomMutation, useInvalidate, useOne, useUpdate } from '@refinedev/core';
@@ -359,7 +360,7 @@ export const ProfilePage: React.FC = () => {
                 marginBottom: 4,
               }}
             >
-              Chuyên ngành: {currentIdentity.major || 'Chưa cập nhật'}
+              Chức vụ: {getUserRoleLabel(currentIdentity.role) || 'Chưa cập nhật'}
             </Text>
           </div>
         </div>

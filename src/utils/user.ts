@@ -1,18 +1,5 @@
 import { UserRole } from '@/common/enum/user';
 
-export const getUserRoleLabel = (role: UserRole): string => {
-  switch (role) {
-    case UserRole.TM:
-      return 'Trưởng môn';
-    case UserRole.CNBM:
-      return 'Chủ nhiệm bộ môn';
-    case UserRole.GV:
-      return 'Giáo viên';
-    default:
-      return role;
-  }
-};
-
 export const getUserRoleColor = (role: UserRole): string => {
   switch (role) {
     case UserRole.TM:
