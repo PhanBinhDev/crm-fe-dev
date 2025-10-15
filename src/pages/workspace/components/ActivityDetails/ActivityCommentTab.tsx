@@ -7,7 +7,9 @@ import { IconHeart, IconSend2, IconTrash } from '@tabler/icons-react';
 import { Avatar, Button, message, Popconfirm, Skeleton, Tooltip } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import dayjs from 'dayjs';
+import _ from 'lodash';
 import { useEffect, useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { UserPopover } from './../../../users/list/components/UserPopover';
 
 interface ActivityCommentTabProps {
@@ -36,7 +38,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<any>(null);
 
-  const { mutate: createComment, isPending: isCreating } = useCreate();
+  const { mutate: createComment } = useCreate();
   const { mutate: updateComment } = useUpdate();
   const { mutate: deleteComment } = useDelete();
   const { mutate: updateReactionComments } = useCustomMutation();
@@ -180,6 +182,38 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   const handleSendComment = async () => {
     if (!commentContent.trim()) return;
 
+    const tempId = uuidv4();
+    const now = new Date().toISOString();
+
+    const optimisticComment: Comment = {
+      id: tempId,
+      user: {
+        id: currentUser?.id!,
+        name: currentUser?.name || 'Bạn',
+        avatar: currentUser?.avatar || '',
+      },
+      content: commentContent.trim(),
+      createdAt: now,
+      parentCommentId: replyToId || null,
+      replies: [],
+      hasUserReacted: false,
+      totalReactions: 0,
+    };
+
+    // Cập nhật UI ngay lập tức
+    setLocalComments(prev => {
+      if (replyToId) {
+        return prev.map(c =>
+          c.id === replyToId ? { ...c, replies: [...(c.replies || []), optimisticComment] } : c,
+        );
+      }
+      return [...prev, optimisticComment];
+    });
+
+    setCommentContent('');
+    setReplyToId(null);
+    setFocused(false);
+
     const values = {
       activityId,
       content: commentContent.trim(),
@@ -192,30 +226,8 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
         values,
       },
       {
-        onSuccess: data => {
-          const newComment = data?.data as Comment;
-          if (!newComment) {
-            refetch();
-            return;
-          }
-          if (replyToId) {
-            setLocalComments(prev =>
-              prev.map(c => {
-                if (c.id === replyToId) {
-                  return {
-                    ...c,
-                    replies: [...(c.replies || []), newComment] as Comment[],
-                  };
-                }
-                return c;
-              }),
-            );
-          } else {
-            setLocalComments(prev => [...prev, newComment]);
-          }
-          setCommentContent('');
-          setReplyToId(null);
-          setFocused(false);
+        onSuccess: () => {
+          message.success('Gửi bình luận thành công');
           refetch();
         },
         onError: error => {
@@ -227,6 +239,26 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   };
 
   const handleSaveEdit = (id: string) => {
+    const prevState = _.cloneDeep(localComments);
+
+    setLocalComments(prev =>
+      prev.map(parent => {
+        if (parent.id === id) {
+          return { ...parent, content: editingContent };
+        }
+        if (parent.replies?.some(reply => reply.id === id)) {
+          return {
+            ...parent,
+            replies: parent.replies.map(reply =>
+              reply.id === id ? { ...reply, content: editingContent } : reply,
+            ),
+          };
+        }
+        return parent;
+      }),
+    );
+    setEditingId(null);
+
     updateComment(
       {
         resource: `activities/${activityId}/comments`,
@@ -237,11 +269,12 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
         onSuccess: () => {
           refetch();
           message.success('Cập nhật bình luận thành công');
-          setEditingId(null);
           setEditingContent('');
         },
         onError: () => {
           message.error('Cập nhật bình luận thất bại');
+          // khôi phục
+          setLocalComments(prevState);
         },
       },
     );
@@ -253,6 +286,15 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   };
 
   const handleDelete = (id: string) => {
+    setLocalComments(prev =>
+      prev
+        .filter(parent => parent.id !== id)
+        .map(parent => ({
+          ...parent,
+          replies: parent.replies?.filter(reply => reply.id !== id) || [],
+        })),
+    );
+
     deleteComment(
       { resource: `activities/${activityId}/comments`, id },
       {
@@ -522,7 +564,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
 
           <Button
             type="primary"
-            loading={isCreating}
+            // loading={isCreating}
             onClick={handleSendComment}
             style={{
               position: 'absolute',

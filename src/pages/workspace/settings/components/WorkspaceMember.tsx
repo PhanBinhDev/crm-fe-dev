@@ -178,10 +178,10 @@ const WorkspaceMember = () => {
           setSearch('');
           inputSearch.current?.input && (inputSearch.current.input.value = '');
           refetch();
-          message.success('Thêm thành viên thành công');
+          message.success('Gửi lời mời tới thành viên thành công');
         },
         onError: () => {
-          message.error('Thêm thành viên thất bại, vui lòng thử lại');
+          message.error('Gửi lời mời tới thành viên thất bại, vui lòng thử lại');
         },
       },
     );

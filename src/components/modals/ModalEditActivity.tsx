@@ -634,7 +634,15 @@ const ModalEditActivity = () => {
                   }}
                   icon={<IconX size={16} />}
                   danger
-                  onClick={() => setOpenModalFeedbackLink(true)}
+                  onClick={() => {
+                    Modal.confirm({
+                      title: 'Xác nhận đóng sự kiện',
+                      content: 'Bạn có chắc chắn muốn đóng sự kiện này?',
+                      onOk() {
+                        setOpenModalFeedbackLink(true);
+                      },
+                    });
+                  }}
                 >
                   Đóng sự kiện
                 </Button>
