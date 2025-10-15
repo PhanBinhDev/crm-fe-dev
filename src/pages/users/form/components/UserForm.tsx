@@ -1,10 +1,15 @@
 'use client';
 
 import { UserRole } from '@/common/enum/user';
+
 import type { IUser } from '@/common/types';
+
 import Spinner from '@/components/ui/Spinner';
+
 import { userRoleFilterOptions, userStatusFilterOptions } from '@/constants/user';
+
 import { useAuth } from '@/hooks/useAuth';
+
 import {
   canManageUser,
   getCreatableMajorOptions,
@@ -12,8 +17,11 @@ import {
   getEditableRoles,
   getMajorOptionsForRole,
 } from '@/utils/majorGroups';
+
 import { IconUpload, IconUser } from '@tabler/icons-react';
+
 import type { UploadFile, UploadProps } from 'antd';
+
 import {
   message as antdMessage,
   Avatar,
@@ -27,22 +35,32 @@ import {
   Select,
   Upload,
 } from 'antd';
+
 import dayjs from 'dayjs';
+
 import { type FC, useEffect, useMemo, useState } from 'react';
 
 interface UserFormProps {
   initialValues?: IUser;
+
   onFinish: (values: any) => void;
+
   isEdit?: boolean;
 }
 
 export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = false }) => {
   const { user: identity } = useAuth();
+
   const [form] = Form.useForm();
+
   const [avatarUrl, setAvatarUrl] = useState<string>('');
+
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+
   const [uploading, setUploading] = useState(false);
+
   const [isProcessing, setIsProcessing] = useState(false);
+
   const [selectedRole, setSelectedRole] = useState<UserRole | undefined>(
     initialValues?.role || undefined,
   );
@@ -50,7 +68,9 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
   const transformedInitialValues = initialValues
     ? {
         ...initialValues,
+
         isActive: initialValues.isActive ?? true,
+
         dateOfBirth: initialValues.dateOfBirth ? dayjs(initialValues.dateOfBirth) : undefined,
       }
     : undefined;
@@ -58,14 +78,20 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
   useEffect(() => {
     if (transformedInitialValues) {
       form.setFieldsValue(transformedInitialValues);
+
       setSelectedRole(transformedInitialValues.role);
+
       if (transformedInitialValues.avatar) {
         setAvatarUrl(transformedInitialValues.avatar);
+
         setFileList([
           {
             uid: '-1',
+
             name: 'avatar.png',
+
             status: 'done',
+
             url: transformedInitialValues.avatar,
           },
         ]);
@@ -75,40 +101,51 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
 
   const handleAvatarChange: UploadProps['onChange'] = info => {
     const { fileList: newFileList } = info;
+
     setFileList(newFileList);
 
     if (info.file.status === 'uploading') {
       setUploading(true);
+
       return;
     }
 
     if (info.file.status === 'done') {
       const url = info.file.response?.url || URL.createObjectURL(info.file.originFileObj!);
+
       setAvatarUrl(url);
+
       form.setFieldsValue({ avatar: url });
+
       antdMessage.success('Tải ảnh lên thành công!');
     } else if (info.file.status === 'error') {
       antdMessage.error('Tải ảnh lên thất bại!');
     }
+
     setUploading(false);
   };
 
   const customRequest = ({ file, onSuccess }: any) => {
     setTimeout(() => {
       const url = URL.createObjectURL(file);
+
       onSuccess({ url });
     }, 1000);
   };
 
   const beforeUpload = (file: File) => {
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+
     if (!isJpgOrPng) {
       antdMessage.error('Chỉ có thể tải lên file JPG/PNG!');
     }
+
     const isLt2M = file.size / 1024 / 1024 < 2;
+
     if (!isLt2M) {
       antdMessage.error('Ảnh phải nhỏ hơn 2MB!');
     }
+
     return isJpgOrPng && isLt2M;
   };
 
@@ -118,11 +155,16 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
     if (isEdit && values.email !== initialValues?.email) {
       Modal.confirm({
         title: 'Xác nhận thay đổi email',
+
         content: 'Email được sử dụng để đăng nhập. Bạn có chắc chắn muốn thay đổi email không?',
+
         okText: 'Xác nhận',
+
         cancelText: 'Hủy',
+
         onOk: async () => {
           setIsProcessing(true);
+
           try {
             await onFinish(values);
           } finally {
@@ -130,10 +172,12 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
           }
         },
       });
+
       return;
     }
 
     setIsProcessing(true);
+
     try {
       await onFinish(values);
     } finally {
@@ -150,11 +194,17 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
 
     return canManageUser(
       identity?.role,
+
       identity?.major,
+
       initialValues?.role,
+
       initialValues?.major,
+
       identity?.id,
+
       initialValues?.id,
+
       'edit',
     );
   }, [identity, initialValues, isEdit]);
@@ -162,6 +212,7 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
   const availableRoles = useMemo(() => {
     if (!isEdit) {
       const creatableRoles = getCreatableRoles(identity?.role);
+
       return userRoleFilterOptions.filter(option =>
         creatableRoles.includes(option.value as UserRole),
       );
@@ -188,11 +239,13 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
 
   const canEditRole = useMemo(() => {
     if (!isEdit) return true;
+
     if (!canManageTarget) return false;
 
     if (isEditingSelf) return false;
 
     const userRole = identity?.role;
+
     const targetRole = initialValues?.role;
 
     if (userRole === UserRole.SUPERADMIN) return true;
@@ -201,6 +254,7 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
       if ([UserRole.SUPERADMIN, UserRole.TM].includes(targetRole as UserRole)) {
         return false;
       }
+
       return true;
     }
 
@@ -213,6 +267,7 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
 
   const canEditStatus = useMemo(() => {
     if (!isEdit) return true;
+
     if (!canManageTarget) return false;
 
     if (isEditingSelf) return false;
@@ -222,9 +277,11 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
 
   const canEditMajor = useMemo(() => {
     if (!isEdit) return true;
+
     if (!canManageTarget) return false;
 
     const userRole = identity?.role;
+
     const targetRole = initialValues?.role;
 
     if (userRole === UserRole.SUPERADMIN) return true;
@@ -233,6 +290,7 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
       if ([UserRole.SUPERADMIN, UserRole.TM].includes(targetRole as UserRole) && !isEditingSelf) {
         return false;
       }
+
       return true;
     }
 
@@ -287,6 +345,7 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
                 icon={<IconUser size={64} />}
                 style={{ border: '4px solid #f0f0f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
               />
+
               {!isViewOnly && (
                 <Upload
                   name="avatar"
@@ -318,14 +377,18 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
             <Input placeholder="Nhập họ và tên" style={{ borderRadius: 8 }} disabled={isViewOnly} />
           </Form.Item>
         </Col>
+
         <Col xs={24} md={12}>
           <Form.Item
             name="username"
             label="Tên đăng nhập"
             rules={[
               { required: true, message: 'Vui lòng nhập tên đăng nhập' },
+
               { min: 4, message: 'Tên đăng nhập phải có ít nhất 4 ký tự' },
+
               { max: 32, message: 'Tên đăng nhập tối đa 32 ký tự' },
+
               { pattern: /^[a-zA-Z0-9_]+$/, message: 'Chỉ cho phép chữ, số và dấu gạch dưới' },
             ]}
           >
@@ -345,6 +408,7 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
             label="Email"
             rules={[
               { required: true, message: 'Vui lòng nhập email' },
+
               { type: 'email', message: 'Email không hợp lệ' },
             ]}
             tooltip="Email được sử dụng để đăng nhập. Thay đổi email cần xác nhận."
@@ -352,12 +416,14 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
             <Input placeholder="Nhập email" style={{ borderRadius: 8 }} disabled={isEdit} />
           </Form.Item>
         </Col>
+
         <Col xs={24} md={12}>
           <Form.Item
             name="phone"
             label="Số điện thoại"
             rules={[
               { required: true, message: 'Vui lòng nhập số điện thoại' },
+
               { pattern: /^[0-9]{10,11}$/, message: 'Số điện thoại không hợp lệ' },
             ]}
           >
@@ -387,6 +453,7 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
             />
           </Form.Item>
         </Col>
+
         <Col xs={24} md={12}>
           <Form.Item
             name="isActive"
@@ -423,6 +490,7 @@ export const UserForm: FC<UserFormProps> = ({ initialValues, onFinish, isEdit = 
             />
           </Form.Item>
         </Col>
+
         <Col xs={24} md={12}>
           <Form.Item
             name="dateOfBirth"

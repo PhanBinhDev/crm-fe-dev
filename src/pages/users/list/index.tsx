@@ -3,7 +3,7 @@ import type { IUser } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { useTable } from '@refinedev/antd';
-import { Card, Col, Row } from 'antd';
+import { Col, Row } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { UserActions, UserFilters, UserTable } from './components';
@@ -74,7 +74,7 @@ export const UserList = () => {
   const { canEdit } = useUserPermissions(currentUser);
 
   return (
-    <Card>
+    <div>
       <Row gutter={[0, 16]}>
         <Col span={24}>
           <div
@@ -102,6 +102,6 @@ export const UserList = () => {
           <UserTable tableProps={tableProps} onPageSizeChange={setPageSize} />
         </Col>
       </Row>
-    </Card>
+    </div>
   );
 };

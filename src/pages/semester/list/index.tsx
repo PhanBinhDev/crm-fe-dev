@@ -1,19 +1,19 @@
-import React, { useState, useMemo } from "react";
-import { useTable } from "@refinedev/antd";
-import { Card, Row, Col } from "antd";
-import SemesterTable from "./components/SemesterTable";
-import { SemesterActions } from "./components/SemesterActions";
-import SemesterFilters from "./components/SemesterFilters";
+import { useTable } from '@refinedev/antd';
+import { Col, Row } from 'antd';
+import React, { useMemo, useState } from 'react';
+import { SemesterActions } from './components/SemesterActions';
+import SemesterFilters from './components/SemesterFilters';
+import SemesterTable from './components/SemesterTable';
 
 const SemesterList: React.FC = () => {
   const [pageSize, setPageSize] = useState(10);
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [year, setYear] = useState<number | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 
   const { tableProps } = useTable({
-    resource: "semesters",
+    resource: 'semesters',
     pagination: { pageSize },
     errorNotification: false,
     queryOptions: { retry: false },
@@ -26,7 +26,7 @@ const SemesterList: React.FC = () => {
 
     if (search) {
       data = data.filter((item: any) =>
-        (item?.name || "").toLowerCase().includes(search.toLowerCase())
+        (item?.name || '').toLowerCase().includes(search.toLowerCase()),
       );
     }
     if (year !== null) {
@@ -40,20 +40,20 @@ const SemesterList: React.FC = () => {
   }, [tableProps.dataSource, search, year, status]);
 
   const handleReset = () => {
-    setSearch("");
+    setSearch('');
     setYear(null);
     setStatus(null);
   };
 
   return (
-    <Card>
+    <div>
       <Row gutter={[0, 16]}>
         <Col span={24}>
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
               gap: 8,
               marginBottom: 8,
             }}
@@ -63,8 +63,8 @@ const SemesterList: React.FC = () => {
               yearValue={year}
               statusValue={status}
               onSearch={setSearch}
-              onYearChange={(v) => setYear(v)}
-              onStatusChange={(v) => setStatus(v)}
+              onYearChange={v => setYear(v)}
+              onStatusChange={v => setStatus(v)}
               onReset={handleReset}
             />
             <SemesterActions />
@@ -77,7 +77,7 @@ const SemesterList: React.FC = () => {
           />
         </Col>
       </Row>
-    </Card>
+    </div>
   );
 };
 
