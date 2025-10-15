@@ -20,25 +20,14 @@ export const UserTable: FC<UserTableProps> = ({ tableProps, onPageSizeChange }) 
       dataIndex: 'id',
       key: 'stt',
       align: 'center',
-      render: (_: any, __: any, index: number) => (
-        <span
-          style={{
-            display: 'inline-block',
-            minWidth: 40,
-            maxWidth: 80,
-            textAlign: 'center',
-          }}
-        >
-          {index + 1}
-        </span>
-      ),
+      render: (_: any, __: any, index: number) => index + 1,
     },
 
     {
       title: 'Trạng thái',
       dataIndex: 'isActive',
       align: 'center',
-      width: 180,
+      width: 140,
       render: (isActive: boolean) => (
         <Badge
           status={isActive ? 'success' : 'error'}
@@ -58,28 +47,32 @@ export const UserTable: FC<UserTableProps> = ({ tableProps, onPageSizeChange }) 
       title: 'Họ tên',
       dataIndex: 'name',
       sorter: true,
+      width: 170,
     },
 
     {
       title: 'Email',
       dataIndex: 'email',
       sorter: true,
+      width: 300,
     },
     {
       title: 'Vai trò',
       dataIndex: 'role',
       sorter: true,
+      width: 160,
       render: (_: string, record: IUser) => getUserRoleLabel(record.role) || '-',
     },
     {
       title: 'Chuyên ngành',
       dataIndex: 'major',
+      width: 200,
       render: (major: string) => major || '-',
     },
     {
       title: 'Thao tác',
       key: 'actions',
-      width: 80,
+      width: 90,
       render: (_: any, record: IUser) => <UserRowActions user={record} />,
     },
   ];
@@ -89,7 +82,10 @@ export const UserTable: FC<UserTableProps> = ({ tableProps, onPageSizeChange }) 
       {...tableProps}
       columns={columns}
       rowKey="id"
-      scroll={{ x: 1000 }}
+      scroll={{
+        x: 1000,
+        y: 390,
+      }}
       pagination={paginationConfig}
     />
   );

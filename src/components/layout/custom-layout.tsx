@@ -145,6 +145,12 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
   useEffect(() => {
     const newOpenKeys = getOpenKeysFromPath(location.pathname);
     setOpenKeys(newOpenKeys);
+
+    if (location.pathname.startsWith('/settings')) {
+      setCollapsed(true);
+    } else {
+      setCollapsed(false);
+    }
   }, [location.pathname]);
 
   const handleOpenChange = (keys: string[]) => {
@@ -287,7 +293,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
             {children}
           </div>
         </Content>
-      </Layout> 
+      </Layout>
     </Layout>
   );
 };
