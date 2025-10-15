@@ -191,7 +191,7 @@ const GeneralSettings = () => {
   };
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space direction="vertical" size="large" style={{ width: '100%', height: '100%' }}>
       <Card
         title={
           <Space>
@@ -200,8 +200,19 @@ const GeneralSettings = () => {
           </Space>
         }
         bordered={false}
+        style={{
+          height: '100%',
+        }}
       >
-        <div style={{ display: 'flex', gap: 24, marginBottom: 24, flexWrap: 'wrap' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 24,
+            marginBottom: 24,
+            paddingRight: 8,
+            height: '100%',
+          }}
+        >
           <div
             style={{
               minWidth: 200,
@@ -209,7 +220,6 @@ const GeneralSettings = () => {
               flexDirection: 'column',
               alignItems: 'center',
               gap: 15,
-              position: 'relative',
             }}
           >
             <Avatar

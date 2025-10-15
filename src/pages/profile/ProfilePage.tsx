@@ -1,5 +1,6 @@
 'use client';
 import type { IFileUploadResponse, IUser } from '@/common/types';
+import Spinner from '@/components/ui/Spinner';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
 import { getMajorOptionsForRole } from '@/utils/majorGroups';
@@ -307,7 +308,7 @@ export const ProfilePage: React.FC = () => {
                       justifyContent: 'center',
                     }}
                   >
-                    <Spin />
+                    <Spinner />
                   </div>
                 )}
                 <div

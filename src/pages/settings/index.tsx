@@ -53,8 +53,8 @@ const SettingsPage = () => {
     <div
       style={{
         display: 'flex',
-        minHeight: '100vh',
         background: '#f0f2f5',
+        height: 'calc(100vh - 136px)',
       }}
     >
       <div
@@ -63,6 +63,8 @@ const SettingsPage = () => {
           background: '#fff',
           padding: '24px 0',
           borderRight: '1px solid #f0f0f0',
+          height: '100%',
+          overflowY: 'auto',
         }}
       >
         <div style={{ padding: '0 24px 24px' }}>
@@ -72,7 +74,7 @@ const SettingsPage = () => {
         <Menu
           mode="inline"
           selectedKeys={[activeSection]}
-          style={{ height: '100%', paddingRight: 10 }}
+          style={{ paddingRight: 10 }}
           onSelect={({ key }) => setActiveSection(key)}
           inlineIndent={0}
         >
@@ -93,7 +95,15 @@ const SettingsPage = () => {
       </div>
 
       {/* Content Area */}
-      <div style={{ flex: 1, padding: 5, paddingBottom: hasChanges ? 80 : 24 }}>
+      <div
+        style={{
+          flex: 1,
+          padding: 5,
+          paddingBottom: hasChanges ? 80 : 24,
+          height: '100%',
+          overflowY: 'auto',
+        }}
+      >
         <div style={{ margin: '0 auto' }}>{renderContent()}</div>
       </div>
       {/* Action Buttons */}
