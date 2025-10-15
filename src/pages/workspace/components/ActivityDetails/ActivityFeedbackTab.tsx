@@ -1,6 +1,8 @@
+import { IFeedback } from '@/common/types';
+import { useList } from '@refinedev/core';
 import { IconFilter2 } from '@tabler/icons-react';
-import { Button, Checkbox, Popover, Radio, Space, Typography } from 'antd';
-import { useState } from 'react';
+import { Button, Checkbox, Popover, Radio, Skeleton, Space, Typography } from 'antd';
+import { useMemo, useState } from 'react';
 import ActivityFeedbacks from './ActivityFeedbacks';
 
 interface ActivityFeedbackTabProps {
@@ -8,11 +10,42 @@ interface ActivityFeedbackTabProps {
 }
 
 const ActivityFeedbackTab = ({ activityId }: ActivityFeedbackTabProps) => {
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<{
+    type: 'all' | 'feedback' | 'rating';
+    rating: number[];
+    hasComment: boolean;
+  }>({
     type: 'all', // all, feedback, rating
     rating: [], // 1,2,3,4,5
     hasComment: false,
   });
+
+  const { data: activityFeedbacks, isLoading } = useList<IFeedback>({
+    resource: `activities/${activityId}/event-feedbacks`,
+  });
+
+  console.log(activityFeedbacks);
+
+  const filteredFeedbacks = useMemo(
+    () =>
+      activityFeedbacks?.data.filter(feedback => {
+        if (filters.type === 'rating' && feedback.rating === 0) {
+          return false;
+        }
+        if (filters.type === 'feedback' && !feedback.comments) {
+          return false;
+        }
+        if (filters.rating.length > 0 && !filters.rating.includes(feedback.rating)) {
+          return false;
+        }
+        if (filters.hasComment && !feedback.comments) {
+          return false;
+        }
+        return true;
+      }),
+    [activityFeedbacks, filters],
+  );
+  console.log('filter feedback', filteredFeedbacks);
 
   const FilterContent = () => (
     <div style={{ width: 240 }}>
@@ -110,7 +143,13 @@ const ActivityFeedbackTab = ({ activityId }: ActivityFeedbackTabProps) => {
         </Space>
       </div>
       <div style={{ background: '#f7f7f7ff', height: '100%', width: '100%' }}>
-        <ActivityFeedbacks activityId={activityId} />
+        {isLoading ? (
+          <div style={{ padding: 10 }}>
+            <Skeleton active paragraph={{ rows: 3 }} />
+          </div>
+        ) : (
+          <ActivityFeedbacks filteredFeedbacks={filteredFeedbacks} />
+        )}
       </div>
     </div>
   );
