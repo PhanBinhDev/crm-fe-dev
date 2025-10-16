@@ -4,6 +4,7 @@ import { getColorFromName, getInitials } from '@/utils/activity';
 import { TeamOutlined } from '@ant-design/icons';
 import { Avatar, Button, Card, Space, Tag, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import InvitationList from '@/components/shared/InvitationList';
 const { Text } = Typography;
 
 const WorkspacesSettings = () => {
@@ -53,43 +54,7 @@ const WorkspacesSettings = () => {
         },
       }}
     >
-      <Card
-        title={<Text style={{ fontSize: 17 }}>Lời mời tham gia</Text>}
-        style={{ marginBottom: 10, padding: 5 }}
-        size="small"
-      >
-        <div
-          style={{
-            padding: '10px 15px',
-            background: '#fff7e6',
-            border: '1px solid #ffd591',
-            borderRadius: 8,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 12,
-            }}
-          >
-            <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-              <div style={{ fontWeight: 500, wordBreak: 'break-word' }}>Marketing Team</div>
-              <div style={{ fontSize: 12, color: '#8c8c8c', wordBreak: 'break-word' }}>
-                Nguyễn Văn B đã mời bạn tham gia
-              </div>
-            </div>
-            <Space style={{ flexShrink: 0 }}>
-              <Button size="small">Từ chối</Button>
-              <Button type="primary" size="small">
-                Chấp nhận
-              </Button>
-            </Space>
-          </div>
-        </div>
-      </Card>
+      <InvitationList />
       {workspaces.length > 1 ? (
         <Card
           title={
