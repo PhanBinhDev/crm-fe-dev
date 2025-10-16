@@ -2,7 +2,7 @@ import { IWorkspace } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useCustomMutation, useNavigation } from '@refinedev/core';
-import { IconCamera, IconChevronDown, IconSettings, IconShare } from '@tabler/icons-react';
+import { IconChevronDown, IconSettings, IconShare } from '@tabler/icons-react';
 import {
   Avatar,
   Button,
@@ -13,9 +13,7 @@ import {
   Popover,
   Skeleton,
   Space,
-  Spin,
   Tooltip,
-  Upload,
 } from 'antd';
 import { useState } from 'react';
 
@@ -31,27 +29,34 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
     useWorkspaces();
 
   const { mutate: updateWorkspace, isPending: isUpdating } = useCustomMutation();
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  const handleUpdateWorkspace = async (option: any) => {
+  const handleUpdateWorkspace = async (file: File) => {
+    if (!file || !currentWorkspace?.id) return;
+
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreview(previewUrl);
+
     const formData = new FormData();
-    formData.append('avatar', option.file as Blob);
-    formData.append('name', currentWorkspace?.name as string);
-    formData.append('visibility', currentWorkspace?.visibility as string);
+    formData.append('avatar', file);
+    formData.append('name', currentWorkspace?.name || '');
+    formData.append('visibility', currentWorkspace?.visibility || '');
 
     updateWorkspace(
       {
-        url: '/workspaces/' + currentWorkspace?.id,
+        url: `/workspaces/${currentWorkspace?.id}`,
         method: 'patch',
         values: formData,
-        config: {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        },
+        config: { headers: { 'Content-Type': 'multipart/form-data' } },
       },
       {
-        onSuccess: () => {
+        onSuccess: res => {
+          const newAvatar = res?.data?.avatar;
+          if (newAvatar) {
+            setAvatarPreview(newAvatar);
+          }
           message.success('Cập nhật avatar thành công');
           refreshWorkspaces();
-          setOpen(false);
         },
         onError: () => {
           message.error('Cập nhật avatar thất bại');
@@ -112,53 +117,32 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
       <Space direction="vertical" style={{ width: '100%', padding: 8 }}>
         <Space>
           <div style={{ position: 'relative', flexShrink: 0 }}>
-            <Upload
-              name="avatar"
-              showUploadList={false}
-              accept=".jpg,.jpeg,.png"
-              disabled={isUpdating}
-              customRequest={handleUpdateWorkspace}
+            <Avatar
+              size={35}
+              src={avatarPreview || currentWorkspace?.avatar}
+              style={{
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: avatarPreview ? undefined : '#f0f0f0',
+              }}
+              onClick={() => document.getElementById('workspace-avatar-input')?.click()}
             >
-              {renderWorkspaceAvatar(currentWorkspace!, 35)}
-              {isUpdating && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Spin />
-                </div>
+              {!avatarPreview && !currentWorkspace?.avatar && (
+                <>{currentWorkspace?.name?.[0]?.toUpperCase() || 'W'}</>
               )}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(0,0,0,0.5)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: 0,
-                  transition: 'opacity 0.3s',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-                onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
-              >
-                <IconCamera size={24} color="#fff" stroke={1.5} />
-              </div>
-            </Upload>
+            </Avatar>
+            <input
+              id="workspace-avatar-input"
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) handleUpdateWorkspace(file);
+              }}
+            />
           </div>
           <div
             style={{
