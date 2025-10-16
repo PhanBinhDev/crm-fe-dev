@@ -18,3 +18,11 @@ export interface IMember extends IBase {
   createdBy: string;
 }
 
+export interface IWorkspaceInvitation extends IBase {
+  workspaceId: string;
+  workspace: IWorkspace;
+  invitedBy: IUser;
+  status: MemberStatus;
+  expiresAt: string;
+}
+
