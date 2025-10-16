@@ -228,6 +228,7 @@ temp/
 **/public/sw.js.map
 **/public/workbox-*.js.map
 **/public/worker-*.js.map
+**/public/firebase-messaging-sw.js
 
 # Sentry
 .sentryclirc
@@ -243,3 +244,5 @@ sentry.properties
 /generated/prisma
 
 .history
+
+/public/firebase-messaging-sw.js

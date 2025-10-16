@@ -1,13 +1,18 @@
+import { ActivityPriority, ActivityStatus, ActivityType } from '@/common/enum/activity';
 import {
-  ActivityCategory,
-  ActivityPriority,
-  ActivityStatus,
-  ActivityType,
-} from '@/common/enum/activity';
-import { DateRange, IBase, IFeedback, IFile, IParticipant, IStage, IUser } from '@/common/types';
+  DateRange,
+  IBase,
+  ICategory,
+  IFeedback,
+  IFile,
+  IParticipant,
+  IStage,
+  IUser,
+} from '@/common/types';
 
 import { IAssignee, PayloadAssignee } from './assignee';
 import { ISemester } from './semester';
+import { ReminderType } from '../enum/notifications';
 
 export interface IActivity extends IBase {
   name: string;
@@ -23,9 +28,11 @@ export interface IActivity extends IBase {
   onlineLink?: string;
   mandatory: boolean;
   estimateTime?: number;
+  workspaceId: string;
   parentId?: string;
   semester: ISemester;
-  category?: ActivityCategory;
+  categoryId: string | null;
+  category?: ICategory;
   status: ActivityStatus;
   participants?: IParticipant[];
   files?: IFile[];
@@ -34,6 +41,8 @@ export interface IActivity extends IBase {
   progress?: number;
   subActivities?: IActivity[];
   checklists?: Checklist[];
+  instructorCount?: number;
+  studentCount?: number;
 }
 
 export interface FormAddTaskData {
@@ -59,11 +68,11 @@ export interface FormAddActivityPayload {
   location?: string;
   onlineLink?: string;
   estimateTime?: number;
-  category?: ActivityCategory;
+  category?: ICategory;
   mandatory?: boolean;
   parentId?: string;
   assignees?: PayloadAssignee[];
-  files?: File[];
+  attachments?: string[];
   stageId?: string;
   subtask?: string[];
   checklist?: Checklist[];
@@ -78,14 +87,48 @@ export interface ActivityPriorityLevel {
   color: string;
 }
 
-export interface Checklist {
+export interface Checklist extends IBase {
   name: string;
+  totalItems: number;
+  completedItems: number;
+  progress: number;
   items: ChecklistItem[];
 }
 
-export interface ChecklistItem {
+export interface ChecklistItem extends IBase {
   content: string;
   isDone: boolean;
 }
 
-export type ModalAction = 'create-action' | 'create-another' | 'create-duplicate' | 'create-open';
+export interface IActivityLinks {
+  id: string;
+  title: string;
+  url: string;
+  description: string;
+  createdAt: string;
+  creator: { name: string };
+  imageUrl: string;
+  linkPreview: ILinkPreview;
+}
+
+export interface ILinkPreview {
+  thumbnail?: string;
+  siteName?: string;
+  favicon?: string;
+  siteDescription?: string;
+}
+
+export interface FormAddReminderPayload {
+  title: string;
+  description: string;
+  receivers: string[];
+  date: Date;
+  type: ReminderType;
+  notifyBefore: NotifyOption;
+  attachments: File[];
+}
+
+export interface NotifyOption {
+  label: string;
+  value: number | 'none' | 'custom';
+}

@@ -38,12 +38,22 @@ export const DashboardPage: React.FC = () => {
       {/* Hàng 2 */}
       <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
         <Col xs={24} md={12}>
-          <Card title="Nhiệm vụ hôm nay" style={{ height: 400 }}>
+          <Card
+            title="Nhiệm vụ hôm nay"
+            styles={{
+              body: { height: 300, padding: 0, overflow: 'hidden' },
+            }}
+          >
             <TodayTask />
           </Card>
         </Col>
         <Col xs={24} md={12}>
-          <Card title="Công việc được giao" style={{ height: 400 }}>
+          <Card
+            title="Công việc được giao"
+            styles={{
+              body: { height: 300, padding: 0, overflow: 'hidden' },
+            }}
+          >
             <AssignedTask />
           </Card>
         </Col>

@@ -1,4 +1,5 @@
 import { PRESET_COLORS } from '@/constants';
+import { IconCircleDashed, IconCircleDashedCheck } from '@tabler/icons-react';
 import { ColorPicker as AntdColorPicker, Popover } from 'antd';
 import { useState } from 'react';
 import { useDebounceCallback } from 'usehooks-ts';
@@ -9,14 +10,16 @@ interface ColorPickerProps {
   size?: number;
   radius?: number;
   disabled?: boolean;
+  stageTitle?: string;
+  iconColor?: string;
 }
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   value = '#EA580C',
   onChange,
-  size = 8,
-  radius = 999,
+  size = 16,
   disabled = false,
+  stageTitle,
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -59,7 +62,6 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
         ))}
       </div>
 
-      {/* Custom color picker button */}
       <AntdColorPicker
         value={value}
         onChange={debouncedCustomColorChange}
@@ -98,30 +100,11 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
       placement="bottomLeft"
       styles={{ root: { zIndex: 1060 } }}
     >
-      <div
-        style={{
-          width: `${size + 4}px`,
-          height: `${size + 4}px`,
-          borderRadius: `${radius}px`,
-          backgroundColor: '#fff',
-          border: '1px solid #e5e7eb',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <div
-          style={{
-            width: `${size}px`,
-            height: `${size}px`,
-            borderRadius: `${radius}px`,
-            backgroundColor: value,
-          }}
-        />
-      </div>
+      {stageTitle?.toLowerCase().includes('done') ? (
+        <IconCircleDashedCheck size={size} color={value ? '#fff' : '#8c8c8c'} stroke={2} />
+      ) : (
+        <IconCircleDashed size={size} color={value ? '#fff' : '#8c8c8c'} stroke={2} />
+      )}
     </Popover>
   );
 };

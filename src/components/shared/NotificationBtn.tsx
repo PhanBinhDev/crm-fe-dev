@@ -1,21 +1,26 @@
+import { NotificationType } from '@/common/enum/notifications';
 import { INotification, NotificationTab } from '@/common/types';
-import { useInfiniteList } from '@refinedev/core';
-import { IconBell, IconX } from '@tabler/icons-react';
+import Spinner from '@/components/ui/Spinner';
+import { useModal } from '@/hooks/useModal';
+import { getInitials } from '@/utils/activity';
+import { useList, useUpdate } from '@refinedev/core';
+import { IconBell, IconChecks, IconCloudDownload, IconFile, IconX } from '@tabler/icons-react';
 import {
   Avatar,
   Badge,
   Button,
   Divider,
   Empty,
+  Image,
   List,
   Popover,
   Space,
-  Spin,
   Tabs,
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
 import { memo, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const modalTabs: {
   key: NotificationTab;
@@ -26,100 +31,328 @@ const modalTabs: {
   { key: 'mentions', label: 'Nhắc tên' },
 ] as const;
 
+const NotificationItem = memo(
+  ({
+    item,
+    onMarkAsRead,
+  }: {
+    item: INotification;
+    onMarkAsRead: (noti: INotification) => void;
+  }) => {
+    const [isHovered, setIsHovered] = useState(false);
+
+    const getTimeAgo = (date: string) => dayjs(date).fromNow();
+
+    return (
+      <List.Item
+        style={{
+          background: isHovered ? '#f0f5ff' : item.isRead ? '#fff' : '#f6faff',
+          padding: 8,
+          cursor: 'pointer',
+          borderRadius: 8,
+          border: isHovered ? '1px solid #d6e4ff' : '1px solid transparent',
+          marginBottom: 6,
+          transition: 'all 0.2s ease',
+        }}
+        key={item.id}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={() => onMarkAsRead(item)}
+      >
+        <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+          <Avatar
+            src={item.user?.avatar}
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              flexShrink: 0,
+            }}
+            size={28}
+          >
+            {getInitials(item.user?.name)}
+          </Avatar>
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <Typography.Text
+                strong
+                style={{
+                  fontSize: '14px',
+                  color: '#262626',
+                }}
+              >
+                {item.user?.name}
+              </Typography.Text>
+              {!item.isRead && (
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    background: '#1890ff',
+                    display: 'inline-block',
+                    flexShrink: 0,
+                  }}
+                />
+              )}
+            </div>
+
+            <Typography.Text
+              style={{
+                fontSize: '12px',
+                lineHeight: '1.4',
+                color: '#262626',
+                display: 'block',
+                marginBottom: 4,
+              }}
+            >
+              {item.title}
+            </Typography.Text>
+
+            {item.message && (
+              <Typography.Paragraph
+                ellipsis={{ rows: 2 }}
+                style={{
+                  fontSize: '12px',
+                  lineHeight: '1.4',
+                  margin: '0 0 4px 0',
+                  color: '#595959',
+                }}
+              >
+                {item.message}
+              </Typography.Paragraph>
+            )}
+
+            {Array.isArray(item.data?.files) && item.data.files.length > 0 && (
+              <div
+                style={{
+                  marginTop: 4,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                }}
+              >
+                {item.data.files.map((file: any) => {
+                  const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(
+                    (file.metadata?.format || file.mimeType || '').toLowerCase(),
+                  );
+                  const sizeMB = file.size ? (file.size / (1024 * 1024)).toFixed(1) : '';
+                  return (
+                    <div
+                      key={file.id || file.url}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        background: '#f7f8fa',
+                        borderRadius: 8,
+                        padding: '6px 10px 6px 8px',
+                        border: '1px solid #f0f0f0',
+                        maxWidth: 320,
+                      }}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      {/* Icon hoặc preview ảnh */}
+                      {isImage ? (
+                        <Image
+                          src={file.url}
+                          alt={file.originalName || file.fileName}
+                          width={44}
+                          height={44}
+                          style={{
+                            objectFit: 'cover',
+                            borderRadius: 6,
+                            border: '1px solid #e8e8e8',
+                            background: '#fafafa',
+                            overflow: 'hidden',
+                          }}
+                          preview={{ src: file.url }}
+                          placeholder
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 6,
+                            background: '#e6f4ff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 22,
+                            color: '#1677ff',
+                          }}
+                        >
+                          <IconFile size={22} />
+                        </div>
+                      )}
+
+                      {/* Thông tin file */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <Typography.Link
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 500,
+                            color: '#222',
+                            wordBreak: 'break-all',
+                          }}
+                          ellipsis
+                        >
+                          {file.originalName || file.fileName || 'Tệp đính kèm'}
+                        </Typography.Link>
+                        <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
+                          {sizeMB && <span>{sizeMB} MB</span>}
+                          {file.mimeType && <span style={{ marginLeft: 8 }}>{file.mimeType}</span>}
+                        </div>
+                      </div>
+
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<IconCloudDownload size={14} stroke={1.5} color="#333" />}
+                        style={{
+                          minWidth: 0,
+                          padding: 0,
+                          borderRadius: 7,
+                        }}
+                        onClick={async e => {
+                          e.stopPropagation();
+                          try {
+                            const response = await fetch(file.url, { mode: 'cors' });
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = file.originalName || file.fileName || 'download';
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                            window.URL.revokeObjectURL(url);
+                          } catch (err) {
+                            // Optional: thông báo lỗi
+                          }
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginTop: 8,
+                fontSize: '11px',
+                color: '#8c8c8c',
+              }}
+            >
+              <span>{getTimeAgo(item.createdAt)}</span>
+              {item.readAt && (
+                <>
+                  <span>•</span>
+                  <span>Đã đọc {getTimeAgo(item.readAt)}</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </List.Item>
+    );
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.item.id === nextProps.item.id &&
+      prevProps.item.isRead === nextProps.item.isRead &&
+      prevProps.item.readAt === nextProps.item.readAt
+    );
+  },
+);
+
 const NotificationBtn = () => {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<NotificationTab>('all');
+  const { openModal } = useModal();
+  const navigate = useNavigate();
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useInfiniteList<INotification>({
-      resource: 'notifications',
-      pagination: { pageSize: 10 },
-      sorters: [{ field: 'createdAt', order: 'desc' }],
-      queryOptions: {
-        getNextPageParam: lastPage => {
-          return lastPage.pagination.afterCursor;
-        },
-        getPreviousPageParam: firstPage => {
-          return firstPage.pagination.beforeCursor;
-        },
+  const {
+    data: notificationsData,
+    isLoading,
+    refetch,
+  } = useList<INotification>({
+    resource: 'notifications',
+    pagination: { pageSize: 100 },
+    sorters: [{ field: 'createdAt', order: 'desc' }],
+    queryOptions: {
+      retry: false,
+    },
+  });
+
+  const { mutate, isPending: isUpdating } = useUpdate({
+    resource: 'notifications',
+    invalidates: ['list'],
+    mutationMode: 'optimistic',
+    mutationOptions: {
+      onSuccess: () => {
+        refetch();
+      },
+    },
+  });
+
+  const { notifications, unreadCount } = useMemo(() => {
+    if (!notificationsData) {
+      return {
+        notifications: [],
+        unreadCount: 0,
+      };
+    }
+
+    return {
+      notifications: notificationsData.data,
+      unreadCount: notificationsData.metadata.unreadCount || 0,
+    };
+  }, [notificationsData]);
+
+  const markAsRead = (noti: INotification) => {
+    if (noti.type === NotificationType.ACTIVITY && noti.data?.uri && noti.data?.open) {
+      navigate(noti.data.uri);
+      openModal('ModalEditActivity', { activity: noti.data.open });
+    }
+    setOpen(false);
+    if (isUpdating || noti.isRead) return;
+
+    mutate({
+      resource: 'notifications/read',
+      id: '',
+      values: {
+        notificationId: noti.id,
       },
     });
-
-  const notifications = useMemo(() => {
-    const notificationMap = new Map();
-
-    data?.pages.forEach(page => {
-      page.data.forEach(notification => {
-        if (!notificationMap.has(notification.id)) {
-          notificationMap.set(notification.id, notification);
-        }
-      });
-    });
-
-    return Array.from(notificationMap.values());
-  }, [data]);
-
-  const unreadCount = useMemo(() => {
-    return notifications.filter(n => !n.isRead).length;
-  }, [notifications]);
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    if (scrollHeight - scrollTop - clientHeight < 28 && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
   };
 
-  const renderItem = (item: INotification) => (
-    <List.Item
-      style={{
-        background: item.isRead ? '#fff' : '#f6faff',
-        borderLeft: item.isRead ? '2px solid transparent' : '2px solid #1677ff',
-        padding: '8px 12px',
-        cursor: 'pointer',
-      }}
-    >
-      <List.Item.Meta
-        avatar={
-          <Avatar src={item.user?.avatar} style={{ background: '#eee' }} size="small">
-            {item.user?.name?.[0]}
-          </Avatar>
-        }
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: 0 }}>
-            <Typography.Text strong style={{ fontSize: '13px' }}>
-              {item.user?.name}
-            </Typography.Text>
-            {!item.isRead && (
-              <span
-                style={{
-                  display: 'inline-block',
-                  width: 6,
-                  height: 6,
-                  borderRadius: 3,
-                  background: '#1677ff',
-                  marginLeft: 4,
-                }}
-              />
-            )}
-            <Typography.Text type="secondary" style={{ fontSize: '11px', marginLeft: 'auto' }}>
-              {dayjs(item.createdAt).format('HH:mm')}
-            </Typography.Text>
-          </div>
-        }
-        description={
-          <div style={{ marginTop: '2px' }}>
-            <Typography.Text style={{ fontSize: '12px', lineHeight: '1.4' }}>
-              {item.title}
-            </Typography.Text>
-            <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
-              {dayjs(item.createdAt).format('DD/MM/YYYY')}
-            </div>
-          </div>
-        }
-      />
-    </List.Item>
-  );
+  const markAllAsRead = () => {
+    if (isUpdating) return;
+
+    mutate({
+      resource: 'notifications/read-all',
+      id: '',
+      values: {},
+    });
+  };
+
+  const clearAll = () => {
+    if (isUpdating || !notifications) return;
+
+    mutate({
+      resource: 'notifications/clear-all',
+      id: '',
+      values: {},
+    });
+  };
 
   const notificationContent = (
     <Space
@@ -143,6 +376,12 @@ const NotificationBtn = () => {
         <Button
           type="text"
           size="small"
+          style={{
+            borderRadius: 7,
+          }}
+          styles={{
+            icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+          }}
           onClick={() => setOpen(false)}
           icon={<IconX size={16} color="#838383" />}
         />
@@ -188,21 +427,74 @@ const NotificationBtn = () => {
       <div
         style={{ flex: 1, overflowY: 'auto', maxHeight: 400, background: '#fff' }}
         className="hidden-scrollbar"
-        onScroll={handleScroll}
       >
         {isLoading ? (
-          <Spin style={{ margin: '40px auto', display: 'block' }} />
+          <div style={{ margin: '10px auto', display: 'block' }}>
+            <Spinner />
+          </div>
         ) : notifications.length === 0 ? (
-          <Empty description="Không có thông báo nào" style={{ margin: '40px 0' }} />
+          <Empty description="Không có thông báo nào" style={{ margin: '10px 0' }} />
         ) : (
           <List
             dataSource={notifications}
-            renderItem={renderItem}
+            renderItem={item => {
+              if (tab === 'unread' && item.isRead) return null;
+              if (tab === 'mentions' && item.type !== NotificationType.MENTION) return null;
+              return <NotificationItem key={item.id} item={item} onMarkAsRead={markAsRead} />;
+            }}
             split={false}
-            style={{ padding: 0 }}
+            style={{ padding: '0 8px', maxHeight: 250 }}
           />
         )}
-        {isFetchingNextPage && <Spin style={{ margin: '12px auto', display: 'block' }} />}
+      </div>
+
+      <div
+        style={{
+          padding: 8,
+          borderTop: '1px solid #f0f0f0',
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Button
+          type="text"
+          style={{
+            padding: '4px 12px',
+          }}
+          styles={{
+            icon: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+          }}
+          icon={<IconX size={14} stroke={1.5} />}
+          disabled={!notifications.length || isUpdating}
+          onClick={clearAll}
+        >
+          Xóa
+        </Button>
+
+        <Button
+          type="primary"
+          style={{
+            border: 0,
+          }}
+          styles={{
+            icon: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+          }}
+          icon={<IconChecks size={14} />}
+          onClick={markAllAsRead}
+          disabled={!notifications || unreadCount === 0 || isUpdating}
+        >
+          Đánh dấu đã đọc
+        </Button>
       </div>
     </Space>
   );
@@ -213,7 +505,7 @@ const NotificationBtn = () => {
       onOpenChange={setOpen}
       styles={{
         body: {
-          padding: '0',
+          padding: 0,
           width: 350,
           overflow: 'hidden',
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',

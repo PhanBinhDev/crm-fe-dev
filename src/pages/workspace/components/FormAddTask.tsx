@@ -1,4 +1,5 @@
 import { ActivityType } from '@/common/enum/activity';
+import { UserRole } from '@/common/enum/user';
 import {
   ActivityPriorityLevel,
   Checklist,
@@ -6,14 +7,13 @@ import {
   FormAddActivityPayload,
   IStage,
   IUser,
-  ModalAction,
 } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useCreate, useList } from '@refinedev/core';
+import { useCreate, useCustomMutation, useList } from '@refinedev/core';
 import { IconCheck, IconChevronRight } from '@tabler/icons-react';
-import { Form, Input, List, Modal, Popover, Space } from 'antd';
-import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
+import { Form, Input, List, Modal, Popover, Space, Tooltip } from 'antd';
+import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import AssigneeActivity from './AssigneeActivity';
 import ChecklistActivity from './ChecklistActivity';
 import DuedateActivity from './DuedateActivity';
@@ -38,21 +38,17 @@ interface Category {
 
 interface FormAddTaskProps {
   openUploader: boolean;
-  onSubmit?: (params: {
-    data: FormAddActivityPayload;
-    action: ModalAction;
-    callback: () => void;
-  }) => void;
+  onSubmit?: (params: { data: FormAddActivityPayload; callback: () => void }) => void;
 }
 const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, ref) => {
   const [form] = Form.useForm();
-  const actionRef = useRef<ModalAction>();
   const { currentWorkspace } = useWorkspaces();
   const [taskOrEvent, setTaskOrEvent] = useState<ActivityType>(ActivityType.TASK);
   const [category, setCategory] = useState<string>();
   const [customModalOpen, setCustomModalOpen] = useState(false);
   const [customForm] = Form.useForm();
   const { mutate: createCategory } = useCreate<Category>();
+  const { mutate: uploadFiles } = useCustomMutation();
 
   const { data: categoriesData } = useList<Category>({
     resource: 'activities/category',
@@ -85,20 +81,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
   const currentUserRole = identity?.role;
 
   useImperativeHandle(ref, () => ({
-    submitForm: (action: ModalAction) => {
-      console.log('Submitting form with action:', action);
-
-      setErrors({ stage: false, location: false });
-
-      if (!stage) {
-        setErrors(prev => ({ ...prev, stage: true }));
-      }
-
-      if (taskOrEvent === ActivityType.EVENT && (!location || location.trim() === '')) {
-        setErrors(prev => ({ ...prev, location: true }));
-      }
-
-      actionRef.current = action;
+    submitForm: () => {
       form.submit();
     },
   }));
@@ -253,34 +236,79 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
 
   const handleSubmit = async (values: any) => {
     try {
+      let fileUrls: string[] = [];
+      if (attachments.length > 0) {
+        try {
+          const formData = new FormData();
+          attachments.forEach(file => formData.append('files', file));
+
+          const uploadResult = await new Promise<any>((resolve, reject) => {
+            uploadFiles(
+              {
+                url: '/upload/multi',
+                method: 'post',
+                values: formData,
+                config: {
+                  headers: { 'Content-Type': 'multipart/form-data' },
+                },
+              },
+              {
+                onSuccess: res => resolve(res),
+                onError: error => reject(error),
+              },
+            );
+          });
+
+          if (Array.isArray(uploadResult)) {
+            if (uploadResult.length > 0 && uploadResult[0].url) {
+              fileUrls = uploadResult.map((item: any) => item.url);
+            } else {
+              fileUrls = uploadResult;
+            }
+          } else if (uploadResult.data && uploadResult.data.urls) {
+            fileUrls = uploadResult.data.urls;
+          } else if (Array.isArray(uploadResult.data)) {
+            if (uploadResult.data.length > 0 && uploadResult.data[0].url) {
+              fileUrls = uploadResult.data.map((item: any) => item.url);
+            } else {
+              fileUrls = uploadResult.data;
+            }
+          } else {
+            return;
+          }
+        } catch (uploadError) {
+          return;
+        }
+      }
+
       const formData: FormAddActivityPayload = {
         name: values.name?.trim(),
         description: values.description?.trim(),
-        assignees: selectedAssignees.map(user => ({
-          userId: user.id,
-        })),
+        type: values.type,
+        stageId: values.stage.id,
+        workspaceId: currentWorkspace?.id || '',
         priority: selectedPriority?.value,
         estimateTime: parseFloat(timeEstimate) || 0,
-        stageId: values.stage.id,
-        type: values.type,
-        category: values.category,
         startTime: dateRange.start?.toDate(),
         endTime: dateRange.end?.toDate(),
-        files: attachments,
-        subtask: subtasks.filter(task => task.trim()),
-        checklist: checklists,
-        workspaceId: currentWorkspace?.id || '',
         location: values.location || null,
         instructorCount: values.instructorCount || null,
         studentCount: values.studentCount || null,
+        assignees: selectedAssignees.map(user => ({
+          userId: user.id,
+        })),
+        subtask: subtasks.filter(task => task.trim()),
+        checklist: checklists,
+        attachments: fileUrls,
       };
 
       onSubmit?.({
         data: formData,
-        action: actionRef.current || 'create-action',
         callback: () => handleReset(),
       });
-    } catch (error) {}
+    } catch (error) {
+      console.error('❌ Lỗi khi submit form:', error);
+    }
   };
 
   return (
@@ -314,21 +342,22 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                   trigger="click"
                   placement="bottomLeft"
                   onOpenChange={setCategoryOpen}
-                  styles={{ body: { padding: 0 } }}
+                  styles={{ body: { padding: 8, width: 220 } }}
+                  arrow={false}
                   open={categoryOpen}
                   content={
-                    <div style={{ width: 220, padding: 5 }}>
-                      <List
-                        size="small"
-                        dataSource={
-                          currentUserRole === 'TM'
-                            ? [
-                                ...(categoriesData?.data || []),
-                                { id: 'custom', name: 'Tùy chỉnh', description: '' },
-                              ]
-                            : categoriesData?.data || []
-                        }
-                        renderItem={item => (
+                    <List
+                      size="small"
+                      dataSource={
+                        currentUserRole === UserRole.TM
+                          ? [
+                              ...(categoriesData?.data || []),
+                              { id: 'custom', name: 'Tùy chỉnh...', description: '' },
+                            ]
+                          : categoriesData?.data || []
+                      }
+                      renderItem={item => (
+                        <Tooltip title={item?.description} placement="right">
                           <List.Item
                             key={item.id}
                             style={{
@@ -338,7 +367,13 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                               padding: '6px 10px',
                               cursor: 'pointer',
                               borderRadius: 6,
-                              backgroundColor: item.id === category ? '#f0f6ff' : 'transparent',
+                              border: 'none',
+                            }}
+                            onMouseEnter={e => {
+                              e.currentTarget.style.backgroundColor = '#f5f5f5';
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.backgroundColor = 'transparent';
                             }}
                             onClick={() => {
                               if (item.id === 'custom') {
@@ -353,9 +388,9 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                             <span style={{ flex: 1 }}>{item.name}</span>
                             {item.id === category && <IconCheck size={14} />}
                           </List.Item>
-                        )}
-                      />
-                    </div>
+                        </Tooltip>
+                      )}
+                    />
                   }
                 >
                   <div
@@ -372,18 +407,21 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                       fontSize: 13,
                       fontWeight: 500,
                       color: '#24292f',
-                      minWidth: 160,
                       height: 27,
                       transition: 'all 0.2s ease',
-                      boxShadow: categoryOpen
-                        ? '0 0 0 2px #1677ff33'
-                        : '0 1px 2px rgba(0,0,0,0.04)',
                     }}
                     onClick={() => setCategoryOpen(!categoryOpen)}
                   >
-                    <span style={{ fontSize: 14, fontWeight: 500, color: '#646464' }}>
+                    <span
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: '#646464',
+                        userSelect: 'none',
+                      }}
+                    >
                       {categoriesData?.data.find(opt => opt.id === category)?.name ||
-                        'Chọn loại sự kiện'}
+                        'Loại sự kiện'}
                     </span>
                     <IconChevronRight
                       size={14}

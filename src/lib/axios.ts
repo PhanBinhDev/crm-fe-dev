@@ -1,4 +1,3 @@
-import { ApiResponse, ApiResponseNoData } from '@/common/types/api';
 import { API_URL } from '@/constants';
 import { message } from 'antd';
 import axios from 'axios';
@@ -13,10 +12,6 @@ export const axiosInstance = axios.create({
 
 axiosInstance.interceptors.response.use(
   response => {
-    const data = response.data as ApiResponse<unknown> | ApiResponseNoData;
-
-    console.log('Axios response:', data);
-
     return response;
   },
   async error => {

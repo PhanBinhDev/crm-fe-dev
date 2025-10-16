@@ -12,7 +12,24 @@ export const useChecklistState = (value: Checklist[], onChange?: (value: Checkli
   const addChecklist = () => {
     updateChecklists(checklists => [
       ...checklists,
-      { name: '', items: [{ content: '', isDone: false }] },
+      {
+        name: '',
+        items: [
+          {
+            content: '',
+            isDone: false,
+            id: Date.now().toString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+        totalItems: 1,
+        completedItems: 0,
+        progress: 0,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
     ]);
   };
 
@@ -50,7 +67,19 @@ export const useChecklistState = (value: Checklist[], onChange?: (value: Checkli
       updateChecklists(checklists =>
         checklists.map((cl, idx) =>
           idx === checklistIndex
-            ? { ...cl, items: [...cl.items, { content: '', isDone: false }] }
+            ? {
+                ...cl,
+                items: [
+                  ...cl.items,
+                  {
+                    content: '',
+                    isDone: false,
+                    id: Date.now().toString(),
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  },
+                ],
+              }
             : cl,
         ),
       );

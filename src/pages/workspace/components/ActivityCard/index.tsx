@@ -19,10 +19,17 @@ interface ActivityCardProps {
   activity: IActivity;
   isPortal?: boolean;
   isCompletedStage?: boolean;
+  isClosedStage?: boolean;
   stages?: IStage[];
 }
 
-const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: ActivityCardProps) => {
+const ActivityCard = ({
+  activity,
+  isPortal,
+  isCompletedStage,
+  isClosedStage,
+  stages,
+}: ActivityCardProps) => {
   const { config } = useDisplayConfig();
   const { openModal } = useModal();
   const [isHovered, setIsHovered] = useState(false);
@@ -93,12 +100,12 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
             (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.03)';
           }
         }}
-        onClick={() =>
+        onClick={() => {
           openModal('ModalEditActivity', {
             activity,
             stage: stages?.find(s => s.id === activity.stageId),
-          })
-        }
+          });
+        }}
       >
         {/* Tiêu đề */}
         <div style={{ width: '100%', position: 'relative', marginBottom: 6 }}>
@@ -365,7 +372,7 @@ const ActivityCard = ({ activity, isPortal, isCompletedStage, stages }: Activity
           </Button>
         )}
 
-        {showActions && (
+        {showActions && !isClosedStage && (
           <ToolbarActivityCard
             activity={activity}
             isCompletedStage={!!isCompletedStage}

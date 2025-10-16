@@ -145,6 +145,12 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
   useEffect(() => {
     const newOpenKeys = getOpenKeysFromPath(location.pathname);
     setOpenKeys(newOpenKeys);
+
+    if (location.pathname.startsWith('/settings')) {
+      setCollapsed(true);
+    } else {
+      setCollapsed(false);
+    }
   }, [location.pathname]);
 
   const handleOpenChange = (keys: string[]) => {
@@ -270,19 +276,18 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
         <CustomHeader collapsed={collapsed} />
         <Content
           style={{
-            margin: '24px 16px',
+            margin: '80px 16px 16px',
             padding: '20px',
             minHeight: 280,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
             boxShadow: '0 1px 4px rgba(0,21,41,0.08)',
             overflow: 'auto',
-            marginTop: 80,
           }}
         >
           <div
             style={{
-              minHeight: 'calc(100vh - 280px)',
+              minHeight: 'calc(100vh - 144x)',
             }}
           >
             {children}

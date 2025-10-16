@@ -1,6 +1,6 @@
+import { Result } from 'antd';
 import React from 'react';
-import { Spin, Result } from 'antd';
-import { LoadingOutlined } from '@ant-design/icons';
+import Spinner from '../ui/Spinner';
 
 interface LoadingPageProps {
   title?: string;
@@ -11,8 +11,6 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({
   title = 'Đang tải...',
   subtitle = 'Vui lòng đợi trong giây lát',
 }) => {
-  const antIcon = <LoadingOutlined style={{ fontSize: 48, color: '#1890ff' }} spin />;
-
   return (
     <div
       style={{
@@ -24,7 +22,7 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({
       }}
     >
       <Result
-        icon={<Spin indicator={antIcon} />}
+        icon={<Spinner size={48} />}
         title={<span style={{ color: '#fff', fontSize: '24px' }}>{title}</span>}
         subTitle={<span style={{ color: '#fff', opacity: 0.8 }}>{subtitle}</span>}
       />

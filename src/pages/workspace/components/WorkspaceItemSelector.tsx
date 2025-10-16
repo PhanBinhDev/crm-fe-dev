@@ -62,6 +62,8 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
 
   const handleWorkspaceSelect = (workspace: IWorkspace) => {
     switchWorkspace(workspace.id);
+    // reload page
+
     setOpen(false);
   };
 
@@ -79,7 +81,6 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
         style={{
           padding: 2,
           borderRadius: 4,
-          backgroundColor: '#f9f9f9',
         }}
       >
         <Avatar
@@ -89,7 +90,9 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'oklch(27.4% 0.006 286.033)',
+            color: '#333',
+            fontSize: size / 2,
+            background: '#f0f0f0',
           }}
         >
           {workspace?.name?.charAt(0).toUpperCase() || 'W'}
@@ -264,7 +267,13 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
       />
       <Space direction="vertical" style={{ width: '100%', padding: 8 }}>
         {workspaces.length > 1 ? (
-          <List>
+          <List
+            style={{
+              maxHeight: 200,
+              overflowY: 'auto',
+              width: '100%',
+            }}
+          >
             {workspaces
               .filter(workspace => workspace.id !== currentWorkspace?.id)
               .map(workspace => (
@@ -354,7 +363,6 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
           body: {
             padding: 0,
             width: 310,
-            marginLeft: 30,
           },
         }}
         trigger={['click']}

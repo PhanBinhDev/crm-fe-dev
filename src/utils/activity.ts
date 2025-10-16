@@ -1,5 +1,4 @@
 import {
-  ActivityCategory,
   ActivityPriority,
   ActivityStatus,
   ActivityType,
@@ -134,19 +133,6 @@ export const getActivityTypeLabel = (type: ActivityType): string => {
   }
 };
 
-export const getActivityCategoryLabel = (category: ActivityCategory): string => {
-  switch (category) {
-    case ActivityCategory.SEMINAR:
-      return 'Hội thảo';
-    case ActivityCategory.WORKSHOP:
-      return 'Workshop';
-    case ActivityCategory.TUTOR:
-      return 'Dạy kèm';
-    default:
-      return category;
-  }
-};
-
 export const getFileIcon = (fileName: any) => {
   const extension = fileName.split('.').pop()?.toLowerCase();
 
@@ -222,7 +208,6 @@ export const getColorFromName = (name: any) => {
   return colors[Math.abs(hash) % colors.length];
 };
 
-// Hàm lấy chữ cái đầu từ tên
 export const getInitials = (name: any) => {
   if (!name) return 'U';
   return name
@@ -340,3 +325,34 @@ export function calculateProgress(activity: IActivity): number {
   // Làm tròn đến 2 chữ số thập phân
   return Math.round(progress * 100) / 100;
 }
+
+export const getColumnLabel = (key: string) => {
+  const labels = {
+    stage: 'Giai đoạn',
+    name: 'Tên hoạt động',
+    type: 'Loại',
+    assignees: 'Người thực hiện',
+    startDate: 'Ngày bắt đầu',
+    dueDate: 'Ngày kết thúc',
+    priority: 'Độ ưu tiên',
+    location: 'Vị trí',
+    description: 'Mô tả',
+  };
+  return labels[key as keyof typeof labels] || '';
+};
+
+// Helper function để lấy width của từng column
+export const getColumnWidth = (key: string) => {
+  const widths = {
+    stage: 25,
+    name: 250,
+    type: 100,
+    assignees: 150,
+    startDate: 150,
+    dueDate: 150,
+    priority: 120,
+    location: 150,
+    description: 200,
+  };
+  return widths[key as keyof typeof widths] || 150;
+};

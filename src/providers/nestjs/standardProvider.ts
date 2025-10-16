@@ -5,6 +5,8 @@ import stringify from 'query-string';
 import { transformHttpError } from './utils';
 import { buildStandardQuery } from './utils/handleStandardQuery';
 
+// interface
+
 export const standardDataProvider = (
   apiUrl: string,
   httpClient: AxiosInstance = axiosInstance,
@@ -21,59 +23,26 @@ export const standardDataProvider = (
 
     const { data } = response;
 
-    if (data.pagination) {
-      return {
-        data: data.data,
-        total: data.pagination.totalRecords,
-        pagination: data.pagination,
-      };
-    } else if (data.data) {
-      return {
-        data: Array.isArray(data.data) ? data.data : [data.data],
-        total: Array.isArray(data.data) ? data.data.length : 1,
-        pagination: data.pagination,
-      };
-    } else {
-      return {
-        data: Array.isArray(data) ? data : [data],
-        total: Array.isArray(data) ? data.length : 1,
-        pagination: data.pagination,
-      };
-    }
+    return {
+    ...data,
+    total: data.pagination?.totalRecords ?? data.data?.length ?? 0,
+  };
   },
 
   getMany: async ({ resource, ids, meta }) => {
     const url = `${apiUrl}/${resource}`;
 
-    // Use standard query with ids filter
     const queryParams = {
-      id: ids, // Backend should handle this as IN operation
+      id: ids,
       ...(meta?.query || {}),
     };
 
-    // Use query-string to serialize without [] brackets
     const queryString = stringify.stringify(queryParams, { arrayFormat: 'comma' });
     const requestUrl = queryString ? `${url}?${queryString}` : url;
 
     const { data } = await httpClient.get(requestUrl);
 
-    // Handle backend response structure
-    if (data.pagination) {
-      return {
-        data: data.data,
-        pagination: data.pagination,
-      };
-    } else if (data.data) {
-      return {
-        data: Array.isArray(data.data) ? data.data : [data.data],
-        pagination: data.pagination,
-      };
-    } else {
-      return {
-        data: Array.isArray(data) ? data : [data],
-        pagination: data.pagination,
-      };
-    }
+    return data;
   },
 
   create: async ({ resource, variables }) => {
@@ -82,7 +51,6 @@ export const standardDataProvider = (
     try {
       const { data } = await httpClient.post(url, variables);
 
-      // Handle backend ResponseDto structure
       return {
         data: data.data || data,
       };
@@ -98,7 +66,6 @@ export const standardDataProvider = (
     try {
       const { data } = await httpClient.patch(url, variables);
 
-      // Handle backend ResponseDto structure
       return {
         data,
       };
@@ -136,7 +103,6 @@ export const standardDataProvider = (
     try {
       const { data } = await httpClient.post(url, { bulk: variables });
 
-      // Handle backend ResponseDto structure
       return {
         data: data.data || data,
       };
@@ -149,16 +115,13 @@ export const standardDataProvider = (
   getOne: async ({ resource, id, meta }) => {
     const url = `${apiUrl}/${resource}/${id}`;
 
-    // Add any meta query params
     const queryParams = meta?.query || {};
 
-    // Use query-string to serialize without [] brackets
     const queryString = stringify.stringify(queryParams, { arrayFormat: 'comma' });
     const requestUrl = queryString ? `${url}?${queryString}` : url;
 
     const { data } = await httpClient.get(requestUrl);
 
-    // Handle backend ResponseDto structure
     return {
       data: data.data || data,
     };
@@ -169,7 +132,6 @@ export const standardDataProvider = (
 
     const { data } = await httpClient.delete(url);
 
-    // Handle backend ResponseDto structure
     return {
       data: data.data || data,
     };
@@ -190,7 +152,6 @@ export const standardDataProvider = (
   },
 
   custom: async ({ url, method, meta, filters, sorters, payload, query, headers }) => {
-    // Build standard query params
     const standardParams = buildStandardQuery(filters, undefined, sorters, meta);
 
     let requestUrl = url;

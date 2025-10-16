@@ -1,9 +1,9 @@
 import { IActivity, IStage } from '@/common/types';
+import { useKanbanContext } from '@/contexts/kanban/KanbanContext';
+import { useActivityActions } from '@/hooks/useActivityActions';
 import { IconCheck } from '@tabler/icons-react';
 import { Button, Tooltip } from 'antd';
 import ToolbarMoreAction from './ToolbarMoreAction';
-import { useKanbanContext } from '@/contexts/kanban/KanbanContext';
-import { useActivityActions } from '@/hooks/useActivityActions';
 
 interface ToolbarActivityCardProps {
   activity: IActivity;
@@ -11,9 +11,13 @@ interface ToolbarActivityCardProps {
   stages?: IStage[];
 }
 
-const ToolbarActivityCard = ({ activity, isCompletedStage, stages = [] }: ToolbarActivityCardProps) => {
+const ToolbarActivityCard = ({
+  activity,
+  isCompletedStage,
+  stages = [],
+}: ToolbarActivityCardProps) => {
   const { markComplete } = useActivityActions();
-  
+
   // Chỉ sử dụng context khi available
   let updateLocalActivity: any = null;
   try {
@@ -59,7 +63,7 @@ const ToolbarActivityCard = ({ activity, isCompletedStage, stages = [] }: Toolba
             styles={{
               icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
             }}
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation();
               handleMarkComplete();
             }}

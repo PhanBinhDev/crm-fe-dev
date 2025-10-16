@@ -1,20 +1,22 @@
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
+import { formatTime } from '@/services/utils/formatter';
 import { getColorFromName, getInitials } from '@/utils/activity';
-import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
-import { IconSend2, IconTrash } from '@tabler/icons-react';
-import { Avatar, Button, message, Popconfirm, Skeleton } from 'antd';
+import { useCreate, useCustomMutation, useDelete, useList, useUpdate } from '@refinedev/core';
+import { IconHeart, IconSend2, IconTrash } from '@tabler/icons-react';
+import { Avatar, Button, message, Popconfirm, Skeleton, Tooltip } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import dayjs from 'dayjs';
-import 'dayjs/locale/vi';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import { useRef, useState } from 'react';
-dayjs.extend(relativeTime);
-dayjs.locale('vi');
+import _ from 'lodash';
+import { useEffect, useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { UserPopover } from './../../../users/list/components/UserPopover';
 
 interface ActivityCommentTabProps {
   activityId: string;
 }
+
+type ReactionType = 'like' | null;
 
 interface Comment {
   id: string;
@@ -23,6 +25,12 @@ interface Comment {
   createdAt: string;
   parentCommentId?: string | null;
   replies?: Comment[];
+  reactions?: Record<string, boolean>;
+  reactionCounts?: Record<string, number>;
+  reactionSummary?: Record<string, number>;
+  currentUserReaction?: ReactionType;
+  hasUserReacted?: boolean;
+  totalReactions?: number;
 }
 
 const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
@@ -30,9 +38,11 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<any>(null);
 
-  const { mutate: createComment, isLoading: isCreating } = useCreate();
+  const { mutate: createComment } = useCreate();
   const { mutate: updateComment } = useUpdate();
   const { mutate: deleteComment } = useDelete();
+  const { mutate: updateReactionComments } = useCustomMutation();
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [commentContent, setCommentContent] = useState('');
@@ -44,123 +54,211 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
     isLoading,
   } = useList<Comment>({
     resource: `activities/${activityId}/comments`,
-    queryOptions: {
-      refetchInterval: 10000,
-    },
+    queryOptions: { refetchInterval: false },
   });
 
+  const [localComments, setLocalComments] = useState<Comment[]>([]);
+  useEffect(() => {
+    if (!comments) return;
+    const raw = Array.isArray(comments.data)
+      ? comments.data
+      : Array.isArray((comments as any).data?.data)
+        ? (comments as any).data.data
+        : [];
+
+    if (raw.length) {
+      setLocalComments(raw as Comment[]);
+    }
+  }, [comments]);
+
   const SKELETON_COUNT = 3;
+  const updateCommentReaction = (
+    comments: Comment[],
+    id: string,
+    updated: Partial<Comment>,
+  ): Comment[] => {
+    return comments.map(c => {
+      if (c.id === id) return { ...c, ...updated };
+      if (c.replies && c.replies.length) {
+        return { ...c, replies: updateCommentReaction(c.replies, id, updated) };
+      }
+      return c;
+    });
+  };
+  const handleToggleTym = async (commentId: string) => {
+    if (!currentUser?.id) {
+      message.error('Không xác định người dùng hiện tại');
+      return;
+    }
 
-  if (isLoading) {
-    return (
-      <div
-        style={{
-          padding: '5px 10px 10px 10px',
-          background: '#f7f7f7ff',
-          flex: 1,
-        }}
-      >
-        {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
-          <div key={index} style={{ marginBottom: 15 }}>
-            <div
-              style={{ display: 'flex', gap: 8, padding: 10, background: '#fff', borderRadius: 8 }}
-            >
-              <Skeleton.Avatar active size={40} shape="circle" style={{ marginTop: 5 }} />
-              <Skeleton
-                active
-                title={false}
-                paragraph={{ rows: 2, width: ['90%', '50%'] }}
-                style={{ flex: 1, marginTop: 5 }}
-              />
-            </div>
-
-            {index > 0 && (
-              <div
-                style={{
-                  display: 'flex',
-                  gap: 8,
-                  padding: 10,
-                  background: '#fff',
-                  borderRadius: 8,
-                  marginLeft: 40,
-                  marginTop: 10,
-                }}
-              >
-                <Skeleton.Avatar active size={32} shape="circle" style={{ marginTop: 5 }} />
-                <Skeleton
-                  active
-                  title={false}
-                  paragraph={{ rows: 1, width: ['80%'] }}
-                  style={{ flex: 1, marginTop: 5 }}
-                />
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+    const parentComment = localComments.find(
+      c => c.id === commentId || c.replies?.some(r => r.id === commentId),
     );
-  }
+    const current =
+      parentComment?.id === commentId
+        ? parentComment
+        : parentComment?.replies?.find(r => r.id === commentId);
 
-  const buildCommentsTree = (comments: Comment[]) => {
+    if (!current) return;
+
+    const prevHasReacted = !!current.hasUserReacted;
+    const prevCount = current.totalReactions || 0;
+    const nextHasReacted = !prevHasReacted;
+    const nextCount = Math.max(prevCount + (nextHasReacted ? 1 : -1), 0);
+
+    const prevState = [...localComments];
+
+    setLocalComments(prev =>
+      prev.map(c => {
+        if (c.id === commentId) {
+          return { ...c, hasUserReacted: nextHasReacted, totalReactions: nextCount };
+        }
+        if (c.replies?.find(r => r.id === commentId)) {
+          return {
+            ...c,
+            replies: c.replies.map(r => {
+              if (r.id === commentId) {
+                return { ...r, hasUserReacted: nextHasReacted, totalReactions: nextCount };
+              }
+              return r;
+            }),
+          };
+        }
+        return c;
+      }),
+    );
+
+    updateReactionComments(
+      {
+        url: `activities/${activityId}/comments/${commentId}/reactions`,
+        method: 'post',
+        values: {
+          type: 'like',
+        },
+      },
+      {
+        onSuccess: () => {
+          refetch();
+          message.success('Cập nhật bình luận thành công');
+        },
+        onError: () => {
+          message.error('Cập nhật bình luận thất bại');
+          setLocalComments(prevState);
+        },
+      },
+    );
+  };
+
+  const buildCommentsTree = (list: Comment[]) => {
+    if (!list || !Array.isArray(list)) return [];
     const map = new Map<string, Comment>();
     const roots: Comment[] = [];
-
-    comments.forEach(c => {
-      map.set(c.id, { ...c, replies: [] });
-    });
-
-    map.forEach(cmt => {
-      if (cmt.parentCommentId) {
-        const parent = map.get(cmt.parentCommentId);
-        if (parent) {
-          parent.replies?.push(cmt);
-        }
+    list.forEach(c =>
+      map.set(c.id, {
+        ...c,
+        replies: Array.isArray(c.replies) ? c.replies : [],
+      }),
+    );
+    list.forEach(c => {
+      const parentId = c.parentCommentId;
+      if (parentId && map.has(parentId)) {
+        map.get(parentId)!.replies!.push(map.get(c.id)!);
+      } else if (!parentId || parentId === '' || parentId === null) {
+        roots.push(map.get(c.id)!);
       } else {
-        roots.push(cmt);
+        roots.push(map.get(c.id)!);
       }
     });
-
     return roots;
   };
 
-  const organizedComments = buildCommentsTree(comments?.data || []);
+  const organizedComments = buildCommentsTree(localComments);
 
   const handleReplyClick = (parentId: string) => {
     setReplyToId(parentId);
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 
-  const handleSendComment = () => {
+  const handleSendComment = async () => {
     if (!commentContent.trim()) return;
+
+    const tempId = uuidv4();
+    const now = new Date().toISOString();
+
+    const optimisticComment: Comment = {
+      id: tempId,
+      user: {
+        id: currentUser?.id!,
+        name: currentUser?.name || 'Bạn',
+        avatar: currentUser?.avatar || '',
+      },
+      content: commentContent.trim(),
+      createdAt: now,
+      parentCommentId: replyToId || null,
+      replies: [],
+      hasUserReacted: false,
+      totalReactions: 0,
+    };
+
+    // Cập nhật UI ngay lập tức
+    setLocalComments(prev => {
+      if (replyToId) {
+        return prev.map(c =>
+          c.id === replyToId ? { ...c, replies: [...(c.replies || []), optimisticComment] } : c,
+        );
+      }
+      return [...prev, optimisticComment];
+    });
+
+    setCommentContent('');
+    setReplyToId(null);
+    setFocused(false);
 
     const values = {
       activityId,
-      content: commentContent,
-      parentCommentId: replyToId || '',
+      content: commentContent.trim(),
+      parentCommentId: replyToId || null,
     };
 
     createComment(
       {
-        resource: `activities/comments`,
+        resource: 'activities/comments',
         values,
       },
       {
         onSuccess: () => {
-          setCommentContent('');
-          setReplyToId(null);
-          setFocused(false);
+          message.success('Gửi bình luận thành công');
           refetch();
-          message.success(replyToId ? 'Đã trả lời' : 'Đã bình luận');
         },
         onError: error => {
           console.error('Error creating comment:', error);
-          message.error('Gửi thất bại');
+          message.error('Không thể gửi bình luận. Vui lòng thử lại.');
         },
       },
     );
   };
 
   const handleSaveEdit = (id: string) => {
+    const prevState = _.cloneDeep(localComments);
+
+    setLocalComments(prev =>
+      prev.map(parent => {
+        if (parent.id === id) {
+          return { ...parent, content: editingContent };
+        }
+        if (parent.replies?.some(reply => reply.id === id)) {
+          return {
+            ...parent,
+            replies: parent.replies.map(reply =>
+              reply.id === id ? { ...reply, content: editingContent } : reply,
+            ),
+          };
+        }
+        return parent;
+      }),
+    );
+    setEditingId(null);
+
     updateComment(
       {
         resource: `activities/${activityId}/comments`,
@@ -171,11 +269,12 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
         onSuccess: () => {
           refetch();
           message.success('Cập nhật bình luận thành công');
-          setEditingId(null);
           setEditingContent('');
         },
         onError: () => {
           message.error('Cập nhật bình luận thất bại');
+          // khôi phục
+          setLocalComments(prevState);
         },
       },
     );
@@ -187,11 +286,17 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
   };
 
   const handleDelete = (id: string) => {
+    setLocalComments(prev =>
+      prev
+        .filter(parent => parent.id !== id)
+        .map(parent => ({
+          ...parent,
+          replies: parent.replies?.filter(reply => reply.id !== id) || [],
+        })),
+    );
+
     deleteComment(
-      {
-        resource: `activities/${activityId}/comments`,
-        id,
-      },
+      { resource: `activities/${activityId}/comments`, id },
       {
         onSuccess: () => {
           refetch();
@@ -206,9 +311,13 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
 
   const renderComment = (cmt: Comment, isReply = false) => {
     const isAuthor = cmt.user.id === currentUser?.id;
-    const now = dayjs();
-    const createdAt = dayjs(cmt.createdAt);
-    const isWithinOneWeek = now.diff(createdAt, 'days') < 7;
+    const hasReacted = !!cmt.hasUserReacted;
+    const count = cmt.totalReactions || 0;
+    const anyoneReacted = count > 0;
+
+    const color = hasReacted ? '#ff4d4f' : anyoneReacted ? '#ff4d4f' : '#999';
+    const fill = hasReacted ? color : 'none';
+
     return (
       <div
         key={cmt.id}
@@ -222,26 +331,30 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, flex: 1 }}>
-            {cmt.user?.avatar ? (
-              <Avatar size={isReply ? 32 : 40} src={cmt.user?.avatar} />
-            ) : (
-              <Avatar
-                size="small"
-                style={{
-                  backgroundColor: getColorFromName(cmt.user.name || AVATAR_PLACEHOLDER),
-                  color: '#fff',
-                  fontWeight: 'bold',
-                }}
-              >
-                {getInitials(cmt.user.name)}
-              </Avatar>
-            )}
+            <UserPopover userId={cmt.user.id}>
+              {cmt.user?.avatar ? (
+                <Avatar size={isReply ? 24 : 28} src={cmt.user?.avatar} />
+              ) : (
+                <Avatar
+                  size={isReply ? 24 : 28}
+                  style={{
+                    backgroundColor: getColorFromName(cmt.user.name || AVATAR_PLACEHOLDER),
+                    color: '#fff',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {getInitials(cmt.user.name)}
+                </Avatar>
+              )}
+            </UserPopover>
 
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <div style={{ fontSize: 13, fontWeight: 600 }}>{cmt.user.name}</div>
                 <div style={{ fontSize: 11, color: '#999' }}>
-                  {isWithinOneWeek ? createdAt.fromNow() : createdAt.format('DD/MM/YYYY HH:mm')}
+                  <Tooltip title={dayjs(cmt.createdAt).format('DD/MM/YYYY HH:mm')}>
+                    {formatTime(cmt.createdAt)}
+                  </Tooltip>
                 </div>
               </div>
 
@@ -264,27 +377,32 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
                 )}
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    cursor: 'pointer',
+                    transition: 'transform 0.12s ease, color 0.2s ease',
+                  }}
+                  onClick={() => handleToggleTym(cmt.id)}
+                  onMouseDown={e => (e.currentTarget.style.transform = 'scale(1.12)')}
+                  onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  <IconHeart size={16} color={color} fill={fill} />
+                  <span style={{ fontSize: 12, color: '#555' }}>{count}</span>
+                </div>
                 {editingId === cmt.id ? (
                   <>
                     <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 550,
-                        cursor: 'pointer',
-                        color: '#1890ff',
-                      }}
+                      style={{ fontSize: 12, fontWeight: 550, cursor: 'pointer', color: '#1890ff' }}
                       onClick={() => handleSaveEdit(cmt.id)}
                     >
                       Lưu
                     </span>
                     <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 550,
-                        cursor: 'pointer',
-                        color: '#686868ff',
-                      }}
+                      style={{ fontSize: 12, fontWeight: 550, cursor: 'pointer', color: '#686868' }}
                       onClick={() => setEditingId(null)}
                     >
                       Hủy
@@ -298,7 +416,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
                           fontSize: 12,
                           fontWeight: 550,
                           cursor: 'pointer',
-                          color: '#686868ff',
+                          color: '#686868',
                         }}
                         onClick={() => handleStartEdit(cmt.id, cmt.content)}
                       >
@@ -313,7 +431,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
                           fontSize: 12,
                           fontWeight: 550,
                           cursor: 'pointer',
-                          color: '#686868ff',
+                          color: '#686868',
                         }}
                       >
                         Trả lời
@@ -334,7 +452,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
                 okButtonProps={{ danger: true }}
                 onConfirm={() => handleDelete(cmt.id)}
               >
-                <IconTrash size={14} color="#ff4f4fff" style={{ cursor: 'pointer' }} />
+                <IconTrash size={14} color="#ff4f4f" style={{ cursor: 'pointer' }} />
               </Popconfirm>
             </div>
           )}
@@ -343,13 +461,35 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <div style={{ padding: '5px 10px 10px 10px', background: '#f7f7f7', flex: 1 }}>
+        {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
+          <div key={index} style={{ marginBottom: 15 }}>
+            <div
+              style={{ display: 'flex', gap: 8, padding: 10, background: '#fff', borderRadius: 8 }}
+            >
+              <Skeleton.Avatar active size={40} shape="circle" style={{ marginTop: 5 }} />
+              <Skeleton
+                active
+                title={false}
+                paragraph={{ rows: 2, width: ['90%', '50%'] }}
+                style={{ flex: 1, marginTop: 5 }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <>
       <div
         style={{
-          background: '#f7f7f7ff',
+          background: '#f7f7f7',
           flex: 1,
-          padding: '5px 10px 10px 10px',
+          padding: 10,
           overflowY: 'auto',
         }}
       >
@@ -361,7 +501,15 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
             </div>
           ))
         ) : (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '20px',
+              color: '#999',
+              borderRadius: 8,
+              background: '#f0f0f0',
+            }}
+          >
             Chưa có bình luận
           </div>
         )}
@@ -370,8 +518,8 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
       <div
         style={{
           padding: 8,
-          borderTop: '1px solid #e0e0e0ff',
-          background: '#f7f7f7ff',
+          borderTop: '1px solid #e0e0e0',
+          background: '#f7f7f7',
         }}
       >
         {replyToId && (
@@ -416,7 +564,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
 
           <Button
             type="primary"
-            loading={isCreating}
+            // loading={isCreating}
             onClick={handleSendComment}
             style={{
               position: 'absolute',
@@ -425,7 +573,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
               height: 32,
             }}
           >
-            <IconSend2 />
+            <IconSend2 size={16} />
           </Button>
         </div>
       </div>

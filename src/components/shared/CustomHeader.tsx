@@ -1,10 +1,11 @@
-import { AVATAR_PLACEHOLDER } from '@/constants/app';
-import { useAuth } from '@/hooks/useAuth';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
-import { useLogout } from '@refinedev/core';
-import { IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
+import { getColorFromName, getInitials } from '@/utils/activity';
+import { useGetIdentity, useLogout } from '@refinedev/core';
+import { IconLogout, IconSettings, IconUserCircle } from '@tabler/icons-react';
 import { Avatar, Button, Drawer, Dropdown, Layout, MenuProps, Skeleton, Space } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { IUser } from '../../common/types/users';
 import CustomBreadcrumb from './CustomBreadcrumb';
 import NotificationBtn from './NotificationBtn';
 
@@ -15,34 +16,37 @@ interface CustomHeaderProps {
 }
 
 export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
-  const { user, isLoading } = useAuth();
+  const { data: user, isLoading, refetch } = useGetIdentity<IUser>();
+  const navigate = useNavigate();
   const { mutate: logout } = useLogout();
   const [profileTab, setProfileTab] = useState(false);
+  useEffect(() => {
+    if (!profileTab) refetch?.();
+  }, [profileTab]);
 
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
-      icon: <IconUser size={18} />,
+      icon: <IconUserCircle size={16} />,
       label: 'Hồ sơ cá nhân',
-      type: 'item',
       onClick: () => setProfileTab(true),
+      style: { borderRadius: 8 },
     },
-    { key: 'settings', icon: <IconSettings size={18} />, label: 'Cài đặt', type: 'item' },
+    {
+      key: 'settings',
+      icon: <IconSettings size={16} />,
+      onClick: () => navigate('/settings'),
+      label: 'Cài đặt',
+      style: { borderRadius: 8 },
+    },
     { type: 'divider' },
     {
       key: 'logout',
-      icon: (
-        <IconLogout
-          size={18}
-          style={{
-            color: 'inherit',
-          }}
-        />
-      ),
+      icon: <IconLogout size={16} style={{ color: 'inherit' }} />,
       label: 'Đăng xuất',
       danger: true,
-      type: 'item',
       onClick: () => logout(),
+      style: { borderRadius: 8 },
     },
   ];
 
@@ -67,24 +71,15 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
       >
         <CustomBreadcrumb />
 
-        <Space
-          size={8}
-          align="center"
-          styles={{
-            item: {
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
-          }}
-        >
+        <Space size={8} align="center">
           <NotificationBtn />
           <Dropdown
             menu={{
               items: userMenuItems,
               style: {
-                padding: '8px 6px',
-                minWidth: 150,
+                padding: 6,
+                minWidth: 180,
+                borderRadius: 10,
                 boxShadow:
                   '0 3px 6px -4px rgba(0,0,0,0.2), 0 6px 16px 0 rgba(0,0,0,0.08), 0 9px 28px 8px rgba(0,0,0,0.05)',
               },
@@ -119,11 +114,24 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
               ) : (
                 <>
                   <Avatar
-                    size={28}
-                    src={user?.avatar || AVATAR_PLACEHOLDER}
-                    icon={<IconUser size={18} />}
-                    style={{ backgroundColor: '#1890ff', flexShrink: 0 }}
-                  />
+                    size={25}
+                    src={
+                      user?.avatar
+                        ? user.avatar.startsWith('http')
+                          ? `${user.avatar}?t=${user.updatedAt}`
+                          : `${import.meta.env.VITE_API_BASE_URL}${user.avatar}?t=${user.updatedAt}`
+                        : undefined
+                    }
+                    style={{
+                      backgroundColor: getColorFromName(user?.name),
+                      color: '#fff',
+                      fontSize: 14,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {getInitials(user?.name)}
+                  </Avatar>
+
                   <span
                     style={{
                       marginLeft: 6,
@@ -144,20 +152,15 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
 
       <Drawer
         title="Hồ sơ cá nhân"
-        width={500}
+        width={450}
         open={profileTab}
         onClose={() => setProfileTab(false)}
-        mask={true}
-        maskClosable={true}
+        mask
+        maskClosable
+        destroyOnClose
         styles={{
-          body: {
-            padding: 0,
-            height: '100%',
-          },
-          mask: {
-            backgroundColor: 'rgba(0, 0, 0, 0.45)',
-            position: 'fixed',
-          },
+          body: { padding: 0, height: '100%' },
+          mask: { backgroundColor: 'rgba(0, 0, 0, 0.45)', position: 'fixed' },
         }}
       >
         <ProfilePage />

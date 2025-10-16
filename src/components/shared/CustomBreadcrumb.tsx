@@ -1,25 +1,22 @@
 import { getResourcesByRole } from '@/config/resources';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigation } from '@refinedev/core';
+import { useGetIdentity, useNavigation } from '@refinedev/core';
 import { Breadcrumb } from 'antd';
 import { useCallback, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
+import { IUser } from '../../common/types/users';
 
 const CustomBreadcrumb = () => {
-  const { user, isLoading } = useAuth();
+  const { data: user, isLoading } = useGetIdentity<IUser>();
   const { push } = useNavigation();
   const location = useLocation();
+
   const resourcesByRole = useCallback(() => {
     if (!user || isLoading) return [];
-    return getResourcesByRole(user?.role);
-  }, [user?.role, isLoading, getResourcesByRole]);
+    return getResourcesByRole(user.role);
+  }, [user?.role, isLoading]);
 
   const breadcrumbItems = useMemo(() => {
-    const items: {
-      title: string;
-      href?: string;
-    }[] = [{ title: 'Trang chủ', href: '/' }];
-
+    const items: { title: string; href?: string }[] = [{ title: 'Trang chủ', href: '/' }];
     const pathname = location.pathname;
 
     if (pathname === '/profile') {
@@ -29,21 +26,15 @@ const CustomBreadcrumb = () => {
 
     if (pathname.startsWith('/workspaces/')) {
       const segments = pathname.split('/').filter(Boolean);
-
       items.push({
         title: 'Workspaces',
         href: `/workspaces/${segments[1]}`,
       });
 
       if (segments.length > 2) {
-        // For settings or any other workspace sub-path
         const lastSegment = segments[segments.length - 1];
-
-        // Capitalize first letter for better presentation
         const formattedSegment = lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1);
-        items.push({
-          title: formattedSegment,
-        });
+        items.push({ title: formattedSegment });
       }
 
       return items;
@@ -134,9 +125,7 @@ const CustomBreadcrumb = () => {
             href={route.href}
             onClick={e => {
               e.preventDefault();
-              if (route.href) {
-                push(route.href);
-              }
+              if (route.href) push(route.href);
             }}
           >
             {route.title}

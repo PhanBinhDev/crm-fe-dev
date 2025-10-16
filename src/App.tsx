@@ -20,13 +20,16 @@ import { semesterRoutes } from '@/pages/semester/routes';
 import { userRoutes } from '@/pages/users/routes';
 import { authProvider } from '@/providers/AuthProvider';
 import '@/styles/globals.css';
+import { Toaster } from 'sonner';
 import { ErrorComponent } from './components/common/ErrorBoundary';
 import Modals from './components/modals';
+import { NotificationHandler } from './components/shared/NotificationHandler';
 import { DisplayConfigProvider } from './contexts/DisplayConfig';
 import { materialRoutes } from './pages/course-materials/routes';
 import { DashboardPage } from './pages/dashboard';
 import FeedbackForm from './pages/feedback/FeebackForm';
 import InviteWorkspace from './pages/invite/page';
+import { settingsRoutes } from './pages/settings/routes';
 import { workspaceRoutes } from './pages/workspace/routes';
 import { AccessControlProviderCustom } from './providers/AccessControlProviderCustom';
 import { standardDataProvider } from './providers/nestjs/standardProvider';
@@ -74,6 +77,7 @@ function App() {
                       element={
                         <Authenticated key="auth" fallback={<Navigate to="/login" replace />}>
                           <CustomLayout>
+                            <NotificationHandler />
                             <Outlet />
                           </CustomLayout>
                         </Authenticated>
@@ -86,6 +90,7 @@ function App() {
                       {profileRoutes}
                       {semesterRoutes}
                       {materialRoutes}
+                      {settingsRoutes}
                       <Route path="*" element={<ErrorComponent />} />
                     </Route>
                     <Route element={<GoogleLoginPage />} path="/login" />
@@ -95,6 +100,7 @@ function App() {
 
                   <Modals />
                   <RefineKbar />
+                  <Toaster position="top-right" />
                   <UnsavedChangesNotifier />
                   <DocumentTitleHandler />
                 </Refine>

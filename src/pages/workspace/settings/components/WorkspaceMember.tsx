@@ -139,12 +139,11 @@ const WorkspaceMember = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => {
-        if (status === MemberStatus.ACTIVE) return <Tag color="green">Xác nhận</Tag>;
-        if (status === MemberStatus.PENDING) return <Tag color="orange">Đang xử lý</Tag>;
+        if (status === MemberStatus.ACTIVE) return <Tag color="green">Kích hoạt</Tag>;
+        if (status === MemberStatus.PENDING) return <Tag color="orange">Chờ xác nhận</Tag>;
         return <Tag color="red">Từ chối</Tag>;
       },
     },
-    // { title: 'Người mời', dataIndex: 'invitedBy', key: 'invitedBy' },
     { title: 'Ngày mời', dataIndex: 'invitedAt', key: 'invitedAt' },
   ];
 
@@ -179,10 +178,10 @@ const WorkspaceMember = () => {
           setSearch('');
           inputSearch.current?.input && (inputSearch.current.input.value = '');
           refetch();
-          message.success('Thêm thành viên thành công');
+          message.success('Gửi lời mời tới thành viên thành công');
         },
         onError: () => {
-          message.error('Thêm thành viên thất bại, vui lòng thử lại');
+          message.error('Gửi lời mời tới thành viên thất bại, vui lòng thử lại');
         },
       },
     );
@@ -201,7 +200,7 @@ const WorkspaceMember = () => {
 
   return (
     <div style={{ width: '100%' }}>
-      <h2 style={{ marginBottom: 10, fontSize: 25 }}>Quản lý thành viên</h2>
+      <h2 style={{ marginBottom: 10, fontSize: 22 }}>Quản lý thành viên</h2>
 
       {selectedUser.length > 0 && (
         <Space

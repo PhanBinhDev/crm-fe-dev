@@ -1,13 +1,11 @@
 import { IUser } from '@/common/types';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
-import { useInvalidate, useUpdate } from '@refinedev/core';
-import { IconDots, IconEdit, IconEye, IconUserExclamation } from '@tabler/icons-react';
+import { useDelete, useInvalidate, useUpdate } from '@refinedev/core';
+import { IconDots, IconEdit, IconEye, IconTrash, IconUserExclamation } from '@tabler/icons-react';
 import { Button, Dropdown, MenuProps, message } from 'antd';
 import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserDrawer } from './UserDrawer';
-import { UserRole } from '@/common/enum/user';
-
 
 interface UserRowActionsProps {
   user: IUser;
@@ -15,10 +13,10 @@ interface UserRowActionsProps {
 
 export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
   const navigate = useNavigate();
-  const { canEdit, canToggleStatus } = useUserPermissions(user);
+  const { canEdit, canToggleStatus, canDelete } = useUserPermissions(user);
   const { mutate: updateUser } = useUpdate();
+  const { mutate: deleteUser } = useDelete();
   const invalidate = useInvalidate();
-  const { user: identity } = useAuth();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -31,15 +29,7 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
     },
   ];
 
-  // Nếu là CNBM thì luôn hiển thị nút sửa cho mọi user
-  if (identity?.role === UserRole.CNBM) {
-    menuItems.push({
-      key: 'edit',
-      icon: <IconEdit size={18} />,
-      label: 'Chỉnh sửa',
-      onClick: () => navigate(`/teachers/edit/${user.id}`),
-    });
-  } else if (canEdit) {
+  if (canEdit) {
     menuItems.push({
       key: 'edit',
       icon: <IconEdit size={18} />,
@@ -49,39 +39,74 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
   }
 
   if (canToggleStatus) {
+    menuItems.push({
+      key: 'toggle-status',
+      icon: <IconUserExclamation size={18} />,
+      label: user.isActive ? 'Vô hiệu hóa' : 'Kích hoạt',
+      onClick: () => {
+        updateUser(
+          {
+            resource: `users`,
+            id: `${user.id}/toggle-active`,
+            values: { isActive: !user.isActive },
+            successNotification: false,
+            errorNotification: false,
+          },
+          {
+            onSuccess: () => {
+              message.success(
+                `Đã ${user.isActive ? 'vô hiệu hóa' : 'kích hoạt'} người dùng thành công!`,
+              );
+              invalidate({ resource: 'users/all', invalidates: ['list'] });
+            },
+            onError: error => {
+              message.error(error?.message || 'Có lỗi xảy ra!');
+            },
+          },
+        );
+      },
+    });
+  }
+
+  if (canDelete) {
     menuItems.push(
       {
         type: 'divider',
       },
       {
-        key: 'toggle-status',
-        icon: <IconUserExclamation size={18} />,
-        label: user.isActive ? 'Vô hiệu hóa' : 'Kích hoạt',
+        key: 'delete',
+        icon: <IconTrash color="red" size={18} />,
+        label: 'Xoá người dùng',
         onClick: () => {
-          updateUser(
-            {
-              resource: `users`,
-              id: `${user.id}/toggle-active`,
-              values: { isActive: !user.isActive },
-              successNotification: false,
-              errorNotification: false,
-            },
-            {
-              onSuccess: () => {
-                message.success(
-                  `Đã ${user.isActive ? 'vô hiệu hóa' : 'kích hoạt'} người dùng thành công!`,
-                );
-                invalidate({ resource: 'users/all', invalidates: ['list'] });
-              },
-              onError: error => {
-                message.error(error?.message || 'Có lỗi xảy ra!');
-              },
-            },
-          );
+          handleDeleteUser(user.id);
         },
       },
     );
   }
+
+  const handleDeleteUser = (id: string) => {
+    const hideLoading = message.loading('Đang xoá...', 0);
+    deleteUser(
+      {
+        resource: `users`,
+        id: id,
+      },
+      {
+        onSuccess: () => {
+          hideLoading();
+          invalidate({
+            resource: `users`,
+            invalidates: ['list', 'detail', 'many'],
+          });
+          message.success('Xóa thành công');
+        },
+        onError: () => {
+          hideLoading();
+          message.error('Xóa thất bại');
+        },
+      },
+    );
+  };
 
   return (
     <>
@@ -94,8 +119,3 @@ export const UserRowActions: FC<UserRowActionsProps> = ({ user }) => {
     </>
   );
 };
-function useAuth(): { user: any } {
-  const user = JSON.parse(localStorage.getItem('authUser') || 'null');
-  return { user };
-}
-

@@ -1,8 +1,9 @@
 import { IMember } from '@/common/types';
 import { IAssignee } from '@/common/types/assignee';
+import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useList } from '@refinedev/core';
-import { IconCheck, IconUserPlus } from '@tabler/icons-react';
+import { IconCheck, IconSearch, IconUserPlus } from '@tabler/icons-react';
 import { Avatar, Button, Input, List, Skeleton } from 'antd';
 import { useState } from 'react';
 import { useDebounceValue } from 'usehooks-ts';
@@ -11,7 +12,10 @@ interface AssigneeContentProps {
   currentAssignees: IAssignee[];
   onChangeAssignees: (assignees: IAssignee[]) => void;
 }
+
 const AssigneeContent = ({ currentAssignees, onChangeAssignees }: AssigneeContentProps) => {
+  const { user } = useAuth();
+
   const { currentWorkspace } = useWorkspaces();
   const [search, setSearch] = useState('');
   const [searchValue] = useDebounceValue(search, 500);
@@ -36,20 +40,46 @@ const AssigneeContent = ({ currentAssignees, onChangeAssignees }: AssigneeConten
     <div
       style={{
         width: '248px',
-        padding: 8,
       }}
     >
-      <Input
-        placeholder="Tìm kiếm hoặc nhập email..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-      />
+      <div
+        style={{
+          padding: '8px 12px',
+          borderBottom: '1px solid #e8e8e8',
+        }}
+      >
+        <Input
+          placeholder="Tìm kiếm hoặc nhập email..."
+          size="small"
+          variant="borderless"
+          id="assignee-search-input"
+          value={search}
+          prefix={
+            <IconSearch
+              size={12}
+              style={{
+                marginRight: 4,
+              }}
+              color="#838383"
+            />
+          }
+          onChange={e => setSearch(e.target.value)}
+          styles={{
+            prefix: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+          }}
+        />
+      </div>
 
       <List
         style={{
           marginTop: 8,
-          maxHeight: 240,
           overflowY: 'auto',
+          gap: 4,
+          padding: '0 8px',
         }}
       >
         {isLoadingUsers ? (
@@ -81,15 +111,8 @@ const AssigneeContent = ({ currentAssignees, onChangeAssignees }: AssigneeConten
               );
 
               return (
-                <Button
-                  type="text"
+                <List.Item
                   key={item.id}
-                  style={{
-                    width: '100%',
-                    justifyContent: 'flex-start',
-                    height: 32,
-                    padding: '0 8px 0 6px',
-                  }}
                   onClick={() => {
                     if (isSelected) {
                       onChangeAssignees(
@@ -104,39 +127,60 @@ const AssigneeContent = ({ currentAssignees, onChangeAssignees }: AssigneeConten
                       }
                     }
                   }}
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: 6,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: 0,
+                    justifyContent: 'space-between',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#f5f5f5';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
                 >
-                  <Avatar
-                    size="small"
-                    src={item.user.avatar}
-                    style={{
-                      backgroundColor: '#7b69ee',
-                      color: '#fff',
-                    }}
-                  >
-                    {item.user.name?.[0].toUpperCase()}
-                  </Avatar>
-                  {item.user.name}
-
-                  {isSelected && <IconCheck size={14} style={{ marginLeft: 'auto' }} />}
-                </Button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Avatar
+                      size="small"
+                      src={item.user.avatar}
+                      style={{
+                        backgroundColor: '#7b69ee',
+                        color: '#fff',
+                      }}
+                    >
+                      {item.user.name?.[0].toUpperCase()}
+                    </Avatar>
+                    <span style={{ fontSize: 13, fontWeight: 500 }}>
+                      {user?.id === item.user.id
+                        ? `${item.user.name.charAt(0).toUpperCase() + item.user.name.slice(1)} (Bạn)`
+                        : item.user.name.charAt(0).toUpperCase() + item.user.name.slice(1)}
+                    </span>
+                  </div>
+                  {isSelected && <IconCheck size={16} color="#888" />}
+                </List.Item>
               );
             })}
           </>
         )}
       </List>
-      <Button
-        type="text"
-        style={{
-          width: '100%',
-          justifyContent: 'flex-start',
-          height: 30,
-          padding: '0 8px',
-          marginTop: 6,
-        }}
-        icon={<IconUserPlus size={14} />}
-      >
-        Mời thành viên
-      </Button>
+      <div style={{ padding: 8 }}>
+        <Button
+          type="text"
+          style={{
+            width: '100%',
+            justifyContent: 'flex-start',
+            height: 30,
+            padding: '0 8px',
+          }}
+          icon={<IconUserPlus size={14} />}
+        >
+          Mời thành viên
+        </Button>
+      </div>
     </div>
   );
 };

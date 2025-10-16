@@ -8,16 +8,15 @@ import SortActive from '@/pages/workspace/components/SortActive';
 import CalendarView from '@/pages/workspace/views/CalendarView';
 import KanbanView from '@/pages/workspace/views/KanbanView';
 import ListView from '@/pages/workspace/views/ListView';
-import TableView from '@/pages/workspace/views/TableView';
 import { buildFilterCondition } from '@/utils/filters';
 import { CrudFilter, CrudOperators, useList, useOne } from '@refinedev/core';
-import { IconCalendar, IconLayoutKanban, IconList, IconPlus, IconTable } from '@tabler/icons-react';
+import { IconCalendar, IconLayoutKanban, IconList, IconPlus } from '@tabler/icons-react';
 import { Button, Card, Row, Skeleton, Space, Tabs, Tooltip } from 'antd';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMediaQuery } from 'usehooks-ts';
 
-type TabKey = 'kanban' | 'list' | 'calendar' | 'table';
+type TabKey = 'kanban' | 'list' | 'calendar';
 
 const KanbanWorkspaces = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('kanban');
@@ -26,6 +25,8 @@ const KanbanWorkspaces = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isTablet = useMediaQuery('(max-width: 992px)');
   const { isLoading } = useWorkspaceStore();
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const prevWorkspaceIdRef = useRef<string | undefined>();
 
   const { workspaceId } = useParams();
   const { openModal } = useModal();
@@ -34,10 +35,12 @@ const KanbanWorkspaces = () => {
     setSearchValue(value);
   }, []);
 
-  const { data: workspaceData, isLoading: isLoadingWorkspace } = useOne<IWorkspace>({
+  const { data: workspaceData, isFetching: isLoadingWorkspace } = useOne<IWorkspace>({
     resource: 'workspaces',
     id: workspaceId || '',
-    queryOptions: { enabled: !!workspaceId },
+    queryOptions: {
+      enabled: !!workspaceId,
+    },
   });
 
   const { data: stagesData } = useList<IStage>({
@@ -45,14 +48,20 @@ const KanbanWorkspaces = () => {
     pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
     filters: [{ field: 'workspaceId', operator: 'eq', value: workspaceData?.data.id }],
-    queryOptions: { enabled: !!workspaceData?.data.id },
+    queryOptions: {
+      enabled: !!workspaceData?.data.id,
+      keepPreviousData: true,
+    },
   });
 
   const { data: users } = useList<IUser>({
     resource: 'users/all',
     pagination: { mode: 'off' },
     sorters: [{ field: 'position', order: 'asc' }],
-    queryOptions: { enabled: !!workspaceData?.data.id },
+    queryOptions: {
+      enabled: !!workspaceData?.data.id,
+      keepPreviousData: true,
+    },
   });
 
   const activityFilters = useMemo((): CrudFilter[] => {
@@ -68,6 +77,7 @@ const KanbanWorkspaces = () => {
       operator?: Exclude<CrudOperators, 'or' | 'and'>;
     }> = [
       { field: 'priority', value: filterParams.priority },
+      { field: 'assignees', value: filterParams.assigneeId },
       { field: 'stageId', value: filterParams.stageId },
       { field: 'category', value: filterParams.category },
       { field: 'type', value: filterParams.type },
@@ -83,12 +93,13 @@ const KanbanWorkspaces = () => {
     return [...baseFilters, ...conditionalFilters];
   }, [searchValue, filterParams, workspaceData?.data.id]);
 
-  const { data: activitiesData, isLoading: isLoadingActivities } = useList<IActivity>({
+  const { data: activitiesData, isFetching: isLoadingActivities } = useList<IActivity>({
     resource: 'activities',
     pagination: { mode: 'off' },
     filters: activityFilters,
     queryOptions: {
       enabled: !!workspaceData?.data.id,
+      keepPreviousData: true,
     },
   });
 
@@ -97,6 +108,20 @@ const KanbanWorkspaces = () => {
   const handleApplyFilters = useCallback((params: FilterParams) => {
     setFilterParams(Object.keys(params).length === 0 ? {} : params);
   }, []);
+
+  useEffect(() => {
+    if (workspaceId && prevWorkspaceIdRef.current && workspaceId !== prevWorkspaceIdRef.current) {
+      setIsInitialLoad(true);
+    }
+
+    prevWorkspaceIdRef.current = workspaceId;
+  }, [workspaceId]);
+
+  useEffect(() => {
+    if (isInitialLoad && !isLoadingWorkspace && !isLoadingActivities && workspaceData?.data) {
+      setIsInitialLoad(false);
+    }
+  }, [isLoadingWorkspace, isLoadingActivities, workspaceData, isInitialLoad]);
 
   const tabItems = useMemo(
     () => [
@@ -114,11 +139,6 @@ const KanbanWorkspaces = () => {
         key: 'calendar',
         icon: IconCalendar,
         label: 'Lịch',
-      },
-      {
-        key: 'table',
-        icon: IconTable,
-        label: 'Bảng dữ liệu',
       },
     ],
     [],
@@ -166,19 +186,18 @@ const KanbanWorkspaces = () => {
         return <ListView {...commonProps} />;
       case 'calendar':
         return <CalendarView stages={commonProps.stages} activities={commonProps.activities} />;
-      case 'table':
-        return <TableView {...commonProps} />;
       default:
         return null;
     }
-  }, [activeTab, activities, stagesData?.data, users?.data, workspaceData?.data]);
+  }, [activeTab, activities, stagesData?.data, users?.data]);
 
-  if (isLoadingWorkspace || isLoadingActivities || isLoading) {
+  if (isInitialLoad || isLoading) {
     return (
       <div
         style={{
           overflowX: 'auto',
           overflowY: 'hidden',
+          flex: 1,
         }}
       >
         <div
@@ -321,7 +340,7 @@ const KanbanWorkspaces = () => {
                   />
                 </div>
 
-                <div style={{ flex: 1, padding: 8, overflowY: 'auto' }}>
+                <div style={{ flex: 1, padding: '0 8px 8px', overflowY: 'auto' }}>
                   {Array.from({ length: colIndex + 1 }).map((_, index) => (
                     <Card
                       key={index}
@@ -353,6 +372,7 @@ const KanbanWorkspaces = () => {
         display: 'flex',
         flexDirection: 'column',
         gap: 12,
+        height: 'calc(100vh - 136px)',
       }}
     >
       {/* Headers */}
@@ -405,7 +425,7 @@ const KanbanWorkspaces = () => {
         >
           <SearchActivities onSearch={onSearch} />
           <SortActive activities={activities} onSorted={() => {}} />
-          <FilterActivities onApply={handleApplyFilters} />
+          <FilterActivities stages={stagesData?.data || []} onApply={handleApplyFilters} />
           <SettingsActivities />
           <Tooltip title="Thêm mới hoạt động">
             <Button

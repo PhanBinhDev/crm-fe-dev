@@ -1,16 +1,20 @@
-import { IUser } from '@/common/types';
+import { IMember, IUser } from '@/common/types';
+import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaceStore } from '@/hooks/useWorkspaces';
 import { useList } from '@refinedev/core';
 import { IconCheck, IconSearch, IconUsers } from '@tabler/icons-react';
 import { Avatar, Button, Input, List, Popover, Tooltip } from 'antd';
+import { AbstractTooltipProps } from 'antd/lib/tooltip';
 import { useMemo, useState } from 'react';
 import { useDebounceValue } from 'usehooks-ts';
 
 interface AssigneeActivityProps {
   children?: React.ReactNode;
   selectedUser: IUser[];
-  title?: string;
   onToggleSelectUser: (user: IUser) => void;
+  title?: string;
+  placement?: AbstractTooltipProps['placement'];
+  tooltipTitle?: string;
 }
 
 const MAX_DISPLAY_COUNT = 3;
@@ -20,13 +24,16 @@ const AssigneeActivity = ({
   selectedUser,
   onToggleSelectUser,
   title = 'Phụ trách',
+  tooltipTitle = 'Chọn người phụ trách',
+  placement,
 }: AssigneeActivityProps) => {
+  const { user } = useAuth();
   const { currentWorkspace } = useWorkspaceStore();
   const workspaceId = currentWorkspace?.id;
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch] = useDebounceValue(search, 400);
 
-  const { data, isLoading } = useList<IUser>({
+  const { data, isLoading } = useList<IMember>({
     resource: workspaceId ? `workspaces/${workspaceId}/members` : '',
     filters: debouncedSearch
       ? [
@@ -46,8 +53,15 @@ const AssigneeActivity = ({
 
   const members = useMemo(() => {
     if (isLoading) return [];
-    return data?.data ?? [];
-  }, [isLoading, data]);
+
+    const membersList = data?.data ?? [];
+
+    return membersList.sort((a, b) => {
+      if (a.user.id === user?.id) return -1;
+      if (b.user.id === user?.id) return 1;
+      return 0;
+    });
+  }, [isLoading, data, user?.id]);
 
   return (
     <Popover
@@ -104,9 +118,9 @@ const AssigneeActivity = ({
               minHeight: 180,
               maxHeight: 200,
               overflowY: 'auto',
-              margin: '0 8px',
+              margin: '0 8px 8px',
             }}
-            renderItem={(item: any) => {
+            renderItem={(item: IMember) => {
               const member = item.user;
               const isActive = selectedUser.some((u: IUser) => u.id === member.id);
               return (
@@ -119,14 +133,25 @@ const AssigneeActivity = ({
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
+                    border: 0,
                     justifyContent: 'space-between',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#f5f5f5';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'transparent';
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <Avatar size={28} src={member.avatar}>
                       {member.name?.[0]}
                     </Avatar>
-                    <span style={{ fontSize: 13, fontWeight: 500 }}>{member.name}</span>
+                    <span style={{ fontSize: 13, fontWeight: 500 }}>
+                      {user?.id === member.id
+                        ? `${member.name.charAt(0).toUpperCase() + member.name.slice(1)} (Bạn)`
+                        : member.name.charAt(0).toUpperCase() + member.name.slice(1)}
+                    </span>
                   </div>
                   {isActive && <IconCheck size={16} color="#888" />}
                 </List.Item>
@@ -136,17 +161,7 @@ const AssigneeActivity = ({
         </div>
       }
       trigger={['click']}
-      placement="bottomLeft"
-      builtinPlacements={{
-        bottomLeft: {
-          points: ['tl', 'bl'],
-          offset: [0, 4],
-          overflow: {
-            adjustX: true,
-            adjustY: false,
-          },
-        },
-      }}
+      placement={placement || 'bottomLeft'}
       arrow={false}
       destroyOnHidden
       styles={{
@@ -177,15 +192,15 @@ const AssigneeActivity = ({
                 e.currentTarget.style.background = 'transparent';
               }}
             >
-              {selectedUser.slice(0, MAX_DISPLAY_COUNT).map(user => (
+              {selectedUser.slice(0, MAX_DISPLAY_COUNT).map((user, index) => (
                 <Tooltip title={user.name} key={user.id}>
                   <Avatar
                     size={18}
                     src={user.avatar}
                     style={{
                       background: '#7c3aed',
-
                       border: '1px solid #fff',
+                      marginLeft: index === 0 ? 0 : -8,
                     }}
                   >
                     <span
@@ -221,24 +236,29 @@ const AssigneeActivity = ({
               )}
             </div>
           ) : (
-            <Button
-              size="small"
-              style={{
-                borderRadius: 6,
-                gap: 4,
-                color: '#838383',
-              }}
-              styles={{
-                icon: {
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                },
-              }}
-              icon={<IconUsers size={12} />}
-            >
-              {title}
-            </Button>
+            <Tooltip title={tooltipTitle} arrow={false} placement="topRight">
+              <Button
+                size="small"
+                type="text"
+                style={{
+                  borderRadius: 6,
+                  gap: 4,
+                  color: '#838383',
+                  border: '1px solid #d9d9d9',
+                  boxShadow: 'none',
+                }}
+                styles={{
+                  icon: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  },
+                }}
+                icon={<IconUsers size={12} />}
+              >
+                {title}
+              </Button>
+            </Tooltip>
           )}
         </>
       )}

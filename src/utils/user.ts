@@ -1,18 +1,5 @@
 import { UserRole } from '@/common/enum/user';
 
-export const getUserRoleLabel = (role: UserRole): string => {
-  switch (role) {
-    case UserRole.TM:
-      return 'Trưởng môn';
-    case UserRole.CNBM:
-      return 'Chủ nhiệm bộ môn';
-    case UserRole.GV:
-      return 'Giáo viên';
-    default:
-      return role;
-  }
-};
-
 export const getUserRoleColor = (role: UserRole): string => {
   switch (role) {
     case UserRole.TM:
@@ -26,8 +13,10 @@ export const getUserRoleColor = (role: UserRole): string => {
   }
 };
 
-export const getUserStatusLabel = (isActive: boolean): string => {
-  return isActive ? 'Đang hoạt động' : 'Không hoạt động';
+export const getUserStatusLabel = (isActive?: boolean): string => {
+  if (isActive === true) return 'Đang hoạt động';
+  if (isActive === false) return 'Không hoạt động';
+  return 'Không xác định';
 };
 
 export const getUserStatusColor = (isActive: boolean): string => {

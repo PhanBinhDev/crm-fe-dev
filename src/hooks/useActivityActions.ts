@@ -88,14 +88,14 @@ export const useActivityActions = () => {
           ...activityData,
           name: `${activity.name} (Copy)`,
           workspaceId: currentWorkspace.id,
-          priority: activityData.priority || undefined, // Convert null to undefined
-          startTime: activityData.startTime || undefined, // Convert null to undefined
-          endTime: activityData.endTime || undefined, // Convert null to undefined
+          priority: activityData.priority || undefined,
+          startTime: activityData.startTime || undefined,
+          endTime: activityData.endTime || undefined,
           assignees:
             assignees?.map(assignee => ({
               userId: assignee.userId,
             })) || [],
-          files: undefined,
+          attachments: undefined,
         };
 
         console.log('duplicateData:', duplicateData);

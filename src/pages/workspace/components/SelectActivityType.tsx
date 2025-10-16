@@ -1,16 +1,14 @@
 import { ActivityType } from '@/common/enum/activity';
-import { IActivity } from '@/common/types';
+import ActivityTypeContent from '@/components/shared/ActivityTypeContent';
 import { getActivityTypeLabel } from '@/utils';
-import { useUpdate } from '@refinedev/core';
 import { IconCalendarTime, IconCheck, IconCircleDashed } from '@tabler/icons-react';
-import { Button, message, Popover, Skeleton, Space, Tooltip, Typography } from 'antd';
+import { Button, message, Popover, Skeleton, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
 
 interface SelectActivityTypeProps {
-  activity?: IActivity | null;
-  isLoading?: boolean;
-  value?: ActivityType;
-  onChange?: (type: ActivityType) => void;
+  id?: string;
+  value: ActivityType;
+  onChange: (type: ActivityType) => void;
 }
 
 export const SelectActivityTypeSkeleton = () => (
@@ -41,16 +39,14 @@ export const SelectActivityTypeSkeleton = () => (
   </div>
 );
 
-const SelectActivityType = ({ activity, isLoading, onChange, value }: SelectActivityTypeProps) => {
+const SelectActivityType = ({ onChange, value, id }: SelectActivityTypeProps) => {
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState<ActivityType>(
-    activity?.type || value || ActivityType.TASK,
-  );
+  const [selectedType, setSelectedType] = useState<ActivityType>(value || ActivityType.TASK);
 
   useEffect(() => {
-    setSelectedType(activity?.type || value || ActivityType.TASK);
-  }, [activity?.type, value]);
+    setSelectedType(value || ActivityType.TASK);
+  }, [value]);
 
   const handleCopy = (text: string) => {
     if (copied) return;
@@ -61,120 +57,11 @@ const SelectActivityType = ({ activity, isLoading, onChange, value }: SelectActi
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const { mutate, isPending } = useUpdate<IActivity>({
-    resource: 'activities',
-    id: activity?.id,
-  });
-
   const onActivityTypeClick = (type: ActivityType) => {
     setSelectedType(type);
 
-    if (!activity) {
-      if (onChange) onChange(type);
-      return;
-    }
-
-    if (activity?.type === type) {
-      setOpen(false);
-      return;
-    }
-
-    mutate(
-      {
-        values: {
-          type,
-        },
-      },
-      {
-        onSuccess: () => {
-          message.success('Cập nhật loại hoạt động thành công!');
-          setOpen(false);
-        },
-        onError: () => {
-          message.error('Cập nhật loại hoạt động thất bại!');
-        },
-      },
-    );
+    onChange(type);
   };
-
-  const contentType = (
-    <Space
-      direction="vertical"
-      style={{
-        width: '100%',
-        gap: 0,
-      }}
-    >
-      <Typography
-        style={{
-          padding: '3px 12px 0',
-          fontWeight: 600,
-        }}
-      >
-        Loại hoạt động
-      </Typography>
-
-      <Space
-        direction="vertical"
-        style={{
-          gap: 4,
-          width: '100%',
-          padding: 8,
-        }}
-        styles={{
-          item: {
-            width: '100%',
-          },
-        }}
-      >
-        <Button
-          type="text"
-          style={{
-            width: '100%',
-            justifyContent: 'flex-start',
-            padding: '0 6px',
-          }}
-          onClick={() => {
-            onActivityTypeClick(ActivityType.TASK);
-            setOpen(false);
-          }}
-          loading={isPending && selectedType === ActivityType.TASK}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {<IconCircleDashed size={14} />}
-            Công việc
-          </div>
-
-          {!isPending && selectedType === ActivityType.TASK && (
-            <IconCheck size={14} color="#838383" style={{ marginLeft: 'auto', display: 'block' }} />
-          )}
-        </Button>
-
-        <Button
-          type="text"
-          style={{
-            width: '100%',
-            justifyContent: 'flex-start',
-            padding: '0 6px',
-          }}
-          onClick={() => {
-            onActivityTypeClick(ActivityType.EVENT);
-            setOpen(false);
-          }}
-          loading={isPending && selectedType === ActivityType.EVENT}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <IconCalendarTime size={14} />
-            Sự kiện
-          </div>
-
-          {!isPending && selectedType === ActivityType.EVENT && (
-            <IconCheck size={14} color="#838383" style={{ marginLeft: 'auto', display: 'block' }} />
-          )}
-        </Button>
-      </Space>
-    </Space>
-  );
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
@@ -190,7 +77,12 @@ const SelectActivityType = ({ activity, isLoading, onChange, value }: SelectActi
         open={open}
         onOpenChange={setOpen}
         arrow={false}
-        content={contentType}
+        content={
+          <ActivityTypeContent
+            selectedType={selectedType}
+            onActivityTypeClick={onActivityTypeClick}
+          />
+        }
       >
         <Button
           style={{
@@ -202,7 +94,7 @@ const SelectActivityType = ({ activity, isLoading, onChange, value }: SelectActi
             fontSize: 14,
             fontWeight: 500,
             gap: 4,
-            ...(activity ? { borderEndEndRadius: 0, borderStartEndRadius: 0 } : {}),
+            ...(id ? { borderEndEndRadius: 0, borderStartEndRadius: 0 } : {}),
           }}
           type="text"
           size="small"
@@ -221,10 +113,10 @@ const SelectActivityType = ({ activity, isLoading, onChange, value }: SelectActi
             )
           }
         >
-          {getActivityTypeLabel(selectedType || activity?.type || ActivityType.TASK)}
+          {getActivityTypeLabel(selectedType || ActivityType.TASK)}
         </Button>
       </Popover>
-      {activity && (
+      {id && (
         <Tooltip title={!copied && 'Sao chép ID hoạt động'}>
           <Button
             style={{
@@ -240,16 +132,9 @@ const SelectActivityType = ({ activity, isLoading, onChange, value }: SelectActi
             }}
             type="text"
             size="small"
-            loading={isLoading}
-            onClick={() => activity?.id && handleCopy(activity.id)}
+            onClick={() => id && handleCopy(id)}
           >
-            {copied ? (
-              <IconCheck size={14} color="#52c41a" />
-            ) : activity?.id ? (
-              activity.id.slice(0, 8)
-            ) : (
-              ''
-            )}
+            {copied ? <IconCheck size={14} color="#52c41a" /> : id ? id.slice(0, 8) : ''}
           </Button>
         </Tooltip>
       )}
