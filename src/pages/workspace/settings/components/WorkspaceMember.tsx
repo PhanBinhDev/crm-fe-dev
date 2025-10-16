@@ -2,7 +2,7 @@ import { MemberRole, MemberStatus } from '@/common/enum/workspace';
 import { IMember, IUser } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
 import { getWorkspaceRoleLabel } from '@/utils/workspace';
-import { useCreate, useList } from '@refinedev/core';
+import { useCreate, useCustomMutation, useList } from '@refinedev/core';
 import { IconCheck, IconMailPlus, IconPlus } from '@tabler/icons-react';
 import type { InputRef } from 'antd';
 import {
@@ -12,6 +12,7 @@ import {
   Input,
   List,
   message,
+  Modal,
   Select,
   Space,
   Spin,
@@ -74,7 +75,9 @@ const WorkspaceMember = () => {
 
   const { user: identity } = useAuth();
 
-  const currentUserRole = (data?.data ?? []).find(m => m.user.id === identity?.id)?.role;
+  const currentUserRole =
+    (data?.data ?? []).find(m => m.user.id === identity?.id)?.role || MemberRole.MEMBER;
+  
 
   const members = (data?.data ?? []).map((m, index) => {
     const invitedByName = memberNameMap.get(m.createdBy) || m.createdBy;
@@ -88,6 +91,8 @@ const WorkspaceMember = () => {
       status: m.status,
       invitedBy: invitedByName,
       invitedAt: new Date(m.createdAt).toLocaleDateString(),
+      workspaceId: workspaceId,
+      currentUserRole: currentUserRole,
     };
   });
 
@@ -128,38 +133,50 @@ const WorkspaceMember = () => {
       title: 'Vai trò',
       dataIndex: 'role',
       key: 'role',
-      render: (status: string) => {
-        if (status === MemberRole.OWNER) return <p>Sở hữu</p>;
-        if (status === MemberRole.MEMBER) return <p>Thành viên</p>;
-        return <p>Admin</p>;
-      },
+      render: (role: string) =>
+        role === MemberRole.OWNER ? (
+          <Tag color="blue">Sở hữu</Tag>
+        ) : role === MemberRole.ADMIN ? (
+          <Tag color="gold">Admin</Tag>
+        ) : (
+          <Tag color="green">Thành viên</Tag>
+        ),
     },
     {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => {
-        if (status === MemberStatus.ACTIVE) return <Tag color="green">Kích hoạt</Tag>;
-        if (status === MemberStatus.PENDING) return <Tag color="orange">Chờ xác nhận</Tag>;
-        return <Tag color="red">Từ chối</Tag>;
-      },
+      render: (status: string) =>
+        status === MemberStatus.ACTIVE ? (
+          <Tag color="green">Kích hoạt</Tag>
+        ) : status === MemberStatus.PENDING ? (
+          <Tag color="orange">Chờ xác nhận</Tag>
+        ) : (
+          <Tag color="red">Từ chối</Tag>
+        ),
     },
     { title: 'Ngày mời', dataIndex: 'invitedAt', key: 'invitedAt' },
+    {
+      title: 'Thao tác',
+      key: 'actions',
+      width: 80,
+      render: (_: any, record: any) => <MemberRowActions member={record} />,
+    },
   ];
 
   const columns =
-    currentUserRole === 'owner'
+    currentUserRole === MemberRole.OWNER
       ? [
           ...baseColumns,
           {
             title: 'Thao tác',
             key: 'actions',
             width: 80,
-            render: (_: any, record: any) =>
-              record.role === 'owner' ? '' : <MemberRowActions member={record} />,
+            render: (_: any, record: any) => <MemberRowActions member={record} />,
           },
         ]
       : baseColumns;
+
   const inputSearch = useRef<InputRef>(null);
 
   const handleAddMember = () => {
