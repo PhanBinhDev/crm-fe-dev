@@ -2,7 +2,7 @@ import { IWorkspace } from '@/common/types';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { useList } from '@refinedev/core';
 import { IconCheck, IconX } from '@tabler/icons-react';
-import { Avatar, Button, Card, Empty, Space, Tag, Typography, Spin } from 'antd';
+import { Avatar, Button, Card, Empty, Space, Typography, Spin } from 'antd';
 
 const { Text } = Typography;
 
@@ -102,29 +102,24 @@ const InvitationList = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                <Tag color={workspace.visibility === 'public' ? 'blue' : 'orange'}>
-                                    {workspace.visibility === 'public' ? 'Công khai' : 'Riêng tư'}
-                                </Tag>
-                                <Space>
-                                    <Button
-                                        size="small"
-                                        danger
-                                        icon={<IconX size={14} />}
-                                        onClick={handleRejectInvitation}
-                                    >
-                                        Từ chối
-                                    </Button>
-                                    <Button
-                                        type="primary"
-                                        size="small"
-                                        icon={<IconCheck size={14} />}
-                                        onClick={handleAcceptInvitation}
-                                    >
-                                        Chấp nhận
-                                    </Button>
-                                </Space>
-                            </div>
+                            <Space>
+                                <Button
+                                    size="small"
+                                    danger
+                                    icon={<IconX size={14} />}
+                                    onClick={handleRejectInvitation}
+                                >
+                                    Từ chối
+                                </Button>
+                                <Button
+                                    type="primary"
+                                    size="small"
+                                    icon={<IconCheck size={14} />}
+                                    onClick={handleAcceptInvitation}
+                                >
+                                    Chấp nhận
+                                </Button>
+                            </Space>
                         </div>
                     ))}
                 </Space>
