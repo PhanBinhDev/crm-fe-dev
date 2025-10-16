@@ -277,21 +277,15 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ children }) => {
         <Content
           style={{
             margin: '80px 16px 16px',
-            padding: '20px',
             minHeight: 280,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
             boxShadow: '0 1px 4px rgba(0,21,41,0.08)',
             overflow: 'auto',
+            maxHeight: 'calc(100vh - 96px)',
           }}
         >
-          <div
-            style={{
-              minHeight: 'calc(100vh - 144x)',
-            }}
-          >
-            {children}
-          </div>
+          {children}
         </Content>
       </Layout>
     </Layout>

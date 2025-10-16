@@ -1,21 +1,45 @@
-import { BellOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
-import { Menu } from 'antd';
-import { useState } from 'react';
+import { useLogout } from '@refinedev/core';
+import {
+  IconBellCog,
+  IconBuildingCog,
+  IconLogout,
+  IconShieldCog,
+  IconUserSquareRounded,
+} from '@tabler/icons-react';
+import { Button, Typography } from 'antd';
+import { useMemo, useState } from 'react';
 import GeneralSettings from './components/GeneralSettings';
 import NotificationsSettings from './components/NotificationsSettings';
 import WorkspacesSettings from './components/WorkspacesSettings';
 
+type SettingsTab = 'general' | 'workspaces' | 'notifications' | 'privacy';
+
+type MenuItem = {
+  key: SettingsTab;
+  icon: React.ReactNode;
+  label: string;
+};
+
+const menuItems: MenuItem[] = [
+  {
+    key: 'general',
+    icon: <IconUserSquareRounded size={16} color="#333" />,
+    label: 'Cài đặt chung',
+  },
+  {
+    key: 'workspaces',
+    icon: <IconBuildingCog size={16} color="#333" />,
+    label: 'Workspaces',
+  },
+  { key: 'notifications', icon: <IconBellCog size={16} color="#333" />, label: 'Thông báo' },
+  { key: 'privacy', icon: <IconShieldCog size={16} color="#333" />, label: 'Quyền riêng tư' },
+];
+
 const SettingsPage = () => {
-  const [activeSection, setActiveSection] = useState('general');
-  const [hasChanges] = useState(false);
+  const { mutate: logout } = useLogout();
+  const [activeSection, setActiveSection] = useState<SettingsTab>('general');
 
-  const menuItems = [
-    { key: 'general', icon: <UserOutlined />, label: 'Thông tin chung' },
-    { key: 'workspaces', icon: <TeamOutlined />, label: 'Workspaces' },
-    { key: 'notifications', icon: <BellOutlined />, label: 'Thông báo' },
-  ];
-
-  const renderContent = () => {
+  const renderContent = useMemo(() => {
     switch (activeSection) {
       case 'general':
         return <GeneralSettings />;
@@ -26,64 +50,132 @@ const SettingsPage = () => {
       default:
         return <GeneralSettings />;
     }
-  };
+  }, [activeSection]);
 
   return (
     <div
       style={{
         display: 'flex',
-        background: '#ffffffff',
-        height: 'calc(100vh - 136px)',
+        flexDirection: 'column',
+        height: '100%',
       }}
     >
       <div
         style={{
-          width: 210,
-          background: '#fff',
-          padding: '15px 0',
-          borderRight: '1px solid #f0f0f0',
-          height: '100%',
-          overflowY: 'auto',
+          height: 60,
+          minHeight: 60,
+          borderBottom: '1px solid #f0f0f0',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 16px',
         }}
       >
-        <div style={{ padding: '0 24px 24px' }}>
-          <h2 style={{ fontSize: 30, fontWeight: 600, margin: 0 }}>Cài đặt</h2>
-        </div>
-
-        <Menu
-          mode="inline"
-          selectedKeys={[activeSection]}
-          style={{ paddingRight: 10 }}
-          onSelect={({ key }) => setActiveSection(key)}
-          inlineIndent={0}
-        >
-          {menuItems.map(item => (
-            <Menu.Item
-              key={item.key}
-              icon={item.icon}
-              style={{
-                paddingLeft: '24px !important',
-                margin: 0,
-                marginBottom: 3,
-              }}
-            >
-              {item.label}
-            </Menu.Item>
-          ))}
-        </Menu>
+        <Typography.Title level={4} style={{ margin: 0, fontWeight: 'semibold' }}>
+          {menuItems.find(item => item.key === activeSection)?.label || 'Cài đặt'}
+        </Typography.Title>
       </div>
 
-      {/* Content Area */}
       <div
         style={{
           flex: 1,
-          padding: 5,
-          paddingBottom: hasChanges ? 80 : 24,
-          height: '100%',
-          overflowY: 'auto',
+          display: 'flex',
         }}
       >
-        <div style={{ margin: '0 auto' }}>{renderContent()}</div>
+        {/* sidebar */}
+        <div
+          style={{
+            width: 200,
+            borderRight: '1px solid #f0f0f0',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div
+            style={{
+              padding: 8,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              flex: 1,
+            }}
+          >
+            {menuItems.map(item => (
+              <Button
+                key={item.key}
+                onClick={() => setActiveSection(item.key)}
+                icon={item.icon}
+                type="text"
+                style={{
+                  justifyContent: 'flex-start',
+                  background: activeSection === item.key ? '#f5f5f5' : undefined,
+                }}
+                styles={{
+                  icon: {
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  },
+                }}
+              >
+                {item.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* logout */}
+          <div
+            style={{
+              padding: 8,
+              borderTop: '1px solid #f0f0f0',
+            }}
+          >
+            <Button
+              color="red"
+              icon={<IconLogout size={16} />}
+              style={{
+                width: '100%',
+                color: '#ff4d4f',
+                borderColor: '#ff4d4f',
+                transition: 'all 0.3s',
+                borderRadius: 8,
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#ff4d4f';
+                e.currentTarget.style.color = '#fff';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#fff';
+                e.currentTarget.style.color = '#ff4d4f';
+              }}
+              styles={{
+                icon: {
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+              }}
+              onClick={() => logout()}
+            >
+              Đăng xuất
+            </Button>
+          </div>
+        </div>
+
+        {/* content */}
+        <div
+          style={{
+            flex: 1,
+            maxHeight: 'calc(100vh - 156px)',
+            overflowY: 'auto',
+            paddingBottom: 12,
+          }}
+        >
+          {renderContent}
+        </div>
       </div>
     </div>
   );

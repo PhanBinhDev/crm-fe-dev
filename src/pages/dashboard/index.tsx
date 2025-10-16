@@ -20,8 +20,7 @@ export const DashboardPage: React.FC = () => {
   });
 
   return (
-    <div style={{ padding: '24px' }}>
-      {/* Hàng 1 */}
+    <div style={{ padding: '20px' }}>
       <Row gutter={[16, 16]}>
         <Col xs={24} md={12}>
           <Card title="Tổng quan" style={{ height: 300 }}>

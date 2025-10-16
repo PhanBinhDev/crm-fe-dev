@@ -186,14 +186,8 @@ const GeneralSettings = () => {
   return (
     <Space direction="vertical" size="large" style={{ width: '100%', height: '100%' }}>
       <Card
-        title={
-          <Space>
-            <Text style={{ fontSize: 20 }}>Thông tin cá nhân</Text>
-            {isSaving && <Spinner />}
-          </Space>
-        }
-        bordered={false}
-        style={{ height: '100%', boxShadow: 'none' }}
+        variant={'borderless'}
+        style={{ height: '100%', boxShadow: 'none', maxWidth: '80%', margin: '0 auto' }}
       >
         <div
           style={{

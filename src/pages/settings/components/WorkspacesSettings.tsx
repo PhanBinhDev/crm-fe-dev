@@ -1,10 +1,9 @@
+import InvitationList from '@/components/shared/InvitationList';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { getColorFromName, getInitials } from '@/utils/activity';
-import { TeamOutlined } from '@ant-design/icons';
-import { Avatar, Button, Card, Space, Tag, Typography } from 'antd';
+import { Avatar, Card, Space, Tag, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import InvitationList from '@/components/shared/InvitationList';
 const { Text } = Typography;
 
 const WorkspacesSettings = () => {
@@ -13,45 +12,9 @@ const WorkspacesSettings = () => {
   const { openModal } = useModal();
 
   return (
-    <Card
-      title={
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 12,
-          }}
-        >
-          <Text style={{ fontSize: 20 }}>Không gian làm việc </Text>
-          <Button
-            type="primary"
-            icon={<TeamOutlined />}
-            onClick={() => openModal('ModalAddWorkspace')}
-            style={{ minWidth: 'fit-content' }}
-          >
-            Tạo workspace mới
-          </Button>
-        </div>
-      }
+    <div
       style={{
-        width: '100%',
-        margin: 0,
-        padding: 0,
-        boxShadow: 'none',
-        background: '#fcfcfcff',
-      }}
-      bordered={false}
-      styles={{
-        header: {
-          position: 'sticky',
-          top: 0,
-          zIndex: 1,
-          background: '#fcfcfcff',
-          borderBottom: '1px solid #f0f0f0',
-          boxShadow: '0 0 0 5px #fcfcfc',
-        },
+        padding: 12,
       }}
     >
       <InvitationList />
@@ -201,7 +164,7 @@ const WorkspacesSettings = () => {
           Không còn workspace nào khác.
         </div>
       )}
-    </Card>
+    </div>
   );
 };
 

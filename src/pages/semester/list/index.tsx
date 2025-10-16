@@ -20,7 +20,6 @@ const SemesterList: React.FC = () => {
     syncWithLocation: true,
   });
 
-  // lọc client
   const filteredData = useMemo(() => {
     let data = tableProps.dataSource ?? [];
 
@@ -46,7 +45,7 @@ const SemesterList: React.FC = () => {
   };
 
   return (
-    <div>
+    <div style={{ padding: 20 }}>
       <Row gutter={[0, 16]}>
         <Col span={24}>
           <div

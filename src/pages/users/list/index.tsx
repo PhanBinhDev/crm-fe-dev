@@ -91,7 +91,11 @@ export const UserList = () => {
   }, [location.state?.reload, tableQueryResult]);
 
   return (
-    <div>
+    <div
+      style={{
+        padding: 20,
+      }}
+    >
       <Row gutter={[0, 16]}>
         <Col span={24}>
           <div
