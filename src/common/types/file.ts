@@ -7,6 +7,10 @@ export interface IFile extends IBase {
   activity: IActivity;
 }
 
+export interface ActivityFile {
+  url: string;
+}
+
 export interface Attachment {
   file: File;
   path: string;

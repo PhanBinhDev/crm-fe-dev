@@ -1,18 +1,18 @@
 import { ActivityPriority, ActivityStatus, ActivityType } from '@/common/enum/activity';
 import {
+  ActivityFile,
   DateRange,
   IBase,
   ICategory,
   IFeedback,
-  IFile,
   IParticipant,
   IStage,
   IUser,
 } from '@/common/types';
 
+import { ReminderType } from '../enum/notifications';
 import { IAssignee, PayloadAssignee } from './assignee';
 import { ISemester } from './semester';
-import { ReminderType } from '../enum/notifications';
 
 export interface IActivity extends IBase {
   name: string;
@@ -35,7 +35,7 @@ export interface IActivity extends IBase {
   category?: ICategory;
   status: ActivityStatus;
   participants?: IParticipant[];
-  files?: IFile[];
+  files?: ActivityFile[];
   feedbacks?: IFeedback[];
   assignees?: IAssignee[];
   progress?: number;
