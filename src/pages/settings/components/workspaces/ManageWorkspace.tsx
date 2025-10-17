@@ -1,3 +1,5 @@
+import Spinner from '@/components/ui/Spinner';
+import { useCustomMutation } from '@refinedev/core';
 import {
   IconDeviceFloppy,
   IconInfoSquareRounded,
@@ -37,18 +39,18 @@ const ManageWorkspace = () => {
   const [showSave, setShowSave] = useState(false);
 
   const handleInfoFormChange = (changed: boolean) => {
-    console.log('changed info', changed);
-
     setShowSave(changed);
   };
+
+  const { mutate: updateWorkspace, isPending: isUpdating } = useCustomMutation();
 
   const renderHeaderButton = useMemo(() => {
     if (activeTab === 'info') {
       return showSave ? (
         <Button
           type="primary"
-          icon={<IconDeviceFloppy size={16} />}
-          onClick={() => infoFormRef.current?.submit?.()}
+          icon={isUpdating ? <Spinner size={16} color="#fff" /> : <IconDeviceFloppy size={16} />}
+          onClick={() => infoFormRef.current?.submit?.(updateWorkspace)}
           styles={{
             icon: {
               display: 'flex',
@@ -59,7 +61,8 @@ const ManageWorkspace = () => {
           style={{
             padding: '4px 12px',
             borderRadius: 8,
-            gap: 4,
+            gap: 6,
+            opacity: isUpdating ? 0.6 : 1,
           }}
         >
           Lưu
@@ -70,10 +73,8 @@ const ManageWorkspace = () => {
       return (
         <Button
           type="primary"
-          icon={<IconPlus size={14}  />}
-          onClick={() => {
-            /* handle invite members */
-          }}
+          icon={<IconPlus size={14} />}
+          onClick={() => {}}
           styles={{
             icon: {
               display: 'flex',
@@ -92,7 +93,7 @@ const ManageWorkspace = () => {
       );
     }
     return null;
-  }, [activeTab, showSave]);
+  }, [activeTab, showSave, isUpdating, updateWorkspace]);
 
   return (
     <div
@@ -178,7 +179,11 @@ const ManageWorkspace = () => {
         }}
       >
         {activeTab === 'info' && (
-          <WorkspaceInfo ref={infoFormRef} onFormChange={handleInfoFormChange} />
+          <WorkspaceInfo
+            ref={infoFormRef}
+            onFormChange={handleInfoFormChange}
+            onUpdate={updateWorkspace}
+          />
         )}
         {activeTab === 'members' && <WorkspaceMembers />}
         {activeTab === 'settings' && <WorkspaceSettingsInner />}

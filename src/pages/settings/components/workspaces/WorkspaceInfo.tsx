@@ -1,21 +1,26 @@
 import { WorkspaceVisibility } from '@/common/enum/workspace';
+import { IWorkspace } from '@/common/types';
 import Spinner from '@/components/ui/Spinner';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { useOne } from '@refinedev/core';
-import { IconUpload } from '@tabler/icons-react';
-import { Avatar, Button, Card, Form, Input, Space, Switch, Upload } from 'antd';
+import { IconUpload, IconX } from '@tabler/icons-react';
+import { Avatar, Button, Card, Form, Input, message, Space, Switch, Upload } from 'antd';
 import { isEqual } from 'lodash';
-import { forwardRef, useImperativeHandle, useMemo } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 
 interface IWorkspaceInfoProps {
   onFormChange: (isChanged: boolean) => void;
+  onUpdate: any;
 }
 
-const WorkspaceInfo = forwardRef(({ onFormChange }: IWorkspaceInfoProps, ref) => {
+const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProps, ref) => {
+  const { refreshWorkspaces } = useWorkspaces();
   const { workspaceId } = useParams();
   const [form] = Form.useForm();
-
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
   useImperativeHandle(ref, () => ({
     submit: () => form.submit(),
   }));
@@ -24,6 +29,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange }: IWorkspaceInfoProps, ref) =>
     data: workspaceData,
     isLoading: isLoadingWorkspace,
     error,
+    refetch,
   } = useOne({
     resource: 'workspaces',
     id: workspaceId,
@@ -33,7 +39,28 @@ const WorkspaceInfo = forwardRef(({ onFormChange }: IWorkspaceInfoProps, ref) =>
     },
   });
 
+  useEffect(() => {
+    if (workspaceData?.data?.avatar) {
+      setAvatarPreview(workspaceData.data.avatar);
+    } else {
+      setAvatarPreview(undefined);
+    }
+    setAvatarFile(null);
+
+    form.setFieldsValue({
+      visibility: workspaceData?.data?.visibility || WorkspaceVisibility.PUBLIC,
+    });
+  }, [workspaceData]);
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    };
+  }, [avatarPreview]);
+
   const workspace = useMemo(() => {
+    if (isLoadingWorkspace) return {} as IWorkspace;
+
     return workspaceData?.data;
   }, [workspaceData]);
 
@@ -46,7 +73,43 @@ const WorkspaceInfo = forwardRef(({ onFormChange }: IWorkspaceInfoProps, ref) =>
     [workspace],
   );
 
-  const handleSubmit = async (values: any) => {};
+  const handleSubmit = async (values: any) => {
+    const formData = new FormData();
+    Object.entries(values).forEach(([key, value]) => {
+      if (key !== 'removeAvatar') formData.append(key, value as any);
+    });
+
+    if (avatarFile) {
+      formData.append('avatar', avatarFile);
+    }
+
+    if (values.removeAvatar) {
+      formData.append('removeAvatar', 'true');
+    }
+
+    onUpdate(
+      {
+        url: `workspaces/${workspaceId}`,
+        method: 'patch',
+        values: formData,
+        config: {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        },
+      },
+      {
+        onSuccess: () => {
+          message.success('Cập nhật thông tin workspace thành công');
+          setAvatarFile(null);
+          onFormChange(false);
+          refetch();
+          refreshWorkspaces();
+        },
+        onError: () => {
+          message.error('Cập nhật thông tin workspace thất bại');
+        },
+      },
+    );
+  };
 
   if (error) {
     return <Navigate to="/settings/workspaces" replace />;
@@ -94,7 +157,12 @@ const WorkspaceInfo = forwardRef(({ onFormChange }: IWorkspaceInfoProps, ref) =>
             onFinish={handleSubmit}
             onValuesChange={() => {
               const currentValues = form.getFieldsValue();
-              const changed = !isEqual(currentValues, initialValues);
+              const pick = (obj: any) => ({
+                name: obj.name,
+                description: obj.description,
+                visibility: obj.visibility,
+              });
+              const changed = !isEqual(pick(currentValues), pick(initialValues));
               onFormChange(changed);
             }}
           >
@@ -108,32 +176,73 @@ const WorkspaceInfo = forwardRef(({ onFormChange }: IWorkspaceInfoProps, ref) =>
                   gap: 15,
                 }}
               >
-                <div style={{ position: 'relative' }}>
+                <div
+                  style={{
+                    position: 'relative',
+                    background: '#f9f9f9',
+                    padding: 12,
+                    borderRadius: 12,
+                  }}
+                >
                   <Avatar
                     size={130}
-                    src={workspace?.avatar}
+                    src={avatarPreview}
                     style={{
                       backgroundColor: getColorFromName(workspace?.name),
-                      color: workspace?.avatar ? 'transparent' : '#fff',
+                      color: avatarPreview ? 'transparent' : '#fff',
                       fontSize: 48,
                       fontWeight: 600,
                       transition: 'opacity 0.3s',
-                      border: 'none',
+                      border: `1.5px solid ${getColorFromName(workspace?.name)}`,
                     }}
-                    onError={() => {
-                      return false;
-                    }}
+                    onError={() => false}
                   >
-                    {!workspace?.avatar && getInitials(workspace?.name)}
+                    {!avatarPreview && getInitials(workspace?.name)}
                   </Avatar>
+                  {avatarPreview && (
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<IconX size={14} color="#333" />}
+                      style={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        borderRadius: 8,
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                      }}
+                      onClick={() => {
+                        setAvatarFile(null);
+                        setAvatarPreview(undefined);
+                        form.setFieldsValue({ removeAvatar: true });
+                        onFormChange(true);
+                      }}
+                    />
+                  )}
                 </div>
 
-                <Upload showUploadList={false} accept=".jpg,.jpeg,.png">
+                <Upload
+                  showUploadList={false}
+                  accept="image/*"
+                  beforeUpload={file => {
+                    setAvatarFile(file);
+                    setAvatarPreview(URL.createObjectURL(file));
+                    form.setFieldsValue({ removeAvatar: undefined });
+                    onFormChange(true);
+                    return false;
+                  }}
+                >
                   <Button
-                    icon={<IconUpload size={16} color="#333" />}
+                    icon={<IconUpload size={14} color="#333" />}
                     type="text"
                     style={{
                       border: '1px solid #d9d9d9',
+                      borderRadius: 8,
+                      padding: '4px 12px',
+                      gap: 6,
+                    }}
+                    styles={{
+                      icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
                     }}
                   >
                     Thay đổi
@@ -153,6 +262,9 @@ const WorkspaceInfo = forwardRef(({ onFormChange }: IWorkspaceInfoProps, ref) =>
                   },
                 }}
               >
+                <Form.Item name="removeAvatar" hidden>
+                  <Input type="hidden" />
+                </Form.Item>
                 <Form.Item
                   label="Tên workspace"
                   name="name"
@@ -163,34 +275,38 @@ const WorkspaceInfo = forwardRef(({ onFormChange }: IWorkspaceInfoProps, ref) =>
                 <Form.Item label="Mô tả" name="description">
                   <Input.TextArea rows={3} placeholder="Nhập mô tả workspace" />
                 </Form.Item>
-                <Form.Item
-                  style={{ marginBottom: 24 }}
-                  name="visibility"
-                  valuePropName="checked"
-                  getValueFromEvent={checked => (checked ? 'public' : 'private')}
-                  getValueProps={value => ({ checked: value === 'public' })}
+
+                <div
+                  style={{
+                    marginBottom: 24,
+                    background: '#f5f5f5',
+                    padding: '8px 12px',
+                    borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      background: '#f5f5f5',
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                    }}
+                  <Space direction="vertical" size={1}>
+                    <span style={{ fontWeight: 600, fontSize: 15 }}>
+                      Hiển thị workspace công khai
+                    </span>
+                    <span style={{ fontSize: 14, color: '#888', fontWeight: 400 }}>
+                      Mọi người có thể tìm thấy workspace này khi tìm kiếm
+                    </span>
+                  </Space>
+                  <Form.Item
+                    name="visibility"
+                    valuePropName="checked"
+                    getValueFromEvent={checked =>
+                      checked ? WorkspaceVisibility.PUBLIC : WorkspaceVisibility.PRIVATE
+                    }
+                    getValueProps={value => ({ checked: value === WorkspaceVisibility.PUBLIC })}
+                    noStyle
                   >
-                    <Space direction="vertical" size={1}>
-                      <span style={{ fontWeight: 600, fontSize: 15 }}>
-                        Hiển thị workspace công khai
-                      </span>
-                      <span style={{ fontSize: 14, color: '#888', fontWeight: 400 }}>
-                        Chỉ bạn và các thành viên được mời mới có quyền truy cập.
-                      </span>
-                    </Space>
                     <Switch size="small" />
-                  </div>
-                </Form.Item>
+                  </Form.Item>
+                </div>
               </Card>
             </div>
           </Form>
