@@ -1,14 +1,43 @@
+import { ActivityFile, IActivity } from '@/common/types';
+import { useCreate } from '@refinedev/core';
 import { IconPlus } from '@tabler/icons-react';
 import { Button, Typography } from 'antd';
+import { useState } from 'react';
 import ActivityFilesList from './ActivityFilesList';
 
 const { Title } = Typography;
 
 interface ActivityFilesTabProps {
-  activityId: string;
+  activity: IActivity;
 }
 
-const ActivityFilesTab = ({}: ActivityFilesTabProps) => {
+const ActivityFilesTab = ({ activity }: ActivityFilesTabProps) => {
+  const [localFiles, setLocalFiles] = useState<ActivityFile[]>(activity?.files || []);
+  const { mutate: createActivityFile, isPending } = useCreate();
+
+  const onUploadFileSuccess = (files: ActivityFile[]) => {
+    setLocalFiles(prev => [...prev, ...files]);
+
+    // chưa có api
+    // createActivityFile(
+    //   {
+    //     resource: `activities/${activity.id}`,
+    //     values: {
+    //       activityId: activity.id,
+    //       files: files,
+    //     },
+    //   },
+    //   {
+    //     onSuccess: () => {
+    //       message.success('Cập nhật thành công.');
+    //     },
+    //     onError: () => {
+    //       message.error('Cập nhật thất bại. Vui lòng thử lại sau.');
+    //     },
+    //   },
+    // );
+  };
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div
@@ -42,7 +71,11 @@ const ActivityFilesTab = ({}: ActivityFilesTabProps) => {
         />
       </div>
       <div style={{ background: '#f7f7f7ff', height: '100%', width: '100%', padding: 8 }}>
-        <ActivityFilesList files={[]} loading={false} />
+        <ActivityFilesList
+          files={localFiles}
+          onUploadFileSuccess={onUploadFileSuccess}
+          loading={isPending}
+        />
       </div>
     </div>
   );

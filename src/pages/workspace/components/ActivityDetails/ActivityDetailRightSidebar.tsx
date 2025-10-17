@@ -86,7 +86,7 @@ const ActivityDetailRightSidebar = ({
       >
         {!collapsedRight && activeTab === 'logs' && <ActivityLogTab activityId={activity.id} />}
         {!collapsedRight && activeTab === 'links' && <ActivityLinkTab activityId={activity.id} />}
-        {!collapsedRight && activeTab === 'files' && <ActivityFilesTab activityId={activity.id} />}
+        {!collapsedRight && activeTab === 'files' && <ActivityFilesTab activity={activity} />}
         {!collapsedRight && activeTab === 'feedback' && (
           <ActivityFeedbackTab activityId={activity.id} />
         )}

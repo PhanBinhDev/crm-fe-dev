@@ -60,7 +60,7 @@ const FileAttachments = ({ title = 'Tệp đính kèm', value, onChange }: FileA
         capture="user"
       >
         <div style={{ textAlign: 'center', color: '#838383', fontSize: 13 }}>
-          Kéo thả tệp vào đây để đính kèm hoặc{' '}
+          Kéo thả tệp vào đây để đính kèm hoặc
           <span style={{ textDecoration: 'underline', cursor: 'pointer', color: '#333' }}>
             duyệt
           </span>

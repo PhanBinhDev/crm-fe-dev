@@ -1,35 +1,83 @@
-import Spinner from '@/components/ui/Spinner';
+import { ActivityFile } from '@/common/types';
+import FileAttachments from '@/pages/workspace/components/FileAttachments';
 import { getFileIcon } from '@/utils/activity';
+import { UploadOutlined } from '@ant-design/icons';
+import { useCustomMutation } from '@refinedev/core';
 import { IconDownload } from '@tabler/icons-react';
-import { Button, Card, Tooltip, Typography } from 'antd';
+import { Button, Card, Form, Tooltip, Typography } from 'antd';
+import { useCallback, useState } from 'react';
 
 const { Text, Paragraph } = Typography;
 
-interface ActivityFile {
-  url: string;
-}
-
 interface ActivityFilesListProps {
   files: ActivityFile[];
+  onUploadFileSuccess: (files: ActivityFile[]) => void;
   loading?: boolean;
 }
 
-const ActivityFilesList = ({ files, loading }: ActivityFilesListProps) => {
-  if (loading) {
-    return (
-      <div
-        style={{
-          textAlign: 'center',
-          padding: '20px',
-          color: '#999',
-          borderRadius: 8,
-          background: '#f0f0f0',
-        }}
-      >
-        <Spinner size={24} />
-      </div>
-    );
-  }
+const ActivityFilesList = ({ files, onUploadFileSuccess }: ActivityFilesListProps) => {
+  const { mutate: uploadFiles, isPending } = useCustomMutation();
+
+  const [form] = Form.useForm();
+  const [attachments, setAttachments] = useState<File[]>([]);
+
+  const handleAttachmentsChange = useCallback(
+    (files: File[]) => {
+      setAttachments(files);
+      form.setFieldValue('attachments', files);
+    },
+    [form],
+  );
+
+  const handleUploadfile = async () => {
+    let fileUrls: ActivityFile[] = [];
+    if (attachments.length > 0) {
+      try {
+        const formData = new FormData();
+        attachments.forEach(file => formData.append('files', file));
+
+        const uploadResult = await new Promise<any>((resolve, reject) => {
+          uploadFiles(
+            {
+              url: '/upload/multi',
+              method: 'post',
+              values: formData,
+              config: {
+                headers: { 'Content-Type': 'multipart/form-data' },
+              },
+            },
+            {
+              onSuccess: res => {
+                setAttachments([]);
+                return resolve(res);
+              },
+              onError: error => {
+                return reject(error);
+              },
+            },
+          );
+        });
+
+        console.log(uploadResult);
+
+        if (uploadResult?.data) {
+          uploadResult?.data.map((file: { status: string; url: string }) =>
+            fileUrls.push({ url: file.url }),
+          );
+        } else {
+          return;
+        }
+
+        console.log(fileUrls);
+
+        if (fileUrls.length > 0) {
+          onUploadFileSuccess(fileUrls);
+        }
+      } catch (uploadError) {
+        return;
+      }
+    }
+  };
 
   if (!files || files.length === 0) {
     return (
@@ -46,8 +94,23 @@ const ActivityFilesList = ({ files, loading }: ActivityFilesListProps) => {
           gap: 12,
         }}
       >
-        <Typography.Text>Chưa có tệp đính kèm</Typography.Text>
-        <Button type="text">Tải lên</Button>
+        <div
+          style={{
+            maxWidth: '310px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 5,
+            justifyContent: 'center',
+          }}
+        >
+          <Typography.Text>Chưa có tệp đính kèm</Typography.Text>
+          <FileAttachments title="" value={attachments} onChange={handleAttachmentsChange} />
+          {attachments.length > 0 && (
+            <Button onClick={handleUploadfile} loading={isPending} icon={<UploadOutlined />}>
+              Tải lên
+            </Button>
+          )}
+        </div>
       </div>
     );
   }
@@ -74,6 +137,7 @@ const ActivityFilesList = ({ files, loading }: ActivityFilesListProps) => {
               boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
               border: '1px solid #f0f0f0',
               cursor: 'pointer',
+              maxWidth: '310px',
             }}
             styles={{
               body: { display: 'flex', gap: 12, padding: 12 },
@@ -89,7 +153,7 @@ const ActivityFilesList = ({ files, loading }: ActivityFilesListProps) => {
             <div style={{ flex: 1, minWidth: 0 }}>
               <Paragraph
                 strong
-                ellipsis={{ rows: 1 }}
+                ellipsis={{ rows: 2 }}
                 style={{ marginBottom: 4, fontSize: 13, lineHeight: 1.2 }}
               >
                 {fileName}
@@ -110,7 +174,6 @@ const ActivityFilesList = ({ files, loading }: ActivityFilesListProps) => {
                   }}
                   onClick={e => {
                     e.stopPropagation();
-                    // Download file
                     const link = document.createElement('a');
                     link.href = file.url;
                     link.download = fileName;
@@ -122,6 +185,23 @@ const ActivityFilesList = ({ files, loading }: ActivityFilesListProps) => {
           </Card>
         );
       })}
+
+      <div
+        style={{
+          maxWidth: '310px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 5,
+          justifyContent: 'center',
+        }}
+      >
+        <FileAttachments title="" value={attachments} onChange={handleAttachmentsChange} />
+        {attachments.length > 0 && (
+          <Button onClick={handleUploadfile} loading={isPending} icon={<UploadOutlined />}>
+            Tải lên
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
