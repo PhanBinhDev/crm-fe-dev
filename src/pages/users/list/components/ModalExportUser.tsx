@@ -20,15 +20,18 @@ interface ModalExportUserProps {
   open: boolean;
   onClose: () => void;
   users: IUser[];
+  totalUser?: number;
 }
 
-export const ModalExportUser: FC<ModalExportUserProps> = ({ open, onClose, users }) => {
+export const ModalExportUser: FC<ModalExportUserProps> = ({ open, onClose, users, totalUser }) => {
   const [selectedFields, setSelectedFields] = useState<string[]>(USER_FIELDS.map(f => f.value));
   const [downloading, setDownloading] = useState(false);
 
   // limit (số) và limitInput (chuỗi show trong input)
   const [limit, setLimit] = useState<number | undefined>(undefined);
   const [limitInput, setLimitInput] = useState<string>('');
+
+  const maxExportLimit = totalUser ?? users.length;
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -44,7 +47,7 @@ export const ModalExportUser: FC<ModalExportUserProps> = ({ open, onClose, users
   // xử lý khi user gõ/đổi input (chỉ giữ chữ số, enforce max)
   const handleLimitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value || '';
-    const digits = raw.replace(/\D/g, ''); // loại bỏ mọi ký tự non-digit
+    const digits = raw.replace(/\D/g, ''); 
     if (digits === '') {
       setLimitInput('');
       setLimit(undefined);
@@ -56,8 +59,8 @@ export const ModalExportUser: FC<ModalExportUserProps> = ({ open, onClose, users
       setLimit(undefined);
       return;
     }
-    if (num > users.length) {
-      num = users.length;
+    if (num > maxExportLimit) {
+      num = maxExportLimit;
     }
     const s = String(num);
     setLimitInput(s);
@@ -87,12 +90,11 @@ export const ModalExportUser: FC<ModalExportUserProps> = ({ open, onClose, users
     const newVal = input.value.slice(0, start) + digits + input.value.slice(end);
     const newDigits = newVal.replace(/\D/g, '');
     let num = newDigits === '' ? undefined : parseInt(newDigits, 10);
-    if (typeof num === 'number' && num > users.length) num = users.length;
+    if (typeof num === 'number' && num > maxExportLimit) num = maxExportLimit; // Thay users.length bằng maxExportLimit
     const s = num === undefined ? '' : String(num);
     setLimitInput(s);
     setLimit(num === undefined ? undefined : num);
   };
-
   return (
     <Modal open={open} onCancel={onClose} footer={null} destroyOnHidden width={560}>
       {/* Header */}
@@ -129,7 +131,7 @@ export const ModalExportUser: FC<ModalExportUserProps> = ({ open, onClose, users
         {/* Limit */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '0.95rem', fontWeight: 500, color: '#333' }}>
-            Giới hạn số lượng xuất (tối đa {users.length})
+            Giới hạn số lượng xuất (tối đa {maxExportLimit.toLocaleString()})
           </span>
           <Input
             value={limitInput}

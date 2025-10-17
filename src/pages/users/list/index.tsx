@@ -78,6 +78,9 @@ export const UserList = () => {
     syncWithLocation: true,
   });
 
+  const totalUsers = tableQueryResult?.data?.total ?? 0;
+  const currentPageUsers = tableQueryResult?.data?.data ?? [];
+
   const handleReset = () => {
     setSearchText('');
     setFilters({});
@@ -116,7 +119,7 @@ export const UserList = () => {
               onStatusFilter={value => setFilters(prev => ({ ...prev, isActive: value }))}
               onReset={handleReset}
             />
-            {canEdit && <UserActions />}
+            {canEdit && <UserActions totalUsers={totalUsers} currentPageUsers={currentPageUsers} />}
           </div>
         </Col>
         <Col span={24}>

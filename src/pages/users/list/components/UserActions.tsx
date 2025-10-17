@@ -1,6 +1,6 @@
 import { IUser } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
-import { useTable } from '@refinedev/antd';
+import { useList } from '@refinedev/core';
 import { useCan } from '@refinedev/core';
 import { IconChevronDown, IconDownload, IconPlus, IconUpload } from '@tabler/icons-react';
 import { Button, Dropdown, Space } from 'antd';
@@ -10,7 +10,12 @@ import { ModalExportUser } from './ModalExportUser';
 import { ImportModal } from './ImportModal';
 import { UserRole } from '@/common/enum/user';
 
-export const UserActions: FC = () => {
+interface UserActionsProps {
+  totalUsers: number;
+  currentPageUsers: IUser[];
+}
+
+export const UserActions: FC<UserActionsProps> = ({ totalUsers, currentPageUsers }) => {
   const navigate = useNavigate();
   const { user: identity } = useAuth();
   const { data: canCreate } = useCan({
@@ -20,11 +25,19 @@ export const UserActions: FC = () => {
   });
   const [openExport, setOpenExport] = useState(false);
   const [openImport, setOpenImport] = useState(false);
-  const { tableQueryResult } = useTable<IUser>({
+
+
+  const { data: allUsersData, refetch: refetchAllUsers } = useList<IUser>({
     resource: 'users/all',
-    pagination: { pageSize: 1000 },
+    pagination: {
+      pageSize: totalUsers || 9999, 
+    },
+    queryOptions: {
+      enabled: false, 
+    },
   });
-  const users = tableQueryResult?.data?.data || [];
+
+  const allUsers = allUsersData?.data || [];
 
   if (!canCreate?.can) {
     return null;
@@ -32,8 +45,11 @@ export const UserActions: FC = () => {
 
   const handleImportSuccess = () => {
     setOpenImport(false);
-    // Refresh the table data
-    tableQueryResult?.refetch();
+  };
+
+  const handleOpenExport = () => {
+    setOpenExport(true);
+    refetchAllUsers();
   };
 
   const menuItems = [
@@ -47,7 +63,7 @@ export const UserActions: FC = () => {
       key: 'export',
       icon: <IconDownload size={16} color="#ff8000" />,
       label: 'Export',
-      onClick: () => setOpenExport(true),
+      onClick: handleOpenExport,
     },
   ];
 
@@ -84,7 +100,12 @@ export const UserActions: FC = () => {
           }}
         />
       </Space>
-      <ModalExportUser open={openExport} onClose={() => setOpenExport(false)} users={users} />
+      <ModalExportUser 
+        open={openExport} 
+        onClose={() => setOpenExport(false)} 
+        users={allUsers.length > 0 ? allUsers : currentPageUsers} 
+        totalUser={totalUsers} 
+      />
       <ImportModal 
         visible={openImport} 
         onClose={() => setOpenImport(false)} 
