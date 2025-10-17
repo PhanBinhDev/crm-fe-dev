@@ -1,14 +1,17 @@
-import { WorkspaceVisibility } from '@/common/enum/workspace';
+import { MemberRole, WorkspaceVisibility } from '@/common/enum/workspace';
 import { IWorkspace } from '@/common/types';
 import Spinner from '@/components/ui/Spinner';
+import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { useOne } from '@refinedev/core';
-import { IconUpload, IconX } from '@tabler/icons-react';
-import { Avatar, Button, Card, Form, Input, message, Space, Switch, Upload } from 'antd';
+import { IconTransfer, IconUpload, IconX } from '@tabler/icons-react';
+import { Avatar, Button, Card, Form, Input, message, Space, Switch, Tooltip, Upload } from 'antd';
+import dayjs from 'dayjs';
 import { isEqual } from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
+import { useMediaQuery } from 'usehooks-ts';
 
 interface IWorkspaceInfoProps {
   onFormChange: (isChanged: boolean) => void;
@@ -17,6 +20,8 @@ interface IWorkspaceInfoProps {
 
 const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProps, ref) => {
   const { refreshWorkspaces } = useWorkspaces();
+  const { user } = useAuth();
+  const isTablet = useMediaQuery('(max-width: 991px)');
   const { workspaceId } = useParams();
   const [form] = Form.useForm();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -47,9 +52,9 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
     isLoading: isLoadingWorkspace,
     error,
     refetch,
-  } = useOne({
-    resource: 'workspaces',
-    id: workspaceId,
+  } = useOne<IWorkspace>({
+    resource: `workspaces`,
+    id: `${workspaceId}?includeMembers=true`,
     queryOptions: {
       enabled: !!workspaceId,
       retry: false,
@@ -81,7 +86,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
     return workspaceData?.data;
   }, [workspaceData]);
 
-  const initialValues = useMemo(
+  const initialValues = useMemo<Record<string, any>>(
     () => ({
       name: workspace?.name,
       description: workspace?.description,
@@ -90,10 +95,29 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
     [workspace],
   );
 
+  const canEdit = useMemo(() => {
+    if (!user || !workspace) return false;
+
+    return (
+      user?.id === workspace?.owner?.id ||
+      workspace?.members?.find(m => m.user.id === user?.id && m.role === MemberRole.ADMIN)
+    );
+  }, [user, workspace]);
+
   const handleSubmit = async (values: any) => {
+    const pick = (obj: any) => ({
+      name: obj.name,
+      description: obj.description,
+      visibility: obj.visibility,
+    });
+
+    const changedFields = Object.entries(pick(values)).filter(
+      ([key, value]) => value !== initialValues[key],
+    );
+
     const formData = new FormData();
-    Object.entries(values).forEach(([key, value]) => {
-      if (key !== 'removeAvatar') formData.append(key, value as any);
+    changedFields.forEach(([key, value]) => {
+      formData.append(key, value as any);
     });
 
     if (avatarFile) {
@@ -135,7 +159,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
   return (
     <div
       style={{
-        maxWidth: '80%',
+        maxWidth: '90%',
         height: '100%',
         margin: '0 auto',
       }}
@@ -182,8 +206,11 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
               const changed = !isEqual(pick(currentValues), pick(initialValues));
               onFormChange(changed);
             }}
+            style={{
+              flex: 1,
+            }}
           >
-            <div style={{ display: 'flex', gap: 20, width: '100%' }}>
+            <div style={{ display: 'flex', gap: 20, width: '100%', height: '100%' }}>
               <div
                 style={{
                   minWidth: 200,
@@ -216,7 +243,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                   >
                     {!avatarPreview && getInitials(workspace?.name)}
                   </Avatar>
-                  {avatarPreview && (
+                  {canEdit && avatarPreview && (
                     <Button
                       type="text"
                       size="small"
@@ -238,93 +265,225 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                   )}
                 </div>
 
-                <Upload
-                  showUploadList={false}
-                  accept="image/*"
-                  beforeUpload={file => {
-                    setAvatarFile(file);
-                    setAvatarPreview(URL.createObjectURL(file));
-                    form.setFieldsValue({ removeAvatar: undefined });
-                    onFormChange(true);
-                    return false;
-                  }}
-                >
-                  <Button
-                    icon={<IconUpload size={14} color="#333" />}
-                    type="text"
-                    style={{
-                      border: '1px solid #d9d9d9',
-                      borderRadius: 8,
-                      padding: '4px 12px',
-                      gap: 6,
-                    }}
-                    styles={{
-                      icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+                {canEdit && (
+                  <Upload
+                    showUploadList={false}
+                    accept="image/*"
+                    beforeUpload={file => {
+                      setAvatarFile(file);
+                      setAvatarPreview(URL.createObjectURL(file));
+                      form.setFieldsValue({ removeAvatar: undefined });
+                      onFormChange(true);
+                      return false;
                     }}
                   >
-                    Thay đổi
-                  </Button>
-                </Upload>
+                    <Button
+                      icon={<IconUpload size={14} color="#333" />}
+                      type="text"
+                      style={{
+                        border: '1px solid #d9d9d9',
+                        borderRadius: 8,
+                        padding: '4px 12px',
+                        gap: 6,
+                      }}
+                      styles={{
+                        icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+                      }}
+                    >
+                      Thay đổi
+                    </Button>
+                  </Upload>
+                )}
               </div>
 
-              <Card
+              <div
                 style={{
                   flex: 1,
-                  padding: 16,
-                }}
-                styles={{
-                  body: {
-                    maxHeight: 'fit-content',
-                    padding: 0,
-                  },
+                  display: 'flex',
+                  flexDirection: isTablet ? 'column' : 'row',
+                  height: '100%',
+                  gap: 12,
                 }}
               >
-                <Form.Item name="removeAvatar" hidden>
-                  <Input type="hidden" />
-                </Form.Item>
-                <Form.Item
-                  label="Tên workspace"
-                  name="name"
-                  rules={[{ required: true, message: 'Vui lòng nhập tên workspace' }]}
-                >
-                  <Input placeholder="Nhập tên workspace" />
-                </Form.Item>
-                <Form.Item label="Mô tả" name="description">
-                  <Input.TextArea rows={3} placeholder="Nhập mô tả workspace" />
-                </Form.Item>
-
-                <div
+                <Card
                   style={{
-                    marginBottom: 24,
-                    background: '#f5f5f5',
-                    padding: '8px 12px',
-                    borderRadius: 8,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
+                    flex: 3,
+                    padding: 16,
+                  }}
+                  styles={{
+                    body: {
+                      padding: 0,
+                      height: '100%',
+                    },
                   }}
                 >
-                  <Space direction="vertical" size={1}>
-                    <span style={{ fontWeight: 600, fontSize: 15 }}>
-                      Hiển thị workspace công khai
-                    </span>
-                    <span style={{ fontSize: 14, color: '#888', fontWeight: 400 }}>
-                      Mọi người có thể tìm thấy workspace này khi tìm kiếm
-                    </span>
-                  </Space>
-                  <Form.Item
-                    name="visibility"
-                    valuePropName="checked"
-                    getValueFromEvent={checked =>
-                      checked ? WorkspaceVisibility.PUBLIC : WorkspaceVisibility.PRIVATE
-                    }
-                    getValueProps={value => ({ checked: value === WorkspaceVisibility.PUBLIC })}
-                    noStyle
-                  >
-                    <Switch size="small" />
+                  <Form.Item name="removeAvatar" hidden>
+                    <Input type="hidden" />
                   </Form.Item>
-                </div>
-              </Card>
+                  <Form.Item
+                    label="Tên workspace"
+                    name="name"
+                    rules={[{ required: true, message: 'Vui lòng nhập tên workspace' }]}
+                  >
+                    <Input placeholder="Nhập tên workspace" disabled={!canEdit} />
+                  </Form.Item>
+                  <Form.Item label="Mô tả" name="description">
+                    <Input.TextArea
+                      autoSize={{ minRows: 3, maxRows: 5 }}
+                      placeholder="Nhập mô tả workspace"
+                      disabled={!canEdit}
+                    />
+                  </Form.Item>
+
+                  <div
+                    style={{
+                      marginBottom: 24,
+                      background: '#f5f5f5',
+                      padding: '8px 12px',
+                      borderRadius: 8,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Space direction="vertical" size={1}>
+                      <span style={{ fontWeight: 600, fontSize: 15 }}>
+                        Hiển thị workspace công khai
+                      </span>
+                      <span style={{ fontSize: 14, color: '#888', fontWeight: 400 }}>
+                        Mọi người có thể tìm thấy workspace này khi tìm kiếm
+                      </span>
+                    </Space>
+                    <Form.Item
+                      name="visibility"
+                      valuePropName="checked"
+                      getValueFromEvent={checked =>
+                        checked ? WorkspaceVisibility.PUBLIC : WorkspaceVisibility.PRIVATE
+                      }
+                      getValueProps={value => ({ checked: value === WorkspaceVisibility.PUBLIC })}
+                      noStyle
+                    >
+                      <Switch size="small" disabled={!canEdit} />
+                    </Form.Item>
+                  </div>
+                </Card>
+                <Card
+                  style={{
+                    flex: 3,
+                    padding: 16,
+                  }}
+                  styles={{
+                    body: {
+                      padding: 0,
+                      height: '100%',
+                    },
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                    {/* Chủ sở hữu */}
+                    <div style={{ paddingBottom: 16, borderBottom: '1px solid #f0f0f0' }}>
+                      <div
+                        style={{ fontSize: 13, fontWeight: 600, color: '#666', marginBottom: 10 }}
+                      >
+                        CHỦ SỞ HỮU
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <Avatar
+                            size={32}
+                            src={workspace?.owner?.avatar}
+                            style={{
+                              background: getColorFromName(workspace?.owner?.name),
+                              fontSize: 14,
+                              fontWeight: 600,
+                            }}
+                          >
+                            {getInitials(workspace?.owner?.name)}
+                          </Avatar>
+                          <div>
+                            <div style={{ fontWeight: 500, fontSize: 14, color: '#222' }}>
+                              {workspace?.owner?.name}
+                            </div>
+                            <div style={{ fontSize: 13, color: '#888' }}>
+                              {workspace?.owner?.email}
+                            </div>
+                          </div>
+                        </div>
+                        {user?.id === workspace?.owner.id && (
+                          <Tooltip title="Chuyển quyền sở hữu">
+                            <Button
+                              type="primary"
+                              icon={<IconTransfer size={16} color="#fff" />}
+                              styles={{
+                                icon: {
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                },
+                              }}
+                            />
+                          </Tooltip>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>
+                        Ngày tạo:
+                      </span>
+                      <span style={{ fontSize: 14, color: '#222', fontWeight: 500 }}>
+                        {workspace?.createdAt &&
+                          dayjs(workspace.createdAt).format('DD/MM/YYYY HH:mm:ss')}
+                      </span>
+                    </div>
+
+                    {/* Cập nhật gần nhất */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>
+                        Cập nhật gần nhất:
+                      </span>
+                      <span style={{ fontSize: 14, color: '#222', fontWeight: 500 }}>
+                        {workspace?.updatedAt &&
+                          dayjs(workspace.updatedAt).format('DD/MM/YYYY HH:mm:ss')}
+                      </span>
+                    </div>
+
+                    {/* Số thành viên */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>
+                        Số thành viên:
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: '#1677ff' }}>
+                        {workspace?.membersCount} thành viên
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
             </div>
           </Form>
         </div>

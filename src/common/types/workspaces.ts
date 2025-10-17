@@ -1,12 +1,15 @@
+import { MemberRole, MemberStatus, WorkspaceVisibility } from '@/common/enum/workspace';
 import { IBase, IUser } from '@/common/types';
-import { MemberRole, MemberStatus } from '../enum/workspace';
 
 export interface IWorkspace extends IBase {
   name: string;
   description?: string;
   avatar?: string;
-  visibility?: 'private' | 'public';
+  visibility?: WorkspaceVisibility;
   membersCount?: number;
+  inviteCode: string;
+  owner: IUser;
+  members: IMember[];
 }
 
 export interface IMember extends IBase {
@@ -25,4 +28,3 @@ export interface IWorkspaceInvitation extends IBase {
   status: MemberStatus;
   expiresAt: string;
 }
-

@@ -205,6 +205,7 @@ const KanbanWorkspaces = () => {
             display: 'flex',
             flexDirection: 'column',
             gap: 12,
+            padding: 20,
           }}
         >
           {/* header */}
@@ -277,9 +278,10 @@ const KanbanWorkspaces = () => {
             style={{
               display: 'flex',
               flexWrap: 'nowrap',
-              minWidth: '100%',
               height: '100%',
               gap: 16,
+              marginLeft: 0,
+              marginRight: 0,
             }}
           >
             {[...Array(isMobile ? 1 : isTablet ? 2 : 4)].map((_, colIndex) => (
