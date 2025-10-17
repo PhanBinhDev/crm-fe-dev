@@ -7,10 +7,7 @@ import {
   IconUserSquareRounded,
 } from '@tabler/icons-react';
 import { Button, Typography } from 'antd';
-import { useMemo, useState } from 'react';
-import GeneralSettings from './components/GeneralSettings';
-import NotificationsSettings from './components/NotificationsSettings';
-import WorkspacesSettings from './components/WorkspacesSettings';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 type SettingsTab = 'general' | 'workspaces' | 'notifications' | 'privacy';
 
@@ -36,21 +33,9 @@ const menuItems: MenuItem[] = [
 ];
 
 const SettingsPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { mutate: logout } = useLogout();
-  const [activeSection, setActiveSection] = useState<SettingsTab>('general');
-
-  const renderContent = useMemo(() => {
-    switch (activeSection) {
-      case 'general':
-        return <GeneralSettings />;
-      case 'workspaces':
-        return <WorkspacesSettings />;
-      case 'notifications':
-        return <NotificationsSettings />;
-      default:
-        return <GeneralSettings />;
-    }
-  }, [activeSection]);
 
   return (
     <div
@@ -73,7 +58,8 @@ const SettingsPage = () => {
         }}
       >
         <Typography.Title level={4} style={{ margin: 0, fontWeight: 'semibold' }}>
-          {menuItems.find(item => item.key === activeSection)?.label || 'Cài đặt'}
+          {menuItems.find(item => item.key === location.pathname.split('/').pop())?.label ||
+            'Cài đặt'}
         </Typography.Title>
       </div>
 
@@ -102,27 +88,33 @@ const SettingsPage = () => {
               flex: 1,
             }}
           >
-            {menuItems.map(item => (
-              <Button
-                key={item.key}
-                onClick={() => setActiveSection(item.key)}
-                icon={item.icon}
-                type="text"
-                style={{
-                  justifyContent: 'flex-start',
-                  background: activeSection === item.key ? '#f5f5f5' : undefined,
-                }}
-                styles={{
-                  icon: {
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  },
-                }}
-              >
-                {item.label}
-              </Button>
-            ))}
+            {menuItems.map(item => {
+              const isActive =
+                location.pathname.split('/').pop() === item.key ||
+                (item.key === 'workspaces' && location.pathname.includes('/settings/workspaces/'));
+
+              return (
+                <Button
+                  key={item.key}
+                  onClick={() => navigate(`/settings/${item.key}`)}
+                  icon={item.icon}
+                  type="text"
+                  style={{
+                    justifyContent: 'flex-start',
+                    background: isActive ? '#f5f5f5' : undefined,
+                  }}
+                  styles={{
+                    icon: {
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    },
+                  }}
+                >
+                  {item.label}
+                </Button>
+              );
+            })}
           </div>
 
           {/* logout */}
@@ -168,11 +160,10 @@ const SettingsPage = () => {
           style={{
             flex: 1,
             maxHeight: 'calc(100vh - 156px)',
-            overflowY: 'auto',
-            paddingBottom: 12,
+            overflow: 'hidden',
           }}
         >
-          {renderContent}
+          <Outlet />
         </div>
       </div>
     </div>

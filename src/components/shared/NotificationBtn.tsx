@@ -521,7 +521,7 @@ const NotificationBtn = () => {
         count={unreadCount}
         size="small"
         offset={[-2, 2]}
-        style={{ backgroundColor: '#ff4d4f' }}
+        style={{ backgroundColor: '#ff4d4f', fontSize: 10 }}
       >
         <Button
           type="text"

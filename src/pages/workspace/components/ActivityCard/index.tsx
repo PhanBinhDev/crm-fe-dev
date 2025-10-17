@@ -129,7 +129,6 @@ const ActivityCard = ({
           </Text>
         </div>
 
-        {/* type - priority */}
         <div
           style={{
             width: '100%',
@@ -242,7 +241,6 @@ const ActivityCard = ({
             alignItems: 'center',
             gap: 15,
             marginBottom: 5,
-            // justifyContent: 'space-between',
           }}
         >
           {config.showEndTime && activity.endTime ? (
@@ -372,7 +370,7 @@ const ActivityCard = ({
           </Button>
         )}
 
-        {showActions && !isClosedStage && (
+        {showActions && !isClosedStage && !isCompletedStage && (
           <ToolbarActivityCard
             activity={activity}
             isCompletedStage={!!isCompletedStage}
