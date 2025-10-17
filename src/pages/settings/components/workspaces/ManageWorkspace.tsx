@@ -7,7 +7,7 @@ import {
   IconSettings,
   IconUsersPlus,
 } from '@tabler/icons-react';
-import { Button, Card } from 'antd';
+import { Button, Card, Space } from 'antd';
 import { useMemo, useRef, useState } from 'react';
 import WorkspaceInfo from './WorkspaceInfo';
 import WorkspaceMembers from './WorkspaceMembers';
@@ -47,26 +47,47 @@ const ManageWorkspace = () => {
   const renderHeaderButton = useMemo(() => {
     if (activeTab === 'info') {
       return showSave ? (
-        <Button
-          type="primary"
-          icon={isUpdating ? <Spinner size={16} color="#fff" /> : <IconDeviceFloppy size={16} />}
-          onClick={() => infoFormRef.current?.submit?.(updateWorkspace)}
-          styles={{
-            icon: {
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-          }}
+        <Space
           style={{
-            padding: '4px 12px',
-            borderRadius: 8,
-            gap: 6,
-            opacity: isUpdating ? 0.6 : 1,
+            display: 'flex',
           }}
         >
-          Lưu
-        </Button>
+          <Button
+            type="text"
+            style={{
+              padding: '4px 12px',
+              borderRadius: 8,
+              gap: 6,
+              border: '1px solid #f1f1f1',
+            }}
+            onClick={() => {
+              infoFormRef.current?.cancel?.();
+              setShowSave(false);
+            }}
+          >
+            Hủy
+          </Button>
+          <Button
+            type="primary"
+            icon={isUpdating ? <Spinner size={16} color="#fff" /> : <IconDeviceFloppy size={16} />}
+            onClick={() => infoFormRef.current?.submit?.(updateWorkspace)}
+            styles={{
+              icon: {
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              },
+            }}
+            style={{
+              padding: '4px 12px',
+              borderRadius: 8,
+              gap: 6,
+              opacity: isUpdating ? 0.6 : 1,
+            }}
+          >
+            Lưu
+          </Button>
+        </Space>
       ) : null;
     }
     if (activeTab === 'members') {

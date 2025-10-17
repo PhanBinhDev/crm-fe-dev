@@ -23,6 +23,23 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
   useImperativeHandle(ref, () => ({
     submit: () => form.submit(),
+    cancel: () => {
+      if (workspaceData?.data?.avatar) {
+        setAvatarPreview(workspaceData.data.avatar);
+      } else {
+        setAvatarPreview(undefined);
+      }
+      setAvatarFile(null);
+
+      form.setFieldsValue({
+        name: workspaceData?.data?.name,
+        description: workspaceData?.data?.description,
+        visibility: workspaceData?.data?.visibility || WorkspaceVisibility.PUBLIC,
+        removeAvatar: undefined,
+      });
+
+      onFormChange(false);
+    },
   }));
 
   const {
