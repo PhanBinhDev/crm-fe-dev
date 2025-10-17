@@ -2,7 +2,7 @@ import { Card, Typography } from "antd";
 
 const SecuritySettings = () => {
   return (
-    <Card title="Security Settings">
+    <Card title="Cài đặt bảo mật">
       <Typography.Paragraph>
         Đây là trang <strong>bảo mật</strong> cho workspace.
       </Typography.Paragraph>

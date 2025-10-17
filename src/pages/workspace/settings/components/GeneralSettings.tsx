@@ -104,7 +104,7 @@ const GeneralSettings = () => {
 
   return (
     <div style={{ width: '100%' }}>
-      <h2 style={{ marginBottom: 20, fontSize: 25 }}>Cài đặt chung</h2>
+      <h2 style={{ marginBottom: 20, fontSize: 16 }}>Cài đặt chung</h2>
       <Space
         style={{
           width: '100%',
@@ -120,7 +120,7 @@ const GeneralSettings = () => {
           marginBottom: 20,
         }}
       >
-        <Text style={{ fontSize: 16 }}>Chuyển sang không gian làm việc riêng tư</Text>
+        <Text style={{ fontSize: 14 }}>Chuyển sang không gian làm việc riêng tư</Text>
 
         <Switch loading={isLoading || isUpdating} checked={checked} onChange={handleToggle} />
       </Space>

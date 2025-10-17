@@ -200,7 +200,7 @@ const WorkspaceMember = () => {
 
   return (
     <div style={{ width: '100%' }}>
-      <h2 style={{ marginBottom: 10, fontSize: 22 }}>Quản lý thành viên</h2>
+      <h2 style={{ marginBottom: 10, fontSize: 16 }}>Quản lý thành viên</h2>
 
       {selectedUser.length > 0 && (
         <Space

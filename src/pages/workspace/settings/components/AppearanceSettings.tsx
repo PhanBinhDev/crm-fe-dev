@@ -2,7 +2,7 @@ import { Card, Typography } from "antd";
 
 const AppearanceSettings = () => {
   return (
-    <Card title="Appearance Settings">
+    <Card title="Cài đặt giao diện">
       <Typography.Paragraph>
         Đây là trang <strong>giao diện</strong> cho workspace.
       </Typography.Paragraph>
