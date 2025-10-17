@@ -83,7 +83,6 @@ const SettingsPage = () => {
           display: 'flex',
         }}
       >
-        {/* sidebar */}
         <div
           style={{
             width: 200,
@@ -165,7 +164,6 @@ const SettingsPage = () => {
           </div>
         </div>
 
-        {/* content */}
         <div
           style={{
             flex: 1,

@@ -20,15 +20,12 @@ const ActivityChangedHistory = ({ activityId }: ActivityChangedHistoryProps) => 
     },
   });
 
+  console.log('ActivityChangedHistory data:', data);
+
   const { latestLog, otherLogs } = useMemo(() => {
     if (!data) return { latestLog: null, otherLogs: [] };
 
-    const formattedLogs = data.map((log: any) => ({
-      ...log,
-      timeAgo: dayjs(log.createdAt).fromNow(),
-    }));
-
-    const [latest, ...others] = formattedLogs;
+    const [latest, ...others] = data.data;
 
     return { latestLog: latest ?? null, otherLogs: others ?? [] };
   }, [data]);

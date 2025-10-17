@@ -12,11 +12,7 @@ const WorkspacesSettings = () => {
   const { openModal } = useModal();
 
   return (
-    <div
-      style={{
-        padding: 12,
-      }}
-    >
+    <Space direction="vertical" size="large" style={{ width: '100%', height: '100%' }}>
       <InvitationList />
       {workspaces.length > 1 ? (
         <Card
@@ -164,7 +160,7 @@ const WorkspacesSettings = () => {
           Không còn workspace nào khác.
         </div>
       )}
-    </div>
+    </Space>
   );
 };
 
