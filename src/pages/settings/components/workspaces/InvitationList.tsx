@@ -1,11 +1,11 @@
 import { IWorkspace } from '@/common/types';
 import CustomAvatar from '@/components/ui/CustomAvatar';
 import Spinner from '@/components/ui/Spinner';
-import { useList } from '@refinedev/core';
+import { useCustomMutation, useInvalidate, useList } from '@refinedev/core';
 import { IconCheck, IconX } from '@tabler/icons-react';
-import { Button, Card, Space, Typography } from 'antd';
+import { Button, Card, message, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 const { Text } = Typography;
 
@@ -17,16 +17,79 @@ const InvitationList = () => {
       retry: false,
     },
   });
+  const invalidate = useInvalidate();
+  const { mutate: acceptInvitation } = useCustomMutation();
+  const { mutate: rejectInvitation } = useCustomMutation();
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [hiddenWorkspaceIds, setHiddenWorkspaceIds] = useState<Set<string>>(new Set());
 
   const invitations = useMemo(() => {
     if (isLoadingInvitations || !dataInvitations) return [];
 
-    return dataInvitations.data;
-  }, [dataInvitations, isLoadingInvitations]);
+    return dataInvitations.data.filter(workspace => !hiddenWorkspaceIds.has(workspace.id));
+  }, [dataInvitations, isLoadingInvitations, hiddenWorkspaceIds]);
 
-  const handleAcceptInvitation = () => {};
+  const handleAcceptInvitation = (workspaceId: string) => {
+    setHiddenWorkspaceIds(prev => new Set(prev).add(workspaceId));
+    setLoadingId(workspaceId);
 
-  const handleRejectInvitation = () => {};
+    acceptInvitation(
+      {
+        method: 'post',
+        url: `workspaces/${workspaceId}/accept-invitation`,
+        values: {},
+      },
+      {
+        onSuccess: () => {
+          message.success('Đã chấp nhận lời mời');
+          invalidate({ resource: 'workspaces/invitations', invalidates: ['list'] });
+          invalidate({ resource: 'workspaces', invalidates: ['list'] });
+        },
+        onError: () => {
+          message.error('Không thể chấp nhận lời mời');
+          setHiddenWorkspaceIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(workspaceId);
+            return newSet;
+          });
+        },
+        onSettled: () => {
+          setLoadingId(null);
+        },
+      },
+    );
+  };
+
+  const handleRejectInvitation = (workspaceId: string) => {
+    setHiddenWorkspaceIds(prev => new Set(prev).add(workspaceId));
+    setRejectingId(workspaceId);
+
+    rejectInvitation(
+      {
+        method: 'post',
+        url: `workspaces/${workspaceId}/reject-invitation`,
+        values: {},
+      },
+      {
+        onSuccess: () => {
+          message.success('Đã từ chối lời mời');
+          invalidate({ resource: 'workspaces/invitations', invalidates: ['list'] });
+        },
+        onError: () => {
+          message.error('Không thể từ chối lời mời');
+          setHiddenWorkspaceIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(workspaceId);
+            return newSet;
+          });
+        },
+        onSettled: () => {
+          setRejectingId(null);
+        },
+      },
+    );
+  };
 
   return (
     <Card
@@ -122,7 +185,8 @@ const InvitationList = () => {
                         size="small"
                         danger
                         icon={<IconX size={14} />}
-                        onClick={handleRejectInvitation}
+                        loading={rejectingId === workspace.id}
+                        onClick={() => handleRejectInvitation(workspace.id)}
                       >
                         Từ chối
                       </Button>
@@ -130,7 +194,8 @@ const InvitationList = () => {
                         type="primary"
                         size="small"
                         icon={<IconCheck size={14} />}
-                        onClick={handleAcceptInvitation}
+                        loading={loadingId === workspace.id}
+                        onClick={() => handleAcceptInvitation(workspace.id)}
                       >
                         Chấp nhận
                       </Button>

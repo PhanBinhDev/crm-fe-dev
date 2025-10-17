@@ -127,6 +127,7 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
                       color: '#fff',
                       fontSize: 14,
                       fontWeight: 600,
+                      border: 'none',
                     }}
                   >
                     {getInitials(user?.name)}
