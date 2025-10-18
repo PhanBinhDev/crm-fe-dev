@@ -2,9 +2,10 @@ import { MemberRole, WorkspaceVisibility } from '@/common/enum/workspace';
 import { IWorkspace } from '@/common/types';
 import Spinner from '@/components/ui/Spinner';
 import { useAuth } from '@/hooks/useAuth';
+import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { getColorFromName, getInitials } from '@/utils/activity';
-import { useOne } from '@refinedev/core';
+import { useList, useOne } from '@refinedev/core';
 import { IconTransfer, IconUpload, IconX } from '@tabler/icons-react';
 import { Avatar, Button, Card, Form, Input, message, Space, Switch, Tooltip, Upload } from 'antd';
 import dayjs from 'dayjs';
@@ -12,7 +13,6 @@ import { isEqual } from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { useMediaQuery } from 'usehooks-ts';
-
 interface IWorkspaceInfoProps {
   onFormChange: (isChanged: boolean) => void;
   onUpdate: any;
@@ -26,6 +26,8 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
   const [form] = Form.useForm();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
+  const { openModal }: any = useModal();
+
   useImperativeHandle(ref, () => ({
     submit: () => form.submit(),
     cancel: () => {
@@ -155,6 +157,16 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
   if (error) {
     return <Navigate to="/settings/workspaces" replace />;
   }
+  const { data: membersData, isLoading: isLoadingMembers } = useList({
+    resource: `workspaces/${workspaceId}/members`,
+    pagination: { mode: 'off' },
+    queryOptions: {
+      enabled: !!workspaceId,
+      retry: false,
+    },
+  });
+
+  const membersCount = membersData?.data?.length || 0;
 
   return (
     <div
@@ -417,17 +429,24 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                         </div>
                         {user?.id === workspace?.owner.id && (
                           <Tooltip title="Chuyển quyền sở hữu">
-                            <Button
-                              type="primary"
-                              icon={<IconTransfer size={16} color="#fff" />}
-                              styles={{
-                                icon: {
-                                  display: 'flex',
-                                  justifyContent: 'center',
-                                  alignItems: 'center',
-                                },
-                              }}
-                            />
+                            {workspace && (
+                              <Button
+                                type="primary"
+                                icon={<IconTransfer size={16} color="#fff" />}
+                                styles={{
+                                  icon: {
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                  },
+                                }}
+                                onClick={() =>
+                                  openModal('WorkspaceTransferOwnerModal', {
+                                    workspaceId: workspace.id,
+                                  })
+                                }
+                              />
+                            )}
                           </Tooltip>
                         )}
                       </div>
@@ -478,7 +497,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                         Số thành viên:
                       </span>
                       <span style={{ fontSize: 14, fontWeight: 600, color: '#1677ff' }}>
-                        {workspace?.membersCount} thành viên
+                        {isLoadingMembers ? 'Đang tải...' : `${membersCount} thành viên`}
                       </span>
                     </div>
                   </div>

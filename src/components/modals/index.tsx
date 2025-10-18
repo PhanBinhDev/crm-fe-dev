@@ -4,6 +4,7 @@ import ModalAddWorkspace from './ModalAddWorkspace';
 import ModalEditActivity from './ModalEditActivity';
 import ModalRenameActivity from './ModalRenameActivity';
 import WorkspaceShareModal from './WorkspaceShareModal';
+import WorkspaceTransferOwnerModal from '@/pages/settings/components/workspaces/WorkspaceTransferOwnerModal';
 
 const Modals = () => {
   const { isOpen, type } = useModal();
@@ -19,6 +20,7 @@ const Modals = () => {
       {openModalEditActivity && <ModalEditActivity />}
       <ModalRenameActivity />
       <WorkspaceShareModal />
+      <WorkspaceTransferOwnerModal />
     </>
   );
 };
