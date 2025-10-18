@@ -52,7 +52,7 @@ export const GoogleLoginPage: React.FC = () => {
           borderRadius: '12px',
         }}
         styles={{
-          body: { padding: '40px 32px' },
+          body: { padding: '30px 32px 30px' },
         }}
       >
         <Space direction="vertical" size="middle" style={{ width: '100%', textAlign: 'center' }}>

@@ -10,8 +10,6 @@ const WorkspacesList = () => {
   const navigate = useNavigate();
   const { workspaces, isLoading } = useWorkspaces();
 
-  console.log('ws', workspaces);
-
   return (
     <Card
       title={
