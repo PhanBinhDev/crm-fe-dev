@@ -1,10 +1,10 @@
 import { API_URL } from '@/constants';
 import { GoogleOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Select, Space } from 'antd';
+import { Alert, Button, Card, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 export const GoogleLoginPage: React.FC = () => {
-  const [campus, setCampus] = useState<string | undefined>(undefined);
+  // const [campus, setCampus] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -17,13 +17,13 @@ export const GoogleLoginPage: React.FC = () => {
     }
   }, []);
 
-  const handleCampusChange = (value: string) => {
-    setCampus(value);
-    setError(null);
-    const url = new URL(window.location.href);
-    url.searchParams.delete('error');
-    window.history.replaceState({}, '', url.toString());
-  };
+  // const handleCampusChange = (value: string) => {
+  //   setCampus(value);
+  //   setError(null);
+  //   const url = new URL(window.location.href);
+  //   url.searchParams.delete('error');
+  //   window.history.replaceState({}, '', url.toString());
+  // };
 
   const handleGoogleLogin = () => {
     setError(null);
@@ -67,7 +67,7 @@ export const GoogleLoginPage: React.FC = () => {
 
           {error && <Alert type="error" message={error} showIcon style={{ textAlign: 'left' }} />}
 
-          <Select
+          {/* <Select
             placeholder="Chọn cơ sở FPT Polytechnic"
             value={campus}
             onChange={handleCampusChange}
@@ -79,7 +79,7 @@ export const GoogleLoginPage: React.FC = () => {
             <Select.Option value="DaNang">Đà Nẵng</Select.Option>
             <Select.Option value="HCM">Hồ Chí Minh</Select.Option>
             <Select.Option value="CanTho">Cần Thơ</Select.Option>
-          </Select>
+          </Select> */}
 
           <Button
             type="primary"

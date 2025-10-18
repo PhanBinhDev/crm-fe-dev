@@ -4,6 +4,7 @@ import Spinner from '@/components/ui/Spinner';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { getUserRoleLabel } from '@/constants/user';
 import { useAuth } from '@/hooks/useAuth';
+import { useDebounce } from '@/hooks/useDebounce';
 import { getUserStatusLabel } from '@/utils';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { getMajorOptionsForRole } from '@/utils/majorGroups';
@@ -25,7 +26,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import type { UploadRequestOption } from 'rc-upload/lib/interface';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type EditableFields = Pick<IUser, 'name' | 'phone' | 'username' | 'dateOfBirth' | 'major'>;
 
@@ -49,6 +50,14 @@ const GeneralSettings = () => {
 
   const identity = userDetail?.data || authUser;
 
+  const [inputName, setInputName] = useState(identity?.name || '');
+  const [inputPhone, setInputPhone] = useState(identity?.phone || '');
+  const [inputCodeTeacher, setInputCodeTeacher] = useState(identity?.username || '');
+
+  const debounceName = useDebounce(inputName, 4000);
+  const debouncePhone = useDebounce(inputPhone, 4000);
+  const debounceCodeTeacher = useDebounce(inputCodeTeacher, 4000);
+
   const majorOptions = useMemo(() => {
     if (!identity?.role) return [];
     return getMajorOptionsForRole(identity.role);
@@ -59,6 +68,18 @@ const GeneralSettings = () => {
       setAvatarUrl(identity.avatar);
     }
   }, [identity?.avatar]);
+
+  useEffect(() => {
+    handleFieldUpdate('name', debounceName);
+  }, [debounceName]);
+
+  useEffect(() => {
+    handleFieldUpdate('phone', debouncePhone);
+  }, [debouncePhone]);
+
+  useEffect(() => {
+    handleFieldUpdate('username', debounceCodeTeacher);
+  }, [debounceCodeTeacher]);
 
   const handleFieldUpdate = (field: keyof EditableFields, value: string) => {
     const oldValue = (identity as IUser)?.[field] || '';
@@ -261,8 +282,8 @@ const GeneralSettings = () => {
                   <label style={{ fontWeight: 500 }}>Họ và tên</label>
                 </div>
                 <Input
-                  value={identity?.name || ''}
-                  onChange={e => handleFieldUpdate('name', e.target.value)}
+                  value={inputName}
+                  onChange={e => setInputName(e.target.value)}
                   placeholder="Nhập họ và tên"
                 />
               </Col>
@@ -308,8 +329,8 @@ const GeneralSettings = () => {
                   <label style={{ fontWeight: 500 }}>Số điện thoại</label>
                 </div>
                 <Input
-                  value={identity?.phone || ''}
-                  onChange={e => handleFieldUpdate('phone', e.target.value)}
+                  value={inputPhone}
+                  onChange={e => setInputPhone(e.target.value)}
                   placeholder="Nhập số điện thoại"
                 />
               </Col>
@@ -319,8 +340,8 @@ const GeneralSettings = () => {
                   <label style={{ fontWeight: 500 }}>Mã giảng viên</label>
                 </div>
                 <Input
-                  value={identity?.username || ''}
-                  onChange={e => handleFieldUpdate('username', e.target.value)}
+                  value={inputCodeTeacher}
+                  onChange={e => setInputCodeTeacher(e.target.value)}
                   placeholder="Nhập mã giảng viên"
                 />
               </Col>
