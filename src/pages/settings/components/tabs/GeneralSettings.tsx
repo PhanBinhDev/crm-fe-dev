@@ -50,9 +50,19 @@ const GeneralSettings = () => {
 
   const identity = userDetail?.data || authUser;
 
-  const [inputName, setInputName] = useState(identity?.name || '');
-  const [inputPhone, setInputPhone] = useState(identity?.phone || '');
-  const [inputCodeTeacher, setInputCodeTeacher] = useState(identity?.username || '');
+  console.log(identity);
+
+  const [inputName, setInputName] = useState('');
+  const [inputPhone, setInputPhone] = useState('');
+  const [inputCodeTeacher, setInputCodeTeacher] = useState('');
+
+  useEffect(() => {
+    if (identity) {
+      setInputName(identity.name || '');
+      setInputPhone(identity.phone || '');
+      setInputCodeTeacher(identity.username || '');
+    }
+  }, [identity]);
 
   const debounceName = useDebounce(inputName, 4000);
   const debouncePhone = useDebounce(inputPhone, 4000);
