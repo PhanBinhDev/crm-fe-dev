@@ -21,14 +21,11 @@ import {
   Select,
   Space,
   Tooltip,
-  Typography,
   Upload,
 } from 'antd';
 import dayjs from 'dayjs';
 import type { UploadRequestOption } from 'rc-upload/lib/interface';
 import { useMemo, useState } from 'react';
-
-const { Text } = Typography;
 
 type EditableFields = Pick<IUser, 'name' | 'phone' | 'username' | 'dateOfBirth' | 'major'>;
 
@@ -44,7 +41,6 @@ const GeneralSettings = () => {
     },
   });
 
-  const [isSaving, setIsSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>(AVATAR_PLACEHOLDER);
 
@@ -73,8 +69,6 @@ const GeneralSettings = () => {
 
     const updatedValues = { [field]: value };
 
-    setIsSaving(true);
-
     updateUser(
       {
         resource: 'users',
@@ -95,9 +89,7 @@ const GeneralSettings = () => {
             invalidates: ['all'],
           });
         },
-        onSettled: () => {
-          setIsSaving(false);
-        },
+        onSettled: () => {},
       },
     );
   };

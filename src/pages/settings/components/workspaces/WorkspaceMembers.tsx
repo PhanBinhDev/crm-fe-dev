@@ -60,13 +60,9 @@ const WorkspaceMembers = () => {
       ];
     }
 
-    const activeCount = dataMembers.data.filter(
-      member => member.status === MemberStatus.ACTIVE,
-    ).length;
+    const activeCount = dataMembers.metadata.totalActive;
 
-    const invitedCount = dataMembers.data.filter(
-      member => member.status === MemberStatus.PENDING,
-    ).length;
+    const invitedCount = dataMembers.metadata.totalPending;
 
     return [
       { key: 'active', label: 'Hoạt động', count: activeCount },
@@ -118,7 +114,7 @@ const WorkspaceMembers = () => {
                   outline: 'none',
                   background: 'transparent',
                   borderRadius: 6,
-                  padding: '8px 16px',
+                  padding: 8,
                   cursor: 'pointer',
                   transition: 'color 0.2s',
                   display: 'flex',
@@ -128,7 +124,7 @@ const WorkspaceMembers = () => {
                 {tab.label}
                 <span
                   style={{
-                    marginLeft: 4,
+                    marginLeft: 8,
                     color: '#333',
                     background: '#e0e0e0',
                     padding: '2px 8px',
@@ -158,7 +154,7 @@ const WorkspaceMembers = () => {
           </div>
 
           <Input
-            placeholder="Search members"
+            placeholder="Tìm kiếm thành viên..."
             variant="borderless"
             style={{ width: 200, borderRadius: 8, border: '1px solid #d9d9d9' }}
             prefix={<IconSearch size={14} color="#838383" />}

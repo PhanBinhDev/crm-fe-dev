@@ -28,7 +28,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
   const { workspaces, currentWorkspace, isLoading, switchWorkspace, refreshWorkspaces } =
     useWorkspaces();
 
-  const { mutate: updateWorkspace, isPending: isUpdating } = useCustomMutation();
+  const { mutate: updateWorkspace } = useCustomMutation();
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const handleUpdateWorkspace = async (file: File) => {
