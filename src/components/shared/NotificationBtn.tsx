@@ -28,7 +28,6 @@ const modalTabs: {
 }[] = [
   { key: 'all', label: 'Tất cả' },
   { key: 'unread', label: 'Chưa đọc' },
-  { key: 'mentions', label: 'Nhắc tên' },
 ] as const;
 
 const NotificationItem = memo(
@@ -303,19 +302,22 @@ const NotificationBtn = () => {
     },
   });
 
-  const { notifications, unreadCount } = useMemo(() => {
+  const { notifications, unreadCount, allCount } = useMemo(() => {
     if (!notificationsData) {
       return {
         notifications: [],
         unreadCount: 0,
+        allCount: 0,
       };
     }
 
     return {
       notifications: notificationsData.data,
       unreadCount: notificationsData.metadata.unreadCount || 0,
+      allCount: notificationsData.data.length,
     };
   }, [notificationsData]);
+  console.log('notifications', notifications);
 
   const markAsRead = (noti: INotification) => {
     if (noti.type === NotificationType.ACTIVITY && noti.data?.uri && noti.data?.open) {
@@ -403,9 +405,28 @@ const NotificationBtn = () => {
               style={{
                 fontWeight: 500,
                 transition: 'color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
               }}
             >
               {item.label}
+              <Badge
+                size="small"
+                count={item.key === 'all' ? allCount : unreadCount}
+                style={{
+                  marginLeft: 5,
+                  backgroundColor: '#1890ff',
+                  minWidth: 14,
+                  height: 14,
+                  lineHeight: '14px',
+                  borderRadius: 7,
+                  textAlign: 'center',
+                  padding: '0 3px',
+                  fontWeight: 550,
+                  fontSize: 10,
+                }}
+                showZero={false}
+              />
             </span>
           ),
         }))}
@@ -429,7 +450,15 @@ const NotificationBtn = () => {
         className="hidden-scrollbar"
       >
         {isLoading ? (
-          <div style={{ margin: '10px auto', display: 'block' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: 50,
+              background: '#fff',
+            }}
+          >
             <Spinner />
           </div>
         ) : notifications.length === 0 ? (

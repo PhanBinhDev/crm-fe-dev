@@ -1,6 +1,6 @@
 import { API_URL } from '@/constants';
 import { GoogleOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Select, Space } from 'antd';
+import { Alert, Button, Card, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 export const GoogleLoginPage: React.FC = () => {
@@ -56,22 +56,17 @@ export const GoogleLoginPage: React.FC = () => {
         }}
       >
         <Space direction="vertical" size="middle" style={{ width: '100%', textAlign: 'center' }}>
-          <img
-            src="/logo.png"
-            alt="Logo"
-            height={70}
-            style={{ marginBottom: '24px', objectFit: 'contain' }}
-          />
+          <img src="/logo.png" alt="Logo" height={70} style={{ objectFit: 'contain' }} />
 
           <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>Đăng nhập vào CRM</h2>
 
           {error && <Alert type="error" message={error} showIcon style={{ textAlign: 'left' }} />}
-
+          {/* 
           <Select
             placeholder="Chọn cơ sở FPT Polytechnic"
             value={campus}
             onChange={handleCampusChange}
-            style={{ width: '100%', textAlign: 'left' }}
+            style={{ width: '100%', textAlign: 'left', marginBottom: 10 }}
             allowClear
           >
             <Select.Option value="HaNoi">Hà Nội</Select.Option>
@@ -79,7 +74,7 @@ export const GoogleLoginPage: React.FC = () => {
             <Select.Option value="DaNang">Đà Nẵng</Select.Option>
             <Select.Option value="HCM">Hồ Chí Minh</Select.Option>
             <Select.Option value="CanTho">Cần Thơ</Select.Option>
-          </Select>
+          </Select> */}
 
           <Button
             type="primary"
