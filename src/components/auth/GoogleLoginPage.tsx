@@ -4,7 +4,7 @@ import { Alert, Button, Card, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 export const GoogleLoginPage: React.FC = () => {
-  const [campus, setCampus] = useState<string | undefined>(undefined);
+  // const [campus, setCampus] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -17,13 +17,13 @@ export const GoogleLoginPage: React.FC = () => {
     }
   }, []);
 
-  const handleCampusChange = (value: string) => {
-    setCampus(value);
-    setError(null);
-    const url = new URL(window.location.href);
-    url.searchParams.delete('error');
-    window.history.replaceState({}, '', url.toString());
-  };
+  // const handleCampusChange = (value: string) => {
+  //   setCampus(value);
+  //   setError(null);
+  //   const url = new URL(window.location.href);
+  //   url.searchParams.delete('error');
+  //   window.history.replaceState({}, '', url.toString());
+  // };
 
   const handleGoogleLogin = () => {
     setError(null);
@@ -52,7 +52,7 @@ export const GoogleLoginPage: React.FC = () => {
           borderRadius: '12px',
         }}
         styles={{
-          body: { padding: '40px 32px' },
+          body: { padding: '30px 32px 30px' },
         }}
       >
         <Space direction="vertical" size="middle" style={{ width: '100%', textAlign: 'center' }}>
@@ -61,8 +61,8 @@ export const GoogleLoginPage: React.FC = () => {
           <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>Đăng nhập vào CRM</h2>
 
           {error && <Alert type="error" message={error} showIcon style={{ textAlign: 'left' }} />}
-          {/* 
-          <Select
+
+          {/* <Select
             placeholder="Chọn cơ sở FPT Polytechnic"
             value={campus}
             onChange={handleCampusChange}

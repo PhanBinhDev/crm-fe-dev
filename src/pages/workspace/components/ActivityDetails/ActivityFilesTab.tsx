@@ -13,7 +13,7 @@ interface ActivityFilesTabProps {
 
 const ActivityFilesTab = ({ activity }: ActivityFilesTabProps) => {
   const [localFiles, setLocalFiles] = useState<ActivityFile[]>(activity?.files || []);
-  const { mutate: createActivityFile, isPending } = useCreate();
+  const { isPending } = useCreate();
 
   const onUploadFileSuccess = (files: ActivityFile[]) => {
     setLocalFiles(prev => [...prev, ...files]);

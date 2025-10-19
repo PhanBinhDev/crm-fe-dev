@@ -1,13 +1,15 @@
 import { MemberStatus } from '@/common/enum/workspace';
 import { IMember } from '@/common/types';
 import { MemberRolesFilter } from '@/constants/workspaces';
-import { useList } from '@refinedev/core';
+import { useTable } from '@refinedev/antd';
+import { CrudFilter } from '@refinedev/core';
 import { IconCheck, IconSearch } from '@tabler/icons-react';
-import { Button, Input, Popover, Space, Table } from 'antd';
+import { Button, Input, Popover, Space } from 'antd';
 import { motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDebounceValue } from 'usehooks-ts';
+import { MemberTable } from './MemberTable';
 
 interface FilterMembers {
   role: 'all' | 'owner' | 'admin' | 'member';
@@ -24,16 +26,8 @@ const WorkspaceMembers = () => {
     tab: 'active',
   });
 
-  const { data: dataMembers, isLoading: isLoadingMembers } = useList<IMember>({
-    resource: `workspaces/${workspaceId}/members`,
-    pagination: {
-      mode: 'off',
-    },
-    queryOptions: {
-      enabled: !!workspaceId,
-      retry: false,
-    },
-    filters: [
+  const permanentFilters = useMemo(() => {
+    return [
       {
         field: 'role',
         operator: 'eq',
@@ -49,30 +43,40 @@ const WorkspaceMembers = () => {
         operator: 'eq',
         value: debounced || undefined,
       },
-    ],
+    ];
+  }, [filters.role, filters.tab, debounced]);
+
+  const { setPageSize, tableProps, current, tableQuery } = useTable<IMember>({
+    resource: `workspaces/${workspaceId}/members`,
+    pagination: {
+      mode: 'off',
+    },
+    queryOptions: {
+      enabled: !!workspaceId,
+      retry: false,
+    },
+    filters: {
+      permanent: permanentFilters as CrudFilter[],
+    },
   });
 
   const tabList = useMemo(() => {
-    if (isLoadingMembers || !dataMembers) {
+    if (tableQuery.isLoading || !tableQuery.data) {
       return [
         { key: 'active', label: 'Hoạt động', count: 0 },
         { key: 'invited', label: 'Đã mời', count: 0 },
       ];
     }
 
-    const activeCount = dataMembers.data.filter(
-      member => member.status === MemberStatus.ACTIVE,
-    ).length;
+    const activeCount = tableQuery.data.metadata.totalActive;
 
-    const invitedCount = dataMembers.data.filter(
-      member => member.status === MemberStatus.PENDING,
-    ).length;
+    const invitedCount = tableQuery.data.metadata.totalPending;
 
     return [
       { key: 'active', label: 'Hoạt động', count: activeCount },
       { key: 'invited', label: 'Đã mời', count: invitedCount },
     ];
-  }, [isLoadingMembers, dataMembers]);
+  }, [tableQuery.data, tableQuery.isLoading]);
 
   return (
     <div
@@ -118,7 +122,7 @@ const WorkspaceMembers = () => {
                   outline: 'none',
                   background: 'transparent',
                   borderRadius: 6,
-                  padding: '8px 16px',
+                  padding: 8,
                   cursor: 'pointer',
                   transition: 'color 0.2s',
                   display: 'flex',
@@ -128,7 +132,7 @@ const WorkspaceMembers = () => {
                 {tab.label}
                 <span
                   style={{
-                    marginLeft: 4,
+                    marginLeft: 8,
                     color: '#333',
                     background: '#e0e0e0',
                     padding: '2px 8px',
@@ -158,7 +162,7 @@ const WorkspaceMembers = () => {
           </div>
 
           <Input
-            placeholder="Search members"
+            placeholder="Tìm kiếm thành viên..."
             variant="borderless"
             style={{ width: 200, borderRadius: 8, border: '1px solid #d9d9d9' }}
             prefix={<IconSearch size={14} color="#838383" />}
@@ -252,7 +256,7 @@ const WorkspaceMembers = () => {
           </Popover>
         </div>
       </div>
-      <Table>Hello</Table>
+      <MemberTable tableProps={tableProps} onPageSizeChange={setPageSize} />
     </div>
   );
 };

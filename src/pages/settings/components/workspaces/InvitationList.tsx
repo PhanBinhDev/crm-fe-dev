@@ -2,9 +2,7 @@ import { IWorkspace } from '@/common/types';
 import CustomAvatar from '@/components/ui/CustomAvatar';
 import Spinner from '@/components/ui/Spinner';
 import { useCustomMutation, useInvalidate, useList } from '@refinedev/core';
-import { IconCheck, IconX } from '@tabler/icons-react';
 import { Button, Card, message, Space, Typography } from 'antd';
-import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
 const { Text } = Typography;
@@ -176,7 +174,7 @@ const InvitationList = () => {
                       <div>
                         <div style={{ fontWeight: 500, fontSize: 17 }}>{workspace.name}</div>
                         <div style={{ fontSize: 12, color: '#8c8c8c' }}>
-                          Bạn được mời tham gia • {dayjs(workspace.createdAt).fromNow()}
+                          Bạn được mời tham gia
                         </div>
                       </div>
                     </div>
@@ -184,7 +182,6 @@ const InvitationList = () => {
                       <Button
                         size="small"
                         danger
-                        icon={<IconX size={14} />}
                         loading={rejectingId === workspace.id}
                         onClick={() => handleRejectInvitation(workspace.id)}
                       >
@@ -193,7 +190,6 @@ const InvitationList = () => {
                       <Button
                         type="primary"
                         size="small"
-                        icon={<IconCheck size={14} />}
                         loading={loadingId === workspace.id}
                         onClick={() => handleAcceptInvitation(workspace.id)}
                       >
