@@ -68,6 +68,10 @@ const InvitationList = () => {
         header: {
           padding: '6px 8px',
         },
+        body: {
+          maxHeight: 'calc(100% - 44.8px)',
+          overflowY: 'auto',
+        },
       }}
     >
       <div style={{ marginBottom: 8, borderRadius: 8 }}>
