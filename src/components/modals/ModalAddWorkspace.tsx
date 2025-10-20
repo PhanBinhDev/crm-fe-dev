@@ -259,6 +259,14 @@ const ModalAddWorkspace: React.FC = () => {
         <Form.Item
           label={<span style={{ fontWeight: 600, fontSize: 15 }}>Mô tả</span>}
           name="description"
+          rules={[
+            {
+              required: true,
+              message: (
+                <span style={{ display: 'inline-block' }}>Vui lòng nhập mô tả cho workspace</span>
+              ),
+            },
+          ]}
           style={{ marginBottom: 24 }}
         >
           <Input.TextArea
