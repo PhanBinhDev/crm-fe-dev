@@ -2,12 +2,13 @@ import { MemberRole } from '@/common/enum/workspace';
 import type { IMember } from '@/common/types';
 import CustomAvatar from '@/components/ui/CustomAvatar';
 import { paginationConfigOptions } from '@/config/pagination';
+import { useAuth } from '@/hooks/useAuth';
 import { getWorkspaceRoleLabel } from '@/utils/workspace';
 import { Space, Table, Tag, Typography, type TableProps } from 'antd';
 import { ColumnType } from 'antd/lib/table';
 import dayjs from 'dayjs';
 import { FC } from 'react';
-import MemberRowAction from './MemberRowAction';
+import { MemberRowActions } from './MemberRowAction';
 
 interface MemberTableProps {
   tableProps: TableProps<any>;
@@ -16,6 +17,7 @@ interface MemberTableProps {
 
 export const MemberTable: FC<MemberTableProps> = ({ tableProps, onPageSizeChange }) => {
   const paginationConfig = paginationConfigOptions(tableProps, onPageSizeChange);
+  const currentUser = useAuth();
 
   const columns: ColumnType<IMember>[] = [
     {
@@ -72,7 +74,34 @@ export const MemberTable: FC<MemberTableProps> = ({ tableProps, onPageSizeChange
       key: 'actions',
       width: 50,
       align: 'center',
-      render: (_: any, record: IMember) => <MemberRowAction member={record} />,
+
+      title: 'Hành động',
+      fixed: 'right',
+      render: (_: any, record: IMember) => {
+        const currentMember = (tableProps.dataSource as IMember[] | undefined)?.find(
+          m => m.user?.id === currentUser?.user?.id,
+        );
+
+        if (currentMember?.role === MemberRole.OWNER) {
+          if (record.role !== MemberRole.OWNER) return <MemberRowActions member={record} />;
+          return null;
+        }
+
+        if (record.role === MemberRole.OWNER) return null;
+
+        const currentIsAdmin = currentMember?.role === MemberRole.ADMIN;
+
+        if (currentIsAdmin) {
+          if (record.user.id === currentUser?.user?.id) return <MemberRowActions member={record} />;
+          if (record.role !== MemberRole.ADMIN) return <MemberRowActions member={record} />;
+          return null;
+        }
+
+        if (record.user.id === currentUser?.user?.id && record.role === MemberRole.MEMBER)
+          return <MemberRowActions member={record} />;
+
+        return null;
+      },
     },
   ];
 
@@ -92,7 +121,7 @@ export const MemberTable: FC<MemberTableProps> = ({ tableProps, onPageSizeChange
       }}
       rowHoverable={false}
       size="small"
-      footer={() => `Tổng số thành viên: `}
+      footer={() => `Tổng số thành viên: ${tableProps.dataSource?.length}`}
     />
   );
 };

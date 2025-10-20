@@ -60,6 +60,20 @@ const WorkspaceMembers = () => {
     },
   });
 
+  const tablePropSort = useMemo(() => {
+    if (!tableProps?.dataSource) return [];
+
+    return [...tableProps.dataSource].sort((a, b) => {
+      if (a.role === 'owner') return -1;
+      if (b.role === 'owner') return 1;
+      return 0;
+    });
+  }, [tableProps?.dataSource]);
+
+  if (tableProps) {
+    tableProps.dataSource = tablePropSort;
+  }
+
   const tabList = useMemo(() => {
     if (tableQuery.isLoading || !tableQuery.data) {
       return [

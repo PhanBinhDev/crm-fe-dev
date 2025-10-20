@@ -10,6 +10,8 @@ const WorkspacesList = () => {
   const navigate = useNavigate();
   const { workspaces, isLoading } = useWorkspaces();
 
+  console.log('check >>>', workspaces);
+
   return (
     <Card
       title={

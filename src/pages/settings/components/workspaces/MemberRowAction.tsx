@@ -1,40 +1,118 @@
+import { MemberRole } from '@/common/enum/workspace';
 import { IMember } from '@/common/types';
-import { IconDots } from '@tabler/icons-react';
-import { Button, Popover } from 'antd';
+import { useAuth } from '@/hooks/useAuth';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { useDelete, useInvalidate, useUpdate } from '@refinedev/core';
+import { IconBrightnessAuto, IconDots, IconTrash } from '@tabler/icons-react';
+import { Button, Dropdown, MenuProps, message, Modal } from 'antd';
+import { FC } from 'react';
 
-interface MemberRowActionProps {
+interface MemberRowActionsProps {
   member: IMember;
 }
 
-const MemberRowAction = ({}: MemberRowActionProps) => {
-  return (
-    <Popover
-      trigger={['click']}
-      content={<div>Actions here</div>}
-      arrow={false}
-      placement="left"
-      styles={{
-        body: {
-          width: 180,
+export const MemberRowActions: FC<MemberRowActionsProps> = ({ member }) => {
+  const { currentWorkspace } = useWorkspaces();
+  const currentWorkspaceId = currentWorkspace?.id;
+  const currentUser = useAuth();
+
+  const invalidate = useInvalidate();
+  const { mutate: deleteMember, isLoading } = useDelete();
+  const { mutate: updateMember } = useUpdate();
+  const handleDeleteMember = (id: string) => {
+    const hideLoading = message.loading('Đang xoá thành viên...', 0);
+    deleteMember(
+      {
+        resource: `workspaces/${currentWorkspaceId}/members`,
+        id: id,
+      },
+      {
+        onSuccess: () => {
+          hideLoading();
+          invalidate({
+            resource: `workspaces/${currentWorkspaceId}/members`,
+            invalidates: ['list', 'detail', 'many'],
+          });
+          message.success('Xóa thành công');
         },
-      }}
-    >
-      <Button
-        icon={<IconDots size={16} color="#333" />}
-        type="text"
-        style={{
-          padding: '4px 12px',
-        }}
-        styles={{
-          icon: {
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
+        onError: () => {
+          hideLoading();
+          message.error('Xóa thất bại');
+        },
+      },
+    );
+  };
+
+  console.log(member);
+  console.log('object', currentUser);
+
+  const handleChangeRoleMember = (id: string, role: MemberRole) => {
+    const hideLoading = message.loading('Đang cập nhật vai trò thành viên...', 0);
+    updateMember(
+      {
+        resource: `workspaces/${currentWorkspaceId}/members/${id}/role`,
+        id: '',
+        values: { role },
+        meta: { custom: true },
+      },
+      {
+        onSuccess: () => {
+          hideLoading();
+          invalidate({
+            resource: `workspaces/${currentWorkspaceId}/members`,
+            invalidates: ['list', 'detail', 'many'],
+          });
+          message.success('Cập nhật vai trò thành công');
+        },
+        onError: () => {
+          hideLoading();
+          message.error('Cập nhật vai trò thất bại');
+        },
+      },
+    );
+  };
+
+  const menuItems: MenuProps['items'] =
+    member.role === MemberRole.OWNER
+      ? []
+      : [
+          {
+            key: `admin-${member.id}`,
+            icon: <IconBrightnessAuto color="#1890ff" size={18} />,
+            label:
+              member.role === MemberRole.MEMBER ? 'Đặt vai trò Admin' : 'Đặt vai trò là thành viên',
+            onClick: () => {
+              handleChangeRoleMember(
+                member.id,
+                member.role === MemberRole.MEMBER ? MemberRole.ADMIN : MemberRole.MEMBER,
+              );
+            },
           },
-        }}
-      />
-    </Popover>
+          {
+            key: `delete-${member.id}`,
+            icon: <IconTrash color="#ff4d4f" size={18} />,
+            label: 'Xoá thành viên',
+            onClick: () => {
+              Modal.confirm({
+                title: 'Xác nhận xoá thành viên',
+                content: `Bạn có chắc chắn muốn xoá thành viên này khỏi không gian làm việc không?`,
+                okText: 'Xoá',
+                okType: 'danger',
+                cancelText: 'Huỷ',
+                okButtonProps: { loading: isLoading },
+                onOk() {
+                  console.log(' hello');
+                  handleDeleteMember(member.id);
+                },
+              });
+            },
+          },
+        ];
+  return (
+    <>
+      <Dropdown menu={{ items: menuItems }} trigger={['click']}>
+        <Button type="text" icon={<IconDots size={18} />} />
+      </Dropdown>
+    </>
   );
 };
-
-export default MemberRowAction;
