@@ -43,13 +43,8 @@ const NotificationItem = memo(
 
     const getTimeAgo = (date: string) => dayjs(date).fromNow();
 
-    const {
-      handleAcceptInvitation,
-      handleRejectInvitation,
-      loadingId,
-      rejectingId,
-      hiddenWorkspaceIds,
-    } = useInvitationHandlers();
+    const { handleAcceptInvitation, handleRejectInvitation, loadingId, rejectingId } =
+      useInvitationHandlers();
 
     return (
       <List.Item

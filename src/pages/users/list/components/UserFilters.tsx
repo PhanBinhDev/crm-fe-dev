@@ -55,13 +55,13 @@ export const UserFilters: FC<UserFiltersProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
 
-  const handleStatusChange = (value: string | undefined) => {
-    if (value === undefined) {
-      onStatusFilter(undefined);
-    } else {
-      onStatusFilter(value === 'true');
-    }
-  };
+  // const handleStatusChange = (value: string | undefined) => {
+  //   if (value === undefined) {
+  //     onStatusFilter(undefined);
+  //   } else {
+  //     onStatusFilter(value === 'true');
+  //   }
+  // };
 
   const filterContent = (
     <Space direction="vertical" style={{ minWidth: 260 }}>

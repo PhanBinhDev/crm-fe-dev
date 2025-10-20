@@ -1,7 +1,6 @@
 import { MemberStatus } from '@/common/enum/workspace';
 import { IMember } from '@/common/types';
 import { MemberRolesFilter } from '@/constants/workspaces';
-import { useAuth } from '@/hooks/useAuth';
 import { useTable } from '@refinedev/antd';
 import { CrudFilter, useOne } from '@refinedev/core';
 import { IconCheck, IconSearch } from '@tabler/icons-react';
@@ -21,7 +20,6 @@ const WorkspaceMembers = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [search, setSearch] = useState('');
   const [debounced] = useDebounceValue(search, 300);
-  const { user } = useAuth();
 
   const [filters, setFilters] = useState<FilterMembers>({
     role: 'all',

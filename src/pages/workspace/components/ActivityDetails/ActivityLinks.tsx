@@ -206,7 +206,7 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
         overflowY: 'auto',
       }}
     >
-      {(listLink || []).map((item, index) => (
+      {(listLink || []).map(item => (
         <div key={item.id} style={{ position: 'relative' }}>
           <Card
             hoverable
