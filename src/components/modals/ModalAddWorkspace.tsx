@@ -232,11 +232,14 @@ const ModalAddWorkspace: React.FC = () => {
                 style={{ display: 'none' }}
                 onChange={e => {
                   const file = e.target.files?.[0];
-                  if (file) {
-                    setAvatarPreview(URL.createObjectURL(file));
-                    setFormData(prev => ({ ...prev, avatar: file }));
-                    form.setFieldValue('avatar', file);
-                  }
+
+                  console.log('file', file);
+
+                  // if (file) {
+                  //   setAvatarPreview(URL.createObjectURL(file));
+                  //   setFormData(prev => ({ ...prev, avatar: file }));
+                  //   form.setFieldValue('avatar', file);
+                  // }
                 }}
               />
             </div>

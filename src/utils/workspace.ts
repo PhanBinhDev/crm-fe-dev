@@ -3,7 +3,7 @@ import { MemberRole } from '@/common/enum/workspace';
 export const getWorkspaceRoleLabel = (role: MemberRole): string => {
   switch (role) {
     case MemberRole.OWNER:
-      return 'Sở hữu';
+      return 'Chủ sở hữu';
     case MemberRole.ADMIN:
       return 'Quản trị viên';
     case MemberRole.MEMBER:

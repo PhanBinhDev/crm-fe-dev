@@ -1,8 +1,9 @@
 import { MemberStatus } from '@/common/enum/workspace';
 import { IMember } from '@/common/types';
 import { MemberRolesFilter } from '@/constants/workspaces';
+import { useAuth } from '@/hooks/useAuth';
 import { useTable } from '@refinedev/antd';
-import { CrudFilter } from '@refinedev/core';
+import { CrudFilter, useOne } from '@refinedev/core';
 import { IconCheck, IconSearch } from '@tabler/icons-react';
 import { Button, Input, Popover, Space } from 'antd';
 import { motion } from 'framer-motion';
@@ -20,6 +21,7 @@ const WorkspaceMembers = () => {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [search, setSearch] = useState('');
   const [debounced] = useDebounceValue(search, 300);
+  const { user } = useAuth();
 
   const [filters, setFilters] = useState<FilterMembers>({
     role: 'all',
@@ -46,7 +48,7 @@ const WorkspaceMembers = () => {
     ];
   }, [filters.role, filters.tab, debounced]);
 
-  const { setPageSize, tableProps, current, tableQuery } = useTable<IMember>({
+  const { setPageSize, tableProps, tableQuery } = useTable<IMember>({
     resource: `workspaces/${workspaceId}/members`,
     pagination: {
       mode: 'off',
@@ -60,12 +62,23 @@ const WorkspaceMembers = () => {
     },
   });
 
+  const { data: currentUserWorkspace, isLoading } = useOne<IMember>({
+    resource: `workspaces`,
+    id: `${workspaceId}/members/me`,
+    queryOptions: {
+      enabled: !!workspaceId,
+    },
+  });
+
+  const currentMemberUser = useMemo(() => {
+    if (isLoading || !currentUserWorkspace) return {} as IMember;
+
+    return currentUserWorkspace.data;
+  }, [currentUserWorkspace, isLoading]);
+
   const tabList = useMemo(() => {
     if (tableQuery.isLoading || !tableQuery.data) {
-      return [
-        { key: 'active', label: 'Hoạt động', count: 0 },
-        { key: 'invited', label: 'Đã mời', count: 0 },
-      ];
+      return [];
     }
 
     const activeCount = tableQuery.data.metadata.totalActive;
@@ -256,7 +269,12 @@ const WorkspaceMembers = () => {
           </Popover>
         </div>
       </div>
-      <MemberTable tableProps={tableProps} onPageSizeChange={setPageSize} />
+      <MemberTable
+        tableProps={tableProps}
+        onPageSizeChange={setPageSize}
+        currentMemberUser={currentMemberUser}
+        tab={filters.tab}
+      />
     </div>
   );
 };

@@ -1,4 +1,3 @@
-import ModalInviteMember from '@/components/modals/ModalInviteMember';
 import Spinner from '@/components/ui/Spinner';
 import { useCustomMutation } from '@refinedev/core';
 import {
@@ -38,7 +37,6 @@ const ManageWorkspace = () => {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('info');
   const infoFormRef = useRef<any>(null);
   const [showSave, setShowSave] = useState(false);
-  const [isOpenModalInviteMember, setIsOpenModalInviteMember] = useState<boolean>(false);
 
   const handleInfoFormChange = (changed: boolean) => {
     setShowSave(changed);
@@ -97,7 +95,6 @@ const ManageWorkspace = () => {
         <Button
           type="primary"
           icon={<IconPlus size={14} />}
-          onClick={() => setIsOpenModalInviteMember(true)}
           styles={{
             icon: {
               display: 'flex',
@@ -211,9 +208,6 @@ const ManageWorkspace = () => {
         {activeTab === 'members' && <WorkspaceMembers />}
         {activeTab === 'settings' && <WorkspaceSettingsInner />}
       </Card>
-      {isOpenModalInviteMember && (
-        <ModalInviteMember openModal setOpenModal={setIsOpenModalInviteMember} />
-      )}
     </div>
   );
 };
