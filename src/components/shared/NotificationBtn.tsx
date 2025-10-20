@@ -2,6 +2,7 @@ import { NotificationType } from '@/common/enum/notifications';
 import { INotification, NotificationTab } from '@/common/types';
 import Spinner from '@/components/ui/Spinner';
 import { useModal } from '@/hooks/useModal';
+import { useInvitationHandlers } from '@/hooks/useWorkspaces';
 import { getInitials } from '@/utils/activity';
 import { useList, useUpdate } from '@refinedev/core';
 import { IconBell, IconChecks, IconCloudDownload, IconFile, IconX } from '@tabler/icons-react';
@@ -19,7 +20,7 @@ import {
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
-import { memo, useMemo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const modalTabs: {
@@ -28,7 +29,6 @@ const modalTabs: {
 }[] = [
   { key: 'all', label: 'Tất cả' },
   { key: 'unread', label: 'Chưa đọc' },
-  { key: 'mentions', label: 'Nhắc tên' },
 ] as const;
 
 const NotificationItem = memo(
@@ -42,6 +42,14 @@ const NotificationItem = memo(
     const [isHovered, setIsHovered] = useState(false);
 
     const getTimeAgo = (date: string) => dayjs(date).fromNow();
+
+    const {
+      handleAcceptInvitation,
+      handleRejectInvitation,
+      loadingId,
+      rejectingId,
+      hiddenWorkspaceIds,
+    } = useInvitationHandlers();
 
     return (
       <List.Item
@@ -241,6 +249,27 @@ const NotificationItem = memo(
               </div>
             )}
 
+            {item.data?.workspaceId && (
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <Button
+                  type="primary"
+                  size="small"
+                  loading={loadingId === item.data?.workspaceId}
+                  onClick={() => handleAcceptInvitation(item.data?.workspaceId)}
+                >
+                  Chấp nhận
+                </Button>
+                <Button
+                  size="small"
+                  danger
+                  loading={rejectingId === item.data?.workspaceId}
+                  onClick={() => handleRejectInvitation(item.data?.workspaceId)}
+                >
+                  Từ chối
+                </Button>
+              </div>
+            )}
+
             <div
               style={{
                 display: 'flex',
@@ -302,28 +331,34 @@ const NotificationBtn = () => {
       },
     },
   });
+  const [localNotifications, setLocalNotifications] = useState<INotification[]>([]);
 
-  const { notifications, unreadCount } = useMemo(() => {
-    if (!notificationsData) {
-      return {
-        notifications: [],
-        unreadCount: 0,
-      };
+  useEffect(() => {
+    if (notificationsData) {
+      setLocalNotifications(notificationsData.data);
     }
-
-    return {
-      notifications: notificationsData.data,
-      unreadCount: notificationsData.metadata.unreadCount || 0,
-    };
   }, [notificationsData]);
+
+  const notifications = localNotifications;
+  const unreadCount = localNotifications.filter(n => !n.isRead).length;
+  const allCount = localNotifications.length;
+  console.log('Notifications:', notifications);
 
   const markAsRead = (noti: INotification) => {
     if (noti.type === NotificationType.ACTIVITY && noti.data?.uri && noti.data?.open) {
       navigate(noti.data.uri);
       openModal('ModalEditActivity', { activity: noti.data.open });
     }
+    if (noti.type === NotificationType.WORKSPACE) {
+      navigate('/settings/workspaces');
+    }
     setOpen(false);
     if (isUpdating || noti.isRead) return;
+    setLocalNotifications(prev =>
+      prev.map(n =>
+        n.id === noti.id ? { ...n, isRead: true, readAt: new Date().toISOString() } : n,
+      ),
+    );
 
     mutate({
       resource: 'notifications/read',
@@ -337,6 +372,10 @@ const NotificationBtn = () => {
   const markAllAsRead = () => {
     if (isUpdating) return;
 
+    setLocalNotifications(prev =>
+      prev.map(n => ({ ...n, isRead: true, readAt: new Date().toISOString() })),
+    );
+
     mutate({
       resource: 'notifications/read-all',
       id: '',
@@ -346,6 +385,7 @@ const NotificationBtn = () => {
 
   const clearAll = () => {
     if (isUpdating || !notifications) return;
+    setLocalNotifications([]);
 
     mutate({
       resource: 'notifications/clear-all',
@@ -403,9 +443,28 @@ const NotificationBtn = () => {
               style={{
                 fontWeight: 500,
                 transition: 'color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
               }}
             >
               {item.label}
+              <Badge
+                size="small"
+                count={item.key === 'all' ? allCount : unreadCount}
+                style={{
+                  marginLeft: 5,
+                  backgroundColor: '#1890ff',
+                  minWidth: 14,
+                  height: 14,
+                  lineHeight: '14px',
+                  borderRadius: 7,
+                  textAlign: 'center',
+                  padding: '0 3px',
+                  fontWeight: 550,
+                  fontSize: 10,
+                }}
+                showZero={false}
+              />
             </span>
           ),
         }))}
@@ -429,7 +488,15 @@ const NotificationBtn = () => {
         className="hidden-scrollbar"
       >
         {isLoading ? (
-          <div style={{ margin: '10px auto', display: 'block' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: 50,
+              background: '#fff',
+            }}
+          >
             <Spinner />
           </div>
         ) : notifications.length === 0 ? (

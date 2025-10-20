@@ -1,6 +1,7 @@
 import { IWorkspace } from '@/common/types';
-import { useList } from '@refinedev/core';
-import { useEffect } from 'react';
+import { useCustomMutation, useInvalidate, useList } from '@refinedev/core';
+import { message } from 'antd';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { create } from 'zustand';
 import { useAuth } from './useAuth';
@@ -115,5 +116,91 @@ export const useWorkspaces = () => {
     isLoading,
     switchWorkspace: handleSwitchWorkspace,
     refreshWorkspaces,
+  };
+};
+
+export const useInvitationHandlers = () => {
+  const invalidate = useInvalidate();
+  const { mutate: acceptInvitation } = useCustomMutation();
+  const { mutate: rejectInvitation } = useCustomMutation();
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [hiddenWorkspaceIds, setHiddenWorkspaceIds] = useState<Set<string>>(new Set());
+
+  const handleRejectInvitation = (workspaceId: string) => {
+    setHiddenWorkspaceIds(prev => new Set(prev).add(workspaceId));
+    setRejectingId(workspaceId);
+
+    rejectInvitation(
+      {
+        method: 'post',
+        url: `workspaces/${workspaceId}/reject-invitation`,
+        values: {},
+      },
+      {
+        onSuccess: () => {
+          message.success('Đã từ chối lời mời');
+          invalidate({ resource: 'workspaces/invitations', invalidates: ['list'] });
+        },
+        onError: error => {
+          message.error('Không thể từ chối lời mời');
+          console.log('Reject lỗi:', {
+            workspaceId,
+            status: error?.response?.status,
+            data: error?.response?.data,
+            url: `workspaces/${workspaceId}/reject-invitation`,
+          });
+          setHiddenWorkspaceIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(workspaceId);
+            return newSet;
+          });
+        },
+        onSettled: () => {
+          setRejectingId(null);
+        },
+      },
+    );
+  };
+
+  const handleAcceptInvitation = (workspaceId: string) => {
+    setHiddenWorkspaceIds(prev => new Set(prev).add(workspaceId));
+    setLoadingId(workspaceId);
+
+    acceptInvitation(
+      {
+        method: 'post',
+        url: `workspaces/${workspaceId}/accept-invitation`,
+        values: {},
+      },
+      {
+        onSuccess: () => {
+          message.success('Đã chấp nhận lời mời');
+
+          invalidate({ resource: 'workspaces/invitations', invalidates: ['list'] });
+          invalidate({ resource: 'workspaces', invalidates: ['list'] });
+        },
+        onError: () => {
+          message.error('Không thể chấp nhận lời mời');
+          setHiddenWorkspaceIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(workspaceId);
+            return newSet;
+          });
+        },
+        onSettled: () => {
+          setLoadingId(null);
+        },
+      },
+    );
+  };
+
+  return {
+    handleAcceptInvitation,
+    handleRejectInvitation,
+    loadingId,
+    rejectingId,
+    hiddenWorkspaceIds,
+    setHiddenWorkspaceIds,
   };
 };

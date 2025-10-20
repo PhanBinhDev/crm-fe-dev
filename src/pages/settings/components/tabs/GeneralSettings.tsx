@@ -1,18 +1,14 @@
 import { UserRole } from '@/common/enum/user';
-import { IFileUploadResponse, IUser } from '@/common/types';
+import { IUser } from '@/common/types';
+import CustomAvatar from '@/components/ui/CustomAvatar';
 import Spinner from '@/components/ui/Spinner';
-import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { getUserRoleLabel } from '@/constants/user';
 import { useAuth } from '@/hooks/useAuth';
-import { useDebounce } from '@/hooks/useDebounce';
 import { getUserStatusLabel } from '@/utils';
-import { getColorFromName, getInitials } from '@/utils/activity';
 import { getMajorOptionsForRole } from '@/utils/majorGroups';
-import { CameraOutlined } from '@ant-design/icons';
-import { useCustomMutation, useInvalidate, useOne, useUpdate } from '@refinedev/core';
-import { IconInfoHexagon } from '@tabler/icons-react';
+import { useCustomMutation, useInvalidate, useOne } from '@refinedev/core';
+import { IconInfoHexagon, IconUpload, IconX } from '@tabler/icons-react';
 import {
-  Avatar,
   Button,
   Card,
   Col,
@@ -22,19 +18,42 @@ import {
   Select,
   Space,
   Tooltip,
+  Typography,
   Upload,
+  message,
 } from 'antd';
 import dayjs from 'dayjs';
-import type { UploadRequestOption } from 'rc-upload/lib/interface';
+import { isEqual } from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
+import { useMediaQuery } from 'usehooks-ts';
 
-type EditableFields = Pick<IUser, 'name' | 'phone' | 'username' | 'dateOfBirth' | 'major'>;
+const { Text } = Typography;
+interface IFormData {
+  name: string;
+  phone: string;
+  username: string;
+  major: string;
+  dateOfBirth: string;
+}
+
+const pickEditableFields = (obj: any): IFormData => ({
+  name: obj.name || '',
+  phone: obj.phone || '',
+  username: obj.username || '',
+  major: obj.major || '',
+  dateOfBirth: obj.dateOfBirth || '',
+});
 
 const GeneralSettings = () => {
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const { user: authUser } = useAuth();
   const invalidate = useInvalidate();
 
-  const { data: userDetail, isLoading } = useOne<IUser>({
+  const {
+    data: userDetail,
+    isLoading,
+    refetch,
+  } = useOne<IUser>({
     resource: 'users',
     id: authUser?.id || '',
     queryOptions: {
@@ -42,348 +61,470 @@ const GeneralSettings = () => {
     },
   });
 
-  const [uploading, setUploading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string>(AVATAR_PLACEHOLDER);
-
-  const { mutate: uploadFile } = useCustomMutation<IFileUploadResponse>();
-  const { mutate: updateUser } = useUpdate<IUser>();
-
   const identity = userDetail?.data || authUser;
 
-  console.log(identity);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
+  const [formData, setFormData] = useState<IFormData>({
+    name: '',
+    phone: '',
+    username: '',
+    major: '',
+    dateOfBirth: '',
+  });
+  const [initialDataState, setInitialDataState] = useState<IFormData>({
+    name: '',
+    phone: '',
+    username: '',
+    major: '',
+    dateOfBirth: '',
+  });
 
-  const [inputName, setInputName] = useState('');
-  const [inputPhone, setInputPhone] = useState('');
-  const [inputCodeTeacher, setInputCodeTeacher] = useState('');
-
-  useEffect(() => {
-    if (identity) {
-      setInputName(identity.name || '');
-      setInputPhone(identity.phone || '');
-      setInputCodeTeacher(identity.username || '');
-    }
-  }, [identity]);
-
-  const debounceName = useDebounce(inputName, 4000);
-  const debouncePhone = useDebounce(inputPhone, 4000);
-  const debounceCodeTeacher = useDebounce(inputCodeTeacher, 4000);
+  const { mutate: updateUser, isPending: isUpdating } = useCustomMutation();
 
   const majorOptions = useMemo(() => {
     if (!identity?.role) return [];
     return getMajorOptionsForRole(identity.role);
   }, [identity?.role]);
 
-  useMemo(() => {
-    if (identity?.avatar) {
-      setAvatarUrl(identity.avatar);
-    }
-  }, [identity?.avatar]);
-
   useEffect(() => {
-    handleFieldUpdate('name', debounceName);
-  }, [debounceName]);
+    if (identity) {
+      const newAvatarPreview = identity.avatar || undefined;
+      if (
+        avatarPreview &&
+        avatarPreview.startsWith('blob:') &&
+        newAvatarPreview !== avatarPreview
+      ) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+      setAvatarPreview(newAvatarPreview);
+      setAvatarFile(null);
 
-  useEffect(() => {
-    handleFieldUpdate('phone', debouncePhone);
-  }, [debouncePhone]);
-
-  useEffect(() => {
-    handleFieldUpdate('username', debounceCodeTeacher);
-  }, [debounceCodeTeacher]);
-
-  const handleFieldUpdate = (field: keyof EditableFields, value: string) => {
-    const oldValue = (identity as IUser)?.[field] || '';
-
-    if (value === oldValue) {
-      return;
+      const initialData = pickEditableFields(identity);
+      setFormData(initialData);
+      setInitialDataState(initialData);
     }
 
-    const updatedValues = { [field]: value };
+    return () => {
+      if (avatarPreview && avatarPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [identity]);
+
+  const hasChanges = useMemo(() => {
+    if (!identity || !initialDataState.name) return false;
+
+    const formChanged = !isEqual(
+      pickEditableFields(formData),
+      pickEditableFields(initialDataState),
+    );
+
+    const avatarChanged = avatarFile !== null || (!avatarPreview && identity.avatar);
+
+    return formChanged || avatarChanged;
+  }, [formData, initialDataState, avatarFile, avatarPreview, identity]);
+
+  const handleInputChange = (field: keyof IFormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = () => {
+    if (!identity?.id) return;
+
+    const changedFields = Object.entries(pickEditableFields(formData)).filter(
+      ([key, value]) => value !== initialDataState[key as keyof IFormData],
+    );
+
+    const formDataToSend = new FormData();
+    changedFields.forEach(([key, value]) => {
+      formDataToSend.append(key, value as any);
+    });
+
+    if (avatarFile) {
+      formDataToSend.append('avatar', avatarFile);
+    }
+
+    if (!avatarPreview && identity.avatar) {
+      formDataToSend.append('removeAvatar', 'true');
+    }
 
     updateUser(
       {
-        resource: 'users',
-        id: identity?.id,
-        values: updatedValues,
-        mutationMode: 'optimistic',
-      },
-      {
-        onSuccess: () => {
-          invalidate({
-            resource: 'users',
-            invalidates: ['detail'],
-            id: identity?.id,
-          });
-
-          invalidate({
-            resource: 'auth',
-            invalidates: ['all'],
-          });
-        },
-        onSettled: () => {},
-      },
-    );
-  };
-
-  const handleAvatarUpload = async (options: UploadRequestOption) => {
-    const { file, onSuccess, onError } = options;
-    setUploading(true);
-
-    const formData = new FormData();
-    formData.append('file', file as Blob);
-
-    uploadFile(
-      {
-        url: '/upload/file',
-        method: 'post',
-        values: formData,
+        url: `users/profile`,
+        method: 'patch',
+        values: formDataToSend,
         config: {
           headers: { 'Content-Type': 'multipart/form-data' },
         },
       },
       {
-        onSuccess: res => {
-          const newUrl = res.data.url;
-          const fullUrl = `${import.meta.env.VITE_API_BASE_URL}${newUrl}`;
+        onSuccess: () => {
+          message.success('Cập nhật thông tin thành công');
+          setAvatarFile(null);
+          setInitialDataState(pickEditableFields(formData));
+          refetch();
 
-          updateUser(
-            {
-              resource: 'users',
-              id: identity?.id,
-              values: { avatar: fullUrl },
-              mutationMode: 'optimistic',
-            },
-            {
-              onSuccess: () => {
-                setAvatarUrl(fullUrl);
-                onSuccess?.(res.data, file as any);
-                invalidate({
-                  resource: 'auth',
-                  invalidates: ['all'],
-                });
-                invalidate({
-                  resource: 'users',
-                  invalidates: ['all'],
-                  id: identity?.id,
-                });
-              },
-              onError: error => {
-                onError?.(error as any);
-              },
-              onSettled: () => {
-                setUploading(false);
-              },
-            },
-          );
+          invalidate({
+            resource: 'users',
+            invalidates: ['detail'],
+            id: identity.id,
+          });
+          invalidate({
+            resource: 'auth',
+            invalidates: ['all'],
+          });
         },
-        onError: error => {
-          setUploading(false);
-          onError?.(error as any);
+        onError: () => {
+          message.error('Có lỗi xảy ra khi cập nhật thông tin');
         },
       },
     );
   };
 
-  const handleAvatarError = () => {
-    setAvatarUrl(AVATAR_PLACEHOLDER);
+  const handleCancel = () => {
+    if (identity) {
+      const initialAvatar = identity.avatar || undefined;
+      if (avatarPreview && avatarPreview.startsWith('blob:') && initialAvatar !== avatarPreview) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+      setAvatarPreview(initialAvatar);
+      setAvatarFile(null);
+
+      setFormData(initialDataState);
+    }
   };
 
   const readOnlyFieldStyle: React.CSSProperties = {
-    fontSize: '14px',
     height: '32px',
-    lineHeight: '32px',
-    display: 'block',
-    padding: '0 11px',
-    border: '1px solid #d9d9d9',
-    borderRadius: '6px',
-    backgroundColor: '#f5f5f5',
+    lineHeight: '30px',
   };
 
   if (isLoading && !identity) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: 50 }}>
+      <div
+        style={{
+          width: '100%',
+          minHeight: 300,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <Spinner />
       </div>
     );
   }
+
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%', height: '100%' }}>
+    <Space
+      direction="vertical"
+      size={isMobile ? 12 : 24}
+      style={{
+        display: 'flex',
+        width: '100%',
+        padding: 12,
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: 'flex-start',
+      }}
+    >
       <Card
-        variant={'borderless'}
-        style={{ height: '100%', boxShadow: 'none', maxWidth: '80%', margin: '0 auto' }}
+        title={
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Text style={{ fontSize: 17, paddingLeft: 6, fontWeight: 600 }}>Thông tin cá nhân</Text>
+            {hasChanges && (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Button
+                  size="small"
+                  onClick={handleCancel}
+                  disabled={isUpdating}
+                  style={{ borderRadius: 8 }}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  type="primary"
+                  size="small"
+                  onClick={handleSave}
+                  loading={isUpdating}
+                  style={{
+                    borderRadius: 8,
+                    opacity: isUpdating ? 0.8 : 1,
+                  }}
+                >
+                  Lưu
+                </Button>
+              </div>
+            )}
+          </div>
+        }
+        size="small"
+        style={{
+          width: '100%',
+          flex: 4,
+          minWidth: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        }}
+        styles={{
+          header: {
+            padding: '12px 16px',
+            minHeight: 44.8,
+            borderBottom: '1px solid #f0f0f0',
+            background: '#fff',
+          },
+          body: {
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? 20 : 32,
+            padding: isMobile ? 16 : 32,
+          },
+        }}
       >
         <div
           style={{
+            flex: isMobile ? 'none' : 1,
+            minWidth: 160,
             display: 'flex',
-            gap: 24,
-            marginBottom: 24,
-            paddingRight: 8,
-            height: '100%',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 15,
+            borderRight: isMobile ? 'none' : '1px solid #eee',
+            paddingRight: isMobile ? 0 : 20,
           }}
         >
           <div
             style={{
-              minWidth: 200,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 15,
+              position: 'relative',
+              background: '#f9f9f9',
+              padding: 12,
+              borderRadius: 12,
+              border: '1px solid #eee',
             }}
           >
-            <div style={{ position: 'relative' }}>
-              <Avatar
-                size={130}
-                src={avatarUrl && avatarUrl !== AVATAR_PLACEHOLDER ? avatarUrl : undefined}
-                style={{
-                  backgroundColor:
-                    avatarUrl && avatarUrl !== AVATAR_PLACEHOLDER
-                      ? '#ffffff'
-                      : getColorFromName(identity?.name),
-                  color: avatarUrl && avatarUrl !== AVATAR_PLACEHOLDER ? 'transparent' : '#fff',
-                  fontSize: 48,
-                  fontWeight: 600,
-                  opacity: uploading ? 0.4 : 1,
-                  transition: 'opacity 0.3s',
-                  border: 'none',
-                }}
-                onError={() => {
-                  handleAvatarError();
-                  return false;
-                }}
-              >
-                {(!avatarUrl || avatarUrl === AVATAR_PLACEHOLDER) && getInitials(identity?.name)}
-              </Avatar>
-
-              {uploading && (
-                <div
+            <CustomAvatar
+              size={130}
+              name={identity?.name || 'User'}
+              src={avatarPreview}
+              style={{
+                transition: 'opacity 0.3s',
+                fontSize: 48,
+                fontWeight: 600,
+              }}
+            />
+            {avatarPreview && (
+              <Tooltip title="Xóa ảnh đại diện">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<IconX size={14} color="#333" />}
                   style={{
                     position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
+                    top: 4,
+                    right: 4,
+                    borderRadius: 8,
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
                   }}
-                >
-                  <Spinner />
-                </div>
-              )}
-            </div>
+                  onClick={() => {
+                    setAvatarFile(null);
+                    setAvatarPreview(undefined);
+                  }}
+                />
+              </Tooltip>
+            )}
+          </div>
 
-            <Upload
-              showUploadList={false}
-              accept=".jpg,.jpeg,.png"
-              disabled={uploading}
-              customRequest={handleAvatarUpload}
+          <Upload
+            showUploadList={false}
+            accept="image/*"
+            beforeUpload={file => {
+              if (!file.type.startsWith('image/')) {
+                message.error('Chỉ chấp nhận file ảnh!');
+                return false;
+              }
+              if (file.size / 1024 / 1024 > 5) {
+                message.error('Kích thước ảnh phải nhỏ hơn 5MB!');
+                return false;
+              }
+              setAvatarFile(file);
+              setAvatarPreview(URL.createObjectURL(file));
+              return false;
+            }}
+          >
+            <Button
+              icon={<IconUpload size={14} />}
+              style={{
+                borderRadius: 8,
+                padding: '4px 12px',
+                gap: 6,
+              }}
             >
-              <Button
-                icon={<CameraOutlined />}
-                type="text"
-                style={{ border: '1px solid #d8d8d8ff' }}
-                disabled={uploading}
-              >
-                Thay đổi
-              </Button>
-            </Upload>
-          </div>
+              Thay đổi ảnh
+            </Button>
+          </Upload>
+        </div>
 
-          <div style={{ flex: 1, minWidth: 300 }}>
-            <Row gutter={[16, 16]}>
-              <Col xs={24} md={12}>
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ fontWeight: 500 }}>Họ và tên</label>
-                </div>
-                <Input
-                  value={inputName}
-                  onChange={e => setInputName(e.target.value)}
-                  placeholder="Nhập họ và tên"
-                />
-              </Col>
+        <div style={{ flex: 3, minWidth: 300, paddingTop: isMobile ? 0 : 10 }}>
+          <Row gutter={[20, 16]}>
+            <Col xs={24} md={12}>
+              <div style={{ marginBottom: 8 }}>
+                <label style={{ fontWeight: 500 }}>Họ và tên</label>
+              </div>
+              <Input
+                value={formData.name}
+                onChange={e => handleInputChange('name', e.target.value)}
+                placeholder="Nhập họ và tên"
+              />
+            </Col>
 
-              <Col xs={24} md={12}>
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ fontWeight: 500 }}>Chuyên ngành</label>
-                </div>
-                <Select
-                  value={identity?.major || undefined}
-                  onChange={value => handleFieldUpdate('major', value)}
-                  placeholder="Chọn chuyên ngành"
-                  style={{ width: '100%' }}
-                  options={majorOptions}
-                  showSearch
-                  filterOption={(input, option: any) =>
-                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                  }
-                />
-              </Col>
+            <Col xs={24} md={12}>
+              <div style={{ marginBottom: 8 }}>
+                <label style={{ fontWeight: 500 }}>Chuyên ngành</label>
+              </div>
+              <Select
+                value={formData.major || undefined}
+                onChange={value => handleInputChange('major', value)}
+                placeholder="Chọn chuyên ngành"
+                style={{ width: '100%' }}
+                options={majorOptions}
+                showSearch
+                filterOption={(input, option: any) =>
+                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+              />
+            </Col>
 
-              <Col xs={24} md={12}>
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ fontWeight: 500 }}>Email</label>
-                </div>
-                <div style={readOnlyFieldStyle}>{identity?.email || 'N/A'}</div>
-              </Col>
+            <Col xs={24} md={12}>
+              <div style={{ marginBottom: 8 }}>
+                <label style={{ fontWeight: 500 }}>Email</label>
+              </div>
+              <Input value={identity?.email || 'N/A'} disabled style={readOnlyFieldStyle} />
+            </Col>
 
-              <Col xs={24} md={12}>
-                <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <label style={{ fontWeight: 500 }}>Chức vụ</label>
-                  <Tooltip title="Bạn không thể tự thay đổi chức vụ của mình">
-                    <IconInfoHexagon size={14} color="#838383" />
-                  </Tooltip>
-                </div>
-                <div style={readOnlyFieldStyle}>
-                  {getUserRoleLabel(identity?.role as UserRole) || 'N/A'}
-                </div>
-              </Col>
+            <Col xs={24} md={12}>
+              <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <label style={{ fontWeight: 500 }}>Chức vụ</label>
+                <Tooltip title="Bạn không thể tự thay đổi chức vụ của mình">
+                  <IconInfoHexagon size={14} color="#838383" />
+                </Tooltip>
+              </div>
+              <Input
+                value={getUserRoleLabel(identity?.role as UserRole) || 'N/A'}
+                disabled
+                style={readOnlyFieldStyle}
+              />
+            </Col>
 
-              <Col xs={24} md={12}>
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ fontWeight: 500 }}>Số điện thoại</label>
-                </div>
-                <Input
-                  value={inputPhone}
-                  onChange={e => setInputPhone(e.target.value)}
-                  placeholder="Nhập số điện thoại"
-                />
-              </Col>
+            <Col xs={24} md={12}>
+              <div style={{ marginBottom: 8 }}>
+                <label style={{ fontWeight: 500 }}>Số điện thoại</label>
+              </div>
+              <Input
+                value={formData.phone}
+                onChange={e => handleInputChange('phone', e.target.value)}
+                placeholder="Nhập số điện thoại"
+              />
+            </Col>
 
-              <Col xs={24} md={12}>
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ fontWeight: 500 }}>Mã giảng viên</label>
-                </div>
-                <Input
-                  value={inputCodeTeacher}
-                  onChange={e => setInputCodeTeacher(e.target.value)}
-                  placeholder="Nhập mã giảng viên"
-                />
-              </Col>
+            <Col xs={24} md={12}>
+              <div style={{ marginBottom: 8 }}>
+                <label style={{ fontWeight: 500 }}>Mã giảng viên</label>
+              </div>
+              <Input
+                value={formData.username}
+                onChange={e => handleInputChange('username', e.target.value)}
+                placeholder="Nhập mã giảng viên"
+              />
+            </Col>
 
-              <Col xs={24} md={12}>
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ fontWeight: 500 }}>Ngày sinh</label>
-                </div>
-                <DatePicker
-                  value={identity?.dateOfBirth ? dayjs(identity.dateOfBirth) : null}
-                  onChange={date =>
-                    handleFieldUpdate('dateOfBirth', date ? date.format('YYYY-MM-DD') : '')
-                  }
-                  placeholder="Chọn ngày sinh"
-                  style={{ width: '100%' }}
-                  format={'DD/MM/YYYY'}
-                />
-              </Col>
+            <Col xs={24} md={12}>
+              <div style={{ marginBottom: 8 }}>
+                <label style={{ fontWeight: 500 }}>Ngày sinh</label>
+              </div>
+              <DatePicker
+                value={formData.dateOfBirth ? dayjs(formData.dateOfBirth) : null}
+                onChange={date =>
+                  handleInputChange('dateOfBirth', date ? date.format('YYYY-MM-DD') : '')
+                }
+                placeholder="Chọn ngày sinh"
+                style={{ width: '100%' }}
+                format={'DD/MM/YYYY'}
+              />
+            </Col>
 
-              <Col xs={24} md={12}>
-                <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <label style={{ fontWeight: 500 }}>Trạng thái</label>
-                  <Tooltip title="Bạn không thể tự thay đổi trạng thái hoạt động của mình">
-                    <IconInfoHexagon size={14} color="#838383" />
-                  </Tooltip>
-                </div>
-                <div style={readOnlyFieldStyle}>
-                  {getUserStatusLabel(identity?.isActive) || 'N/A'}
-                </div>
-              </Col>
-            </Row>
-          </div>
+            <Col xs={24} md={12}>
+              <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <label style={{ fontWeight: 500 }}>Trạng thái</label>
+                <Tooltip title="Bạn không thể tự thay đổi trạng thái hoạt động của mình">
+                  <IconInfoHexagon size={14} color="#838383" />
+                </Tooltip>
+              </div>
+              <Input
+                value={getUserStatusLabel(identity?.isActive) || 'N/A'}
+                disabled
+                style={readOnlyFieldStyle}
+              />
+            </Col>
+          </Row>
+        </div>
+      </Card>
+
+      <Card
+        size="small"
+        style={{
+          flex: 1,
+          minWidth: isMobile ? '100%' : 250,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        }}
+        styles={{
+          header: {
+            padding: '12px 16px',
+            minHeight: 44.8,
+            borderBottom: '1px solid #f0f0f0',
+            background: '#fff',
+          },
+          body: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+            padding: isMobile ? 16 : 24,
+          },
+        }}
+        title={
+          <Text style={{ fontSize: 17, paddingLeft: 6, fontWeight: 600 }}>Thông tin tài khoản</Text>
+        }
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+          }}
+        >
+          <span style={{ fontWeight: 500, color: '#555' }}>Cập nhật gần nhất:</span>
+          <span style={{ fontSize: 14, color: '#222' }}>
+            {identity?.updatedAt ? dayjs(identity.updatedAt).format('DD/MM/YYYY HH:mm:ss') : 'N/A'}
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+          }}
+        >
+          <span style={{ fontWeight: 500, color: '#555' }}>Ngày tạo:</span>
+          <span style={{ fontSize: 14, color: '#222' }}>
+            {identity?.createdAt ? dayjs(identity.createdAt).format('DD/MM/YYYY HH:mm:ss') : 'N/A'}
+          </span>
         </div>
       </Card>
     </Space>

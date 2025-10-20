@@ -119,13 +119,13 @@ export const resources: ResourceConfig[] = [
 ];
 
 export const getResourcesByRole = (role: UserRole): ResourceConfig[] => {
-  const baseResources = ['dashboard', 'workspaces', 'my-work', 'teachers'];
+  const baseResources = ['dashboard', 'workspaces', 'my-work', 'teachers', 'settings'];
 
   switch (role) {
     case UserRole.GV:
       return resources.filter(resource => baseResources.includes(resource.name));
 
-    case UserRole.CNBM:
+    case UserRole.CNBM && UserRole.SUPERADMIN:
       return resources.filter(
         resource =>
           baseResources.includes(resource.name) ||

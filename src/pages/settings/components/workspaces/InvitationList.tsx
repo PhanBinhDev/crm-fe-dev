@@ -1,13 +1,21 @@
 import { IWorkspace } from '@/common/types';
 import CustomAvatar from '@/components/ui/CustomAvatar';
 import Spinner from '@/components/ui/Spinner';
-import { useCustomMutation, useInvalidate, useList } from '@refinedev/core';
-import { Button, Card, message, Space, Typography } from 'antd';
-import { useMemo, useState } from 'react';
+import { useInvitationHandlers } from '@/hooks/useWorkspaces';
+import { useList } from '@refinedev/core';
+import { Button, Card, Space, Typography } from 'antd';
+import { useMemo } from 'react';
 
 const { Text } = Typography;
 
 const InvitationList = () => {
+  const {
+    handleAcceptInvitation,
+    handleRejectInvitation,
+    loadingId,
+    rejectingId,
+    hiddenWorkspaceIds,
+  } = useInvitationHandlers();
   const { data: dataInvitations, isLoading: isLoadingInvitations } = useList<IWorkspace>({
     resource: 'workspaces/invitations',
     pagination: { mode: 'off' },
@@ -15,12 +23,6 @@ const InvitationList = () => {
       retry: false,
     },
   });
-  const invalidate = useInvalidate();
-  const { mutate: acceptInvitation } = useCustomMutation();
-  const { mutate: rejectInvitation } = useCustomMutation();
-  const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [rejectingId, setRejectingId] = useState<string | null>(null);
-  const [hiddenWorkspaceIds, setHiddenWorkspaceIds] = useState<Set<string>>(new Set());
 
   const invitations = useMemo(() => {
     if (isLoadingInvitations || !dataInvitations) return [];
@@ -28,66 +30,7 @@ const InvitationList = () => {
     return dataInvitations.data.filter(workspace => !hiddenWorkspaceIds.has(workspace.id));
   }, [dataInvitations, isLoadingInvitations, hiddenWorkspaceIds]);
 
-  const handleAcceptInvitation = (workspaceId: string) => {
-    setHiddenWorkspaceIds(prev => new Set(prev).add(workspaceId));
-    setLoadingId(workspaceId);
-
-    acceptInvitation(
-      {
-        method: 'post',
-        url: `workspaces/${workspaceId}/accept-invitation`,
-        values: {},
-      },
-      {
-        onSuccess: () => {
-          message.success('Đã chấp nhận lời mời');
-          invalidate({ resource: 'workspaces/invitations', invalidates: ['list'] });
-          invalidate({ resource: 'workspaces', invalidates: ['list'] });
-        },
-        onError: () => {
-          message.error('Không thể chấp nhận lời mời');
-          setHiddenWorkspaceIds(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(workspaceId);
-            return newSet;
-          });
-        },
-        onSettled: () => {
-          setLoadingId(null);
-        },
-      },
-    );
-  };
-
-  const handleRejectInvitation = (workspaceId: string) => {
-    setHiddenWorkspaceIds(prev => new Set(prev).add(workspaceId));
-    setRejectingId(workspaceId);
-
-    rejectInvitation(
-      {
-        method: 'post',
-        url: `workspaces/${workspaceId}/reject-invitation`,
-        values: {},
-      },
-      {
-        onSuccess: () => {
-          message.success('Đã từ chối lời mời');
-          invalidate({ resource: 'workspaces/invitations', invalidates: ['list'] });
-        },
-        onError: () => {
-          message.error('Không thể từ chối lời mời');
-          setHiddenWorkspaceIds(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(workspaceId);
-            return newSet;
-          });
-        },
-        onSettled: () => {
-          setRejectingId(null);
-        },
-      },
-    );
-  };
+  console.log('Invitations:', invitations);
 
   return (
     <Card
@@ -124,6 +67,10 @@ const InvitationList = () => {
       styles={{
         header: {
           padding: '6px 8px',
+        },
+        body: {
+          maxHeight: 'calc(100% - 44.8px)',
+          overflowY: 'auto',
         },
       }}
     >
@@ -167,15 +114,14 @@ const InvitationList = () => {
                       <CustomAvatar
                         name={workspace.name}
                         src={
-                          workspace?.avatar &&
-                          `${import.meta.env.VITE_API_BASE_URL}${workspace?.avatar}?t=${workspace?.updatedAt}`
+                          workspace?.avatar
+                            ? workspace.avatar
+                            : `${import.meta.env.VITE_API_BASE_URL}${workspace?.avatar}?t=${workspace?.updatedAt}`
                         }
                       />
                       <div>
                         <div style={{ fontWeight: 500, fontSize: 17 }}>{workspace.name}</div>
-                        <div style={{ fontSize: 12, color: '#8c8c8c' }}>
-                          Bạn được mời tham gia
-                        </div>
+                        <div style={{ fontSize: 12, color: '#8c8c8c' }}>Bạn được mời tham gia</div>
                       </div>
                     </div>
                     <Space>

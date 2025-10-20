@@ -1,12 +1,12 @@
 'use client';
-import type { IFileUploadResponse, IUser } from '@/common/types';
+import type { IUser } from '@/common/types';
 import Spinner from '@/components/ui/Spinner';
 import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { getUserRoleLabel } from '@/constants/user';
 import { useAuth } from '@/hooks/useAuth';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { getMajorOptionsForRole } from '@/utils/majorGroups';
-import { useCustomMutation, useInvalidate, useOne, useUpdate } from '@refinedev/core';
+import { useCustomMutation, useInvalidate, useOne } from '@refinedev/core';
 import {
   IconCalendar,
   IconCamera,
@@ -30,17 +30,33 @@ import {
   Select,
   Skeleton,
   Space,
-  Spin,
   Tabs,
+  Tooltip,
   Typography,
   Upload,
+  message,
 } from 'antd';
 import dayjs from 'dayjs';
+import { isEqual } from 'lodash';
 import type { UploadRequestOption } from 'rc-upload/lib/interface';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
 const { Title, Text } = Typography;
+
+interface IFormData {
+  phone: string;
+  username: string;
+  dateOfBirth: string;
+  major: string;
+}
+
+const pickEditableFields = (obj: any): IFormData => ({
+  phone: obj.phone || '',
+  username: obj.username || '',
+  dateOfBirth: obj.dateOfBirth || '',
+  major: obj.major || '',
+});
 
 export const ProfilePage: React.FC = () => {
   const { user: authUser, isLoading: authLoading } = useAuth();
@@ -57,45 +73,71 @@ export const ProfilePage: React.FC = () => {
       enabled: !!authUser?.id,
     },
   });
-  const [isSaving, setIsSaving] = useState(false);
-  const [optimisticData, setOptimisticData] = useState<Partial<IUser> | null>(null);
 
   const identity = userDetail?.data || authUser;
   const isLoading = authLoading || userLoading;
 
-  const [uploading, setUploading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string>(AVATAR_PLACEHOLDER);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({
+  const [formData, setFormData] = useState<IFormData>({
     phone: '',
     username: '',
     dateOfBirth: '',
     major: '',
   });
+  const [initialDataState, setInitialDataState] = useState<IFormData>({
+    phone: '',
+    username: '',
+    dateOfBirth: '',
+    major: '',
+  });
+  const [optimisticData, setOptimisticData] = useState<Partial<IUser> | null>(null);
 
-  const { mutate: uploadFile } = useCustomMutation<IFileUploadResponse>();
-  const { mutate: updateUser } = useUpdate<IUser>();
+  const { mutate: updateUser, isPending: isUpdating } = useCustomMutation();
 
-  // Get major options based on user's role
   const majorOptions = useMemo(() => {
     if (!identity?.role) return [];
     return getMajorOptionsForRole(identity.role);
   }, [identity?.role]);
 
   useEffect(() => {
-    if (identity?.avatar) {
-      setAvatarUrl(identity.avatar);
+    if (identity) {
+      const newAvatarPreview = identity.avatar || undefined;
+      if (
+        avatarPreview &&
+        avatarPreview.startsWith('blob:') &&
+        newAvatarPreview !== avatarPreview
+      ) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+      setAvatarPreview(newAvatarPreview);
+      setAvatarFile(null);
+
+      const initialData = pickEditableFields(identity);
+      setFormData(initialData);
+      setInitialDataState(initialData);
     }
 
-    if (identity) {
-      setEditData({
-        phone: identity.phone || '',
-        username: identity.username || '',
-        dateOfBirth: identity.dateOfBirth || '',
-        major: identity.major || '',
-      });
-    }
+    return () => {
+      if (avatarPreview && avatarPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
   }, [identity]);
+
+  const hasChanges = useMemo(() => {
+    if (!identity || (!initialDataState.phone && !initialDataState.username)) return false;
+
+    const formChanged = !isEqual(
+      pickEditableFields(formData),
+      pickEditableFields(initialDataState),
+    );
+
+    const avatarChanged = avatarFile !== null;
+
+    return formChanged || avatarChanged;
+  }, [formData, initialDataState, avatarFile, identity]);
 
   if (isLoading) {
     return (
@@ -132,124 +174,110 @@ export const ProfilePage: React.FC = () => {
 
   const handleEditToggle = () => {
     if (isEditing) {
-      setEditData({
-        phone: identity.phone || '',
-        username: identity.username || '',
-        dateOfBirth: identity.dateOfBirth || '',
-        major: identity.major || '',
-      });
+      setFormData(initialDataState);
+      if (avatarPreview && avatarPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+      setAvatarPreview(identity.avatar || undefined);
+      setAvatarFile(null);
     }
     setIsEditing(!isEditing);
   };
 
   const handleSave = () => {
-    const hasChanged =
-      editData.phone !== (identity.phone || '') ||
-      editData.username !== (identity.username || '') ||
-      editData.major !== (identity.major || '') ||
-      (editData.dateOfBirth || '') !== (identity.dateOfBirth || '');
-
-    if (!hasChanged) {
+    if (!hasChanges) {
       setIsEditing(false);
       return;
     }
-    setIsSaving(true);
-    setOptimisticData(editData);
+
+    const changedFields = Object.entries(pickEditableFields(formData)).filter(
+      ([key, value]) => value !== initialDataState[key as keyof IFormData],
+    );
+
+    const formDataToSend = new FormData();
+    changedFields.forEach(([key, value]) => {
+      formDataToSend.append(key, value as any);
+    });
+
+    if (avatarFile) {
+      formDataToSend.append('avatar', avatarFile);
+    }
+
+    const optimisticUpdate: Partial<IUser> = {
+      ...formData,
+    };
+    if (avatarPreview) {
+      optimisticUpdate.avatar = avatarPreview;
+    }
+    setOptimisticData(optimisticUpdate);
     setIsEditing(false);
 
     updateUser(
       {
-        resource: 'users',
-        id: identity.id,
-        values: editData,
-      },
-      {
-        onSuccess: () => {
-          invalidate({
-            resource: 'users',
-            invalidates: ['detail'],
-          });
-        },
-        onError: () => {
-          setOptimisticData(null);
-          setIsEditing(true);
-        },
-        onSettled: () => {
-          setIsSaving(false);
-          setOptimisticData(null);
-        },
-      },
-    );
-  };
-
-  const handleInputChange = (field: string, value: string) => {
-    setEditData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleAvatarUpload = async (options: UploadRequestOption) => {
-    const { file, onSuccess, onError } = options;
-    setUploading(true);
-
-    const formData = new FormData();
-    formData.append('file', file as Blob);
-
-    uploadFile(
-      {
-        url: '/upload/file',
-        method: 'post',
-        values: formData,
+        url: `users/profile`,
+        method: 'patch',
+        values: formDataToSend,
         config: {
           headers: { 'Content-Type': 'multipart/form-data' },
         },
       },
       {
-        onSuccess: res => {
-          const newUrl = res.data.url;
-          const fullUrl = `${import.meta.env.VITE_API_BASE_URL}${newUrl}`;
+        onSuccess: () => {
+          message.success('Cập nhật thông tin thành công');
+          setAvatarFile(null);
+          setInitialDataState(pickEditableFields(formData));
+          refetch();
 
-          updateUser(
-            {
-              resource: 'users',
-              id: identity.id,
-              values: { avatar: fullUrl },
-            },
-            {
-              onSuccess: () => {
-                setAvatarUrl(fullUrl);
-                onSuccess?.(res.data, file as any);
-                setUploading(false);
-                invalidate({
-                  resource: 'auth',
-                  invalidates: ['all'],
-                });
-                invalidate({
-                  resource: 'users',
-                  invalidates: ['all'],
-                });
-                refetch();
-              },
-              onError: error => {
-                setUploading(false);
-                onError?.(error as any);
-              },
-            },
-          );
+          invalidate({
+            resource: 'users',
+            invalidates: ['detail'],
+            id: identity.id,
+          });
+          invalidate({
+            resource: 'auth',
+            invalidates: ['all'],
+          });
         },
-        onError: error => {
-          setUploading(false);
-          onError?.(error as any);
+        onError: () => {
+          message.error('Có lỗi xảy ra khi cập nhật thông tin');
+          setOptimisticData(null);
+          setIsEditing(true);
+        },
+        onSettled: () => {
+          setOptimisticData(null);
         },
       },
     );
   };
 
-  const handleAvatarError = () => {
-    setAvatarUrl(AVATAR_PLACEHOLDER);
+  const handleInputChange = (field: keyof IFormData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
+  const handleAvatarUpload = (options: UploadRequestOption) => {
+    const { file } = options;
+
+    if (!(file as File).type.startsWith('image/')) {
+      message.error('Chỉ chấp nhận file ảnh!');
+      return;
+    }
+    if ((file as File).size / 1024 / 1024 > 5) {
+      message.error('Kích thước ảnh phải nhỏ hơn 5MB!');
+      return;
+    }
+
+    setAvatarFile(file as File);
+    setAvatarPreview(URL.createObjectURL(file as File));
+  };
+
+  const handleAvatarError = () => {
+    setAvatarPreview(AVATAR_PLACEHOLDER);
+  };
+
+  const displayAvatar = avatarPreview || identity.avatar;
   const currentIdentity = optimisticData ? { ...identity, ...optimisticData } : identity;
 
   return (
@@ -263,9 +291,12 @@ export const ProfilePage: React.FC = () => {
     >
       <div
         style={{
-          padding: '12px 20px',
+          padding: '12px 25px',
           backgroundColor: '#fff',
           borderBottom: '1px solid #f0f0f0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
         }}
       >
         <div
@@ -280,23 +311,29 @@ export const ProfilePage: React.FC = () => {
             <Upload
               name="avatar"
               showUploadList={false}
-              accept=".jpg,.jpeg,.png"
-              disabled={uploading}
+              accept="image/*"
+              disabled={!isEditing}
               customRequest={handleAvatarUpload}
             >
-              <div style={{ position: 'relative', cursor: 'pointer' }}>
+              <div style={{ position: 'relative', cursor: isEditing ? 'pointer' : 'default' }}>
                 <Avatar
                   size={80}
-                  src={avatarUrl && avatarUrl !== AVATAR_PLACEHOLDER ? avatarUrl : undefined}
+                  src={
+                    displayAvatar && displayAvatar !== AVATAR_PLACEHOLDER
+                      ? displayAvatar
+                      : undefined
+                  }
                   style={{
                     backgroundColor:
-                      avatarUrl && avatarUrl !== AVATAR_PLACEHOLDER
+                      displayAvatar && displayAvatar !== AVATAR_PLACEHOLDER
                         ? '#ffffff'
-                        : getColorFromName(currentIdentity?.name),
-                    color: avatarUrl && avatarUrl !== AVATAR_PLACEHOLDER ? 'transparent' : '#fff',
+                        : getColorFromName(identity?.name),
+                    color:
+                      displayAvatar && displayAvatar !== AVATAR_PLACEHOLDER
+                        ? 'transparent'
+                        : '#fff',
                     fontSize: 48,
                     fontWeight: 600,
-                    opacity: uploading ? 0.4 : 1,
                     transition: 'opacity 0.3s',
                     border: 'none',
                   }}
@@ -305,10 +342,10 @@ export const ProfilePage: React.FC = () => {
                     return false;
                   }}
                 >
-                  {(!avatarUrl || avatarUrl === AVATAR_PLACEHOLDER) &&
-                    getInitials(currentIdentity?.name)}
+                  {(!displayAvatar || displayAvatar === AVATAR_PLACEHOLDER) &&
+                    getInitials(identity?.name)}
                 </Avatar>
-                {uploading && (
+                {isEditing && (
                   <div
                     style={{
                       position: 'absolute',
@@ -317,35 +354,19 @@ export const ProfilePage: React.FC = () => {
                       right: 0,
                       bottom: 0,
                       borderRadius: '50%',
-                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      backgroundColor: 'rgba(0,0,0,0.5)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      opacity: 0,
+                      transition: 'opacity 0.3s',
                     }}
+                    onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                    onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
                   >
-                    <Spinner />
+                    <IconCamera size={24} color="#fff" stroke={1.5} />
                   </div>
                 )}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: 0,
-                    transition: 'opacity 0.3s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-                  onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
-                >
-                  <IconCamera size={24} color="#fff" stroke={1.5} />
-                </div>
               </div>
             </Upload>
             <div
@@ -356,7 +377,7 @@ export const ProfilePage: React.FC = () => {
                 width: 18,
                 height: 18,
                 borderRadius: '50%',
-                backgroundColor: currentIdentity.isActive ? '#10B981' : '#EF4444',
+                backgroundColor: identity.isActive ? '#10B981' : '#EF4444',
                 border: '2px solid #fff',
               }}
             />
@@ -378,6 +399,40 @@ export const ProfilePage: React.FC = () => {
             </Text>
           </div>
         </div>
+
+        <Space>
+          {(isEditing || isUpdating) && (
+            <Tooltip title={isEditing ? 'Lưu thay đổi' : 'Đang cập nhật...'}>
+              <Button
+                type="text"
+                size="small"
+                icon={isUpdating ? <Spinner /> : <IconCheck size={16} stroke={1.5} />}
+                onClick={!isUpdating ? handleSave : undefined}
+                style={{ color: '#10B981' }}
+                disabled={isUpdating || !hasChanges}
+              />
+              <Button
+                type="text"
+                size="small"
+                icon={<IconX size={16} stroke={1.5} />}
+                onClick={handleEditToggle}
+                style={{ color: '#EF4444' }}
+                disabled={isUpdating}
+              />
+            </Tooltip>
+          )}
+          {!isEditing && !isUpdating && (
+            <Tooltip title="Chỉnh sửa thông tin">
+              <Button
+                type="text"
+                size="small"
+                icon={<IconEdit size={16} stroke={1.5} />}
+                onClick={handleEditToggle}
+                style={{ color: '#667EEA' }}
+              />
+            </Tooltip>
+          )}
+        </Space>
       </div>
 
       <div
@@ -422,47 +477,7 @@ export const ProfilePage: React.FC = () => {
                 </Space>
               ),
               children: (
-                <Card
-                  extra={
-                    <Space>
-                      {(isEditing || isSaving) && (
-                        <>
-                          <Button
-                            type="text"
-                            size="small"
-                            icon={
-                              isSaving ? (
-                                <Spin size="small" />
-                              ) : (
-                                <IconCheck size={16} stroke={1.5} />
-                              )
-                            }
-                            onClick={!isSaving ? handleSave : undefined}
-                            style={{ color: '#10B981' }}
-                            disabled={isSaving}
-                          />
-                          <Button
-                            type="text"
-                            size="small"
-                            icon={<IconX size={16} stroke={1.5} />}
-                            onClick={handleEditToggle}
-                            style={{ color: '#EF4444' }}
-                            disabled={isSaving}
-                          />
-                        </>
-                      )}
-                      {!isEditing && !isSaving && (
-                        <Button
-                          type="text"
-                          size="small"
-                          icon={<IconEdit size={16} stroke={1.5} />}
-                          onClick={handleEditToggle}
-                          style={{ color: '#667EEA' }}
-                        />
-                      )}
-                    </Space>
-                  }
-                >
+                <Card>
                   <Space direction="vertical" size="large" style={{ width: '100%' }}>
                     {/* Email */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -523,7 +538,7 @@ export const ProfilePage: React.FC = () => {
                         </Text>
                         {isEditing ? (
                           <Input
-                            value={editData.phone}
+                            value={formData.phone}
                             onChange={e => handleInputChange('phone', e.target.value)}
                             onPressEnter={handleSave}
                             placeholder="Nhập số điện thoại"
@@ -564,11 +579,11 @@ export const ProfilePage: React.FC = () => {
                           type="secondary"
                           style={{ fontSize: 13, display: 'block', marginBottom: 4 }}
                         >
-                          Username
+                          Mã giảng viên
                         </Text>
                         {isEditing ? (
                           <Input
-                            value={editData.username}
+                            value={formData.username}
                             onChange={e => handleInputChange('username', e.target.value)}
                             onPressEnter={handleSave}
                             placeholder="Nhập username"
@@ -605,7 +620,7 @@ export const ProfilePage: React.FC = () => {
                         </Text>
                         {isEditing ? (
                           <DatePicker
-                            value={editData.dateOfBirth ? dayjs(editData.dateOfBirth) : null}
+                            value={formData.dateOfBirth ? dayjs(formData.dateOfBirth) : null}
                             onChange={date =>
                               handleInputChange(
                                 'dateOfBirth',
@@ -649,7 +664,7 @@ export const ProfilePage: React.FC = () => {
                         </Text>
                         {isEditing ? (
                           <Select
-                            value={editData.major}
+                            value={formData.major || undefined}
                             onChange={value => handleInputChange('major', value)}
                             placeholder="Chọn chuyên ngành"
                             style={{ width: '100%', fontSize: 15, fontWeight: 500 }}
@@ -724,8 +739,8 @@ export const ProfilePage: React.FC = () => {
                           Ngày tạo tài khoản
                         </Text>
                         <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
-                          {currentIdentity.createdAt
-                            ? new Date(currentIdentity.createdAt).toLocaleDateString('vi-VN', {
+                          {identity.createdAt
+                            ? new Date(identity.createdAt).toLocaleDateString('vi-VN', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric',
@@ -757,8 +772,8 @@ export const ProfilePage: React.FC = () => {
                           Cập nhật lần cuối
                         </Text>
                         <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
-                          {currentIdentity.updatedAt
-                            ? new Date(currentIdentity.updatedAt).toLocaleDateString('vi-VN', {
+                          {identity.updatedAt
+                            ? new Date(identity.updatedAt).toLocaleDateString('vi-VN', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric',

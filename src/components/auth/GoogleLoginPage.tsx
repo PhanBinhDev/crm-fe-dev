@@ -56,12 +56,7 @@ export const GoogleLoginPage: React.FC = () => {
         }}
       >
         <Space direction="vertical" size="middle" style={{ width: '100%', textAlign: 'center' }}>
-          <img
-            src="/logo.png"
-            alt="Logo"
-            height={70}
-            style={{ marginBottom: '24px', objectFit: 'contain' }}
-          />
+          <img src="/logo.png" alt="Logo" height={70} style={{ objectFit: 'contain' }} />
 
           <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>Đăng nhập vào CRM</h2>
 
@@ -71,7 +66,7 @@ export const GoogleLoginPage: React.FC = () => {
             placeholder="Chọn cơ sở FPT Polytechnic"
             value={campus}
             onChange={handleCampusChange}
-            style={{ width: '100%', textAlign: 'left' }}
+            style={{ width: '100%', textAlign: 'left', marginBottom: 10 }}
             allowClear
           >
             <Select.Option value="HaNoi">Hà Nội</Select.Option>
