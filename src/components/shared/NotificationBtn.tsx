@@ -342,13 +342,15 @@ const NotificationBtn = () => {
   const notifications = localNotifications;
   const unreadCount = localNotifications.filter(n => !n.isRead).length;
   const allCount = localNotifications.length;
-
   console.log('Notifications:', notifications);
 
   const markAsRead = (noti: INotification) => {
     if (noti.type === NotificationType.ACTIVITY && noti.data?.uri && noti.data?.open) {
       navigate(noti.data.uri);
       openModal('ModalEditActivity', { activity: noti.data.open });
+    }
+    if (noti.type === NotificationType.WORKSPACE) {
+      navigate('/settings/workspaces');
     }
     setOpen(false);
     if (isUpdating || noti.isRead) return;

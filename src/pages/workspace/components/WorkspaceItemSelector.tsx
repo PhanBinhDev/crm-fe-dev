@@ -1,6 +1,7 @@
 import { IWorkspace } from '@/common/types';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { getColorFromName, getInitials } from '@/utils/activity';
 import { useCustomMutation, useNavigation } from '@refinedev/core';
 import { IconChevronDown, IconSettings, IconShare } from '@tabler/icons-react';
 import {
@@ -95,9 +96,9 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#333',
+            color: getInitials(workspace?.name) ? '#fff' : '#000',
             fontSize: size / 2,
-            background: '#f0f0f0',
+            background: getColorFromName(workspace?.name),
           }}
         >
           {workspace?.name?.charAt(0).toUpperCase() || 'W'}
@@ -201,7 +202,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
             }}
             onClick={() => {
               setOpen(false);
-              push(`/workspaces/${currentWorkspace?.id}/settings`);
+              push(`/settings/workspaces/${currentWorkspace?.id}`);
             }}
             icon={<IconSettings size={14} />}
             onMouseEnter={e => {

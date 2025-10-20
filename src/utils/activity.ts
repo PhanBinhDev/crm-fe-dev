@@ -202,7 +202,7 @@ export const getColorFromName = (name: any) => {
   ];
 
   let hash = 0;
-  for (let i = 0; i < name.length; i++) {
+  for (let i = 0; i < name?.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
   return colors[Math.abs(hash) % colors.length];

@@ -1,6 +1,6 @@
 import { useCreate, useInvalidate } from '@refinedev/core';
 import { IconCategory, IconLink, IconList, IconPlus } from '@tabler/icons-react';
-import { Button, Input, InputRef, Space, Tooltip, Typography } from 'antd';
+import { Button, Input, InputRef, message, Space, Tooltip, Typography } from 'antd';
 import { useRef, useState } from 'react';
 import ActivityLinks from './ActivityLinks';
 
@@ -28,6 +28,15 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
     return !!url.trim() && !!title.trim();
   };
 
+  const isValidUrl = (value: string): boolean => {
+    try {
+      const url = new URL(value.trim());
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   const handleAddLinks = () => {
     if (!showInput) {
       setShowInput(true);
@@ -47,6 +56,10 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
 
   const handleAddLink = () => {
     if (isRequiredFieldsFilled()) {
+      if (!isValidUrl(url)) {
+        message.error('Đường dẫn không hợp lệ. Vui lòng nhập URL hợp lệ (http hoặc https).');
+        return;
+      }
       setIsSubmitting(true);
       console.log(title, url, description);
       addLink(
@@ -216,7 +229,7 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
                 placeholder="Nhập tiêu đề..."
                 value={title}
                 onPressEnter={e => {
-                  e.preventDefault();
+                  e.stopPropagation();
                   handleAddLink();
                 }}
                 onChange={e => setTitle(e.target.value)}

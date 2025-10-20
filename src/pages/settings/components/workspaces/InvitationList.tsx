@@ -114,8 +114,9 @@ const InvitationList = () => {
                       <CustomAvatar
                         name={workspace.name}
                         src={
-                          workspace?.avatar &&
-                          `${import.meta.env.VITE_API_BASE_URL}${workspace?.avatar}?t=${workspace?.updatedAt}`
+                          workspace?.avatar
+                            ? workspace.avatar
+                            : `${import.meta.env.VITE_API_BASE_URL}${workspace?.avatar}?t=${workspace?.updatedAt}`
                         }
                       />
                       <div>

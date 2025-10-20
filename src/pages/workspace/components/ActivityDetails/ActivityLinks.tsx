@@ -6,10 +6,12 @@ import { Avatar, Card, List, message, Popconfirm, Skeleton, Tooltip, Typography 
 import dayjs from 'dayjs';
 import { useState } from 'react';
 const { Paragraph } = Typography;
+
 interface ActivityLinksProps {
   viewMode: 'list' | 'category';
   activityId: string;
 }
+
 interface LinkAvatarProps {
   linkPreview?: ILinkPreview;
 }
@@ -34,18 +36,17 @@ const LinkCardSkeleton = () => (
 
 const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
   const { mutate: deleteLink } = useDelete();
-  const [links, setLinks] = useState<IActivityLinks[]>([]);
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
+
   const { data, isLoading } = useList<IActivityLinks>({
     resource: `activities/${activityId}/links`,
     queryOptions: {
       enabled: !!activityId,
-      onSuccess: res => {
-        setLinks(res.data);
-      },
     },
   });
 
-  const listLink = !data?.data || isLoading ? [] : data.data;
+  const listLink =
+    !data?.data || isLoading ? [] : data.data.filter(link => !deletedIds.has(link.id));
 
   if (isLoading) {
     return (
@@ -72,10 +73,11 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
       </div>
     );
   }
-  const handleDeleteLink = (id: string) => {
-    const oldLinks = [...links];
 
-    setLinks(prev => prev.filter(l => l.id !== id));
+  const handleDeleteLink = (id: string) => {
+    // Optimistically remove from UI
+    setDeletedIds(prev => new Set(prev).add(id));
+
     deleteLink(
       {
         resource: `activities/${activityId}/links`,
@@ -83,11 +85,17 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
       },
       {
         onSuccess: () => {
-          console.log(message.success);
+          message.success('Đã xóa liên kết');
         },
         onError: error => {
-          setLinks(oldLinks);
-          console.log(error);
+          // Revert optimistic update on error
+          setDeletedIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(id);
+            return newSet;
+          });
+          message.error('Không thể xóa liên kết');
+          console.error(error);
         },
       },
     );
@@ -199,9 +207,8 @@ const ActivityLinks = ({ viewMode, activityId }: ActivityLinksProps) => {
       }}
     >
       {(listLink || []).map((item, index) => (
-        <div style={{ position: 'relative' }}>
+        <div key={item.id} style={{ position: 'relative' }}>
           <Card
-            key={index}
             hoverable
             style={{ borderRadius: 12, boxShadow: '0 3px 3px rgba(0, 0, 0, 0.1)' }}
             styles={{

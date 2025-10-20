@@ -11,4 +11,5 @@ export enum NotificationType {
   REMINDER = 'reminder',
   FOLLOW = 'follow',
   ACTIVITY = 'activity',
+  WORKSPACE = 'workspace',
 }
