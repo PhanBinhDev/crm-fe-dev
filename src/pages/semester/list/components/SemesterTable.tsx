@@ -9,9 +9,14 @@ import { ColumnType } from 'antd/lib/table';
 interface SemesterTableProps {
   tableProps: TableProps<any>;
   onPageSizeChange?: (size: number) => void;
+  onChange?: TableProps<any>['onChange'];
 }
 
-const SemesterTable: React.FC<SemesterTableProps> = ({ tableProps, onPageSizeChange }) => {
+const SemesterTable: React.FC<SemesterTableProps> = ({
+  tableProps,
+  onPageSizeChange,
+  onChange,
+}) => {
   const paginationConfig = paginationConfigOptions(tableProps, onPageSizeChange);
 
   const columns: ColumnType<ISemester>[] = [
@@ -101,6 +106,7 @@ const SemesterTable: React.FC<SemesterTableProps> = ({ tableProps, onPageSizeCha
   return (
     <Table
       {...tableProps}
+      onChange={onChange}
       columns={columns}
       rowKey="id"
       scroll={{ x: 1000 }}
