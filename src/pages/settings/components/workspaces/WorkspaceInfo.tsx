@@ -478,7 +478,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                         Số thành viên:
                       </span>
                       <span style={{ fontSize: 14, fontWeight: 600, color: '#1677ff' }}>
-                        {workspace?.membersCount} thành viên
+                        {workspace?.members?.length || 1} thành viên
                       </span>
                     </div>
                   </div>

@@ -76,9 +76,9 @@ export const UserFilters: FC<UserFiltersProps> = ({
       <Select
         placeholder="Lọc theo trạng thái"
         allowClear
-        value={statusValue !== undefined ? statusValue.toString() : undefined}
+        value={statusValue}
         style={{ width: '100%' }}
-        onChange={handleStatusChange}
+        onChange={onStatusFilter}
         options={userStatusFilterOptions}
       />
       <Button icon={<ReloadOutlined />} onClick={onReset} block>

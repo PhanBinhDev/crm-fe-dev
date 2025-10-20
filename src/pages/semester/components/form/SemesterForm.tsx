@@ -197,7 +197,7 @@ export const SemesterForm: React.FC<SemesterFormProps> = ({
               </div>
             ))}
 
-            {/* ✅ Nút thêm khi trống: Đặt BÊN TRONG hàm */}
+            {/*Nút thêm khi trống: Đặt BÊN TRONG hàm */}
             {fields.length === 0 && (
               <div style={{ marginBottom: 16 }}>
                 <Space>

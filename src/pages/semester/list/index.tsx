@@ -20,6 +20,15 @@ const SemesterList: React.FC = () => {
     syncWithLocation: true,
   });
 
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
+
+  const handleTableChange = (_pagination: any, _filters: any, sorter: any) => {
+    if (!Array.isArray(sorter)) {
+      setSortField(sorter.field || null);
+      setSortOrder(sorter.order || null);
+    }
+  };
   const filteredData = useMemo(() => {
     let data = tableProps.dataSource ?? [];
 
@@ -34,9 +43,21 @@ const SemesterList: React.FC = () => {
     if (status !== null) {
       data = data.filter((item: any) => item.status === status);
     }
+    if (sortField && sortOrder) {
+      data = [...data].sort((a, b) => {
+        const asc = sortOrder === 'ascend' ? 1 : -1;
+        if (sortField === 'year') return asc * (a.year - b.year);
+        if (sortField === 'name') return asc * a.name.localeCompare(b.name);
+        if (sortField === 'startDate')
+          return asc * (new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+        if (sortField === 'endDate')
+          return asc * (new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
+        return 0;
+      });
+    }
 
     return data;
-  }, [tableProps.dataSource, search, year, status]);
+  }, [tableProps.dataSource, search, year, status, sortField, sortOrder]);
 
   const handleReset = () => {
     setSearch('');
@@ -72,6 +93,7 @@ const SemesterList: React.FC = () => {
         <Col span={24}>
           <SemesterTable
             tableProps={{ ...tableProps, dataSource: filteredData }}
+            onChange={handleTableChange}
             onPageSizeChange={setPageSize}
           />
         </Col>
