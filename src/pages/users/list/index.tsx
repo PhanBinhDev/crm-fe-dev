@@ -71,10 +71,6 @@ export const UserList = () => {
         },
       ],
     },
-    queryOptions: {
-      keepPreviousData: true,
-    },
-
     syncWithLocation: true,
   });
 

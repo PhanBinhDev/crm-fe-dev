@@ -5,6 +5,7 @@ import Spinner from '@/components/ui/Spinner';
 import { getUserRoleLabel } from '@/constants/user';
 import { useAuth } from '@/hooks/useAuth';
 import { getUserStatusLabel } from '@/utils';
+import { getColorFromName } from '@/utils/activity';
 import { getMajorOptionsForRole } from '@/utils/majorGroups';
 import { useCustomMutation, useInvalidate, useOne } from '@refinedev/core';
 import { IconDeviceFloppy, IconInfoHexagon, IconUpload, IconX } from '@tabler/icons-react';
@@ -45,6 +46,7 @@ const pickEditableFields = (obj: any): IFormData => ({
 });
 
 const GeneralSettings = () => {
+  const [dateError, setDateError] = useState<string | null>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const { user: authUser } = useAuth();
   const invalidate = useInvalidate();
@@ -126,11 +128,38 @@ const GeneralSettings = () => {
   }, [formData, initialDataState, avatarFile, avatarPreview, identity]);
 
   const handleInputChange = (field: keyof IFormData, value: string) => {
+    if (field === 'dateOfBirth') {
+      if (!value) {
+        setDateError(null);
+      } else {
+        const d = dayjs(value, 'YYYY-MM-DD', true);
+        if (!d.isValid()) {
+          setDateError('Ngày sinh không hợp lệ');
+        } else if (d.isAfter(dayjs(), 'day')) {
+          setDateError('Ngày sinh không được ở tương lai');
+        } else {
+          const age = dayjs().diff(d, 'year');
+          if (age < 18) {
+            setDateError('Người dùng phải từ 18 tuổi trở lên');
+          } else {
+            setDateError(null);
+          }
+        }
+      }
+    }
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSave = () => {
     if (!identity?.id) return;
+    if (dateError) {
+      message.error(dateError);
+      return;
+    }
+    if (formData.dateOfBirth && !dayjs(formData.dateOfBirth, 'YYYY-MM-DD', true).isValid()) {
+      message.error('Ngày sinh không hợp lệ');
+      return;
+    }
 
     const changedFields = Object.entries(pickEditableFields(formData)).filter(
       ([key, value]) => value !== initialDataState[key as keyof IFormData],
@@ -346,6 +375,8 @@ const GeneralSettings = () => {
                 transition: 'opacity 0.3s',
                 fontSize: 48,
                 fontWeight: 600,
+                background: getColorFromName(identity?.name || 'User'),
+                border: 'none',
               }}
             />
             {avatarPreview && (
@@ -482,10 +513,18 @@ const GeneralSettings = () => {
                 onChange={date =>
                   handleInputChange('dateOfBirth', date ? date.format('YYYY-MM-DD') : '')
                 }
+                disabledDate={current => !!current && current > dayjs().endOf('day')}
                 placeholder="Chọn ngày sinh"
                 style={{ width: '100%' }}
                 format={'DD/MM/YYYY'}
               />
+              {dateError && (
+                <div style={{ marginTop: 6 }}>
+                  <Text type="danger" style={{ fontSize: 12 }}>
+                    {dateError}
+                  </Text>
+                </div>
+              )}
             </Col>
 
             <Col xs={24} md={12}>

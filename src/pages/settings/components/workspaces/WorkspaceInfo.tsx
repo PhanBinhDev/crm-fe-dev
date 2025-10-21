@@ -402,6 +402,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                               background: getColorFromName(workspace?.owner?.name),
                               fontSize: 14,
                               fontWeight: 600,
+                              border: 'none',
                             }}
                           >
                             {getInitials(workspace?.owner?.name)}

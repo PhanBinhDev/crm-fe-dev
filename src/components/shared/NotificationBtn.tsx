@@ -68,6 +68,7 @@ const NotificationItem = memo(
             style={{
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               flexShrink: 0,
+              border: 'none',
             }}
             size={28}
           >
@@ -337,7 +338,12 @@ const NotificationBtn = () => {
   const notifications = localNotifications;
   const unreadCount = localNotifications.filter(n => !n.isRead).length;
   const allCount = localNotifications.length;
-  console.log('Notifications:', notifications);
+
+  const filteredNotifications = notifications.filter(item => {
+    if (tab === 'unread') return !item.isRead;
+    if (tab === 'mentions') return item.type === NotificationType.MENTION;
+    return true;
+  });
 
   const markAsRead = (noti: INotification) => {
     if (noti.type === NotificationType.ACTIVITY && noti.data?.uri && noti.data?.open) {
@@ -494,16 +500,19 @@ const NotificationBtn = () => {
           >
             <Spinner />
           </div>
-        ) : notifications.length === 0 ? (
-          <Empty description="Không có thông báo nào" style={{ margin: '10px 0' }} />
+        ) : filteredNotifications.length === 0 ? (
+          <Empty
+            description={
+              tab === 'unread' ? 'Không có thông báo chưa đọc' : 'Không có thông báo nào'
+            }
+            style={{ margin: '10px 0' }}
+          />
         ) : (
           <List
-            dataSource={notifications}
-            renderItem={item => {
-              if (tab === 'unread' && item.isRead) return null;
-              if (tab === 'mentions' && item.type !== NotificationType.MENTION) return null;
-              return <NotificationItem key={item.id} item={item} onMarkAsRead={markAsRead} />;
-            }}
+            dataSource={filteredNotifications}
+            renderItem={item => (
+              <NotificationItem key={item.id} item={item} onMarkAsRead={markAsRead} />
+            )}
             split={false}
             style={{ padding: '0 8px', maxHeight: 250 }}
           />

@@ -1,5 +1,5 @@
-import { IBase } from '@/common/types';
 import { UserRole } from '@/common/enum/user';
+import { IBase } from '@/common/types';
 import { IActivityAssignee } from './assignee';
 
 export interface IUser extends IBase {

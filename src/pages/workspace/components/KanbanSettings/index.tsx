@@ -1,4 +1,4 @@
-import { EyeOutlined, UserOutlined } from '@ant-design/icons';
+import { EyeOutlined } from '@ant-design/icons';
 import { Tabs } from 'antd';
 import React, { useState } from 'react';
 import { DisplaySettings } from './DisplaySettings';
@@ -34,16 +34,6 @@ export const KanbanBoardSettings: React.FC = () => {
         </span>
       ),
       children: <DisplaySettings />,
-    },
-    {
-      key: 'permissions',
-      label: (
-        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
-          <UserOutlined style={{ fontSize: '14px' }} />
-          Phân quyền
-        </span>
-      ),
-      children: comingSoonContent(<UserOutlined />, 'Cài đặt phân quyền sẽ có sớm...'),
     },
   ];
 
