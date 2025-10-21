@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getUserStatusLabel } from '@/utils';
 import { getMajorOptionsForRole } from '@/utils/majorGroups';
 import { useCustomMutation, useInvalidate, useOne } from '@refinedev/core';
-import { IconInfoHexagon, IconUpload, IconX } from '@tabler/icons-react';
+import { IconDeviceFloppy, IconInfoHexagon, IconUpload, IconX } from '@tabler/icons-react';
 import {
   Button,
   Card,
@@ -200,18 +200,18 @@ const GeneralSettings = () => {
     lineHeight: '30px',
   };
 
-  if (isLoading && !identity) {
+  if (isLoading) {
     return (
       <div
         style={{
           width: '100%',
-          minHeight: 300,
+          height: '100%',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
         }}
       >
-        <Spinner />
+        <Spinner size={28} />
       </div>
     );
   }
@@ -238,29 +238,59 @@ const GeneralSettings = () => {
             }}
           >
             <Text style={{ fontSize: 17, paddingLeft: 6, fontWeight: 600 }}>Thông tin cá nhân</Text>
+            <Button
+              style={{
+                visibility: 'hidden',
+              }}
+            />
             {hasChanges && (
-              <div style={{ display: 'flex', gap: 8 }}>
-                <Button
-                  size="small"
-                  onClick={handleCancel}
-                  disabled={isUpdating}
-                  style={{ borderRadius: 8 }}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  type="primary"
-                  size="small"
-                  onClick={handleSave}
-                  loading={isUpdating}
+              <>
+                <Space
                   style={{
-                    borderRadius: 8,
-                    opacity: isUpdating ? 0.8 : 1,
+                    display: 'flex',
                   }}
                 >
-                  Lưu
-                </Button>
-              </div>
+                  <Button
+                    type="text"
+                    style={{
+                      padding: '4px 12px',
+                      borderRadius: 8,
+                      gap: 6,
+                      border: '1px solid #f1f1f1',
+                    }}
+                    onClick={handleCancel}
+                    disabled={isUpdating}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    type="primary"
+                    icon={
+                      isUpdating ? (
+                        <Spinner size={16} color="#fff" />
+                      ) : (
+                        <IconDeviceFloppy size={16} />
+                      )
+                    }
+                    onClick={handleSave}
+                    styles={{
+                      icon: {
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      },
+                    }}
+                    style={{
+                      padding: '4px 12px',
+                      borderRadius: 8,
+                      gap: 6,
+                      opacity: isUpdating ? 0.6 : 1,
+                    }}
+                  >
+                    Lưu
+                  </Button>
+                </Space>
+              </>
             )}
           </div>
         }
@@ -275,8 +305,8 @@ const GeneralSettings = () => {
         }}
         styles={{
           header: {
-            padding: '12px 16px',
-            minHeight: 44.8,
+            padding: 8,
+            maxHeight: 48,
             borderBottom: '1px solid #f0f0f0',
             background: '#fff',
           },
@@ -296,7 +326,6 @@ const GeneralSettings = () => {
             flexDirection: 'column',
             alignItems: 'center',
             gap: 15,
-            borderRight: isMobile ? 'none' : '1px solid #eee',
             paddingRight: isMobile ? 0 : 20,
           }}
         >
@@ -486,7 +515,7 @@ const GeneralSettings = () => {
         styles={{
           header: {
             padding: '12px 16px',
-            minHeight: 44.8,
+            height: 48,
             borderBottom: '1px solid #f0f0f0',
             background: '#fff',
           },

@@ -1,10 +1,11 @@
 import Spinner from '@/components/ui/Spinner';
+import { useModal } from '@/hooks/useModal';
 import { useCustomMutation } from '@refinedev/core';
 import {
   IconDeviceFloppy,
   IconInfoSquareRounded,
-  IconPlus,
   IconSettings,
+  IconUserPlus,
   IconUsersPlus,
 } from '@tabler/icons-react';
 import { Button, Card, Space } from 'antd';
@@ -37,6 +38,7 @@ const ManageWorkspace = () => {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('info');
   const infoFormRef = useRef<any>(null);
   const [showSave, setShowSave] = useState(false);
+  const { openModal } = useModal();
 
   const handleInfoFormChange = (changed: boolean) => {
     setShowSave(changed);
@@ -94,7 +96,7 @@ const ManageWorkspace = () => {
       return (
         <Button
           type="primary"
-          icon={<IconPlus size={14} />}
+          icon={<IconUserPlus size={14} />}
           styles={{
             icon: {
               display: 'flex',
@@ -106,6 +108,9 @@ const ManageWorkspace = () => {
             padding: '4px 12px',
             borderRadius: 8,
             gap: 4,
+          }}
+          onClick={() => {
+            openModal('ModalInviteMember');
           }}
         >
           Mời thành viên

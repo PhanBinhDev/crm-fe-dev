@@ -1,11 +1,11 @@
+import { useAuth } from '@/hooks/useAuth';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
-import { getColorFromName, getInitials } from '@/utils/activity';
-import { useGetIdentity, useLogout } from '@refinedev/core';
+import { useLogout } from '@refinedev/core';
 import { IconLogout, IconSettings, IconUserCircle } from '@tabler/icons-react';
-import { Avatar, Button, Drawer, Dropdown, Layout, MenuProps, Skeleton, Space } from 'antd';
-import { useEffect, useState } from 'react';
+import { Button, Drawer, Dropdown, Layout, MenuProps, Skeleton, Space } from 'antd';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IUser } from '../../common/types/users';
+import CustomAvatar from '../ui/CustomAvatar';
 import CustomBreadcrumb from './CustomBreadcrumb';
 import NotificationBtn from './NotificationBtn';
 
@@ -16,13 +16,10 @@ interface CustomHeaderProps {
 }
 
 export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
-  const { data: user, isLoading, refetch } = useGetIdentity<IUser>();
+  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const { mutate: logout } = useLogout();
   const [profileTab, setProfileTab] = useState(false);
-  useEffect(() => {
-    if (!profileTab) refetch?.();
-  }, [profileTab]);
 
   const userMenuItems: MenuProps['items'] = [
     {
@@ -113,26 +110,7 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
                 </div>
               ) : (
                 <>
-                  <Avatar
-                    size={25}
-                    src={
-                      user?.avatar
-                        ? user.avatar.startsWith('http')
-                          ? `${user.avatar}?t=${user.updatedAt}`
-                          : `${import.meta.env.VITE_API_BASE_URL}${user.avatar}?t=${user.updatedAt}`
-                        : undefined
-                    }
-                    style={{
-                      backgroundColor: getColorFromName(user?.name),
-                      color: '#fff',
-                      fontSize: 14,
-                      fontWeight: 600,
-                      border: 'none',
-                    }}
-                  >
-                    {getInitials(user?.name)}
-                  </Avatar>
-
+                  <CustomAvatar size={25} name={user?.name || 'User'} src={user?.avatar} />
                   <span
                     style={{
                       marginLeft: 6,
@@ -158,7 +136,7 @@ export const CustomHeader = ({ collapsed }: CustomHeaderProps) => {
         onClose={() => setProfileTab(false)}
         mask
         maskClosable
-        destroyOnClose
+        destroyOnHidden
         styles={{
           body: { padding: 0, height: '100%' },
           mask: { backgroundColor: 'rgba(0, 0, 0, 0.45)', position: 'fixed' },

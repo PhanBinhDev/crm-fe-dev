@@ -103,6 +103,7 @@ export const MemberTable: FC<MemberTableProps> = ({
       title: tab === 'active' ? 'Ngày tham gia' : 'Ngày mời',
       dataIndex: 'createdAt',
       width: 200,
+      sorter: true,
       render: (createdAt: string) => dayjs(createdAt).format('DD/MM/YYYY') || '-',
     },
     {
