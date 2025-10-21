@@ -1,5 +1,6 @@
 import { MemberRole, WorkspaceVisibility } from '@/common/enum/workspace';
 import { IWorkspace } from '@/common/types';
+import CustomAvatar from '@/components/ui/CustomAvatar';
 import Spinner from '@/components/ui/Spinner';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
@@ -228,21 +229,18 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                     borderRadius: 12,
                   }}
                 >
-                  <Avatar
+                  <CustomAvatar
                     size={130}
+                    name={workspace?.name || 'W'}
                     src={avatarPreview}
                     style={{
-                      backgroundColor: getColorFromName(workspace?.name),
-                      color: avatarPreview ? 'transparent' : '#fff',
+                      border: `1.5px solid ${getColorFromName(workspace?.name)}`,
+                      transition: 'opacity 0.3s',
                       fontSize: 48,
                       fontWeight: 600,
-                      transition: 'opacity 0.3s',
-                      border: `1.5px solid ${getColorFromName(workspace?.name)}`,
                     }}
-                    onError={() => false}
-                  >
-                    {!avatarPreview && getInitials(workspace?.name)}
-                  </Avatar>
+                  />
+
                   {canEdit && avatarPreview && (
                     <Button
                       type="text"

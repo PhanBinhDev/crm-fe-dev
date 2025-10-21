@@ -17,10 +17,10 @@ const InlineEditor: React.FC<{
   defaultColor?: string;
   onSave: (title: string, color: string) => void;
   onCancel: () => void;
-}> = ({ defaultTitle = '', defaultColor = '#9ca3af', onSave, onCancel }) => {
+}> = ({ defaultTitle = '', defaultColor = '#9ca3af', onSave }) => {
   const [title, setTitle] = useState(defaultTitle);
   const [color, setColor] = useState(defaultColor);
-  const [hovered, setHovered] = useState(false);
+  const [_hovered, setHovered] = useState(false);
 
   const handleSave = () => {
     if (!title.trim()) return;

@@ -11,13 +11,11 @@ const CustomAvatar = ({ name, src, ...props }: CustomAvatarProps) => {
   const [imgError, setImgError] = useState(false);
 
   if (src && !imgError) {
-    console.log('Using image source for avatar:', src);
-
     return (
       <Avatar
+        {...props}
         src={src}
         size={props.size || 38}
-        {...props}
         onError={() => {
           setImgError(true);
           return true;
@@ -29,7 +27,11 @@ const CustomAvatar = ({ name, src, ...props }: CustomAvatarProps) => {
   }
 
   return (
-    <Avatar size={props.size || 38} style={{ background: getColorFromName(name) }} {...props}>
+    <Avatar
+      {...props}
+      size={props.size || 38}
+      style={{ background: getColorFromName(name), ...props.style }}
+    >
       {getInitials(name)}
     </Avatar>
   );
