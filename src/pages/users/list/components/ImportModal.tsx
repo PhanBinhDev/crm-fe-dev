@@ -116,8 +116,8 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
               },
             },
             {
-              onSuccess: (res) => resolve(res),
-              onError: (error) => reject(error),
+              onSuccess: res => resolve(res),
+              onError: error => reject(error),
             },
           );
         });
@@ -137,8 +137,8 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
               values: { url: convertedUrl },
             },
             {
-              onSuccess: (res) => resolve(res),
-              onError: (error) => reject(error),
+              onSuccess: res => resolve(res),
+              onError: error => reject(error),
             },
           );
         });
@@ -203,10 +203,7 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
     >
       <div style={{ padding: '20px 0' }}>
         <div style={{ marginBottom: 16 }}>
-          <Upload.Dragger
-            {...uploadProps}
-            style={{ minHeight: 120, borderRadius: 8 }}
-          >
+          <Upload.Dragger {...uploadProps} style={{ minHeight: 120, borderRadius: 8 }}>
             <div style={{ textAlign: 'center' }}>
               <IconFileSpreadsheet size={36} color="#228be6" style={{ marginBottom: 4 }} />
               <div style={{ fontSize: 14, fontWeight: 500 }}>Kéo thả hoặc chọn tệp tin Excel</div>
@@ -262,14 +259,13 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
           <div style={{ display: 'flex', gap: 8 }}>
             <Button
               onClick={handleCancel}
-              icon={<IconX size={16} style={{ marginTop: 2 }} />}
-              style={{ 
-                borderRadius: 6, 
-                height: 32, 
+              style={{
+                borderRadius: 6,
+                height: 32,
                 fontSize: 14,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 4
+                gap: 4,
               }}
             >
               <IconX size={16} style={{ display: 'flex', alignItems: 'center' }} />
@@ -287,7 +283,7 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
                 borderColor: '#228be6',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 4
+                gap: 4,
               }}
             >
               <IconUpload size={16} style={{ display: 'flex', alignItems: 'center' }} />
