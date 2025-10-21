@@ -22,7 +22,7 @@ import { authProvider } from '@/providers/AuthProvider';
 import '@/styles/globals.css';
 import { Toaster } from 'sonner';
 import { ErrorComponent } from './components/common/ErrorBoundary';
-import Modals from './components/modals';
+import { Modals, ModalsDelays } from './components/modals';
 import { NotificationHandler } from './components/shared/NotificationHandler';
 import { DisplayConfigProvider } from './contexts/DisplayConfig';
 import { materialRoutes } from './pages/course-materials/routes';
@@ -99,6 +99,7 @@ function App() {
                   </Routes>
 
                   <Modals />
+                  <ModalsDelays />
                   <RefineKbar />
                   <Toaster position="top-right" />
                   <UnsavedChangesNotifier />

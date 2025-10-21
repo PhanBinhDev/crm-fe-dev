@@ -2,6 +2,7 @@ import { useModal } from '@/hooks/useModal';
 import ModalAddActivity from './ModalAddActivity';
 import ModalAddWorkspace from './ModalAddWorkspace';
 import ModalEditActivity from './ModalEditActivity';
+import ModalInviteMember from './ModalInviteMember';
 import ModalRenameActivity from './ModalRenameActivity';
 import WorkspaceShareModal from './WorkspaceShareModal';
 
@@ -23,4 +24,12 @@ const Modals = () => {
   );
 };
 
-export default Modals;
+const ModalsDelays = () => {
+  return (
+    <>
+      <ModalInviteMember />
+    </>
+  );
+};
+
+export { Modals, ModalsDelays };
