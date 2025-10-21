@@ -43,6 +43,7 @@ export interface IActivity extends IBase {
   checklists?: Checklist[];
   instructorCount?: number;
   studentCount?: number;
+  workspace: { name: string };
 }
 
 export interface FormAddTaskData {

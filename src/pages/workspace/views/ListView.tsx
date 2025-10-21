@@ -316,7 +316,7 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
                 borderRadius: '6px',
               }}
             >
-              <ColorPicker value={config.bgColor} size={8} disabled />
+              <ColorPicker value={config.bgColor} disabled />
               <Text
                 style={{
                   fontSize: 12,

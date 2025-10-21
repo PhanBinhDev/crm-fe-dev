@@ -76,7 +76,7 @@ export const ProfilePage: React.FC = () => {
 
   const identity = userDetail?.data || authUser;
   const isLoading = authLoading || userLoading;
-
+  const [dateError, setDateError] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
   const [isEditing, setIsEditing] = useState(false);
@@ -189,6 +189,14 @@ export const ProfilePage: React.FC = () => {
       setIsEditing(false);
       return;
     }
+    if (dateError) {
+      message.error(dateError);
+      return;
+    }
+    if (formData.dateOfBirth && !dayjs(formData.dateOfBirth, 'YYYY-MM-DD', true).isValid()) {
+      message.error('Ngày sinh không hợp lệ');
+      return;
+    }
 
     const changedFields = Object.entries(pickEditableFields(formData)).filter(
       ([key, value]) => value !== initialDataState[key as keyof IFormData],
@@ -250,11 +258,35 @@ export const ProfilePage: React.FC = () => {
     );
   };
 
+  // const handleInputChange = (field: keyof IFormData, value: string) => {
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     [field]: value,
+  //   }));
+  // };
+
   const handleInputChange = (field: keyof IFormData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+    // validate dateOfBirth on change
+    if (field === 'dateOfBirth') {
+      if (!value) {
+        setDateError(null);
+      } else {
+        const d = dayjs(value, 'YYYY-MM-DD', true);
+        if (!d.isValid()) {
+          setDateError('Ngày sinh không hợp lệ');
+        } else if (d.isAfter(dayjs(), 'day')) {
+          setDateError('Ngày sinh không được ở tương lai');
+        } else {
+          const age = dayjs().diff(d, 'year');
+          if (age < 16) {
+            setDateError('Người dùng phải từ 16 tuổi trở lên');
+          } else {
+            setDateError(null);
+          }
+        }
+      }
+    }
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleAvatarUpload = (options: UploadRequestOption) => {
@@ -619,18 +651,28 @@ export const ProfilePage: React.FC = () => {
                           Ngày sinh
                         </Text>
                         {isEditing ? (
-                          <DatePicker
-                            value={formData.dateOfBirth ? dayjs(formData.dateOfBirth) : null}
-                            onChange={date =>
-                              handleInputChange(
-                                'dateOfBirth',
-                                date ? date.format('YYYY-MM-DD') : '',
-                              )
-                            }
-                            placeholder="Chọn ngày sinh"
-                            style={{ width: '100%', fontSize: 15, fontWeight: 500 }}
-                            format={'DD/MM/YYYY'}
-                          />
+                          <>
+                            <DatePicker
+                              value={formData.dateOfBirth ? dayjs(formData.dateOfBirth) : null}
+                              onChange={date =>
+                                handleInputChange(
+                                  'dateOfBirth',
+                                  date ? date.format('YYYY-MM-DD') : '',
+                                )
+                              }
+                              disabledDate={current => !!current && current > dayjs().endOf('day')}
+                              placeholder="Chọn ngày sinh"
+                              style={{ width: '100%', fontSize: 15, fontWeight: 500 }}
+                              format={'DD/MM/YYYY'}
+                            />
+                            {dateError && (
+                              <div style={{ marginTop: 6 }}>
+                                <Text type="danger" style={{ fontSize: 12 }}>
+                                  {dateError}
+                                </Text>
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
                             {currentIdentity.dateOfBirth

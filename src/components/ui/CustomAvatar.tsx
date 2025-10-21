@@ -10,8 +10,6 @@ interface CustomAvatarProps extends AvatarProps {
 const CustomAvatar = ({ name, src, ...props }: CustomAvatarProps) => {
   const [imgError, setImgError] = useState(false);
 
-  console.log('Rendering CustomAvatar for', name, 'with src', src, 'imgError:', imgError);
-
   if (src && !imgError) {
     console.log('Using image source for avatar:', src);
 
@@ -29,8 +27,6 @@ const CustomAvatar = ({ name, src, ...props }: CustomAvatarProps) => {
       </Avatar>
     );
   }
-
-  console.log('color:', getColorFromName(name));
 
   return (
     <Avatar size={props.size || 38} style={{ background: getColorFromName(name) }} {...props}>

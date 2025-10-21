@@ -126,7 +126,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: avatarPreview ? undefined : '#f0f0f0',
+                background: getColorFromName(currentWorkspace?.name),
               }}
               onClick={() => document.getElementById('workspace-avatar-input')?.click()}
             >

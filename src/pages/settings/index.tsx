@@ -3,7 +3,6 @@ import {
   IconBellCog,
   IconBuildingCog,
   IconLogout,
-  IconShieldCog,
   IconUserSquareRounded,
 } from '@tabler/icons-react';
 import { Button, Typography } from 'antd';
@@ -29,7 +28,6 @@ const menuItems: MenuItem[] = [
     label: 'Workspaces',
   },
   { key: 'notifications', icon: <IconBellCog size={16} color="#333" />, label: 'Thông báo' },
-  { key: 'privacy', icon: <IconShieldCog size={16} color="#333" />, label: 'Quyền riêng tư' },
 ];
 
 const SettingsPage = () => {

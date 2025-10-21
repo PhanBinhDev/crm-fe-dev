@@ -203,6 +203,7 @@ const ActivityCard = ({
                           color: '#fff',
                           fontWeight: 'bold',
                           marginLeft: index > 0 ? -8 : 0,
+                          border: 'none',
                         }}
                       >
                         {initials}
@@ -385,6 +386,15 @@ const ActivityCard = ({
           <>
             {activity.subActivities.map((sub: IActivity, i: number) => (
               <div
+                onClick={e => {
+                  e.stopPropagation();
+                  openModal('ModalEditActivity', {
+                    activity: sub,
+                    parentActivity: activity,
+                    isSubtask: true,
+                    stage: stages?.find(s => s.id === activity.stageId),
+                  });
+                }}
                 key={i}
                 style={{
                   border: isHovered ? '1px solid #cecece' : '1px solid #e0dfdfff',
@@ -392,6 +402,7 @@ const ActivityCard = ({
                   margin: '-5px 0 8px 15px',
                   padding: '5px 10px',
                   background: '#fff',
+                  cursor: 'pointer',
                 }}
               >
                 <div style={{ fontSize: 11, opacity: 0.8 }}> {activity.name}</div>
