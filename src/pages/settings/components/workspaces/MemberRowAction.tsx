@@ -1,5 +1,6 @@
 import { MemberRole } from '@/common/enum/workspace';
 import { IMember } from '@/common/types';
+import { useCustomMutation, useDelete, useInvalidate, useUpdate } from '@refinedev/core';
 import {
   IconDots,
   IconMailOff,
@@ -9,8 +10,9 @@ import {
   IconUserMinus,
   IconUserX,
 } from '@tabler/icons-react';
-import { Button, Popover, Space } from 'antd';
-import { useMemo } from 'react';
+import { Button, message, Modal, Popover, Space } from 'antd';
+import { useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 interface MemberRowActionProps {
   member: IMember;
@@ -19,6 +21,13 @@ interface MemberRowActionProps {
 }
 
 const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProps) => {
+  const { mutate: updateRoleMember } = useUpdate();
+  const { mutate: leaveWorkspace } = useCustomMutation();
+  const { mutate: deleteMember } = useDelete();
+
+  const { workspaceId } = useParams();
+  const [isOpen, setIsOpen] = useState(false);
+
   const menu = useMemo(() => {
     const items = [];
     const isCurrentUser = member.user.id === currentMemberUser?.user?.id;
@@ -52,7 +61,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
           key: 'promote',
           label: 'Gán quản trị viên',
           icon: <IconShield size={16} />,
-          onClick: () => {},
+          onClick: () => handlePromoteOrDemoteMember('promote', member),
         });
       }
 
@@ -61,7 +70,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
           key: 'demote',
           label: 'Hạ cấp thành viên',
           icon: <IconUser size={16} />,
-          onClick: () => {},
+          onClick: () => handlePromoteOrDemoteMember('demote', member),
         });
       }
 
@@ -75,7 +84,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
           label: 'Xóa khỏi workspace',
           icon: <IconUserX size={16} />,
           danger: true,
-          onClick: () => {},
+          onClick: () => handleRemoveOrLeaveWS('remove', member),
         });
       }
 
@@ -85,7 +94,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
           label: 'Rời workspace',
           icon: <IconUserMinus size={16} />,
           danger: true,
-          onClick: () => {},
+          onClick: () => handleRemoveOrLeaveWS('leave', member),
         });
       }
     }
@@ -99,6 +108,94 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
 
   const handleResendInvite = (member: IMember) => {
     console.log('Resend invitation to:', member);
+  };
+
+  const invalidate = useInvalidate();
+
+  const handlePromoteOrDemoteMember = (type: string, member: IMember) => {
+    setIsOpen(false);
+    const msg = type === 'promote' ? 'Gán quản trị viên' : 'Hạ cấp thành viên';
+    const hideLoading = message.loading(`Đang ${msg}...`, 0);
+
+    updateRoleMember(
+      {
+        resource: `workspaces/${workspaceId}/members/${member.user.id}/role`,
+        id: '',
+        values: { role: type === 'promote' ? 'admin' : 'member' },
+      },
+      {
+        onSuccess: () => {
+          hideLoading();
+          message.success(`${msg} thành công!`);
+          invalidate({
+            resource: `workspaces/${workspaceId}/members`,
+            invalidates: ['list', 'many'],
+          });
+        },
+        onError: () => {
+          hideLoading();
+          message.error(`${msg} thất bại. Vui lòng thử lại sau!`);
+        },
+      },
+    );
+  };
+  const handleRemoveOrLeaveWS = (type: string, member: IMember) => {
+    setIsOpen(false);
+    const isRemove = type === 'remove';
+    const msg = isRemove ? 'Xóa khỏi workspace' : 'Rời workspace';
+
+    Modal.confirm({
+      title: `Xác nhận ${isRemove ? 'xóa' : 'rời'}`,
+      content: `Bạn có chắc chắn muốn ${isRemove ? 'xóa thành viên' : 'rời workspace'} này?`,
+      onOk() {
+        const hideLoading = message.loading(`Đang ${msg}...`, 0);
+        if (isRemove) {
+          deleteMember(
+            {
+              resource: `workspaces/${workspaceId}/members/${member.user.id}`,
+              id: '',
+              values: {},
+            },
+            {
+              onSuccess: () => {
+                hideLoading();
+                message.success(`${msg} thành công!`);
+                invalidate({
+                  resource: `workspaces/${workspaceId}/members`,
+                  invalidates: ['list', 'many'],
+                });
+              },
+              onError: () => {
+                hideLoading();
+                message.error(`${msg} thất bại. Vui lòng thử lại sau!`);
+              },
+            },
+          );
+        } else {
+          leaveWorkspace(
+            {
+              url: `/workspaces/${workspaceId}/leave`,
+              method: 'post',
+              values: {},
+            },
+            {
+              onSuccess: () => {
+                hideLoading();
+                message.success(`${msg} thành công!`);
+                invalidate({
+                  resource: `workspaces/${workspaceId}/members`,
+                  invalidates: ['list', 'many'],
+                });
+              },
+              onError: () => {
+                hideLoading();
+                message.error(`${msg} thất bại. Vui lòng thử lại sau!`);
+              },
+            },
+          );
+        }
+      },
+    });
   };
 
   const content = (
@@ -133,6 +230,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
               alignItems: 'center',
             },
           }}
+          onClick={item.onClick}
         >
           {item.label}
         </Button>
@@ -146,6 +244,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
     <Popover
       trigger={['click']}
       content={content}
+      open={isOpen}
       arrow={false}
       placement="leftBottom"
       styles={{
@@ -169,6 +268,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
             alignItems: 'center',
           },
         }}
+        onClick={() => setIsOpen(true)}
       />
     </Popover>
   );

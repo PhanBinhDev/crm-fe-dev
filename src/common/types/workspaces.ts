@@ -9,6 +9,7 @@ export interface IWorkspace extends IBase {
   membersCount?: number;
   inviteCode: string;
   owner: IUser;
+  ownerName: string;
   members: IMember[];
 }
 
