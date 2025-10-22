@@ -118,7 +118,7 @@ const WorkspacesList = () => {
                         {workspace.membersCount ?? 0} thành viên
                         <span style={{ margin: '0 6px' }}>·</span>
                         <>
-                          Chủ sở hữu: <span>hello</span>
+                          Chủ sở hữu: <b>{workspace.ownerName}</b>
                         </>
                       </div>
                     </div>

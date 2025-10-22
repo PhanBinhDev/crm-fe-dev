@@ -349,7 +349,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
                     <List
                       size="small"
                       dataSource={
-                        currentUserRole === UserRole.TM
+                        currentUserRole !== UserRole.GV
                           ? [
                               ...(categoriesData?.data || []),
                               { id: 'custom', name: 'Tùy chỉnh...', description: '' },
