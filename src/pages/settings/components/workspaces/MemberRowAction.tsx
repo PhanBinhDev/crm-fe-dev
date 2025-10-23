@@ -38,16 +38,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
     const currentRole = currentMemberUser?.role;
     const memberRole = member.role;
 
-    console.log({
-      currentUserId: currentMemberUser?.user?.id,
-      memberUserId: member.user.id,
-      isCurrentUser,
-      memberRole,
-      currentRole,
-    });
-
     if (tab === 'invited') {
-      console.log('Current Role:', currentRole, 'Member Role:', memberRole);
       if (
         currentRole === MemberRole.OWNER ||
         (currentRole === MemberRole.ADMIN && memberRole !== MemberRole.ADMIN)
