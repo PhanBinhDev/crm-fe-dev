@@ -272,7 +272,6 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
           },
         }}
         onClick={() => setIsOpen(true)}
-        onBlur={() => setIsOpen(false)}
       />
     </Popover>
   );
