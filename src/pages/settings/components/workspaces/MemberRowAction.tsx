@@ -29,6 +29,9 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
   const { workspaceId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
+
+  không dùng nhánh này, QA đã fix BE
+
   // Api workspaces/wsId/members/me đang thiếu field user nên dùng tạm
   const currentUser = useAuth();
 
