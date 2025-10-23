@@ -1,5 +1,6 @@
 import { MemberRole } from '@/common/enum/workspace';
 import { IMember } from '@/common/types';
+import { useAuth } from '@/hooks/useAuth';
 import { useCustomMutation, useDelete, useInvalidate, useUpdate } from '@refinedev/core';
 import {
   IconDots,
@@ -28,11 +29,22 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
   const { workspaceId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
+  // Api workspaces/wsId/members/me đang thiếu field user nên dùng tạm
+  const currentUser = useAuth();
+
   const menu = useMemo(() => {
     const items = [];
-    const isCurrentUser = member.user.id === currentMemberUser?.user?.id;
+    const isCurrentUser = member.user.id === currentUser?.user?.id;
     const currentRole = currentMemberUser?.role;
     const memberRole = member.role;
+
+    console.log({
+      currentUserId: currentMemberUser?.user?.id,
+      memberUserId: member.user.id,
+      isCurrentUser,
+      memberRole,
+      currentRole,
+    });
 
     if (tab === 'invited') {
       console.log('Current Role:', currentRole, 'Member Role:', memberRole);
@@ -269,6 +281,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
           },
         }}
         onClick={() => setIsOpen(true)}
+        onBlur={() => setIsOpen(false)}
       />
     </Popover>
   );
