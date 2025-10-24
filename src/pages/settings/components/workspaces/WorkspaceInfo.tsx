@@ -217,24 +217,40 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
 
   const handleTransfer = (closeConfirmModal: () => void) => {
     message.loading('Đang chuyển quyền sở hữu...');
-    
+
     onUpdate(
-        {
-            url: `workspaces/${workspaceId}/transfer-ownership`,
-            method: 'patch',
-            values: { newOwnerId },
-        },
-        {
-            onSuccess: () => {
-                message.success('Chuyển quyền sở hữu thành công!');
-                closeConfirmModal();
-                closeTransferModal();
-                refetch();
+      {
+        url: `workspaces/${workspaceId}/transfer-ownership`,
+        method: 'patch',
+        values: { newOwnerId },
+      },
+      {
+        onSuccess: () => {
+          message.success('Chuyển quyền sở hữu thành công!');
+          closeConfirmModal();
+          closeTransferModal();
+          refetch();
+          refreshWorkspaces();
+          
+          onUpdate(
+            {
+              url: `workspaces/${workspaceId}/leave`,
+              method: 'post',
             },
-            onError: () => {
-                message.error('Chuyển quyền sở hữu thất bại, vui lòng thử lại.');
+            {
+              onSuccess: () => {
+                message.success('Bạn đã rời khỏi workspace.');
+              },
+              onError: () => {
+                message.error('Không thể rời khỏi workspace, vui lòng thử lại.');
+              },
             },
+          );
         },
+        onError: () => {
+          message.error('Chuyển quyền sở hữu thất bại, vui lòng thử lại.');
+        },
+      },
     );
   }
 
