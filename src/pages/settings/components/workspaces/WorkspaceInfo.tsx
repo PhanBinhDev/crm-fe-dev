@@ -197,6 +197,13 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
   };
 
   const showTransferModal = () => {
+    // Không mở modal nếu workspace có ít hơn 2 thành viên
+    const memberCount = workspace?.members?.length || 0;
+    if (memberCount < 2) {
+      message.warning('Workspace cần ít nhất 2 thành viên để chuyển quyền sở hữu.');
+      return;
+    }
+
     setNewOwnerId(undefined);
     setIsTransferModalVisible(true);
   };
@@ -552,7 +559,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                               </div>
                             </div>
                           </div>
-                          {user?.id === workspace?.owner.id && (
+                          {user?.id === workspace?.owner.id && (workspace?.members?.length || 0) >= 2 ? (
                             <Tooltip title="Chuyển quyền sở hữu">
                               <Button
                                 type="primary"
@@ -564,10 +571,24 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                                   border: 'none', 
                                   padding: '8px', 
                                   height: 'auto',
-                                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                                 }}
                               />
                             </Tooltip>
+                          ) : (
+                            <Button
+                              type="primary"
+                              icon={<IconTransfer size={16} color="#fff" />}
+                              disabled
+                              style={{ 
+                                borderRadius: 8, 
+                                backgroundColor: '#d9d9d9', 
+                                border: 'none', 
+                                padding: '8px', 
+                                height: 'auto',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                              }}
+                            />
                           )}
                         </div>
                       </div>
