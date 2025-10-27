@@ -33,67 +33,26 @@ export const DashboardPage: React.FC = () => {
     filters: [{ field: 'workspaceId', operator: 'eq', value: currentWorkspace?.id }],
     queryOptions: { enabled: !!currentWorkspace?.id },
   });
-  console.log('ws', currentWorkspace);
-  const isAdminRole =
-    (identity?.id.includes(
-      membersData?.data.find(
-        (member: any) =>
-          member.id === identity?.id && (member.role === 'admin' || member.role === 'owner'),
-      )?.id || '',
-    ) &&
-      identity?.role.includes(UserRole.SUPERADMIN)) ||
-    identity?.role.includes(UserRole.CNBM) ||
-    identity?.name === currentWorkspace?.ownerName;
+
+  const isPrivilegedRole = React.useMemo(() => {
+    if (!identity) return false;
+    const isGlobalSuperadmin = identity.role === UserRole.SUPERADMIN;
+    const isCNBM = identity.role === UserRole.CNBM;
+
+    const memberEntry =
+      membersData?.data?.find((m: any) => m.userId === identity.id || m.id === identity.id) || null;
+    const isWorkspaceAdminOrOwner =
+      !!memberEntry && (memberEntry.role === 'admin' || memberEntry.role === 'owner');
+
+    const isWorkspaceOwner =
+      currentWorkspace?.ownerName && identity.name === currentWorkspace.ownerName;
+
+    return isGlobalSuperadmin || isCNBM || isWorkspaceAdminOrOwner || isWorkspaceOwner;
+  }, [identity, membersData?.data, currentWorkspace]);
 
   return (
     <div style={{ padding: '20px' }}>
-      {/* Personal Dashboard - Hiển thị cho tất cả roles */}
-      {!isAdminRole && (
-        <>
-          <Title level={4} style={{ marginBottom: 16 }}>
-            Dashboard Cá nhân
-          </Title>
-
-          <Row gutter={[16, 16]}>
-            <Col xs={24} md={12}>
-              <Card title="Tổng quan" style={{ height: 320 }}>
-                <Overview stage={(stagesData?.data as IStage[]) ?? []} />
-              </Card>
-            </Col>
-            <Col xs={24} md={12}>
-              <Card title="Biểu đồ tiến độ công việc" style={{ height: 320 }}>
-                <Chart />
-              </Card>
-            </Col>
-          </Row>
-
-          <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-            <Col xs={24} md={12}>
-              <Card
-                title="Nhiệm vụ hôm nay"
-                styles={{
-                  body: { height: 300, padding: 0, overflow: 'hidden' },
-                }}
-              >
-                <TodayTask />
-              </Card>
-            </Col>
-            <Col xs={24} md={12}>
-              <Card
-                title="Công việc được giao"
-                styles={{
-                  body: { height: 300, padding: 0, overflow: 'hidden' },
-                }}
-              >
-                <AssignedTask />
-              </Card>
-            </Col>
-          </Row>
-        </>
-      )}
-
-      {/* Workspace Dashboard - Chỉ hiển thị cho admin, cnbm, owner */}
-      {isAdminRole && (
+      {isPrivilegedRole && (
         <>
           <Title level={4} style={{ marginBottom: 16 }}>
             Tổng quan Workspace
@@ -126,6 +85,48 @@ export const DashboardPage: React.FC = () => {
           </Row>
         </>
       )}
+
+      <>
+        <Title level={4} style={{ margin: '16px 0' }}>
+          Cá nhân
+        </Title>
+
+        <Row gutter={[16, 16]}>
+          <Col xs={24} md={12}>
+            <Card title="Tổng quan" style={{ height: 320 }}>
+              <Overview stage={(stagesData?.data as IStage[]) ?? []} />
+            </Card>
+          </Col>
+          <Col xs={24} md={12}>
+            <Card title="Biểu đồ tiến độ công việc" style={{ height: 320 }}>
+              <Chart />
+            </Card>
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+          <Col xs={24} md={12}>
+            <Card
+              title="Nhiệm vụ hôm nay"
+              styles={{
+                body: { height: 300, padding: 0, overflow: 'hidden' },
+              }}
+            >
+              <TodayTask />
+            </Card>
+          </Col>
+          <Col xs={24} md={12}>
+            <Card
+              title="Công việc được giao"
+              styles={{
+                body: { height: 300, padding: 0, overflow: 'hidden' },
+              }}
+            >
+              <AssignedTask />
+            </Card>
+          </Col>
+        </Row>
+      </>
     </div>
   );
 };
