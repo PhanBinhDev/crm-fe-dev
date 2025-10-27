@@ -30,8 +30,6 @@ const InvitationList = () => {
     return dataInvitations.data.filter(workspace => !hiddenWorkspaceIds.has(workspace.id));
   }, [dataInvitations, isLoadingInvitations, hiddenWorkspaceIds]);
 
-  console.log('Invitations:', invitations);
-
   return (
     <Card
       title={

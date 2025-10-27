@@ -21,6 +21,13 @@ const SemesterTable: React.FC<SemesterTableProps> = ({
 
   const columns: ColumnType<ISemester>[] = [
     {
+      title: 'STT',
+      dataIndex: 'id',
+      key: 'stt',
+      align: 'center',
+      render: (_: any, __: any, index: number) => index + 1,
+    },
+    {
       title: 'Tên kỳ học',
       dataIndex: 'name',
       sorter: true,

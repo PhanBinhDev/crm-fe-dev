@@ -3,7 +3,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { UserOutlined } from '@ant-design/icons';
 import { useList } from '@refinedev/core';
-import { Avatar, Progress, Table, Tag } from 'antd';
+import { Avatar, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React from 'react';
 
@@ -49,18 +49,19 @@ const MemberPerformance: React.FC = () => {
 
   const members = membersData?.data || [];
   const tasks = tasksData?.data || [];
+  console.log('member', members);
 
   // Tính toán performance cho mỗi member
   const tableData: MemberPerformanceData[] = members.map((member: any) => {
-    const memberTasks = tasks.filter((task: any) => task.assigneeId === member.userId);
+    const memberTasks = tasks.filter((task: any) => task.assignees.id === member.userId);
 
-    const completed = memberTasks.filter((t: any) => t.status === 'done').length;
+    const completed = memberTasks.filter((t: any) => t.stage.stageGroup === 'done').length;
     const active = memberTasks.filter(
-      (t: any) => t.status !== 'done' && t.status !== 'cancelled',
+      (t: any) => t.stage.stageGroup !== 'done' && t.stage.stageGroup !== 'cancelled',
     ).length;
     const overdue = memberTasks.filter((t: any) => {
-      if (!t.dueDate) return false;
-      return new Date(t.dueDate) < new Date() && t.status !== 'done';
+      if (!t.endTime) return false;
+      return new Date(t.endTime) < new Date() && t.stage.stageGroup !== 'done';
     }).length;
 
     const total = memberTasks.length;
@@ -123,6 +124,14 @@ const MemberPerformance: React.FC = () => {
       sorter: (a, b) => a.overdue - b.overdue,
     },
     {
+      title: 'Đã huỷ',
+      dataIndex: 'completed',
+      key: 'completed',
+      align: 'center',
+      render: (value: number) => <Tag color="red">{value}</Tag>,
+      sorter: (a, b) => a.completed - b.completed,
+    },
+    {
       title: 'Hoàn thành',
       dataIndex: 'completed',
       key: 'completed',
@@ -136,22 +145,6 @@ const MemberPerformance: React.FC = () => {
       key: 'total',
       align: 'center',
       sorter: (a, b) => a.total - b.total,
-    },
-    {
-      title: 'Tiến độ',
-      dataIndex: 'progress',
-      key: 'progress',
-      align: 'center',
-      render: (value: number) => (
-        <Progress
-          percent={value}
-          size="small"
-          strokeColor={value >= 80 ? '#52c41a' : value >= 50 ? '#1890ff' : '#ff4d4f'}
-          style={{ minWidth: '80px' }}
-        />
-      ),
-      sorter: (a, b) => a.progress - b.progress,
-      defaultSortOrder: 'descend',
     },
   ];
 

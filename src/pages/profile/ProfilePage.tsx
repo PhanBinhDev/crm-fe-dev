@@ -27,7 +27,6 @@ import {
   DatePicker,
   Input,
   Result,
-  Select,
   Skeleton,
   Space,
   Tabs,
@@ -46,16 +45,12 @@ const { Title, Text } = Typography;
 
 interface IFormData {
   phone: string;
-  username: string;
   dateOfBirth: string;
-  major: string;
 }
 
 const pickEditableFields = (obj: any): IFormData => ({
   phone: obj.phone || '',
-  username: obj.username || '',
   dateOfBirth: obj.dateOfBirth || '',
-  major: obj.major || '',
 });
 
 export const ProfilePage: React.FC = () => {
@@ -82,15 +77,11 @@ export const ProfilePage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<IFormData>({
     phone: '',
-    username: '',
     dateOfBirth: '',
-    major: '',
   });
   const [initialDataState, setInitialDataState] = useState<IFormData>({
     phone: '',
-    username: '',
     dateOfBirth: '',
-    major: '',
   });
   const [optimisticData, setOptimisticData] = useState<Partial<IUser> | null>(null);
 
@@ -127,7 +118,7 @@ export const ProfilePage: React.FC = () => {
   }, [identity]);
 
   const hasChanges = useMemo(() => {
-    if (!identity || (!initialDataState.phone && !initialDataState.username)) return false;
+    if (!identity || !initialDataState.phone) return false;
 
     const formChanged = !isEqual(
       pickEditableFields(formData),
@@ -546,6 +537,63 @@ export const ProfilePage: React.FC = () => {
                         </a>
                       </div>
                     </div>
+
+                    {/* Username */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 8,
+                          backgroundColor: '#F3F4F6',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <IconUserCircle size={18} color="#667EEA" stroke={1.5} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Text
+                          type="secondary"
+                          style={{ fontSize: 13, display: 'block', marginBottom: 4 }}
+                        >
+                          Mã giảng viên
+                        </Text>
+
+                        <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
+                          {currentIdentity.username || '-'}
+                        </Text>
+                      </div>
+                    </div>
+                    {/* Chuyên ngành */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 8,
+                          backgroundColor: '#F3F4F6',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <IconUserShield size={18} color="#667EEA" stroke={1.5} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Text
+                          type="secondary"
+                          style={{ fontSize: 13, display: 'block', marginBottom: 4 }}
+                        >
+                          Chuyên ngành
+                        </Text>
+
+                        <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
+                          {currentIdentity.major || '-'}
+                        </Text>
+                      </div>
+                    </div>
                     {/* Phone */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                       <div
@@ -588,43 +636,6 @@ export const ProfilePage: React.FC = () => {
                           >
                             {currentIdentity.phone || '-'}
                           </a>
-                        )}
-                      </div>
-                    </div>
-                    {/* Username */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                      <div
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 8,
-                          backgroundColor: '#F3F4F6',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <IconUserCircle size={18} color="#667EEA" stroke={1.5} />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <Text
-                          type="secondary"
-                          style={{ fontSize: 13, display: 'block', marginBottom: 4 }}
-                        >
-                          Mã giảng viên
-                        </Text>
-                        {isEditing ? (
-                          <Input
-                            value={formData.username}
-                            onChange={e => handleInputChange('username', e.target.value)}
-                            onPressEnter={handleSave}
-                            placeholder="Nhập username"
-                            style={{ fontSize: 15, fontWeight: 500 }}
-                          />
-                        ) : (
-                          <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
-                            {currentIdentity.username || '-'}
-                          </Text>
                         )}
                       </div>
                     </div>
@@ -678,47 +689,6 @@ export const ProfilePage: React.FC = () => {
                             {currentIdentity.dateOfBirth
                               ? dayjs(currentIdentity.dateOfBirth).format('DD/MM/YYYY')
                               : '-'}
-                          </Text>
-                        )}
-                      </div>
-                    </div>
-                    {/* Chuyên ngành */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                      <div
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 8,
-                          backgroundColor: '#F3F4F6',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <IconUserShield size={18} color="#667EEA" stroke={1.5} />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <Text
-                          type="secondary"
-                          style={{ fontSize: 13, display: 'block', marginBottom: 4 }}
-                        >
-                          Chuyên ngành
-                        </Text>
-                        {isEditing ? (
-                          <Select
-                            value={formData.major || undefined}
-                            onChange={value => handleInputChange('major', value)}
-                            placeholder="Chọn chuyên ngành"
-                            style={{ width: '100%', fontSize: 15, fontWeight: 500 }}
-                            options={majorOptions}
-                            showSearch
-                            filterOption={(input, option: any) =>
-                              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                            }
-                          />
-                        ) : (
-                          <Text style={{ fontSize: 15, fontWeight: 500, color: '#1F2937' }}>
-                            {currentIdentity.major || '-'}
                           </Text>
                         )}
                       </div>

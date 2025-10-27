@@ -59,9 +59,9 @@ export const UserCreate = () => {
   };
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto' }}>
+    <div>
       {isProcessing && <Spin style={{ display: 'block', margin: '20px auto' }} />}
-      <UserForm onFinish={handleFinish} isEdit={false} />
+      <UserForm onFinish={handleFinish} />
     </div>
   );
 };

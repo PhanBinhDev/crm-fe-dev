@@ -1,10 +1,9 @@
 import { UserRole } from '@/common/enum/user';
-import { IStage } from '@/common/types';
+import { IMember, IStage } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { useList } from '@refinedev/core';
-import { Card, Col, Row, Tabs } from 'antd';
+import { Card, Col, Row, Typography } from 'antd';
 import React from 'react';
 import MemberPerformance from './components/admin/MemberPerformance';
 import TeamChart from './components/admin/TeamChart';
@@ -14,10 +13,18 @@ import { Chart } from './components/personal/Chart';
 import Overview from './components/personal/Overview';
 import TodayTask from './components/personal/TodayTask';
 
+const { Title } = Typography;
+
 export const DashboardPage: React.FC = () => {
   const { currentWorkspace } = useWorkspaces();
-  const [activeTab, setActiveTab] = React.useState('personal');
   const { user: identity } = useAuth();
+
+  const { data: membersData } = useList<IMember>({
+    resource: `workspaces/${currentWorkspace?.id}/members`,
+    pagination: { mode: 'off' },
+    filters: [{ field: 'workspaceId', operator: 'eq', value: currentWorkspace?.id }],
+    queryOptions: { enabled: !!currentWorkspace?.id },
+  });
 
   const { data: stagesData } = useList({
     resource: 'stages',
@@ -26,17 +33,27 @@ export const DashboardPage: React.FC = () => {
     filters: [{ field: 'workspaceId', operator: 'eq', value: currentWorkspace?.id }],
     queryOptions: { enabled: !!currentWorkspace?.id },
   });
+  console.log('ws', currentWorkspace);
+  const isAdminRole =
+    (identity?.id.includes(
+      membersData?.data.find(
+        (member: any) =>
+          member.id === identity?.id && (member.role === 'admin' || member.role === 'owner'),
+      )?.id || '',
+    ) &&
+      identity?.role.includes(UserRole.SUPERADMIN)) ||
+    identity?.role.includes(UserRole.CNBM) ||
+    identity?.name === currentWorkspace?.ownerName;
 
-  const tabs = [
-    {
-      key: 'personal',
-      label: (
-        <span>
-          <UserOutlined /> Cá nhân
-        </span>
-      ),
-      children: (
+  return (
+    <div style={{ padding: '20px' }}>
+      {/* Personal Dashboard - Hiển thị cho tất cả roles */}
+      {!isAdminRole && (
         <>
+          <Title level={4} style={{ marginBottom: 16 }}>
+            Dashboard Cá nhân
+          </Title>
+
           <Row gutter={[16, 16]}>
             <Col xs={24} md={12}>
               <Card title="Tổng quan" style={{ height: 320 }}>
@@ -50,7 +67,7 @@ export const DashboardPage: React.FC = () => {
             </Col>
           </Row>
 
-          <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
+          <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
             <Col xs={24} md={12}>
               <Card
                 title="Nhiệm vụ hôm nay"
@@ -73,24 +90,15 @@ export const DashboardPage: React.FC = () => {
             </Col>
           </Row>
         </>
-      ),
-    },
-  ];
+      )}
 
-  if (
-    identity?.role.includes(UserRole.SUPERADMIN) ||
-    identity?.role.includes(UserRole.CNBM) ||
-    identity?.role.includes('owner')
-  ) {
-    tabs.push({
-      key: 'workspace',
-      label: (
-        <span>
-          <TeamOutlined /> Tổng quan Workspace
-        </span>
-      ),
-      children: (
+      {/* Workspace Dashboard - Chỉ hiển thị cho admin, cnbm, owner */}
+      {isAdminRole && (
         <>
+          <Title level={4} style={{ marginBottom: 16 }}>
+            Tổng quan Workspace
+          </Title>
+
           <Row gutter={[16, 16]}>
             <Col xs={24} md={12}>
               <Card title="Tổng quan Team" style={{ height: 300 }}>
@@ -104,7 +112,7 @@ export const DashboardPage: React.FC = () => {
             </Col>
           </Row>
 
-          <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
+          <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
             <Col xs={24}>
               <Card
                 title="Hiệu suất thành viên"
@@ -117,13 +125,7 @@ export const DashboardPage: React.FC = () => {
             </Col>
           </Row>
         </>
-      ),
-    });
-  }
-
-  return (
-    <div style={{ padding: '0 20px 20px' }}>
-      <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabs} size="large" />
+      )}
     </div>
   );
 };

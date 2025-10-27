@@ -28,32 +28,15 @@ export const getCreatableMajorOptions = (
     return getMajorOptionsForRole(targetRole);
   }
 
-  if (creatorRole === UserRole.TM) {
-    if (isBroadMajor(creatorMajor)) {
-      const narrowMajors = getNarrowMajorsFromBroad(creatorMajor);
-
-      if (targetRole === UserRole.TM) {
-        return [{ label: creatorMajor!, value: creatorMajor! }];
-      }
-
-      return narrowMajors.map(major => ({
-        label: `${creatorMajor} - ${major}`,
-        value: major,
-      }));
-    }
-
-    return [{ label: getMajorDisplayName(creatorMajor), value: creatorMajor! }];
-  }
-
-  if (creatorRole === UserRole.CNBM && targetRole === UserRole.GV) {
-    return [{ label: getMajorDisplayName(creatorMajor), value: creatorMajor! }];
+  if (creatorRole === UserRole.CNBM) {
+    return getMajorOptionsForRole(targetRole);
   }
 
   return [];
 };
 
 export const getMajorOptionsForRole = (role: UserRole) => {
-  if (role === UserRole.SUPERADMIN || role === UserRole.TM) {
+  if (role === UserRole.SUPERADMIN || role === UserRole.CNBM) {
     return userMajorOptions.map(group => ({
       label: group.label,
       value: group.label,
@@ -131,27 +114,23 @@ export const canManageUser = (
 
   const isManagingSelf = userId === targetUserId;
 
-  if (isManagingSelf && (action === 'edit' || action === 'toggle-status' || action === 'delete')) {
-    return action !== 'delete' && action !== 'toggle-status';
+  if ([UserRole.TM, UserRole.GV].includes(userRole)) {
+    if (isManagingSelf) {
+      return action === 'view' || action === 'edit';
+    }
+    return false;
   }
-
-  if (isManagingSelf && action === 'view') return true;
 
   if (userRole === UserRole.SUPERADMIN) return true;
 
-  if (userRole === UserRole.TM) {
-    if (targetRole === UserRole.SUPERADMIN) return false;
-    if (targetRole === UserRole.TM && !isManagingSelf) return false;
-    return isSameMajorGroup(userMajor, targetMajor);
-  }
-
   if (userRole === UserRole.CNBM) {
-    if (targetRole !== UserRole.GV && !isManagingSelf) return false;
-    return userMajor === targetMajor || isManagingSelf;
-  }
+    if (targetRole === UserRole.SUPERADMIN) return false;
 
-  if (userRole === UserRole.GV) {
-    return isManagingSelf && action === 'view';
+    if (isManagingSelf && (action === 'delete' || action === 'toggle-status')) {
+      return false;
+    }
+
+    return true;
   }
 
   return false;
@@ -162,11 +141,12 @@ export const getCreatableRoles = (userRole: UserRole | undefined): UserRole[] =>
 
   switch (userRole) {
     case UserRole.SUPERADMIN:
-      return [UserRole.TM, UserRole.CNBM, UserRole.GV];
-    case UserRole.TM:
-      return [UserRole.CNBM, UserRole.GV];
+      return [UserRole.CNBM, UserRole.TM, UserRole.GV];
     case UserRole.CNBM:
-      return [UserRole.GV];
+      return [UserRole.TM, UserRole.GV];
+    case UserRole.TM:
+    case UserRole.GV:
+      return [];
     default:
       return [];
   }
@@ -179,24 +159,21 @@ export const getEditableRoles = (
 ): UserRole[] => {
   if (!editorRole || !currentRole) return [];
 
+  if ([UserRole.TM, UserRole.GV].includes(editorRole)) {
+    return [];
+  }
+
   if (isEditingSelf) return [];
 
   if (editorRole === UserRole.SUPERADMIN) {
-    return [UserRole.SUPERADMIN, UserRole.TM, UserRole.CNBM, UserRole.GV];
-  }
-
-  if (editorRole === UserRole.TM) {
-    if (currentRole === UserRole.SUPERADMIN || currentRole === UserRole.TM) {
-      return [];
-    }
-    return [UserRole.CNBM, UserRole.GV];
+    return [UserRole.SUPERADMIN, UserRole.CNBM, UserRole.TM, UserRole.GV];
   }
 
   if (editorRole === UserRole.CNBM) {
-    if (currentRole === UserRole.GV) {
-      return [UserRole.GV];
+    if (currentRole === UserRole.SUPERADMIN) {
+      return [];
     }
-    return [];
+    return [UserRole.CNBM, UserRole.TM, UserRole.GV];
   }
 
   return [];

@@ -7,6 +7,7 @@ import { getColorFromName, getInitials } from '@/utils/activity';
 import { CalendarOutlined, HourglassOutlined, UserOutlined } from '@ant-design/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useOne } from '@refinedev/core';
 import { IconCaretDownFilled, IconCategory, IconFlagFilled, IconShare } from '@tabler/icons-react';
 import { Avatar, Button, Card, Progress, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
@@ -79,6 +80,16 @@ const ActivityCard = ({
     () => isHovered && !isDragging && !isOver && !isPortal,
     [isHovered, isDragging, isOver, isPortal],
   );
+
+  const { data: progressData } = useOne({
+    resource: `activities/${activity.id}/progress`,
+    id: '',
+    queryOptions: {
+      enabled: !!activity.id,
+      retry: false,
+      queryKey: ['activity-progress', activity.id],
+    },
+  });
 
   return (
     <>
@@ -326,7 +337,11 @@ const ActivityCard = ({
         {config.showProgress && (
           <div style={{ width: '100%', marginBottom: 5 }}>
             <Tooltip title="Tiến độ" placement="left">
-              <Progress percent={activity.progress || 0} size="small" style={{ margin: 0 }} />
+              <Progress
+                percent={progressData?.data?.progress || 0}
+                size="small"
+                style={{ margin: 0 }}
+              />
             </Tooltip>
           </div>
         )}
