@@ -202,7 +202,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
             }}
             onClick={() => {
               setOpen(false);
-              push(`/settings/workspaces/${currentWorkspace?.id}`);
+              push(`/workspaces/${currentWorkspace?.id}/settings`);
             }}
             icon={<IconSettings size={14} />}
             onMouseEnter={e => {
