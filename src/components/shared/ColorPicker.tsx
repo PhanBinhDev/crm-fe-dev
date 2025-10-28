@@ -12,6 +12,7 @@ interface ColorPickerProps {
   disabled?: boolean;
   stageTitle?: string;
   iconColor?: string;
+  showRealColor?: boolean;
 }
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({
@@ -20,6 +21,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   size = 16,
   disabled = false,
   stageTitle,
+  showRealColor = false,
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -34,6 +36,18 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     const hexColor = typeof color === 'string' ? color : color.toHexString();
     onChange?.(hexColor);
   }, 300);
+  const getContrastColor = (hex: string) => {
+    if (!hex) return '#8c8c8c';
+    const c = hex.substring(1);
+    const rgb = parseInt(c, 16);
+    const r = (rgb >> 16) & 0xff;
+    const g = (rgb >> 8) & 0xff;
+    const b = rgb & 0xff;
+    const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+    return luminance > 160 ? '#000' : '#fff';
+  };
+
+  const iconVisibleColor = showRealColor ? value : getContrastColor(value);
 
   const ColorGrid = (
     <div style={{ padding: '12px', width: '200px' }}>
@@ -103,7 +117,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
       {stageTitle?.toLowerCase().includes('done') ? (
         <IconCircleDashedCheck size={size} color={value ? '#fff' : '#8c8c8c'} stroke={2} />
       ) : (
-        <IconCircleDashed size={size} color={value ? '#fff' : '#8c8c8c'} stroke={2} />
+        <IconCircleDashed size={size} color={iconVisibleColor} stroke={2} />
       )}
     </Popover>
   );
