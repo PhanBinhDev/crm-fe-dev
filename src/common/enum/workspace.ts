@@ -14,3 +14,9 @@ export enum MemberStatus {
   PENDING = 'pending',
   REJECT = 'reject',
 }
+
+export enum MemberType {
+  NORMAL = 'normal',
+  INVITE = 'invite',
+  REQUEST_JOIN = 'request_join',
+}

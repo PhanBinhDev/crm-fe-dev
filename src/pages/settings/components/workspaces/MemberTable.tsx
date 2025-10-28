@@ -12,7 +12,7 @@ import MemberRowAction from './MemberRowAction';
 interface MemberTableProps {
   tableProps: TableProps<any>;
   currentMemberUser: IMember;
-  tab: 'active' | 'invited';
+  tab: 'active' | 'invited' | 'requested';
   onPageSizeChange?: (size: number) => void;
 }
 

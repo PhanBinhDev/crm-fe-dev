@@ -13,7 +13,7 @@ import { MemberTable } from './MemberTable';
 
 interface FilterMembers {
   role: 'all' | 'owner' | 'admin' | 'member';
-  tab: 'active' | 'invited';
+  tab: 'active' | 'invited' | 'requested';
 }
 
 const WorkspaceMembers = () => {
@@ -76,16 +76,23 @@ const WorkspaceMembers = () => {
 
   const tabList = useMemo(() => {
     if (tableQuery.isLoading || !tableQuery.data) {
-      return [];
+      return [
+        { key: 'active', label: 'Hoạt động', count: 0 },
+        { key: 'invited', label: 'Đã mời', count: 0 },
+        { key: 'requested', label: 'Yêu cầu', count: 0 },
+      ];
     }
 
     const activeCount = tableQuery.data.metadata.totalActive;
 
     const invitedCount = tableQuery.data.metadata.totalPending;
 
+    const requestedCount = tableQuery.data.metadata.totalRequested || 0;
+
     return [
       { key: 'active', label: 'Hoạt động', count: activeCount },
       { key: 'invited', label: 'Đã mời', count: invitedCount },
+      { key: 'requested', label: 'Yêu cầu', count: requestedCount },
     ];
   }, [tableQuery.data, tableQuery.isLoading]);
 

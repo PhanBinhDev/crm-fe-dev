@@ -17,7 +17,7 @@ import { useParams } from 'react-router-dom';
 interface MemberRowActionProps {
   member: IMember;
   currentMemberUser: IMember;
-  tab: 'active' | 'invited';
+  tab: 'active' | 'invited' | 'requested';
 }
 
 const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProps) => {
