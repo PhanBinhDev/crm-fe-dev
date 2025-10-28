@@ -341,6 +341,7 @@ const ActivityCommentTab = ({ activityId }: ActivityCommentTabProps) => {
                     backgroundColor: getColorFromName(cmt.user.name || AVATAR_PLACEHOLDER),
                     color: '#fff',
                     fontWeight: 'bold',
+                    border: 'none',
                   }}
                 >
                   {getInitials(cmt.user.name)}

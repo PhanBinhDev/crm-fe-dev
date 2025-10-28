@@ -99,6 +99,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
             color: getInitials(workspace?.name) ? '#fff' : '#000',
             fontSize: size / 2,
             background: getColorFromName(workspace?.name),
+            border: 'none',
           }}
         >
           {workspace?.name?.charAt(0).toUpperCase() || 'W'}
@@ -127,6 +128,7 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 background: getColorFromName(currentWorkspace?.name),
+                border: 'none',
               }}
               onClick={() => document.getElementById('workspace-avatar-input')?.click()}
             >

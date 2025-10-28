@@ -14,6 +14,7 @@ export interface IWorkspace extends IBase {
 }
 
 export interface IMember extends IBase {
+  id: string;
   workspaceId: string;
   user: IUser;
   role: MemberRole;

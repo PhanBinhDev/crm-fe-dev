@@ -30,7 +30,7 @@ const CustomAvatar = ({ name, src, ...props }: CustomAvatarProps) => {
     <Avatar
       {...props}
       size={props.size || 38}
-      style={{ background: getColorFromName(name), ...props.style }}
+      style={{ border: 'none', background: getColorFromName(name), ...props.style }}
     >
       {getInitials(name)}
     </Avatar>

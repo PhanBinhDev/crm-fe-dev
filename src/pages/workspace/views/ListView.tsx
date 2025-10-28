@@ -128,6 +128,7 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
                       color: '#fff',
                       fontWeight: 'bold',
                       marginLeft: index > 0 ? -8 : 0,
+                      border: 'none',
                     }}
                   >
                     {initials}

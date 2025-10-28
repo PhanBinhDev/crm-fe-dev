@@ -1,8 +1,8 @@
 import { UserRole } from '@/common/enum/user';
 import type { IUser } from '@/common/types';
 import { useAuth } from '@/hooks/useAuth';
-import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { useTable } from '@refinedev/antd';
+import { useCan } from '@refinedev/core';
 import { Col, Row } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -18,7 +18,13 @@ export const UserList = () => {
 
   const location = useLocation();
   const { user: currentUser } = useAuth();
-  const { canEdit } = useUserPermissions(currentUser);
+
+  // Kiểm tra quyền tạo user (chỉ SUPERADMIN và CNBM)
+  const { data: canCreate } = useCan({
+    resource: 'users',
+    action: 'create',
+    params: { identity: currentUser },
+  });
 
   const dynamicFilters = useMemo(() => {
     const filterList: Array<{
@@ -115,7 +121,10 @@ export const UserList = () => {
               onStatusFilter={value => setFilters(prev => ({ ...prev, isActive: value }))}
               onReset={handleReset}
             />
-            {canEdit && <UserActions totalUsers={totalUsers} currentPageUsers={currentPageUsers} />}
+            {/* Chỉ hiển thị nút tạo user cho SUPERADMIN và CNBM */}
+            {canCreate?.can && (
+              <UserActions totalUsers={totalUsers} currentPageUsers={currentPageUsers} />
+            )}
           </div>
         </Col>
         <Col span={24}>

@@ -45,7 +45,7 @@ const ModalAddWorkspace: React.FC = () => {
         return {
           label: (
             <div>
-              <Avatar size={24} style={{ background: getColorFromName(u?.name) }}>
+              <Avatar size={24} style={{ background: getColorFromName(u?.name), border: 'none' }}>
                 <Typography.Text style={{ color: '#fff', fontWeight: 500, fontSize: 11 }}>
                   {getInitials(u?.name)}
                 </Typography.Text>
@@ -218,6 +218,7 @@ const ModalAddWorkspace: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   background: avatarPreview ? undefined : getColorFromName(formData.name),
+                  border: 'none',
                 }}
                 onClick={() => document.getElementById('workspace-avatar-input')?.click()}
               >

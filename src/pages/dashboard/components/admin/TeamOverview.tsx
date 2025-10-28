@@ -35,13 +35,13 @@ const TeamOverview: React.FC = () => {
 
   // Tính toán thống kê
   const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((task: any) => task.status === 'done').length;
+  const completedTasks = tasks.filter((task: any) => task.stage.stageGroup === 'done').length;
   const overdueTasks = tasks.filter((task: any) => {
-    if (!task.dueDate) return false;
-    return new Date(task.dueDate) < new Date() && task.status !== 'done';
+    if (!task.endTime) return false;
+    return new Date(task.endTime) < new Date() && task.stage.stageGroup !== 'done';
   }).length;
   const activeTasks = tasks.filter(
-    (task: any) => task.status !== 'done' && task.status !== 'cancelled',
+    (task: any) => task.stage.stageGroup !== 'done' && task.stage.stageGroup !== 'closed',
   ).length;
 
   const completionRate = totalTasks > 0 ? ((completedTasks / totalTasks) * 100).toFixed(1) : 0;

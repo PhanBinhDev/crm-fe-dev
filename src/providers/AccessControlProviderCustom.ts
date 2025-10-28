@@ -22,7 +22,8 @@ export const AccessControlProviderCustom: AccessControlProvider = {
             return { can: true };
 
           case 'create':
-            const canCreate = [UserRole.SUPERADMIN, UserRole.TM, UserRole.CNBM].includes(userRole);
+            // Chỉ SUPERADMIN và CNBM có quyền tạo user
+            const canCreate = [UserRole.SUPERADMIN, UserRole.CNBM].includes(userRole);
             return {
               can: canCreate,
               reason: canCreate ? undefined : 'Bạn không có quyền tạo người dùng mới.',
@@ -43,6 +44,17 @@ export const AccessControlProviderCustom: AccessControlProvider = {
             const targetUserId = params?.id as string;
             const targetUserRole = params?.data?.role as UserRole;
             const targetUserMajor = params?.data?.major;
+
+            // TM và GV chỉ có thể edit bản thân (không bao gồm role, username, status)
+            if ([UserRole.TM, UserRole.GV].includes(userRole)) {
+              if (userId?.toString() === targetUserId?.toString()) {
+                return { can: true };
+              }
+              return {
+                can: false,
+                reason: 'Bạn chỉ có quyền chỉnh sửa thông tin của chính mình.',
+              };
+            }
 
             const canEditUser = canManageUser(
               userRole,
@@ -67,6 +79,14 @@ export const AccessControlProviderCustom: AccessControlProvider = {
             const deleteTargetUserId = params?.id || params?.data?.id;
             const deleteTargetRole = params?.data?.role as UserRole;
             const deleteTargetMajor = params?.data?.major;
+
+            // TM và GV không có quyền xóa bất kỳ ai
+            if ([UserRole.TM, UserRole.GV].includes(userRole)) {
+              return {
+                can: false,
+                reason: 'Bạn không có quyền xóa người dùng.',
+              };
+            }
 
             if (userId?.toString() === deleteTargetUserId?.toString()) {
               return {
@@ -105,6 +125,14 @@ export const AccessControlProviderCustom: AccessControlProvider = {
             const statusTargetUserId = params?.id || params?.data?.id;
             const statusTargetRole = params?.data?.role as UserRole;
             const statusTargetMajor = params?.data?.major;
+
+            // TM và GV không có quyền toggle status bất kỳ ai (kể cả bản thân)
+            if ([UserRole.TM, UserRole.GV].includes(userRole)) {
+              return {
+                can: false,
+                reason: 'Bạn không có quyền thay đổi trạng thái người dùng.',
+              };
+            }
 
             if (userId?.toString() === statusTargetUserId?.toString()) {
               return {

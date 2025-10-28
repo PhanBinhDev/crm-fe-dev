@@ -122,26 +122,51 @@ export const UserEdit = () => {
     );
   }, [authUser, targetUser]);
 
+  // TM và GV không được phép thay đổi role (kể cả của chính mình)
   const canEditRole = useMemo(() => {
     if (!canManageTarget) return false;
-    if (isEditingSelf) return false;
 
     const userRole = authUser?.role;
-    const targetRole = targetUser?.role;
 
-    if (userRole === UserRole.SUPERADMIN) return true;
-    if (userRole === UserRole.TM) {
-      if ([UserRole.SUPERADMIN, UserRole.TM].includes(targetRole as UserRole)) {
-        return false;
-      }
-      return true;
+    // TM và GV không có quyền thay đổi role
+    if ([UserRole.TM, UserRole.GV].includes(userRole as UserRole)) {
+      return false;
     }
-    return false;
-  }, [authUser, targetUser, canManageTarget, isEditingSelf]);
 
+    // Không ai có thể thay đổi role của chính mình
+    if (isEditingSelf) return false;
+
+    // SUPERADMIN và CNBM có thể thay đổi role (với hạn chế riêng)
+    return true;
+  }, [authUser?.role, canManageTarget, isEditingSelf]);
+
+  // TM và GV không có quyền thay đổi status
   const canEditStatus = useMemo(() => {
-    return canEditRole && !isEditingSelf;
-  }, [canEditRole, isEditingSelf]);
+    const userRole = authUser?.role;
+
+    // TM và GV không có quyền toggle status
+    if ([UserRole.TM, UserRole.GV].includes(userRole as UserRole)) {
+      return false;
+    }
+
+    // Không thể thay đổi status của chính mình
+    if (isEditingSelf) return false;
+
+    // Phải có quyền quản lý target user
+    return canManageTarget;
+  }, [authUser?.role, canManageTarget, isEditingSelf]);
+
+  // TM và GV không được thay đổi username
+  const canEditUsername = useMemo(() => {
+    const userRole = authUser?.role;
+
+    // TM và GV không có quyền thay đổi username (kể cả của chính mình)
+    if ([UserRole.TM, UserRole.GV].includes(userRole as UserRole)) {
+      return false;
+    }
+
+    return canManageTarget;
+  }, [authUser?.role, canManageTarget]);
 
   const canEditMajor = useMemo(() => {
     if (!canManageTarget) return false;
@@ -149,18 +174,21 @@ export const UserEdit = () => {
     const userRole = authUser?.role;
     const targetRole = targetUser?.role;
 
+    // SUPERADMIN có toàn quyền
     if (userRole === UserRole.SUPERADMIN) return true;
-    if (userRole === UserRole.TM) {
-      if ([UserRole.SUPERADMIN, UserRole.TM].includes(targetRole as UserRole) && !isEditingSelf) {
-        return false;
-      }
+
+    // CNBM có thể edit major của TM, GV và chính mình
+    if (userRole === UserRole.CNBM) {
       return true;
     }
-    if (userRole === UserRole.CNBM) {
-      return targetRole === UserRole.GV || isEditingSelf;
+
+    // TM và GV chỉ có thể edit major của chính mình
+    if ([UserRole.TM, UserRole.GV].includes(userRole as UserRole)) {
+      return isEditingSelf;
     }
-    return isEditingSelf;
-  }, [authUser, targetUser, canManageTarget, isEditingSelf]);
+
+    return false;
+  }, [authUser?.role, targetUser?.role, canManageTarget, isEditingSelf]);
 
   const availableRoles = useMemo(() => {
     if (!targetUser) return [];
@@ -571,13 +599,27 @@ export const UserEdit = () => {
             </Col>
 
             <Col xs={24} md={12}>
-              <div style={{ marginBottom: 8 }}>
+              <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
                 <label style={{ fontWeight: 500 }}>Mã giảng viên</label>
+                {!canEditUsername && (
+                  <Tooltip
+                    title={
+                      isEditingSelf &&
+                      [UserRole.TM, UserRole.GV].includes(authUser?.role as UserRole)
+                        ? 'Bạn không thể thay đổi mã giảng viên của chính mình'
+                        : 'Bạn không có quyền thay đổi mã giảng viên'
+                    }
+                  >
+                    <IconInfoHexagon size={14} color="#838383" />
+                  </Tooltip>
+                )}
               </div>
               <Input
                 value={formData.username}
                 onChange={e => handleInputChange('username', e.target.value)}
                 placeholder="Nhập mã giảng viên"
+                disabled={!canEditUsername}
+                style={!canEditUsername ? readOnlyFieldStyle : undefined}
               />
             </Col>
 

@@ -125,7 +125,8 @@ export const getResourcesByRole = (role: UserRole): ResourceConfig[] => {
     case UserRole.GV:
       return resources.filter(resource => baseResources.includes(resource.name));
 
-    case UserRole.CNBM && UserRole.SUPERADMIN:
+    case UserRole.CNBM:
+    case UserRole.SUPERADMIN:
       return resources.filter(
         resource =>
           baseResources.includes(resource.name) ||

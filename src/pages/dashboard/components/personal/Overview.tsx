@@ -53,9 +53,9 @@ const Overview = ({ stage }: OverviewProps) => {
     const now = new Date();
 
     // Tìm stage IDs
-    const todoStage = stage.find(s => s.title === 'TO DO');
-    const inProgressStage = stage.find(s => s.title === 'IN PROGRESS');
-    const completeStage = stage.find(s => s.title === 'COMPLETE');
+    const todoStage = stage.find(s => s.stageGroup === 'not_started');
+    const inProgressStage = stage.find(s => s.stageGroup === 'active');
+    const completeStage = stage.find(s => s.stageGroup === 'done');
 
     // Đếm tasks theo từng trạng thái
     const todoTasks = tasks.filter((task: any) => task.stageId === todoStage?.id);
@@ -83,7 +83,7 @@ const Overview = ({ stage }: OverviewProps) => {
       },
       overdue: {
         total: overdueTasks.length,
-        color: '#ff4d4f', // Màu đỏ cố định cho overdue
+        color: '#ff4d4f',
       },
     };
   }, [tasksData, stage]);
