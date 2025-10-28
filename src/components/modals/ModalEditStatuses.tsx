@@ -2,12 +2,7 @@ import { IStage } from '@/common/types';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { MoreOutlined } from '@ant-design/icons';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
-import {
-  IconCircleDashed,
-  IconGripVertical,
-  IconInfoSquareRounded,
-  IconPlus,
-} from '@tabler/icons-react';
+import { IconGripVertical, IconInfoSquareRounded, IconPlus } from '@tabler/icons-react';
 import { Button, Dropdown, Input, MenuProps, Modal, Tooltip, Typography } from 'antd';
 import React, { useMemo, useState } from 'react';
 import { ColorPicker } from '../shared/ColorPicker';
@@ -45,16 +40,7 @@ const InlineEditor: React.FC<{
       onMouseLeave={() => setHovered(false)}
     >
       <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-        <ColorPicker value={color} onChange={c => setColor(c)} size={18} />
-        <IconCircleDashed
-          size={16}
-          color={color || '#9ca3af'}
-          style={{
-            position: 'relative',
-            zIndex: 1,
-            transform: 'translateY(-1px)',
-          }}
-        />
+        <ColorPicker value={color} onChange={c => setColor(c)} size={18} showRealColor />
       </div>
 
       <Input

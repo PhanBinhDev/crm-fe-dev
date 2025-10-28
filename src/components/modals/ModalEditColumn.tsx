@@ -96,7 +96,7 @@ const ModalEditColumn = ({
           >
             Màu sắc
           </label>
-          <ColorPicker value={color} onChange={setColor} size={32} radius={6} />
+          <ColorPicker value={color} onChange={setColor} size={32} radius={6} showRealColor />
         </div>
       </div>
     </Modal>
