@@ -2,12 +2,12 @@ import { MemberRole } from '@/common/enum/workspace';
 import { IUser, IWorkspace } from '@/common/types';
 import CustomAvatar from '@/components/ui/CustomAvatar';
 import Spinner from '@/components/ui/Spinner';
-import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useCreate, useList } from '@refinedev/core';
 import {
   IconCheck,
+  IconChevronLeft,
   IconChevronUp,
   IconPlus,
   IconSend,
@@ -15,18 +15,17 @@ import {
   IconUser,
   IconX,
 } from '@tabler/icons-react';
+import type { InputRef } from 'antd';
 import {
   Avatar,
   Button,
   Drawer,
   Input,
-  InputRef,
   List,
   message,
   Popover,
   Space,
   Tag,
-  Tooltip,
   Typography,
 } from 'antd';
 import { useEffect, useRef, useState } from 'react';
@@ -34,26 +33,29 @@ import { useDebounceValue, useMediaQuery } from 'usehooks-ts';
 
 type FormData = {
   role: MemberRole;
-  userIds: IUser[];
+  selectedUsers: IUser[];
 };
 
 const ModalInviteMember = () => {
   const { isOpen, type, closeModal, openModal } = useModal();
   const [open, setOpen] = useState(false);
   const [selectWorkspace, setSelectWorkspace] = useState<IWorkspace | null>(null);
+  const [step, setStep] = useState(1); // 1: Select role, 2: Select users
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isOpenModal = isOpen && type === 'ModalInviteMember';
-  const [step, setStep] = useState(1);
+
   const [formData, setFormData] = useState<FormData>({
     role: MemberRole.ADMIN,
-    userIds: [],
+    selectedUsers: [],
   });
+
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch] = useDebounceValue(search.trim(), 400);
   const inputSearch = useRef<InputRef>(null);
-  const { workspaces, isLoading, currentWorkspace } = useWorkspaces();
-  const { user: currentUser } = useAuth();
 
+  const { workspaces, isLoading, currentWorkspace } = useWorkspaces();
+
+  // Get users search results
   const { data: users, isLoading: isLoadingUsers } = useList<IUser>({
     resource: 'users/all',
     filters: debouncedSearch
@@ -72,6 +74,7 @@ const ModalInviteMember = () => {
     },
   });
 
+  // Get current members of workspace
   const { data: members } = useList({
     resource: `workspaces/${selectWorkspace?.id}/members`,
     queryOptions: {
@@ -89,11 +92,19 @@ const ModalInviteMember = () => {
 
   useEffect(() => {
     if (!isOpenModal) {
+      // Reset state when modal closes
       setStep(1);
-      setFormData({ role: MemberRole.ADMIN, userIds: [] });
+      setFormData({ role: MemberRole.ADMIN, selectedUsers: [] });
       setSearch('');
     }
   }, [isOpenModal]);
+
+  const handleRoleChange = (role: MemberRole) => {
+    setFormData(prev => ({
+      ...prev,
+      role,
+    }));
+  };
 
   const handleProceed = () => {
     if (step === 1 && selectWorkspace) {
@@ -105,13 +116,15 @@ const ModalInviteMember = () => {
     if (step === 2) {
       setStep(1);
       setSearch('');
-      setFormData(prev => ({ ...prev, userIds: [] }));
+      setFormData(prev => ({ ...prev, selectedUsers: [] }));
     }
   };
 
   const handleSetSelectedUser = (user: IUser) => {
-    if (formData.userIds.find(u => u.id === user.id)) return;
+    // Check if already selected
+    if (formData.selectedUsers.find(u => u.id === user.id)) return;
 
+    // Check if already a member
     if (members?.data?.find((m: any) => m.user.id === user.id)) {
       message.warning('Người dùng đã là thành viên của workspace');
       return;
@@ -119,29 +132,26 @@ const ModalInviteMember = () => {
 
     setFormData(prev => ({
       ...prev,
-      userIds: [...prev.userIds, user],
+      selectedUsers: [...prev.selectedUsers, user],
     }));
   };
 
   const handleRemoveUser = (userId: string) => {
     setFormData(prev => ({
       ...prev,
-      userIds: prev.userIds.filter(u => u.id !== userId),
+      selectedUsers: prev.selectedUsers.filter(u => u.id !== userId),
     }));
   };
 
   const handleInvite = () => {
-    if (!selectWorkspace || formData.userIds.length === 0) return;
+    if (!selectWorkspace || formData.selectedUsers.length === 0) return;
 
-    const userIds = formData.userIds.map(u => u.id);
+    const userIds = formData.selectedUsers.map(u => u.id);
 
     inviteMember(
       {
         resource: `workspaces/${selectWorkspace.id}/invite`,
-        values: {
-          userIds,
-          // role: formData.role
-        },
+        values: { userIds },
       },
       {
         onSuccess: () => {
@@ -155,16 +165,8 @@ const ModalInviteMember = () => {
     );
   };
 
-  const invalidEmails = formData.userIds.filter(
-    user => !user.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email),
-  );
-
-  const content = (
-    <List
-      style={{
-        width: '100%',
-      }}
-    >
+  const workspaceSelectContent = (
+    <List style={{ width: '100%' }}>
       {isLoading ? (
         <div
           style={{
@@ -212,13 +214,9 @@ const ModalInviteMember = () => {
                 size={24}
                 name={workspace.name}
                 src={workspace.avatar}
-                style={{
-                  fontSize: 12,
-                }}
+                style={{ fontSize: 12 }}
               />
-
               <Typography.Text>{workspace.name}</Typography.Text>
-
               {selectWorkspace?.id === workspace.id && (
                 <IconCheck size={16} color="#838383" style={{ marginLeft: 'auto' }} />
               )}
@@ -255,23 +253,21 @@ const ModalInviteMember = () => {
     </List>
   );
 
-  const handleRoleChange = (role: MemberRole) => {
-    setFormData(prev => ({
-      ...prev,
-      role,
-    }));
-  };
+  // Email validation
+  const invalidEmails = formData.selectedUsers.filter(
+    user => !user.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email),
+  );
 
   return (
     <Drawer
       closeIcon={null}
       open={isOpenModal}
       onClose={closeModal}
-      destroyOnHidden
+      destroyOnClose
       styles={{
         wrapper: {
           padding: 12,
-          width: isMobile ? '100%' : 380,
+          width: isMobile ? '100%' : 400,
           boxShadow: 'none',
         },
         body: {
@@ -286,80 +282,78 @@ const ModalInviteMember = () => {
       }}
     >
       <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Space
+          align="center"
+          style={{
+            width: '100%',
+            padding: '12px 10px 12px 15px',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #f0f0f0',
+          }}
+        >
+          <Typography.Title level={5} style={{ margin: 0 }}>
+            Mời thành viên
+          </Typography.Title>
+
+          <Button
+            type="text"
+            size="small"
+            onClick={closeModal}
+            icon={<IconX size="16" />}
+            styles={{
+              icon: {
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              },
+            }}
+            style={{
+              padding: '4px',
+              borderRadius: 8,
+            }}
+          />
+        </Space>
+
+        {/* Step 1: Select Workspace and Role */}
         {step === 1 && (
-          <>
-            <Space
-              align="center"
+          <Space direction="vertical" style={{ padding: '12px 15px', flex: 1, gap: 15 }}>
+            <div
               style={{
-                width: '100%',
-                padding: '12px 10px 12px 15px',
-                justifyContent: 'space-between',
-                borderBottom: '1px solid #f0f0f0',
+                position: 'relative',
+                background: '#f1f1f1',
+                padding: 12,
+                borderRadius: 12,
+                width: 124,
+                margin: '0 auto',
               }}
             >
-              <Typography.Title
-                level={5}
+              <CustomAvatar
+                size={100}
+                name={selectWorkspace ? selectWorkspace.name : 'Workspace'}
+                src={selectWorkspace ? selectWorkspace.avatar : undefined}
                 style={{
-                  margin: 0,
-                }}
-              >
-                Mời thành viên
-              </Typography.Title>
-
-              <Button
-                type="text"
-                size="small"
-                onClick={closeModal}
-                icon={<IconX size="16" />}
-                styles={{
-                  icon: {
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  },
-                }}
-                style={{
-                  padding: '4px',
-                  borderRadius: 8,
+                  transition: 'opacity 0.3s',
+                  fontSize: 48,
+                  fontWeight: 600,
                 }}
               />
-            </Space>
+            </div>
 
-            <Space direction="vertical" style={{ padding: '12px 15px', flex: 1, gap: 15 }}>
-              <div
-                style={{
-                  position: 'relative',
-                  background: '#f1f1f1',
-                  padding: 12,
-                  borderRadius: 12,
-                  width: 124,
-                  margin: '0 auto',
-                }}
+            <div>
+              <Typography.Text
+                style={{ color: '#666', fontSize: 13, marginBottom: 6, display: 'block' }}
               >
-                <CustomAvatar
-                  size={100}
-                  name={selectWorkspace ? selectWorkspace.name : 'Workspace'}
-                  src={selectWorkspace ? selectWorkspace.avatar : undefined}
-                  style={{
-                    transition: 'opacity 0.3s',
-                    fontSize: 48,
-                    fontWeight: 600,
-                  }}
-                />
-              </div>
-
+                Workspace
+              </Typography.Text>
               <Popover
-                content={content}
+                content={workspaceSelectContent}
                 trigger={['click']}
                 placement="bottom"
                 arrow={false}
-                style={{
-                  width: '100%',
-                }}
                 styles={{
                   body: {
                     padding: 8,
-                    width: isMobile ? '100%' : 326,
+                    width: isMobile ? '100%' : 358,
                   },
                 }}
                 open={open}
@@ -398,11 +392,8 @@ const ModalInviteMember = () => {
                         size={24}
                         name={selectWorkspace.name}
                         src={selectWorkspace.avatar}
-                        style={{
-                          fontSize: 12,
-                        }}
+                        style={{ fontSize: 12 }}
                       />
-
                       <span style={{ marginLeft: 8 }}>{selectWorkspace.name}</span>
                     </>
                   ) : (
@@ -410,157 +401,94 @@ const ModalInviteMember = () => {
                   )}
                 </Button>
               </Popover>
+            </div>
 
-              {/* Select Role */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 20 }}>
-                <Typography.Title
-                  level={5}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Typography.Text style={{ color: '#666', fontSize: 13 }}>
+                Chọn vai trò thành viên
+              </Typography.Text>
+              <Space direction="vertical" style={{ width: '100%', gap: 8 }}>
+                <div
                   style={{
-                    margin: 0,
+                    padding: 12,
+                    borderRadius: 8,
+                    border: `2px solid ${formData.role === MemberRole.ADMIN ? '#1677ff' : '#e8e8e8'}`,
+                    display: 'flex',
+                    gap: 12,
+                    cursor: 'pointer',
+                    background: formData.role === MemberRole.ADMIN ? '#f0f7ff' : 'transparent',
                   }}
+                  onClick={() => handleRoleChange(MemberRole.ADMIN)}
                 >
-                  Chọn vai trò
-                </Typography.Title>
-                <Space direction="vertical" style={{ width: '100%', gap: 8 }}>
                   <div
                     style={{
-                      padding: 12,
-                      borderRadius: 8,
                       border: `1px solid ${formData.role === MemberRole.ADMIN ? '#1677ff' : '#d9d9d9'}`,
+                      padding: 8,
+                      borderRadius: 8,
                       display: 'flex',
-                      gap: 8,
-                      overflow: 'hidden',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => handleRoleChange(MemberRole.ADMIN)}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = '#f9f9f9';
-                      e.currentTarget.style.border = `1px solid ${formData.role === MemberRole.ADMIN ? '#1677ff' : '#d9d9d9'}`;
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.border = `1px solid ${formData.role === MemberRole.ADMIN ? '#1677ff' : '#d9d9d9'}`;
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      flexShrink: 0,
+                      width: 42,
+                      height: 42,
+                      background: '#fff',
                     }}
                   >
-                    <div
-                      style={{
-                        border: `1px solid ${formData.role === MemberRole.ADMIN ? '#1677ff' : '#d9d9d9'}`,
-                        padding: 8,
-                        borderRadius: 8,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        flexShrink: 0,
-                        width: 42,
-                        height: 42,
-                      }}
-                    >
-                      <IconShield size={24} color="#1677ff" />
-                    </div>
-                    <div
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <Typography.Title
-                        level={5}
-                        style={{ margin: 0, fontSize: 15, userSelect: 'none' }}
-                      >
-                        Quản trị viên
-                      </Typography.Title>
-                      <Typography.Text
-                        style={{
-                          color: '#666',
-                          margin: 0,
-                          fontSize: 12,
-                          textOverflow: 'ellipsis',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap',
-                          userSelect: 'none',
-                        }}
-                      >
-                        Có quyền quản lý thành viên trong workspace
-                      </Typography.Text>
-                    </div>
+                    <IconShield size={24} color="#1677ff" />
                   </div>
+                  <div style={{ flex: 1 }}>
+                    <Typography.Text strong style={{ fontSize: 14, display: 'block' }}>
+                      Quản trị viên
+                    </Typography.Text>
+                    <Typography.Text style={{ color: '#666', fontSize: 12 }}>
+                      Có quyền quản lý đầy đủ và phân quyền người dùng trong workspace.
+                    </Typography.Text>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    padding: 12,
+                    borderRadius: 8,
+                    border: `2px solid ${formData.role === MemberRole.MEMBER ? '#1677ff' : '#e8e8e8'}`,
+                    display: 'flex',
+                    gap: 12,
+                    cursor: 'pointer',
+                    background: formData.role === MemberRole.MEMBER ? '#f0f7ff' : 'transparent',
+                  }}
+                  onClick={() => handleRoleChange(MemberRole.MEMBER)}
+                >
                   <div
                     style={{
-                      padding: 12,
-                      borderRadius: 8,
                       border: `1px solid ${formData.role === MemberRole.MEMBER ? '#1677ff' : '#d9d9d9'}`,
+                      padding: 8,
+                      borderRadius: 8,
                       display: 'flex',
-                      gap: 8,
-                      overflow: 'hidden',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => handleRoleChange(MemberRole.MEMBER)}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = '#f9f9f9';
-                      e.currentTarget.style.border = `1px solid ${formData.role === MemberRole.MEMBER ? '#1677ff' : '#d9d9d9'}`;
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.border = `1px solid ${formData.role === MemberRole.MEMBER ? '#1677ff' : '#d9d9d9'}`;
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      flexShrink: 0,
+                      width: 42,
+                      height: 42,
+                      background: '#fff',
                     }}
                   >
-                    <div
-                      style={{
-                        border: `1px solid ${formData.role === MemberRole.MEMBER ? '#1677ff' : '#d9d9d9'}`,
-                        padding: 8,
-                        borderRadius: 8,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        flexShrink: 0,
-                        width: 42,
-                        height: 42,
-                      }}
-                    >
-                      <IconUser size={24} color="#1677ff" />
-                    </div>
-                    <div
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <Typography.Title
-                        level={5}
-                        style={{ margin: 0, fontSize: 15, userSelect: 'none' }}
-                      >
-                        Thành viên
-                      </Typography.Title>
-                      <Tooltip title="Có quyền truy cập và sử dụng các tính năng trong workspace">
-                        <Typography.Text
-                          style={{
-                            color: '#666',
-                            margin: 0,
-                            fontSize: 12,
-                            textOverflow: 'ellipsis',
-                            overflow: 'hidden',
-                            whiteSpace: 'nowrap',
-                            maxWidth: '100%',
-                            userSelect: 'none',
-                          }}
-                        >
-                          Có quyền truy cập và sử dụng các tính năng trong workspace
-                        </Typography.Text>
-                      </Tooltip>
-                    </div>
+                    <IconUser size={24} color="#1677ff" />
                   </div>
-                </Space>
-              </div>
-            </Space>
-          </>
+                  <div style={{ flex: 1 }}>
+                    <Typography.Text strong style={{ fontSize: 14, display: 'block' }}>
+                      Thành viên
+                    </Typography.Text>
+                    <Typography.Text style={{ color: '#666', fontSize: 12 }}>
+                      Có quyền truy cập và sử dụng các tính năng trong workspace.
+                    </Typography.Text>
+                  </div>
+                </div>
+              </Space>
+            </div>
+          </Space>
         )}
 
+        {/* Step 2: Select Users */}
         {step === 2 && (
           <div
             style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}
@@ -638,7 +566,7 @@ const ModalInviteMember = () => {
 
               {debouncedSearch && (
                 <List
-                  dataSource={(users?.data || []).filter(user => user.id !== currentUser?.id)}
+                  dataSource={users?.data || []}
                   loading={isLoadingUsers}
                   style={{
                     position: 'absolute',
@@ -652,7 +580,7 @@ const ModalInviteMember = () => {
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                   }}
                   renderItem={(user: IUser) => {
-                    const isSelected = formData.userIds.some(u => u.id === user.id);
+                    const isSelected = formData.selectedUsers.some(u => u.id === user.id);
                     const isMember = members?.data?.find((m: any) => m.user.id === user.id);
                     return (
                       <List.Item
@@ -686,24 +614,14 @@ const ModalInviteMember = () => {
                 />
               )}
 
-              {formData.userIds.length > 0 && (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 3,
-                    marginTop: 8,
-                    border: '1px solid #f0f0f0',
-                    padding: 8,
-                    borderRadius: 8,
-                  }}
-                >
-                  {formData.userIds.map(user => (
+              {formData.selectedUsers.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                  {formData.selectedUsers.map(user => (
                     <Tag
                       key={user.id}
                       closable
                       onClose={() => handleRemoveUser(user.id)}
-                      style={{ padding: '2px 4px', fontSize: 12 }}
+                      style={{ padding: '4px 8px', fontSize: 12 }}
                     >
                       {user.email}
                     </Tag>
@@ -714,14 +632,14 @@ const ModalInviteMember = () => {
               <Typography.Text
                 style={{ fontSize: 12, color: '#666', marginTop: 8, display: 'block' }}
               >
-                {formData.userIds.length}/20 email
+                {formData.selectedUsers.length}/20 email
               </Typography.Text>
 
               {invalidEmails.length > 0 && (
                 <Typography.Text
                   style={{ fontSize: 12, color: '#ff4d4f', marginTop: 4, display: 'block' }}
                 >
-                  {invalidEmails.length} email không hợp lệ
+                  ⚠ {invalidEmails.length} email không hợp lệ
                 </Typography.Text>
               )}
             </div>
@@ -751,29 +669,21 @@ const ModalInviteMember = () => {
               </Button>
 
               <Button
-                type="text"
+                type="primary"
                 style={{
-                  marginLeft: 'auto',
-                  background: '#1890ff',
                   borderRadius: 8,
-                  color: '#fff',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = '#40a9ff';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = '#1890ff';
                 }}
                 onClick={handleProceed}
                 disabled={!selectWorkspace}
               >
-                Tiếp tục
+                Tiếp tục →
               </Button>
             </>
           ) : (
             <>
               <Button
                 type="text"
+                icon={<IconChevronLeft size={16} />}
                 style={{
                   borderRadius: 8,
                   border: '1px solid #d9d9d9',
@@ -784,23 +694,14 @@ const ModalInviteMember = () => {
               </Button>
 
               <Button
-                type="text"
-                style={{
-                  marginLeft: 'auto',
-                  background: '#1890ff',
-                  borderRadius: 8,
-                  color: '#fff',
-                }}
+                type="primary"
                 icon={<IconSend size={16} />}
+                style={{
+                  borderRadius: 8,
+                }}
                 onClick={handleInvite}
                 loading={isInviting}
-                disabled={formData.userIds.length === 0 || invalidEmails.length > 0}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = '#40a9ff';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = '#1890ff';
-                }}
+                disabled={formData.selectedUsers.length === 0 || invalidEmails.length > 0}
               >
                 Gửi lời mời
               </Button>
