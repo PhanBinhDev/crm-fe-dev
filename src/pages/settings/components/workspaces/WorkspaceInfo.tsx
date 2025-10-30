@@ -9,6 +9,8 @@ import { Navigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { isEqual } from 'lodash';
 import { useMediaQuery } from 'usehooks-ts';
+import { getColorFromName, getInitials } from '@/utils/activity';
+import { IMember, IWorkspace } from '@/common/types/workspaces';
 
 const MemberRole = {
     ADMIN: 'admin',
@@ -18,31 +20,6 @@ const MemberRole = {
 const WorkspaceVisibility = {
     PUBLIC: 'public',
     PRIVATE: 'private',
-};
-
-interface IUser { id: string; name: string; email: string; avatar?: string; }
-interface IMember { user: IUser; role: string; status: string; createdBy: string; createdAt: string; }
-interface IWorkspace { 
-    id: string; 
-    name: string; 
-    description: string; 
-    visibility: string; 
-    owner: IUser; 
-    members: IMember[];
-    createdAt: string;
-    updatedAt: string;
-    avatar?: string;
-}
-
-const getColorFromName = (name: string | undefined): string => {
-    if (!name) return '#cccccc';
-    const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const colors = ['#5D5FEF', '#34C759', '#FF9500', '#007AFF', '#FF2D55'];
-    return colors[hash % colors.length];
-};
-const getInitials = (name: string | undefined): string => {
-    if (!name) return '?';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
 };
 
 interface IWorkspaceInfoProps {
