@@ -4,7 +4,6 @@ import { useCustomMutation } from '@refinedev/core';
 import {
   IconDeviceFloppy,
   IconInfoSquareRounded,
-  IconSettings,
   IconUserPlus,
   IconUsersPlus,
 } from '@tabler/icons-react';
@@ -12,9 +11,8 @@ import { Button, Card, Space } from 'antd';
 import { useMemo, useRef, useState } from 'react';
 import WorkspaceInfo from './WorkspaceInfo';
 import WorkspaceMembers from './WorkspaceMembers';
-import WorkspaceSettingsInner from './WorkspaceSettingsInner';
 
-type WorkspaceTab = 'info' | 'members' | 'settings';
+type WorkspaceTab = 'info' | 'members';
 
 const tabItems = [
   {
@@ -26,11 +24,6 @@ const tabItems = [
     key: 'members',
     label: 'Thành viên',
     icon: <IconUsersPlus size={14} />,
-  },
-  {
-    key: 'settings',
-    label: 'Cài đặt',
-    icon: <IconSettings size={14} />,
   },
 ];
 
@@ -211,7 +204,6 @@ const ManageWorkspace = () => {
           />
         )}
         {activeTab === 'members' && <WorkspaceMembers />}
-        {activeTab === 'settings' && <WorkspaceSettingsInner />}
       </Card>
     </div>
   );
