@@ -1,6 +1,6 @@
 import { MemberRole } from '@/common/enum/workspace';
 import { IMember } from '@/common/types';
-import { useCustomMutation, useDelete, useInvalidate, useUpdate } from '@refinedev/core';
+import { useCreate, useCustomMutation, useDelete, useInvalidate, useUpdate } from '@refinedev/core';
 import {
   IconDots,
   IconMailOff,
@@ -24,6 +24,8 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
   const { mutate: updateRoleMember } = useUpdate();
   const { mutate: leaveWorkspace } = useCustomMutation();
   const { mutate: deleteMember } = useDelete();
+  const { mutate: inviteMember } = useCreate();
+  const invalidate = useInvalidate();
 
   const { workspaceId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -103,14 +105,70 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
   }, [member, currentMemberUser, tab]);
 
   const handleCancelInvite = (member: IMember) => {
-    console.log('Cancel invitation for:', member);
+    Modal.confirm({
+      title: 'Thu hồi lời mời',
+      content: `Bạn có chắc muốn thu hồi lời mời của ${member.user.email}?`,
+      onOk() {
+        deleteMember(
+          {
+            resource: `workspaces/${workspaceId}/invitations`,
+            id: member.user.id,
+            mutationMode: 'optimistic',
+          },
+          {
+            onSuccess: () => {
+              message.success({
+                content: <span>Đã thu hồi lời mời của {member.user.email}</span>,
+              });
+              invalidate({
+                resource: `workspaces/${workspaceId}/members`,
+                invalidates: ['list', 'many'],
+              });
+            },
+            onError: () => {
+              message.error('Thu hồi lời mời thất bại. Vui lòng thử lại sau!');
+              invalidate({
+                resource: `workspaces/${workspaceId}/members`,
+                invalidates: ['list', 'many'],
+              });
+            },
+          },
+        );
+      },
+    });
   };
 
   const handleResendInvite = (member: IMember) => {
     console.log('Resend invitation to:', member);
+    Modal.confirm({
+      title: 'Gửi lời mời',
+      content: `Bạn có chắc muốn gửi lại lời mời tới ${member.user.email}?`,
+      onOk() {
+        inviteMember(
+          {
+            resource: `workspaces/${workspaceId}/invite`,
+            values: { userIds: [member.user.id] },
+          },
+          {
+            onSuccess: () => {
+              message.success('Gửi lời mời tới thành viên thành công');
+              invalidate({
+                resource: `workspaces/${workspaceId}/members`,
+                invalidates: ['list', 'many'],
+              });
+            },
+            onError: () => {
+              message.error('Gửi lời mời tới thành viên thất bại, vui lòng thử lại');
+              invalidate({
+                resource: `workspaces/${workspaceId}/members`,
+                invalidates: ['list', 'many'],
+              });
+            },
+          },
+        );
+      },
+    });
   };
-
-  const invalidate = useInvalidate();
 
   const handlePromoteOrDemoteMember = (type: string, member: IMember) => {
     setIsOpen(false);
@@ -245,6 +303,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
       trigger={['click']}
       content={content}
       open={isOpen}
+      onOpenChange={open => setIsOpen(open)}
       arrow={false}
       placement="leftBottom"
       styles={{
