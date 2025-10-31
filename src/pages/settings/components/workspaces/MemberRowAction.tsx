@@ -6,7 +6,6 @@ import {
   IconMailOff,
   IconShield,
   IconUser,
-  IconUserCheck,
   IconUserMinus,
   IconUserX,
 } from '@tabler/icons-react';
@@ -50,12 +49,12 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
           onClick: () => handleCancelInvite(member),
         });
 
-        items.push({
-          key: 'resend-invite',
-          label: 'Gửi lại lời mời',
-          icon: <IconUserCheck size={16} />,
-          onClick: () => handleResendInvite(member),
-        });
+        // items.push({
+        //   key: 'resend-invite',
+        //   label: 'Gửi lại lời mời',
+        //   icon: <IconUserCheck size={16} />,
+        //   onClick: () => handleResendInvite(member),
+        // });
       }
     } else {
       if (currentRole === MemberRole.OWNER && memberRole === MemberRole.MEMBER) {
@@ -118,7 +117,14 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
           {
             onSuccess: () => {
               message.success({
-                content: <span>Đã thu hồi lời mời của {member.user.email}</span>,
+                content: (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span>Đã thu hồi lời mời của {member.user.email}</span>
+                    <Button size="small" type="link" onClick={() => handleResendInvite(member)}>
+                      Gửi lại
+                    </Button>
+                  </div>
+                ),
               });
               invalidate({
                 resource: `workspaces/${workspaceId}/members`,
