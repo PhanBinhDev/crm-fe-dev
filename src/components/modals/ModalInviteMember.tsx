@@ -5,7 +5,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useCreate, useList } from '@refinedev/core';
+import { useCreate, useInvalidate, useList } from '@refinedev/core';
 import {
   IconCheck,
   IconChevronUp,
@@ -53,6 +53,7 @@ const ModalInviteMember = () => {
   const inputSearch = useRef<InputRef>(null);
   const { workspaces, isLoading, currentWorkspace } = useWorkspaces();
   const { user: currentUser } = useAuth();
+  const invalidate = useInvalidate();
 
   const { data: users, isLoading: isLoadingUsers } = useList<IUser>({
     resource: 'users/all',
@@ -71,7 +72,6 @@ const ModalInviteMember = () => {
       enabled: !!debouncedSearch && step === 2,
     },
   });
-
   const { data: members } = useList({
     resource: `workspaces/${selectWorkspace?.id}/members`,
     queryOptions: {
@@ -130,6 +130,8 @@ const ModalInviteMember = () => {
     }));
   };
 
+  console.log('formData', formData);
+
   const handleInvite = () => {
     if (!selectWorkspace || formData.userIds.length === 0) return;
 
@@ -146,6 +148,10 @@ const ModalInviteMember = () => {
       {
         onSuccess: () => {
           message.success('Gửi lời mời tới thành viên thành công');
+          invalidate({
+            resource: `workspaces/${selectWorkspace.id}/members`,
+            invalidates: ['list', 'many'],
+          });
           closeModal();
         },
         onError: () => {
@@ -590,7 +596,6 @@ const ModalInviteMember = () => {
                 <Typography.Text>{selectWorkspace?.name}</Typography.Text>
               </div>
             </div>
-
             <div>
               <Typography.Text
                 style={{ color: '#666', fontSize: 13, marginBottom: 6, display: 'block' }}
@@ -620,7 +625,6 @@ const ModalInviteMember = () => {
                 )}
               </div>
             </div>
-
             <div style={{ position: 'relative' }}>
               <Typography.Text
                 style={{ color: '#666', fontSize: 13, marginBottom: 6, display: 'block' }}
