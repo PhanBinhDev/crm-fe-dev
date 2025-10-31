@@ -1,5 +1,6 @@
 import { UserRole } from '@/common/enum/user';
 import {
+  IconArchive,
   IconCalendar,
   IconCalendarEvent,
   IconFileText,
@@ -66,6 +67,16 @@ export const resources: ResourceConfig[] = [
     },
     children: [
       {
+        name: 'exam-bank',
+        identifier: 'exams/bank',
+        meta: {
+          label: 'Ngân hàng đề thi',
+          icon: <IconArchive size={14} />,
+          parent: 'exams',
+          menuPath: '/exams/bank',
+        },
+      },
+      {
         name: 'exam-papers',
         identifier: 'exams/papers',
         meta: {
@@ -119,7 +130,7 @@ export const resources: ResourceConfig[] = [
 ];
 
 export const getResourcesByRole = (role: UserRole): ResourceConfig[] => {
-  const baseResources = ['dashboard', 'workspaces', 'my-work', 'teachers', 'settings'];
+  const baseResources = ['dashboard', 'workspaces', 'my-work', 'teachers', 'exams', 'settings'];
 
   switch (role) {
     case UserRole.GV:
