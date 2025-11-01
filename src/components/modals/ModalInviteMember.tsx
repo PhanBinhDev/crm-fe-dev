@@ -79,6 +79,13 @@ const ModalInviteMember = () => {
     },
   });
 
+  const { data: pendingInvitations } = useList({
+    resource: `workspaces/${selectWorkspace?.id}/invitations`,
+    queryOptions: {
+      enabled: !!selectWorkspace?.id && step === 2,
+    },
+  });
+
   const { mutate: inviteMember, isPending: isInviting } = useCreate();
 
   useEffect(() => {
@@ -117,6 +124,14 @@ const ModalInviteMember = () => {
       return;
     }
 
+    const pendingInvitation = pendingInvitations?.data?.find(
+      (inv: any) => inv.user?.id === user.id || inv.userId === user.id,
+    );
+    if (pendingInvitation) {
+      message.warning('Người dùng đã được mời nhưng chưa chấp nhận lời mời');
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       userIds: [...prev.userIds, user],
@@ -129,8 +144,6 @@ const ModalInviteMember = () => {
       userIds: prev.userIds.filter(u => u.id !== userId),
     }));
   };
-
-  console.log('formData', formData);
 
   const handleInvite = () => {
     if (!selectWorkspace || formData.userIds.length === 0) return;

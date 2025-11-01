@@ -13,6 +13,7 @@ export interface INotification extends IBase {
   isRead: boolean;
   isDeleted: boolean;
   readAt: string | null;
+  sender: IUser | null;
 }
 
 export type NotificationTab = 'all' | 'unread' | 'mentions';
