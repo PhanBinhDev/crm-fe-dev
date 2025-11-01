@@ -18,18 +18,18 @@ export const userMajorOptions = [
 export const broadMajors = userMajorOptions.map(group => group.label);
 
 export const getCreatableMajorOptions = (
-  creatorRole: UserRole | undefined,
-  creatorMajor: string | undefined,
-  targetRole: UserRole | undefined,
+  _creatorRole: UserRole | undefined,
+  _creatorMajor: string | undefined,
+  _targetRole: UserRole | undefined,
 ) => {
-  if (!creatorRole || !targetRole) return [];
+  if (!_creatorRole || !_targetRole) return [];
 
-  if (creatorRole === UserRole.SUPERADMIN) {
-    return getMajorOptionsForRole(targetRole);
+  if (_creatorRole === UserRole.SUPERADMIN) {
+    return getMajorOptionsForRole(_targetRole);
   }
 
-  if (creatorRole === UserRole.CNBM) {
-    return getMajorOptionsForRole(targetRole);
+  if (_creatorRole === UserRole.CNBM) {
+    return getMajorOptionsForRole(_targetRole);
   }
 
   return [];
@@ -103,9 +103,9 @@ export const isSameMajorGroup = (
 
 export const canManageUser = (
   userRole: UserRole | undefined,
-  userMajor: string | undefined,
+  // userMajor: string | undefined,
   targetRole: UserRole | undefined,
-  targetMajor: string | undefined,
+  // targetMajor: string | undefined,
   userId?: string,
   targetUserId?: string,
   action?: 'edit' | 'delete' | 'toggle-status' | 'view',

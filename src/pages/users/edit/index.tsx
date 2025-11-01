@@ -113,12 +113,12 @@ export const UserEdit = () => {
     if (!targetUser) return false;
     return canManageUser(
       authUser?.role,
-      authUser?.major,
+      // authUser?.major,
       targetUser?.role,
       targetUser?.major,
       authUser?.id,
-      targetUser?.id,
-      'edit',
+      // targetUser?.id,
+      // 'edit',
     );
   }, [authUser, targetUser]);
 
@@ -172,7 +172,7 @@ export const UserEdit = () => {
     if (!canManageTarget) return false;
 
     const userRole = authUser?.role;
-    const targetRole = targetUser?.role;
+    // const targetRole = targetUser?.role;
 
     // SUPERADMIN có toàn quyền
     if (userRole === UserRole.SUPERADMIN) return true;

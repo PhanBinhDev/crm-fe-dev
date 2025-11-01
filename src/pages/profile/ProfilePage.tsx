@@ -5,7 +5,7 @@ import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { getUserRoleLabel } from '@/constants/user';
 import { useAuth } from '@/hooks/useAuth';
 import { getColorFromName, getInitials } from '@/utils/activity';
-import { getMajorOptionsForRole } from '@/utils/majorGroups';
+// import { getMajorOptionsForRole } from '@/utils/majorGroups';
 import { useCustomMutation, useInvalidate, useOne } from '@refinedev/core';
 import {
   IconCalendar,
@@ -87,10 +87,10 @@ export const ProfilePage: React.FC = () => {
 
   const { mutate: updateUser, isPending: isUpdating } = useCustomMutation();
 
-  const majorOptions = useMemo(() => {
-    if (!identity?.role) return [];
-    return getMajorOptionsForRole(identity.role);
-  }, [identity?.role]);
+  // const majorOptions = useMemo(() => {
+  //   if (!identity?.role) return [];
+  //   return getMajorOptionsForRole(identity.role);
+  // }, [identity?.role]);
 
   useEffect(() => {
     if (identity) {

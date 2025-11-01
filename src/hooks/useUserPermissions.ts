@@ -46,11 +46,11 @@ export const useUserPermissions = (user: IUser | undefined) => {
     if (!user || !identity) return false;
 
     return canManageUser(
-      identity?.role,
-      identity?.major,
+      identity.role,
+      // identity.major,
       user?.role,
       user?.major,
-      identity?.id,
+      // identity?.id,
       user?.id,
     );
   }, [identity, user]);

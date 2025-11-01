@@ -62,8 +62,8 @@ export const AccessControlProviderCustom: AccessControlProvider = {
               targetUserRole,
               targetUserMajor,
               userId,
-              targetUserId,
-              'edit',
+              // targetUserId,
+              // 'edit',
             );
 
             if (!canEditUser) {
@@ -108,8 +108,8 @@ export const AccessControlProviderCustom: AccessControlProvider = {
               deleteTargetRole,
               deleteTargetMajor,
               userId,
-              deleteTargetUserId,
-              'delete',
+              // deleteTargetUserId,
+              // 'delete',
             );
 
             if (!canDeleteUser) {
@@ -147,8 +147,8 @@ export const AccessControlProviderCustom: AccessControlProvider = {
               statusTargetRole,
               statusTargetMajor,
               userId,
-              statusTargetUserId,
-              'toggle-status',
+              // statusTargetUserId,
+              // 'toggle-status',
             );
 
             if (!canToggleStatusUser) {

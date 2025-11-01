@@ -24,8 +24,8 @@ export default function ExamBank() {
     resource: 'documents/folders',
   });
   const { mutate: createFolder, isLoading: creating } = useCreate();
-  const { mutate: deleteFolder, isLoading: deleting } = useDelete();
-  const { mutate: updateFolder, isLoading: updating } = useUpdate();
+  const { mutate: deleteFolder} = useDelete();
+  const { mutate: updateFolder} = useUpdate();
 
   const folders: Folder[] = Array.isArray((data as any)?.data?.folders)
     ? (data as any).data.folders
