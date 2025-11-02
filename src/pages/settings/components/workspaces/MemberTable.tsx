@@ -2,7 +2,7 @@ import { MemberRole } from '@/common/enum/workspace';
 import type { IMember } from '@/common/types';
 import CustomAvatar from '@/components/ui/CustomAvatar';
 import { paginationConfigOptions } from '@/config/pagination';
-import { getWorkspaceRoleLabel } from '@/utils/workspace';
+import { getColumnNameByTab, getWorkspaceRoleLabel } from '@/utils/workspace';
 import { Space, Table, Typography, type TableProps } from 'antd';
 import { ColumnType } from 'antd/lib/table';
 import dayjs from 'dayjs';
@@ -100,7 +100,7 @@ export const MemberTable: FC<MemberTableProps> = ({
       },
     },
     {
-      title: tab === 'active' ? 'Ngày tham gia' : 'Ngày mời',
+      title: getColumnNameByTab(tab),
       dataIndex: 'createdAt',
       width: 200,
       sorter: true,

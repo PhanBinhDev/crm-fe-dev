@@ -1,4 +1,4 @@
-import { MemberStatus } from '@/common/enum/workspace';
+import { MemberStatus, MemberType } from '@/common/enum/workspace';
 import { IMember } from '@/common/types';
 import { MemberRolesFilter } from '@/constants/workspaces';
 import { useTable } from '@refinedev/antd';
@@ -27,6 +27,13 @@ const WorkspaceMembers = () => {
   });
 
   const permanentFilters = useMemo(() => {
+    const memberType =
+      filters.tab === 'invited'
+        ? MemberType.INVITE
+        : filters.tab === 'requested'
+          ? MemberType.REQUEST_JOIN
+          : undefined;
+
     return [
       {
         field: 'role',
@@ -42,6 +49,11 @@ const WorkspaceMembers = () => {
         field: 'q',
         operator: 'eq',
         value: debounced || undefined,
+      },
+      {
+        field: 'type',
+        operator: 'eq',
+        value: memberType,
       },
     ];
   }, [filters.role, filters.tab, debounced]);

@@ -12,3 +12,14 @@ export const getWorkspaceRoleLabel = (role: MemberRole): string => {
       return role;
   }
 };
+
+export const getColumnNameByTab = (tab: 'active' | 'invited' | 'requested'): string => {
+  switch (tab) {
+    case 'active':
+      return 'Hoạt động';
+    case 'invited':
+      return 'Đã mời';
+    case 'requested':
+      return 'Yêu cầu tham gia';
+  }
+};
