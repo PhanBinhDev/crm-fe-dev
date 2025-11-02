@@ -3,7 +3,7 @@ import { INotification, NotificationTab } from '@/common/types';
 import Spinner from '@/components/ui/Spinner';
 import { useModal } from '@/hooks/useModal';
 import { useInvitationHandlers } from '@/hooks/useWorkspaces';
-import { getInitials } from '@/utils/activity';
+import { getColorFromName, getInitials } from '@/utils/activity';
 import { useList, useUpdate } from '@refinedev/core';
 import { IconBell, IconChecks, IconCloudDownload, IconFile, IconX } from '@tabler/icons-react';
 import {
@@ -64,15 +64,15 @@ const NotificationItem = memo(
       >
         <div style={{ display: 'flex', gap: 8, width: '100%' }}>
           <Avatar
-            src={item.user?.avatar}
+            src={item.sender?.avatar}
             style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: getColorFromName(item.sender?.name),
               flexShrink: 0,
               border: 'none',
             }}
             size={28}
           >
-            {getInitials(item.user?.name)}
+            {getInitials(item.sender?.name)}
           </Avatar>
 
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -84,7 +84,7 @@ const NotificationItem = memo(
                   color: '#262626',
                 }}
               >
-                {item.user?.name}
+                {item.sender?.name || 'Bạn'}
               </Typography.Text>
               {!item.isRead && (
                 <span
@@ -344,6 +344,8 @@ const NotificationBtn = () => {
     if (tab === 'mentions') return item.type === NotificationType.MENTION;
     return true;
   });
+  console.log('filter noti', filteredNotifications);
+  console.log(' noti', notifications);
 
   const markAsRead = (noti: INotification) => {
     if (noti.type === NotificationType.ACTIVITY && noti.data?.uri && noti.data?.open) {
