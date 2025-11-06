@@ -1,22 +1,23 @@
 import { IDocument, IFolder } from '@/common/types/document';
-import { InboxOutlined } from '@ant-design/icons';
-import { useCustomMutation, useOne } from '@refinedev/core';
-import { IconFileText, IconUpload } from '@tabler/icons-react';
+import { InboxOutlined, MoreOutlined } from '@ant-design/icons';
+import { useCustomMutation, useDelete, useOne } from '@refinedev/core';
+import { IconUpload } from '@tabler/icons-react';
 import {
   Button,
-  Card,
   Form,
   Input,
-  List,
   message,
   Modal,
+  Popover,
   Select,
   Skeleton,
   Space,
-  Tooltip,
+  Table,
+  Tag,
   Typography,
   Upload,
 } from 'antd';
+import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
@@ -34,7 +35,8 @@ interface ExamFormValues {
 export default function ExamFolderDetail() {
   const { folderId } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [documentInfo, setDocumentInfo] = useState<IDocument | null>(null);
+  const [localFolderData, setLocalFolderData] = useState<IFolder | null>(null);
+  // const [documentInfo, setDocumentInfo] = useState<IDocument | null>(null);
 
   const [form] = Form.useForm<ExamFormValues>();
 
@@ -49,11 +51,19 @@ export default function ExamFolderDetail() {
 
   const { mutate: createDocument, isPending } = useCustomMutation<IDocument>();
 
+  const { mutate: deleteDocument } = useDelete();
+
   useEffect(() => {
     if (folderData?.data) {
-      setDocumentInfo(folderData.data.documents[0]);
+      setLocalFolderData(folderData.data);
     }
   }, [folderData]);
+
+  // useEffect(() => {
+  //   if (folderData?.data) {
+  //     setDocumentInfo(folderData.data.documents[0]);
+  //   }
+  // }, [folderData]);
 
   if (isLoading) {
     return (
@@ -106,6 +116,35 @@ export default function ExamFolderDetail() {
     );
   };
 
+  const handleDeleteDocument = (documentId: string) => {
+    const prevLocalFolderData = localFolderData;
+
+    setLocalFolderData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        documents: prev.documents.filter(doc => doc.id !== documentId),
+      };
+    });
+
+    deleteDocument(
+      {
+        resource: `documents/${documentId}`,
+        id: '',
+      },
+      {
+        onSuccess: () => {
+          message.success('Xóa đề thi thành công');
+          refetch();
+        },
+        onError: () => {
+          setLocalFolderData(prevLocalFolderData);
+          message.error('Xóa đề thi thất bại. Vui lòng thử lại sau.');
+        },
+      },
+    );
+  };
+
   return (
     <div style={{ display: 'flex', height: '100%', padding: 20, gap: 20 }}>
       {/* Left panel */}
@@ -118,7 +157,7 @@ export default function ExamFolderDetail() {
             marginBottom: 16,
           }}
         >
-          <Typography.Title level={4}>{folderData?.data.name}</Typography.Title>
+          <Typography.Title level={4}>{localFolderData?.name}</Typography.Title>
           <Button
             type="primary"
             onClick={() => setIsModalOpen(true)}
@@ -127,43 +166,86 @@ export default function ExamFolderDetail() {
             Upload đề thi
           </Button>
         </div>
-
         <Input.Search placeholder="Tìm kiếm đề thi..." style={{ marginBottom: 16 }} />
-
-        <List
-          bordered
-          dataSource={folderData?.data.documents}
-          renderItem={item => (
-            <List.Item
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                cursor: 'pointer',
-              }}
-              onClick={() => setDocumentInfo(item)}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <IconFileText size={20} color="#1677ff" />
-                <Typography.Text>
-                  <Link
-                    to={item.type === 'FILE' ? (item.file?.url ?? '#') : (item.linkUrl ?? '#')}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: '#333' }}
-                  >
-                    <Tooltip title="Mở để xem chi tiết">{item.title}</Tooltip>
-                  </Link>
-                </Typography.Text>
-              </div>
-              <Typography.Text type="secondary">{item.createdAt}</Typography.Text>
-            </List.Item>
-          )}
+        <Table
+          dataSource={localFolderData?.documents}
+          columns={[
+            {
+              title: 'Tên đề thi',
+              dataIndex: 'title',
+              key: 'title',
+            },
+            {
+              title: 'Ngày đăng',
+              dataIndex: 'createdAt',
+              key: 'createdAt',
+              render: (createdAt: string) => <span>{dayjs(createdAt).format('DD/MM/YYYY')}</span>,
+            },
+            {
+              title: 'Người đăng',
+              dataIndex: ['createdBy', 'name'],
+              key: 'createdBy',
+            },
+            {
+              title: 'Trạng thái',
+              dataIndex: 'status',
+              key: 'status',
+              render: (status: string) => (
+                <Tag color={status === 'PUBLISHED' ? 'green' : 'orange'}>
+                  {status === 'PUBLISHED' ? 'Đã xuất bản' : 'Nháp'}
+                </Tag>
+              ),
+            },
+            {
+              key: 'actions',
+              width: 50,
+              render: (_, record: IDocument) => (
+                <Popover
+                  content={
+                    <Space direction="vertical">
+                      <Link
+                        to={
+                          record.type === 'FILE'
+                            ? (record.file?.url ?? '#')
+                            : (record.linkUrl ?? '#')
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Xem chi tiết
+                      </Link>
+                      <Typography.Text
+                        type="danger"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          Modal.confirm({
+                            title: 'Xác nhận xóa',
+                            content: 'Bạn có chắc chắn muốn xóa đề thi này?',
+                            okText: 'Xóa',
+                            cancelText: 'Hủy',
+                            okButtonProps: { danger: true },
+                            onOk: () => handleDeleteDocument(record.id),
+                          });
+                        }}
+                      >
+                        Xóa
+                      </Typography.Text>
+                    </Space>
+                  }
+                  trigger="click"
+                  placement="left"
+                >
+                  <Button type="text" icon={<MoreOutlined />} />
+                </Popover>
+              ),
+            },
+          ]}
+          pagination={{ pageSize: 10 }}
         />
       </div>
 
       {/* Right panel */}
-      <div style={{ flex: 1 }}>
+      {/* <div style={{ flex: 1 }}>
         <Card title="Thông tin đề thi" bordered>
           {documentInfo ? (
             <>
@@ -194,7 +276,7 @@ export default function ExamFolderDetail() {
             <Typography.Text>Hiện chưa có đề thi nào.</Typography.Text>
           )}
         </Card>
-      </div>
+      </div> */}
 
       <Modal
         title="Tạo đề thi mới"

@@ -404,7 +404,11 @@ const WorkspaceItemSelector = ({ collapsed }: WorkspaceItemSelectorProps) => {
               {renderWorkspaceAvatar(currentWorkspace!, 24)}
               {!collapsed && (
                 <span style={{ fontWeight: 500 }}>
-                  {currentWorkspace?.name || 'Chọn workspace'}
+                  {!currentWorkspace?.name
+                    ? 'Chọn workspace'
+                    : currentWorkspace?.name.length > 19
+                      ? `${currentWorkspace?.name.slice(0, 19)}...`
+                      : currentWorkspace?.name}
                 </span>
               )}
             </Space>
