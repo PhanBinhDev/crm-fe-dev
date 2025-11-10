@@ -1,13 +1,12 @@
+import { IFolder } from '@/common/types/document';
 import { getColorFromName } from '@/utils/activity';
-import { IconEdit, IconFolderFilled, IconTrash } from '@tabler/icons-react';
+import { IconEdit, IconFolderFilled, IconPointFilled, IconTrash } from '@tabler/icons-react';
 import { Button, Card, Col, Dropdown, Typography } from 'antd';
+import dayjs from 'dayjs';
 import { useState } from 'react';
 
 interface FolderCardProps {
-  folder: {
-    id: string;
-    name: string;
-  };
+  folder: IFolder;
   onNavigate: (id: string) => void;
   onEdit: (folder: any) => void;
   onDelete: (id: string, name: string) => void;
@@ -15,6 +14,7 @@ interface FolderCardProps {
 
 const FolderCard = ({ folder, onNavigate, onEdit, onDelete }: FolderCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  console.log('folder', folder);
 
   return (
     <Col xs={24} sm={12} md={8} lg={6}>
@@ -30,14 +30,15 @@ const FolderCard = ({ folder, onNavigate, onEdit, onDelete }: FolderCardProps) =
           transition: 'all 0.2s ease',
           position: 'relative',
           height: '100%',
+          // minHeight: 100,
           overflow: 'hidden',
           backgroundColor: '#ffffff',
         }}
         bodyStyle={{
           display: 'flex',
           alignItems: 'center',
-          gap: 12,
-          padding: '12px 16px',
+          gap: 10,
+          padding: '12px 10px',
         }}
         hoverable={false}
       >
@@ -74,62 +75,94 @@ const FolderCard = ({ folder, onNavigate, onEdit, onDelete }: FolderCardProps) =
         >
           <Button
             type="text"
-            shape="circle"
             icon={<span style={{ fontSize: 16 }}>⋮</span>}
             onClick={e => e.stopPropagation()}
             style={{
               position: 'absolute',
               top: 4,
               right: 4,
-              color: '#9ca3af',
+              color: '#878787ff',
               opacity: isHovered ? 1 : 0.5,
               transition: 'all 0.2s ease',
               zIndex: 10,
+              width: 20,
             }}
           />
         </Dropdown>
 
-        <div
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 8,
-            background: getColorFromName(folder.name),
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            flexShrink: 0,
-            boxShadow: '0 2px 4px rgba(139, 92, 246, 0.25)',
-          }}
-        >
-          <IconFolderFilled size={24} color="#fff" />
-        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 10 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'column',
+            }}
+          >
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 8,
+                background: getColorFromName(folder.name),
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexShrink: 0,
+                boxShadow: '0 2px 4px rgba(139, 92, 246, 0.25)',
+              }}
+            >
+              <IconFolderFilled size={24} color="#fff" />
+            </div>
+            <p
+              style={{
+                fontSize: 12,
+                opacity: 0.7,
+                marginTop: 5,
+              }}
+            >
+              {folder.totalDocuments ? folder.totalDocuments : 0} files
+            </p>
+          </div>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <Typography.Text
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: isHovered ? '#111827' : '#374151',
-              display: 'block',
-              marginBottom: 2,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              transition: 'color 0.2s ease',
-            }}
-          >
-            {folder.name}
-          </Typography.Text>
-          <Typography.Text
-            type="secondary"
-            style={{
-              fontSize: 12,
-              opacity: 0.65,
-            }}
-          >
-            1,245 files
-          </Typography.Text>
+          <div style={{ flex: 1, minWidth: 0, justifyContent: 'space-between' }}>
+            <Typography.Text
+              style={{
+                fontSize: 15,
+                fontWeight: 600,
+                color: isHovered ? '#111827' : '#374151',
+                display: 'block',
+                marginBottom: 2,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                transition: 'color 0.2s ease',
+              }}
+            >
+              {folder.name}
+            </Typography.Text>
+
+            <p
+              style={{
+                fontSize: 12,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                lineHeight: 1.2,
+                marginBottom: 3,
+              }}
+            >
+              {folder.description}
+            </p>
+
+            <p style={{ fontSize: 12, opacity: 0.65 }}>
+              {/* {folder.createdBy} */}vtdiem
+              <IconPointFilled size={7} color="#999" style={{ margin: '0 3px' }} />
+              {dayjs(folder.createdAt).format('DD/MM/YYYY')}
+            </p>
+          </div>
         </div>
       </Card>
     </Col>

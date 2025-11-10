@@ -1,34 +1,27 @@
+import { IFolder } from '@/common/types/document';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
-import { IconPlus } from '@tabler/icons-react';
-import { Button, Empty, Input, Modal, Row, Skeleton, Typography, message } from 'antd';
+import { IconPlus, IconX } from '@tabler/icons-react';
+import { Button, Divider, Empty, Input, Modal, Row, Skeleton, Typography, message } from 'antd';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FolderCard from './FolderCard';
-
-interface Folder {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  createdBy?: string;
-}
 
 export default function ExamBank() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newFolder, setNewFolder] = useState('');
+  const [editingFolder, setEditingFolder] = useState<IFolder | null>(null);
+  const [folderName, setFolderName] = useState('');
   const [description, setDescription] = useState('');
 
-  const { data, isLoading, refetch } = useList<{ data: { folders: Folder[] } }>({
+  const { data, isLoading, refetch } = useList<{ data: { folders: IFolder[] } }>({
     resource: 'documents/folders',
   });
   const { mutate: createFolder, isLoading: creating } = useCreate();
   const { mutate: deleteFolder } = useDelete();
-  const { mutate: updateFolder } = useUpdate();
+  const { mutate: updateFolder, isLoading: updating } = useUpdate();
 
-  const folders: Folder[] = Array.isArray((data as any)?.data?.folders)
+  const folders: IFolder[] = Array.isArray((data as any)?.data?.folders)
     ? (data as any).data.folders
     : [];
 
@@ -37,33 +30,75 @@ export default function ExamBank() {
     return folders.filter(f => f.name?.toLowerCase().includes(keyword));
   }, [folders, search]);
 
-  const handleCreateFolder = async () => {
-    if (!newFolder.trim()) {
+  const openCreateModal = () => {
+    setEditingFolder(null);
+    setFolderName('');
+    setDescription('');
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (folder: IFolder) => {
+    setEditingFolder(folder);
+    setFolderName(folder.name);
+    setDescription(folder.description || '');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingFolder(null);
+    setFolderName('');
+    setDescription('');
+  };
+
+  const handleSubmit = async () => {
+    if (!folderName.trim()) {
       message.warning('Vui lòng nhập tên thư mục!');
       return;
     }
 
-    createFolder(
-      {
-        resource: 'documents/folders',
-        values: {
-          name: newFolder,
-          description: description || `Thư mục chứa tài liệu ${newFolder}`,
+    if (editingFolder) {
+      updateFolder(
+        {
+          resource: 'documents/folders',
+          id: editingFolder.id,
+          values: {
+            name: folderName,
+            description: description || `Thư mục chứa tài liệu ${folderName}`,
+          },
         },
-      },
-      {
-        onSuccess: () => {
-          message.success('Tạo thư mục thành công!');
-          setIsModalOpen(false);
-          setNewFolder('');
-          setDescription('');
-          refetch();
+        {
+          onSuccess: () => {
+            message.success(`Đã cập nhật thư mục "${folderName}"`);
+            closeModal();
+            refetch();
+          },
+          onError: (err: any) => {
+            message.error(err?.response?.data?.message || 'Không thể cập nhật thư mục!');
+          },
         },
-        onError: () => {
-          message.error('Không thể tạo thư mục mới!');
+      );
+    } else {
+      createFolder(
+        {
+          resource: 'documents/folders',
+          values: {
+            name: folderName,
+            description: description || `Thư mục chứa tài liệu ${folderName}`,
+          },
         },
-      },
-    );
+        {
+          onSuccess: () => {
+            message.success('Tạo thư mục thành công!');
+            closeModal();
+            refetch();
+          },
+          onError: () => {
+            message.error('Không thể tạo thư mục mới!');
+          },
+        },
+      );
+    }
   };
 
   const handleDeleteFolder = (id: string, name: string) => {
@@ -86,56 +121,6 @@ export default function ExamBank() {
               message.error(
                 err?.response?.data?.message || 'Không thể xóa thư mục (có thể đang được sử dụng)!',
               );
-            },
-          },
-        );
-      },
-    });
-  };
-
-  const handleEditFolder = (folder: Folder) => {
-    let updatedName = folder.name;
-    let updatedDescription = folder.description || '';
-
-    Modal.confirm({
-      title: 'Sửa thư mục',
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <Input
-            defaultValue={folder.name}
-            onChange={e => (updatedName = e.target.value)}
-            placeholder="Tên thư mục"
-          />
-          <Input
-            defaultValue={folder.description}
-            onChange={e => (updatedDescription = e.target.value)}
-            placeholder="Mô tả (không bắt buộc)"
-          />
-        </div>
-      ),
-      okText: 'Lưu',
-      cancelText: 'Hủy',
-      onOk: () => {
-        if (!updatedName.trim()) {
-          message.warning('Tên thư mục không được để trống!');
-          return;
-        }
-        updateFolder(
-          {
-            resource: 'documents/folders',
-            id: folder.id,
-            values: {
-              name: updatedName,
-              description: updatedDescription,
-            },
-          },
-          {
-            onSuccess: () => {
-              message.success(`Đã cập nhật thư mục "${updatedName}"`);
-              refetch();
-            },
-            onError: (err: any) => {
-              message.error(err?.response?.data?.message || 'Không thể cập nhật thư mục!');
             },
           },
         );
@@ -171,7 +156,7 @@ export default function ExamBank() {
           <Button
             type="primary"
             icon={<IconPlus size={18} />}
-            onClick={() => setIsModalOpen(true)}
+            onClick={openCreateModal}
             loading={creating}
             style={{
               borderRadius: 8,
@@ -208,7 +193,7 @@ export default function ExamBank() {
                   key={folder.id}
                   folder={folder}
                   onNavigate={id => navigate(`/exams/bank/${id}`)}
-                  onEdit={handleEditFolder}
+                  onEdit={openEditModal}
                   onDelete={handleDeleteFolder}
                 />
               ))}
@@ -218,26 +203,139 @@ export default function ExamBank() {
       </div>
 
       <Modal
-        title="Tạo thư mục mới"
         open={isModalOpen}
-        onOk={handleCreateFolder}
-        onCancel={() => setIsModalOpen(false)}
-        okText="Tạo"
+        onOk={handleSubmit}
+        onCancel={closeModal}
+        okText={editingFolder ? 'Lưu thay đổi' : 'Tạo thư mục'}
         cancelText="Hủy"
+        confirmLoading={creating || updating}
         centered
+        width={570}
+        footer={null}
+        closeIcon={null}
+        title={
+          <div
+            style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}
+          >
+            <div>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: 20,
+                  fontWeight: 600,
+                  color: '#111827',
+                }}
+              >
+                {editingFolder ? 'Chỉnh sửa thư mục' : 'Tạo thư mục mới'}
+              </h2>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: '#6b7280',
+                  lineHeight: 1.5,
+                }}
+              >
+                {editingFolder
+                  ? 'Cập nhật tên và mô tả cho thư mục hiện tại để quản lý tài liệu tốt hơn.'
+                  : 'Nhập thông tin cho thư mục mới để tổ chức tài liệu của bạn một cách khoa học.'}
+              </p>
+            </div>
+
+            <Button
+              type="text"
+              style={{
+                borderRadius: '100%',
+                marginBottom: 2,
+                background: '#0000000a',
+              }}
+              onClick={closeModal}
+              styles={{
+                icon: {
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+              }}
+              icon={
+                <IconX
+                  size={15}
+                  style={{
+                    color: '#888',
+                    cursor: 'pointer',
+                    transition: 'color 0.2s',
+                  }}
+                />
+              }
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#dbdbdbff';
+                e.currentTarget.style.color = '#222';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#0000000a';
+                e.currentTarget.style.color = '#888';
+              }}
+            />
+          </div>
+        }
       >
-        <Input
-          placeholder="Nhập tên thư mục"
-          value={newFolder}
-          onChange={e => setNewFolder(e.target.value)}
-          style={{ marginBottom: 12 }}
-        />
-        <Input.TextArea
-          placeholder="Mô tả (không bắt buộc)"
-          rows={3}
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-        />
+        <Divider style={{ margin: '0 0 15px 0' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div>
+            <label
+              style={{
+                display: 'block',
+                fontSize: 13,
+                fontWeight: 500,
+                color: '#374151',
+                marginBottom: 3,
+              }}
+            >
+              Tên thư mục <span style={{ color: '#ef4444' }}>*</span>
+            </label>
+            <Input
+              placeholder="Nhập tên thư mục..."
+              value={folderName}
+              onChange={e => setFolderName(e.target.value)}
+              onPressEnter={handleSubmit}
+              maxLength={80}
+            />
+          </div>
+
+          <div>
+            <label
+              style={{
+                display: 'block',
+                fontSize: 13,
+                fontWeight: 500,
+                color: '#374151',
+                marginBottom: 3,
+              }}
+            >
+              Mô tả
+            </label>
+            <Input.TextArea
+              placeholder="Thêm mô tả (tùy chọn)..."
+              rows={3}
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              maxLength={200}
+            />
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginTop: 15,
+            gap: 8,
+          }}
+        >
+          <Button onClick={closeModal}>Hủy</Button>
+          <Button type="primary" onClick={handleSubmit} loading={creating || updating}>
+            {editingFolder ? 'Lưu thay đổi' : 'Tạo thư mục'}
+          </Button>
+        </div>
       </Modal>
     </div>
   );
