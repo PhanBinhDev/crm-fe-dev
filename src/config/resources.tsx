@@ -1,14 +1,12 @@
 import { UserRole } from '@/common/enum/user';
 import {
   IconArchive,
-  IconCalendar,
   IconCalendarEvent,
   IconFileText,
   IconFolders,
   IconLayoutDashboard,
   IconPresentation,
   IconSettings,
-  IconTrophy,
 } from '@tabler/icons-react';
 
 export interface ResourceConfig {
@@ -85,27 +83,6 @@ export const resources: ResourceConfig[] = [
           parent: 'exams',
           canDelete: true,
           menuPath: '/exams/papers',
-        },
-      },
-      {
-        name: 'exam-schedule',
-        identifier: 'exams/schedule',
-        meta: {
-          label: 'Lịch thi',
-          icon: <IconCalendar size={14} />,
-          parent: 'exams',
-          canDelete: true,
-          menuPath: '/exams/schedule',
-        },
-      },
-      {
-        name: 'exam-results',
-        identifier: 'exams/results',
-        meta: {
-          label: 'Kết quả thi',
-          icon: <IconTrophy size={14} />,
-          parent: 'exams',
-          menuPath: '/exams/results',
         },
       },
     ],

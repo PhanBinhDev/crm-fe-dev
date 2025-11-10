@@ -1,44 +1,75 @@
 import { IDocument, IFolder } from '@/common/types/document';
-import { InboxOutlined, MoreOutlined } from '@ant-design/icons';
-import { useCustomMutation, useDelete, useOne } from '@refinedev/core';
-import { IconUpload } from '@tabler/icons-react';
+import ModalCreateTest from '@/components/modals/ModalCreateTest';
+import { useModal } from '@/hooks/useModal';
+import { MoreOutlined } from '@ant-design/icons';
+import { useDelete, useOne } from '@refinedev/core';
+import {
+  IconArchive,
+  IconCalendar,
+  IconCheck,
+  IconChevronRight,
+  IconClearAll,
+  IconEye,
+  IconFileText,
+  IconPlus,
+  IconTrash,
+  IconUpload,
+  IconX,
+} from '@tabler/icons-react';
 import {
   Button,
-  Form,
+  DatePicker,
+  Empty,
   Input,
+  List,
   message,
   Modal,
   Popover,
-  Select,
   Skeleton,
   Space,
   Table,
   Tag,
+  Tooltip,
   Typography,
-  Upload,
 } from 'antd';
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
+import isBetween from 'dayjs/plugin/isBetween';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-interface ExamFormValues {
-  title: string;
-  description: string;
-  type: 'FILE' | 'LINK';
-  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-  linkUrl?: string;
-  file?: any;
-  metadata?: Record<string, any>;
-  folderId: string;
-}
+dayjs.extend(isBetween);
+
+const STATUS_OPTIONS = [
+  {
+    label: 'Nháp',
+    value: 'DRAFT',
+    icon: <IconFileText size={15} color="#8c8c8c" />,
+  },
+  {
+    label: 'Xuất bản',
+    value: 'PUBLISHED',
+    icon: <IconUpload size={15} color="#8c8c8c" />,
+  },
+  {
+    label: 'Lưu trữ',
+    value: 'ARCHIVED',
+    icon: <IconArchive size={15} color="#8c8c8c" />,
+  },
+];
 
 export default function ExamFolderDetail() {
   const { folderId } = useParams();
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [localFolderData, setLocalFolderData] = useState<IFolder | null>(null);
-  // const [documentInfo, setDocumentInfo] = useState<IDocument | null>(null);
-
-  const [form] = Form.useForm<ExamFormValues>();
+  const [searchText, setSearchText] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([
+    null,
+    null,
+  ]);
+  const { isOpen, type, openModal } = useModal();
+  const [statusOpen, setStatusOpen] = useState(false);
+  const isModalCreateTest = isOpen && type === 'ModalCreateTest';
+  const [rangePickerOpen, setRangePickerOpen] = useState(false);
 
   const {
     data: folderData,
@@ -49,8 +80,6 @@ export default function ExamFolderDetail() {
     id: '',
   });
 
-  const { mutate: createDocument, isPending } = useCustomMutation<IDocument>();
-
   const { mutate: deleteDocument } = useDelete();
 
   useEffect(() => {
@@ -59,62 +88,39 @@ export default function ExamFolderDetail() {
     }
   }, [folderData]);
 
-  // useEffect(() => {
-  //   if (folderData?.data) {
-  //     setDocumentInfo(folderData.data.documents[0]);
-  //   }
-  // }, [folderData]);
+  const filteredDocuments = useMemo(() => {
+    if (!localFolderData?.documents) return [];
+
+    let result = localFolderData.documents;
+
+    if (searchText.trim()) {
+      const lowerSearch = searchText.toLowerCase();
+      result = result.filter(
+        doc =>
+          doc.title.toLowerCase().includes(lowerSearch) ||
+          doc.description?.toLowerCase().includes(lowerSearch) ||
+          doc.createdBy?.name?.toLowerCase().includes(lowerSearch),
+      );
+    }
+
+    if (selectedStatus) {
+      result = result.filter(doc => doc.status === selectedStatus);
+    }
+
+    if (dateRange[0] && dateRange[1]) {
+      const start = dateRange[0].startOf('day');
+      const end = dateRange[1].endOf('day');
+      result = result.filter(doc => dayjs(doc.createdAt).isBetween(start, end, null, '[]'));
+    }
+
+    return result;
+  }, [localFolderData?.documents, searchText, selectedStatus, dateRange]);
 
   if (isLoading) {
     return (
       <Skeleton active paragraph={{ rows: 4 }} style={{ padding: 20 }} title={{ width: '60%' }} />
     );
   }
-
-  const handleFormSubmit = (values: ExamFormValues) => {
-    const formData = new FormData();
-    formData.append('title', values.title);
-    formData.append('description', values.description);
-    formData.append('type', values.type);
-    formData.append('status', values.status);
-    formData.append('folderId', folderId || '');
-
-    if (values.type === 'FILE' && values.file?.file) {
-      formData.append('file', values.file.file);
-    }
-
-    if (values.type === 'LINK' && values.linkUrl) {
-      formData.append('linkUrl', values.linkUrl);
-    }
-
-    if (values.metadata) {
-      formData.append('metadata', JSON.stringify(JSON.parse(values.metadata as unknown as string)));
-    }
-
-    const newDocument = formData;
-
-    createDocument(
-      {
-        url: 'documents',
-        method: 'post',
-        values: newDocument,
-        config: {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        },
-      },
-      {
-        onSuccess: () => {
-          message.success('Tạo đề thi thành công');
-          setIsModalOpen(false);
-          refetch();
-          form.resetFields();
-        },
-        onError: () => {
-          message.error('Tạo đề thi thất bại. Vui lòng thử lại sau.');
-        },
-      },
-    );
-  };
 
   const handleDeleteDocument = (documentId: string) => {
     const prevLocalFolderData = localFolderData;
@@ -144,6 +150,7 @@ export default function ExamFolderDetail() {
       },
     );
   };
+  console.log('localFolderData', localFolderData);
 
   return (
     <div style={{ display: 'flex', height: '100%', padding: 20, gap: 20 }}>
@@ -157,233 +164,296 @@ export default function ExamFolderDetail() {
             marginBottom: 16,
           }}
         >
-          <Typography.Title level={4}>{localFolderData?.name}</Typography.Title>
-          <Button
-            type="primary"
-            onClick={() => setIsModalOpen(true)}
-            icon={<IconUpload size={16} />}
-          >
-            Upload đề thi
-          </Button>
-        </div>
-        <Input.Search placeholder="Tìm kiếm đề thi..." style={{ marginBottom: 16 }} />
-        <Table
-          dataSource={localFolderData?.documents}
-          columns={[
-            {
-              title: 'Tên đề thi',
-              dataIndex: 'title',
-              key: 'title',
-            },
-            {
-              title: 'Ngày đăng',
-              dataIndex: 'createdAt',
-              key: 'createdAt',
-              render: (createdAt: string) => <span>{dayjs(createdAt).format('DD/MM/YYYY')}</span>,
-            },
-            {
-              title: 'Người đăng',
-              dataIndex: ['createdBy', 'name'],
-              key: 'createdBy',
-            },
-            {
-              title: 'Trạng thái',
-              dataIndex: 'status',
-              key: 'status',
-              render: (status: string) => (
-                <Tag color={status === 'PUBLISHED' ? 'green' : 'orange'}>
-                  {status === 'PUBLISHED' ? 'Đã xuất bản' : 'Nháp'}
-                </Tag>
-              ),
-            },
-            {
-              key: 'actions',
-              width: 50,
-              render: (_, record: IDocument) => (
-                <Popover
-                  content={
-                    <Space direction="vertical">
-                      <Link
-                        to={
-                          record.type === 'FILE'
-                            ? (record.file?.url ?? '#')
-                            : (record.linkUrl ?? '#')
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Xem chi tiết
-                      </Link>
-                      <Typography.Text
-                        type="danger"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => {
-                          Modal.confirm({
-                            title: 'Xác nhận xóa',
-                            content: 'Bạn có chắc chắn muốn xóa đề thi này?',
-                            okText: 'Xóa',
-                            cancelText: 'Hủy',
-                            okButtonProps: { danger: true },
-                            onOk: () => handleDeleteDocument(record.id),
-                          });
-                        }}
-                      >
-                        Xóa
-                      </Typography.Text>
-                    </Space>
-                  }
-                  trigger="click"
-                  placement="left"
-                >
-                  <Button type="text" icon={<MoreOutlined />} />
-                </Popover>
-              ),
-            },
-          ]}
-          pagination={{ pageSize: 10 }}
-        />
-      </div>
+          <Typography.Title level={3} style={{ margin: 0, fontWeight: 700, color: '#111827' }}>
+            {localFolderData?.name} ({localFolderData?.documents.length || 0})
+          </Typography.Title>
 
-      {/* Right panel */}
-      {/* <div style={{ flex: 1 }}>
-        <Card title="Thông tin đề thi" bordered>
-          {documentInfo ? (
-            <>
-              <Typography.Paragraph>
-                <strong>Tên đề thi:</strong> {documentInfo.title}
-              </Typography.Paragraph>
-              <Typography.Paragraph>
-                <strong>Người upload:</strong> {documentInfo.createdBy.name}
-              </Typography.Paragraph>
-              <Typography.Paragraph>
-                <strong>Ngày upload:</strong> {documentInfo.createdAt}
-              </Typography.Paragraph>
-              {documentInfo?.type === 'FILE' ? (
-                <Typography.Paragraph>
-                  <strong>Kích thước:</strong> {documentInfo.file?.size} KB
-                </Typography.Paragraph>
-              ) : (
-                <Typography.Paragraph>
-                  <strong>URL:</strong> {documentInfo.linkUrl}
-                </Typography.Paragraph>
-              )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <Input.Search
+              placeholder="Tìm kiếm đề thi..."
+              allowClear
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              style={{ width: 220 }}
+            />
 
-              <Typography.Paragraph>
-                <strong>Loại:</strong> {documentInfo?.type === 'FILE' ? 'File' : 'Link'}
-              </Typography.Paragraph>
-            </>
-          ) : (
-            <Typography.Text>Hiện chưa có đề thi nào.</Typography.Text>
-          )}
-        </Card>
-      </div> */}
-
-      <Modal
-        title="Tạo đề thi mới"
-        open={isModalOpen}
-        onOk={() => form.submit()}
-        onCancel={() => {
-          setIsModalOpen(false);
-          form.resetFields();
-        }}
-        okText={isPending ? 'Đang tạo...' : 'Tạo đề thi'}
-        cancelText="Hủy"
-        centered
-        width={600}
-        confirmLoading={isPending}
-        okButtonProps={{ disabled: isPending }}
-      >
-        <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
-          <Form.Item
-            name="title"
-            label="Tiêu đề đề thi"
-            rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}
-          >
-            <Input placeholder="Nhập tên đề thi..." />
-          </Form.Item>
-
-          <Form.Item name="description" label="Mô tả đề thi">
-            <Input.TextArea rows={3} placeholder="Nhập mô tả..." />
-          </Form.Item>
-
-          <Space style={{ width: '100%' }} size="large">
-            <Form.Item
-              name="type"
-              label="Loại đề thi"
-              rules={[{ required: true, message: 'Vui lòng chọn loại đề thi!' }]}
-            >
-              <Select
-                defaultValue=""
-                style={{ width: 160 }}
-                options={[
-                  { label: 'Chọn loại đề thi', value: '' },
-                  { label: 'File', value: 'FILE' },
-                  { label: 'Link', value: 'LINK' },
-                ]}
-              />
-            </Form.Item>
-
-            <Form.Item
-              style={{ flex: 1, justifyItems: 'flex-start' }}
-              name="status"
-              label="Trạng thái đề thi"
-              rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
-            >
-              <Select
-                defaultValue=""
-                style={{ width: 160 }}
-                options={[
-                  { label: 'Chọn trạng thái', value: '' },
-                  { label: 'Draft', value: 'DRAFT' },
-                  { label: 'Published', value: 'PUBLISHED' },
-                ]}
-              />
-            </Form.Item>
-          </Space>
-
-          <Form.Item
-            noStyle
-            shouldUpdate={(prevValues, currentValues) => prevValues.type !== currentValues.type}
-          >
-            {({ getFieldValue }) =>
-              getFieldValue('type') === 'LINK' ? (
-                <Form.Item
-                  name="linkUrl"
-                  label="URL link"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập URL!' },
-                    { type: 'url', message: 'Vui lòng nhập URL hợp lệ!' },
+            <Popover
+              trigger="click"
+              placement="bottomLeft"
+              onOpenChange={setStatusOpen}
+              styles={{ body: { padding: 5, width: 150 } }}
+              style={{ height: '100%' }}
+              arrow={false}
+              open={statusOpen}
+              content={
+                <List
+                  size="small"
+                  dataSource={[
+                    {
+                      label: 'Tất cả',
+                      value: null,
+                      icon: <IconClearAll size={15} color="#8c8c8c" />,
+                    },
+                    ...STATUS_OPTIONS,
                   ]}
+                  renderItem={item => (
+                    <List.Item
+                      key={item.value ?? 'ALL'}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                        borderRadius: 6,
+                        background: selectedStatus === item.value ? '#e6f4ff' : 'transparent',
+                        transition: 'background-color 0.2s ease',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.backgroundColor = '#f5f5f5';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.backgroundColor =
+                          selectedStatus === item.value ? '#e6f4ff' : 'transparent';
+                      }}
+                      onClick={() => {
+                        setSelectedStatus(item.value);
+                        setStatusOpen(false);
+                      }}
+                    >
+                      {item.icon}
+                      <span style={{ flex: 1 }}>{item.label}</span>
+                      {selectedStatus === item.value && <IconCheck size={14} color="#1890ff" />}
+                    </List.Item>
+                  )}
+                />
+              }
+            >
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 6,
+                  cursor: 'pointer',
+                  border: '1px solid #d9d9d9',
+                  borderRadius: 6,
+                  padding: '0px 7px',
+                  background: '#fff',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: '#24292f',
+                  height: 32,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: '#646464',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
                 >
-                  <Input />
-                </Form.Item>
-              ) : (
-                <Form.Item
-                  name="file"
-                  label="File đề thi"
-                  rules={[{ required: true, message: 'Vui lòng upload file!' }]}
-                >
-                  <Upload.Dragger
-                    multiple={false}
-                    name="file"
-                    beforeUpload={() => false}
-                    maxCount={1}
-                  >
-                    <p className="ant-upload-drag-icon">
-                      <InboxOutlined />
-                    </p>
-                    <p className="ant-upload-text">Click hoặc kéo thả file vào đây</p>
-                  </Upload.Dragger>
-                </Form.Item>
-              )
-            }
-          </Form.Item>
+                  {(() => {
+                    const selected = STATUS_OPTIONS.find(opt => opt.value === selectedStatus);
+                    return selected ? (
+                      <>
+                        {selected.icon}
+                        {selected.label}
+                      </>
+                    ) : (
+                      'Lọc theo trạng thái'
+                    );
+                  })()}
+                </span>
+                <IconChevronRight
+                  size={14}
+                  style={{
+                    transform: statusOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                    color: '#8c8c8c',
+                  }}
+                />
+              </div>
+            </Popover>
 
-          <Form.Item name="metadata" label="Metadata bổ sung">
-            <Input.TextArea rows={2} placeholder="Nhập metadata dạng JSON (không bắt buộc)" />
-          </Form.Item>
-        </Form>
-      </Modal>
+            <Popover
+              trigger="click"
+              placement="bottomLeft"
+              open={rangePickerOpen}
+              onOpenChange={setRangePickerOpen}
+              arrow={false}
+              content={
+                <div style={{ padding: 3 }}>
+                  <DatePicker.RangePicker
+                    format="DD/MM/YYYY"
+                    value={dateRange}
+                    onChange={dates => {
+                      setDateRange(dates ?? [null, null]);
+                      if (dates && dates[0] && dates[1]) {
+                        setRangePickerOpen(false);
+                      }
+                    }}
+                    style={{ width: 260 }}
+                    placeholder={['Từ ngày', 'Đến ngày']}
+                  />
+                </div>
+              }
+            >
+              <Tooltip title="Lọc theo khoảng thời gian">
+                <Button
+                  type="default"
+                  icon={<IconCalendar size={15} color="#646464" />}
+                  style={{
+                    borderRadius: 6,
+                    border: '1px solid #d9d9d9',
+                    height: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    color: '#24292f',
+                    background: '#fff',
+                    padding: '0px 7px',
+                  }}
+                >
+                  {dateRange[0] && dateRange[1] ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ fontSize: 13, color: '#595959' }}>
+                        {dayjs(dateRange[0]).format('DD/MM')} →{' '}
+                        {dayjs(dateRange[1]).format('DD/MM')}
+                      </span>
+                      <Button
+                        type="text"
+                        icon={<IconX size={14} color="#e60f0fff" />}
+                        onClick={() => setDateRange([null, null])}
+                        style={{
+                          border: 'none',
+                          color: '#8c8c8c',
+                          width: 15,
+                          height: 15,
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: 14, fontWeight: 500, color: '#646464' }}>
+                      Chọn ngày
+                    </span>
+                  )}
+                </Button>
+              </Tooltip>
+            </Popover>
+
+            <Tooltip title="Tạo đề thi mới">
+              <Button
+                type="primary"
+                icon={<IconPlus size={18} />}
+                onClick={() => openModal('ModalCreateTest', { folderId: folderId })}
+                style={{
+                  borderRadius: 8,
+                  background: '#1890ff',
+                  border: 'none',
+                  fontWeight: 500,
+                  height: 32,
+                }}
+              />
+            </Tooltip>
+          </div>
+        </div>
+        {filteredDocuments.length === 0 ? (
+          <Empty description={'Không có đề thi nào'} style={{ margin: '100px 0' }} />
+        ) : (
+          <Table
+            dataSource={filteredDocuments}
+            columns={[
+              {
+                title: 'STT',
+                dataIndex: 'id',
+                key: 'stt',
+                align: 'center',
+                width: 80,
+                render: (_: any, __: any, index: number) => index + 1,
+              },
+              {
+                title: 'Tên đề thi',
+                dataIndex: 'title',
+                key: 'title',
+              },
+              {
+                title: 'Ngày đăng',
+                dataIndex: 'createdAt',
+                key: 'createdAt',
+                sorter: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+                render: (createdAt: string) => <span>{dayjs(createdAt).format('DD/MM/YYYY')}</span>,
+              },
+              {
+                title: 'Người đăng',
+                dataIndex: ['createdBy', 'name'],
+                key: 'createdBy',
+              },
+              {
+                title: 'Trạng thái',
+                dataIndex: 'status',
+                key: 'status',
+                render: (status: string) => (
+                  <Tag color={status === 'PUBLISHED' ? 'green' : 'orange'}>
+                    {status === 'PUBLISHED' ? 'Đã xuất bản' : 'Nháp'}
+                  </Tag>
+                ),
+              },
+              {
+                key: 'actions',
+                width: 50,
+                render: (_, record: IDocument) => (
+                  <Popover
+                    content={
+                      <Space direction="vertical">
+                        <Link
+                          to={
+                            record.type === 'FILE'
+                              ? (record.file?.url ?? '#')
+                              : (record.linkUrl ?? '#')
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ display: 'flex', alignItems: 'center' }}
+                        >
+                          <IconEye size={14} style={{ marginRight: 5 }} />
+                          Xem chi tiết
+                        </Link>
+                        <Typography.Text
+                          type="danger"
+                          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                          onClick={() => {
+                            Modal.confirm({
+                              title: 'Xác nhận xóa',
+                              content: 'Bạn có chắc chắn muốn xóa đề thi này?',
+                              okText: 'Xóa',
+                              cancelText: 'Hủy',
+                              okButtonProps: { danger: true },
+                              onOk: () => handleDeleteDocument(record.id),
+                            });
+                          }}
+                        >
+                          <IconTrash size={14} style={{ marginRight: 5 }} />
+                          Xóa
+                        </Typography.Text>
+                      </Space>
+                    }
+                    trigger="click"
+                    placement="left"
+                  >
+                    <Button type="text" icon={<MoreOutlined />} />
+                  </Popover>
+                ),
+              },
+            ]}
+            pagination={{ pageSize: 10 }}
+          />
+        )}
+        {isModalCreateTest && <ModalCreateTest onSuccess={refetch} />}
+      </div>
     </div>
   );
 }
