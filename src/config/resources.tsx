@@ -76,13 +76,13 @@ export const resources: ResourceConfig[] = [
       },
       {
         name: 'exam-papers',
-        identifier: 'exams/papers',
+        identifier: 'exams/random',
         meta: {
           label: 'Đề thi',
           icon: <IconFileText size={14} />,
           parent: 'exams',
           canDelete: true,
-          menuPath: '/exams/papers',
+          menuPath: '/exams/random',
         },
       },
     ],
