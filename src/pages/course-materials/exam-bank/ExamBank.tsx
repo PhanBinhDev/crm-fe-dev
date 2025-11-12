@@ -1,10 +1,30 @@
 import { IFolder } from '@/common/types/document';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
-import { IconPlus, IconX } from '@tabler/icons-react';
-import { Button, Divider, Empty, Input, Modal, Row, Skeleton, Typography, message } from 'antd';
+import {
+  IconDotsVertical,
+  IconEdit,
+  IconFolderFilled,
+  IconPlus,
+  IconTrash,
+  IconX,
+} from '@tabler/icons-react';
+import {
+  Button,
+  Card,
+  Divider,
+  Dropdown,
+  Empty,
+  Input,
+  Menu,
+  Modal,
+  Row,
+  Skeleton,
+  Tooltip,
+  Typography,
+  message,
+} from 'antd';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import FolderCard from './FolderCard';
 
 export default function ExamBank() {
   const navigate = useNavigate();
@@ -141,7 +161,7 @@ export default function ExamBank() {
     >
       <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
         <Typography.Title level={3} style={{ margin: 0, fontWeight: 700, color: '#111827' }}>
-          Thư Mục Đề Thi ({folders.length})
+          Thư Mục Đề Thi
         </Typography.Title>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
