@@ -1,4 +1,4 @@
-import { MemberRole, WorkspaceVisibility } from '@/common/enum/workspace';
+import { MemberRole, MemberStatus, WorkspaceVisibility } from '@/common/enum/workspace';
 import { IWorkspace } from '@/common/types';
 import CustomAvatar from '@/components/ui/CustomAvatar';
 import Spinner from '@/components/ui/Spinner';
@@ -106,7 +106,9 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
     if (!workspace || !workspace.members) return [];
 
     return workspace.members
-      .filter((m: IMember) => m.role === MemberRole.ADMIN || m.role === MemberRole.MEMBER)
+      .filter((m: IMember) => 
+        (m.role === MemberRole.ADMIN || m.role === MemberRole.MEMBER) && m.status === MemberStatus.ACTIVE 
+    )
       .map((member: IMember) => ({
         label: `${member.user.name} (${member.user.email})`,
         value: member.user.id,
