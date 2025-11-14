@@ -1,4 +1,4 @@
-import { useList, useOne } from '@refinedev/core';
+import { useCustom, useList, useOne } from '@refinedev/core';
 import { IconFolderFilled, IconLink, IconShare } from '@tabler/icons-react';
 import { Button, Card, Empty, List, Select, Space, Spin, Tooltip, Typography, message } from 'antd';
 import { useEffect, useState } from 'react';
@@ -24,27 +24,89 @@ export default function RandomExam() {
     queryOptions: { enabled: !!selectedFolder },
   });
 
+  const randomApi = useCustom({
+    url: selectedFolder ? `/documents/folders/${selectedFolder}/random` : '',
+    method: 'get',
+    queryOptions: { enabled: false },
+  });
+
+  const historyApi = useCustom({
+    url: selectedFolder ? `/documents/folders/${selectedFolder}/history` : '',
+    method: 'get',
+    queryOptions: { enabled: false },
+  });
+
   useEffect(() => {
     if (selectedFolderData?.data?.documents) {
       setDocuments(selectedFolderData.data.documents);
     }
   }, [selectedFolderData]);
 
-  const handleGetExam = () => {
-    if (!documents.length) return message.warning('Thư mục này chưa có đề thi nào!');
+  useEffect(() => {
+    const loadHistory = async () => {
+      if (!selectedFolder) return;
 
-    const randomIndex = Math.floor(Math.random() * documents.length);
-    const selected = documents[randomIndex];
-    const link =
-      selected.type === 'FILE'
-        ? selected.file?.url
-        : selected.type === 'LINK'
-          ? selected.linkUrl
-          : '#';
+      const res: any = await historyApi.refetch();
+      const items = res?.data?.data?.items ?? [];
 
-    setHistory(prev => [{ id: selected.id, title: selected.title, link }, ...prev.slice(0, 9)]);
-    setCurrentExam({ title: selected.title, url: link });
-    setViewerOpen(true);
+      setHistory(
+        items.map((i: any) => ({
+          id: i.documentId,
+          title: i.title,
+          link: i.fileUrl,
+          createdAt: i.createdAt,
+        })),
+      );
+    };
+
+    loadHistory();
+  }, [selectedFolder]);
+
+  const handleGetExam = async () => {
+    if (!selectedFolder) return message.warning('Bạn chưa chọn thư mục!');
+    const now = new Date();
+    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+    const recentHistory = history.filter(h => new Date(h.createdAt) > twoHoursAgo);
+
+    if (recentHistory.length > 0) {
+      message.warning('Trong vòng 2 tiếng bạn không thể lấy thêm đề mới từ thư mục này!');
+      return;
+    }
+
+    try {
+      const res: any = await randomApi.refetch();
+      const data = res?.data?.data;
+
+      if (!data) return message.error('Không lấy được đề thi!');
+
+      const isDuplicate = history.some(h => h.id === data.documentId);
+      if (isDuplicate) {
+        message.warning('Đề này đã được lấy trước đó, thử lại!');
+        return;
+      }
+
+      const link = data.fileUrl;
+      setHistory(prev => [
+        { id: data.documentId, title: data.title, link, createdAt: data.createdAt },
+        ...prev,
+      ]);
+
+      window.open(link, '_blank');
+
+      const historyRes: any = await historyApi.refetch();
+      const items = historyRes?.data?.data?.items ?? [];
+
+      setHistory(
+        items.map((i: any) => ({
+          id: i.documentId,
+          title: i.title,
+          link: i.fileUrl,
+          createdAt: i.createdAt,
+        })),
+      );
+    } catch (e) {
+      message.error('Lỗi khi lấy đề thi!');
+    }
   };
 
   return (
@@ -57,10 +119,8 @@ export default function RandomExam() {
         gap: 32,
       }}
     >
-
       <div style={{ flex: 1 }}>
         <Typography.Title level={3}>Lấy Đề Thi Ngẫu Nhiên</Typography.Title>
-
         <Card
           style={{
             borderRadius: 16,
@@ -99,6 +159,7 @@ export default function RandomExam() {
           )}
         </Card>
       </div>
+
       <div style={{ width: 400 }}>
         <Typography.Title level={4}>📜 Lịch sử lấy đề thi</Typography.Title>
 
@@ -158,6 +219,7 @@ export default function RandomExam() {
           fileName={currentExam.title}
         />
       )}
+
       <ShareModal
         open={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
