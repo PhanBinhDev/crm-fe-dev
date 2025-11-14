@@ -1,4 +1,4 @@
-import { MemberRole, WorkspaceVisibility } from '@/common/enum/workspace';
+import { MemberRole, MemberStatus, WorkspaceVisibility } from '@/common/enum/workspace';
 import { IWorkspace } from '@/common/types';
 import CustomAvatar from '@/components/ui/CustomAvatar';
 import Spinner from '@/components/ui/Spinner';
@@ -106,7 +106,9 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
     if (!workspace || !workspace.members) return [];
 
     return workspace.members
-      .filter((m: IMember) => m.role === MemberRole.ADMIN || m.role === MemberRole.MEMBER)
+      .filter((m: IMember) => 
+        (m.role === MemberRole.ADMIN || m.role === MemberRole.MEMBER) && m.status === MemberStatus.ACTIVE 
+    )
       .map((member: IMember) => ({
         label: `${member.user.name} (${member.user.email})`,
         value: member.user.id,
@@ -632,7 +634,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                   style={{ 
                     marginTop: 10,
                     width: '100%', 
-                    height: 48,
+                    height: 40,
                     fontWeight: 700,
                     borderRadius: 8,
                     opacity: !newOwnerId || !canTransferOwnership ? 0.6 : 1,
@@ -662,8 +664,8 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
               okButtonProps={{ 
                 style: { 
                   borderRadius: 8, 
-                  height: 40, 
-                  width: '45%', 
+                  height: 35, 
+                  width: '40%', 
                   fontWeight: 600, 
                   backgroundColor: '#dc2626', 
                   borderColor: '#dc2626', 
@@ -672,7 +674,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                 }
               }}
               cancelButtonProps={{
-                style: { borderRadius: 8, height: 40, width: '45%', fontWeight: 600, backgroundColor: '#ffffff', borderColor: '#d1d5db', color: '#374151', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }
+                style: { borderRadius: 8, height: 35, width: '40%', fontWeight: 600, backgroundColor: '#ffffff', borderColor: '#d1d5db', color: '#374151', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }
               }}
               footer={(_, { OkBtn, CancelBtn }) => (
                 <div style={{ display: 'flex', justifyContent: 'center', gap: 16, paddingTop: 16 }}>
