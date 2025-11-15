@@ -1,3 +1,4 @@
+import { IFolderItem, IHistoryItem } from '@/common/types/exam';
 import { useCustom, useList, useOne } from '@refinedev/core';
 import { IconFolderFilled, IconLink, IconShare } from '@tabler/icons-react';
 import { Button, Card, Empty, List, Select, Space, Spin, Tooltip, Typography, message } from 'antd';
@@ -7,14 +8,15 @@ import { ShareModal } from './ShareModal';
 
 export default function RandomExam() {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
-  const [history, setHistory] = useState<any[]>([]);
-
+  const [history, setHistory] = useState<IHistoryItem[]>([]);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [currentExam, setCurrentExam] = useState<{ title: string; url: string } | null>(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [shareLink, setShareLink] = useState<string | null>(null);
 
-  const { data: folderData, isLoading } = useList({ resource: 'documents/folders' });
+  const { data: folderData, isLoading } = useList({
+    resource: 'documents/folders',
+  });
   const folders = (folderData as any)?.data?.folders ?? [];
 
   const { data: historyDataAll, isLoading: loadingHistory } = useOne({
@@ -136,7 +138,7 @@ export default function RandomExam() {
               placeholder="Chọn thư mục"
               style={{ width: '100%', marginBottom: 16 }}
               onChange={setSelectedFolder}
-              options={folders.map((f: any) => ({
+              options={folders.map((f: IFolderItem) => ({
                 label: (
                   <Space>
                     <IconFolderFilled size={16} color="#3b82f6" /> {f.name}
