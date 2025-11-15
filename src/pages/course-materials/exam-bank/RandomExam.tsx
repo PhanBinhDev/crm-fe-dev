@@ -7,7 +7,6 @@ import { ShareModal } from './ShareModal';
 
 export default function RandomExam() {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
-  const [documents, setDocuments] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
 
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -18,16 +17,20 @@ export default function RandomExam() {
   const { data: folderData, isLoading } = useList({ resource: 'documents/folders' });
   const folders = (folderData as any)?.data?.folders ?? [];
 
-  const { data: selectedFolderData, isLoading: loadingDocs } = useOne({
-    resource: `documents/folders/${selectedFolder}`,
+  const { data: historyDataAll, isLoading: loadingHistory } = useOne({
+    resource: `documents/history/all`,
     id: '',
-    queryOptions: { enabled: !!selectedFolder },
   });
 
-  const randomApi = useCustom({
-    url: selectedFolder ? `/documents/folders/${selectedFolder}/random` : '',
-    method: 'get',
-    queryOptions: { enabled: false },
+  console.log('all', historyDataAll);
+
+  const {
+    data: randomApi,
+    isLoading: loadingRandom,
+    refetch: refetchRandom,
+  } = useOne({
+    resource: `/documents/folders/${selectedFolder}/random`,
+    id: '',
   });
 
   const historyApi = useCustom({
@@ -35,12 +38,6 @@ export default function RandomExam() {
     method: 'get',
     queryOptions: { enabled: false },
   });
-
-  useEffect(() => {
-    if (selectedFolderData?.data?.documents) {
-      setDocuments(selectedFolderData.data.documents);
-    }
-  }, [selectedFolderData]);
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -74,10 +71,13 @@ export default function RandomExam() {
     }
 
     try {
-      const res: any = await randomApi.refetch();
+      const res: any = await refetchRandom();
       const data = res?.data?.data;
 
-      if (!data) return message.error('Không lấy được đề thi!');
+      if (res.error.status === 404)
+        return message.error('Thư mục không có đề thi! Vui lòng chọn thư mục khác.');
+
+      if (!data) return message.error('Có lỗi xảy ra. Vui lòng thử lại sau!');
 
       const isDuplicate = history.some(h => h.id === data.documentId);
       if (isDuplicate) {
@@ -151,10 +151,10 @@ export default function RandomExam() {
             <Button
               type="primary"
               onClick={handleGetExam}
-              disabled={loadingDocs}
+              disabled={loadingRandom}
               style={{ width: '100%' }}
             >
-              {loadingDocs ? 'Đang tải...' : 'Lấy đề thi'}
+              {loadingRandom ? 'Đang tải...' : 'Lấy đề thi'}
             </Button>
           )}
         </Card>
