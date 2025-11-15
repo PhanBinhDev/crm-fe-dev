@@ -1,7 +1,7 @@
+import { ShareModal } from '@/pages/course-materials/exam-bank/ShareModal';
 import { IconShare } from '@tabler/icons-react';
 import { Button, Modal, Space, Tooltip, Typography } from 'antd';
 import React, { useState } from 'react';
-import { ShareModal } from './ShareModal';
 
 interface ExamViewerProps {
   open: boolean;
@@ -11,7 +11,13 @@ interface ExamViewerProps {
 }
 
 export const ExamViewer: React.FC<ExamViewerProps> = ({ open, onClose, fileUrl, fileName }) => {
+  const fileType = fileUrl?.split('.').pop()?.toLowerCase();
   const [shareOpen, setShareOpen] = useState(false);
+
+  let officeUrl = '';
+  if (fileUrl && fileType !== 'pdf') {
+    officeUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(fileUrl);
+  }
 
   return (
     <>
@@ -21,6 +27,7 @@ export const ExamViewer: React.FC<ExamViewerProps> = ({ open, onClose, fileUrl, 
         footer={null}
         centered
         width={900}
+        height="fit-content"
         bodyStyle={{ padding: 0, height: '80vh' }}
       >
         <div
@@ -46,25 +53,20 @@ export const ExamViewer: React.FC<ExamViewerProps> = ({ open, onClose, fileUrl, 
           </Space>
         </div>
 
-        {fileUrl ? (
+        {fileType === 'pdf' ? (
           <iframe
             src={fileUrl}
             title="PDF Viewer"
             width="100%"
-            height="100%"
+            height="90%"
             style={{ border: 'none' }}
           />
         ) : (
-          <div style={{ padding: 20, textAlign: 'center' }}>Không tìm thấy file PDF</div>
+          <iframe src={officeUrl} width="100%" height="90%" style={{ border: 'none' }} />
         )}
       </Modal>
 
-      <ShareModal
-        open={shareOpen}
-        onClose={() => setShareOpen(false)}
-        link={fileUrl}
-        defaultPublic={false}
-      />
+      <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} link={fileUrl} />
     </>
   );
 };

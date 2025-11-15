@@ -1,10 +1,9 @@
 import { IFolderItem, IHistoryItem } from '@/common/types/exam';
 import { useCustom, useList, useOne } from '@refinedev/core';
-import { IconFolderFilled, IconLink, IconShare } from '@tabler/icons-react';
-import { Button, Card, Empty, List, Select, Space, Spin, Tooltip, Typography, message } from 'antd';
-import { useEffect, useState } from 'react';
+import { IconFolderFilled } from '@tabler/icons-react';
+import { Button, Card, Select, Space, Spin, Typography, message } from 'antd';
+import { useCallback, useEffect, useState } from 'react';
 import { ExamViewer } from './ExamViewer';
-import { ShareModal } from './ShareModal';
 
 export default function RandomExam() {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
@@ -31,12 +30,12 @@ export default function RandomExam() {
     isLoading: loadingRandom,
     refetch: refetchRandom,
   } = useOne({
-    resource: `/documents/folders/${selectedFolder}/random`,
+    resource: `documents/folders/${selectedFolder}/random`,
     id: '',
   });
 
   const historyApi = useCustom({
-    url: selectedFolder ? `/documents/folders/${selectedFolder}/history` : '',
+    url: selectedFolder ? `documents/folders/${selectedFolder}/history` : '',
     method: 'get',
     queryOptions: { enabled: false },
   });
@@ -61,55 +60,38 @@ export default function RandomExam() {
     loadHistory();
   }, [selectedFolder]);
 
-  const handleGetExam = async () => {
+  console.log('hiss', history);
+
+  const handleGetExam = useCallback(async () => {
     if (!selectedFolder) return message.warning('Bạn chưa chọn thư mục!');
     const now = new Date();
     const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
     const recentHistory = history.filter(h => new Date(h.createdAt) > twoHoursAgo);
 
-    if (recentHistory.length > 0) {
-      message.warning('Trong vòng 2 tiếng bạn không thể lấy thêm đề mới từ thư mục này!');
-      return;
-    }
+    // if (recentHistory.length > 0) {
+    //   message.warning('Trong vòng 2 tiếng bạn không thể lấy thêm đề mới từ thư mục này!');
+    //   return;
+    // }
 
     try {
       const res: any = await refetchRandom();
       const data = res?.data?.data;
 
-      if (res.error.status === 404)
+      if (res.error && res.error.status === 404)
         return message.error('Thư mục không có đề thi! Vui lòng chọn thư mục khác.');
 
       if (!data) return message.error('Có lỗi xảy ra. Vui lòng thử lại sau!');
 
-      const isDuplicate = history.some(h => h.id === data.documentId);
-      if (isDuplicate) {
-        message.warning('Đề này đã được lấy trước đó, thử lại!');
-        return;
-      }
-
       const link = data.fileUrl;
-      setHistory(prev => [
-        { id: data.documentId, title: data.title, link, createdAt: data.createdAt },
-        ...prev,
-      ]);
-
-      window.open(link, '_blank');
-
-      const historyRes: any = await historyApi.refetch();
-      const items = historyRes?.data?.data?.items ?? [];
-
-      setHistory(
-        items.map((i: any) => ({
-          id: i.documentId,
-          title: i.title,
-          link: i.fileUrl,
-          createdAt: i.createdAt,
-        })),
-      );
+      setCurrentExam({ title: data.title, url: data.fileUrl });
+      setShareLink(link);
+      setViewerOpen(true);
+      setShareModalOpen(true);
+      message.success('Lấy đề thi thành công!');
     } catch (e) {
       message.error('Lỗi khi lấy đề thi!');
     }
-  };
+  }, [selectedFolder, history]);
 
   return (
     <div
@@ -162,57 +144,6 @@ export default function RandomExam() {
         </Card>
       </div>
 
-      <div style={{ width: 400 }}>
-        <Typography.Title level={4}>📜 Lịch sử lấy đề thi</Typography.Title>
-
-        <Card
-          style={{
-            borderRadius: 16,
-            border: '1px solid #e5e7eb',
-            padding: '16px 20px',
-          }}
-        >
-          {history.length === 0 ? (
-            <Empty description="Chưa có lịch sử nào" />
-          ) : (
-            <List
-              dataSource={history}
-              renderItem={(item, index) => (
-                <List.Item
-                  style={{
-                    borderBottom: '1px solid #f0f0f0',
-                    padding: '8px 0',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <div>
-                    <Typography.Text strong>
-                      Đề số {history.length - index}: {item.title}
-                    </Typography.Text>
-                    <br />
-                    <Typography.Link href={item.link} target="_blank">
-                      <IconLink size={14} /> Mở đề
-                    </Typography.Link>
-                  </div>
-                  <Tooltip title="Chia sẻ link">
-                    <Button
-                      type="text"
-                      icon={<IconShare size={16} />}
-                      onClick={() => {
-                        setShareLink(item.link);
-                        setShareModalOpen(true);
-                      }}
-                    />
-                  </Tooltip>
-                </List.Item>
-              )}
-            />
-          )}
-        </Card>
-      </div>
-
       {currentExam && (
         <ExamViewer
           open={viewerOpen}
@@ -221,12 +152,6 @@ export default function RandomExam() {
           fileName={currentExam.title}
         />
       )}
-
-      <ShareModal
-        open={shareModalOpen}
-        onClose={() => setShareModalOpen(false)}
-        link={shareLink || ''}
-      />
     </div>
   );
 }
