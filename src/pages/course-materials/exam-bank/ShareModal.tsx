@@ -15,9 +15,9 @@ export const ShareModal: React.FC<ShareModalProps> = ({ open, onClose, link }) =
 
   const publicLink =
     import.meta.env.VITE_API_BASE_URL +
-    '/exam-public/' +
+    '/exam-public?examName=' +
     fileName +
-    '?expires=' +
+    '&expires=' +
     expires.toISOString();
 
   const handleCopy = async () => {

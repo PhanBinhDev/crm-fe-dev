@@ -3,6 +3,7 @@ export interface IHistoryItem {
   title: string;
   link: string;
   createdAt: string;
+  createdBy: string;
 }
 
 export interface IFolderItem {
