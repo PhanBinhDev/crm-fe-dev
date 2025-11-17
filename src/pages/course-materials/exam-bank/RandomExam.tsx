@@ -1,46 +1,63 @@
+import { UserRole } from '@/common/enum/user';
+import { IFolderItem, IHistoryItem } from '@/common/types/exam';
+import { useAuth } from '@/hooks/useAuth';
 import { useCustom, useList, useOne } from '@refinedev/core';
-import { IconFolderFilled, IconLink, IconShare } from '@tabler/icons-react';
-import { Button, Card, Empty, List, Select, Space, Spin, Tooltip, Typography, message } from 'antd';
-import { useEffect, useState } from 'react';
+import { IconFolderFilled, IconLink } from '@tabler/icons-react';
+import { Button, Card, Empty, List, Select, Space, Spin, Typography, message } from 'antd';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ExamViewer } from './ExamViewer';
-import { ShareModal } from './ShareModal';
 
 export default function RandomExam() {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
-  const [documents, setDocuments] = useState<any[]>([]);
-  const [history, setHistory] = useState<any[]>([]);
-
+  const [history, setHistory] = useState<IHistoryItem[]>([]);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [currentExam, setCurrentExam] = useState<{ title: string; url: string } | null>(null);
-  const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [shareLink, setShareLink] = useState<string | null>(null);
 
-  const { data: folderData, isLoading } = useList({ resource: 'documents/folders' });
-  const folders = (folderData as any)?.data?.folders ?? [];
+  const { user } = useAuth();
 
-  const { data: selectedFolderData, isLoading: loadingDocs } = useOne({
-    resource: `documents/folders/${selectedFolder}`,
+  const { data: folderData, isLoading } = useList({
+    resource: 'documents/folders',
+  });
+  const folders = useMemo(() => {
+    return (folderData as any)?.data?.folders ?? [];
+  }, [folderData]);
+
+  const { data: historyDataAll } = useOne({
+    resource: `documents/history/all`,
     id: '',
-    queryOptions: { enabled: !!selectedFolder },
   });
 
-  const randomApi = useCustom({
-    url: selectedFolder ? `/documents/folders/${selectedFolder}/random` : '',
-    method: 'get',
-    queryOptions: { enabled: false },
+  const canViewHistory = useMemo(() => {
+    return user?.role === UserRole.SUPERADMIN || user?.role === UserRole.CNBM;
+  }, [user]);
+
+  const historyList: IHistoryItem[] = useMemo(() => {
+    if (selectedFolder) return history;
+
+    const raw = (historyDataAll as any)?.data?.folders ?? [];
+
+    return raw.flatMap(
+      (f: any) =>
+        f.items?.map((i: any) => ({
+          id: i.documentId,
+          title: i.title,
+          link: i.fileUrl,
+          createdAt: i.createdAt,
+          createdBy: i.createdByUserName,
+        })) ?? [],
+    );
+  }, [selectedFolder, history, historyDataAll]);
+
+  const { isLoading: loadingRandom, refetch: refetchRandom } = useOne({
+    resource: `documents/folders/${selectedFolder}/random`,
+    id: '',
   });
 
   const historyApi = useCustom({
-    url: selectedFolder ? `/documents/folders/${selectedFolder}/history` : '',
+    url: selectedFolder ? `documents/folders/${selectedFolder}/history` : '',
     method: 'get',
     queryOptions: { enabled: false },
   });
-
-  useEffect(() => {
-    if (selectedFolderData?.data?.documents) {
-      setDocuments(selectedFolderData.data.documents);
-    }
-  }, [selectedFolderData]);
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -55,6 +72,7 @@ export default function RandomExam() {
           title: i.title,
           link: i.fileUrl,
           createdAt: i.createdAt,
+          createdBy: i.createdByUserName,
         })),
       );
     };
@@ -62,52 +80,25 @@ export default function RandomExam() {
     loadHistory();
   }, [selectedFolder]);
 
-  const handleGetExam = async () => {
+  const handleGetExam = useCallback(async () => {
     if (!selectedFolder) return message.warning('Bạn chưa chọn thư mục!');
-    const now = new Date();
-    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-    const recentHistory = history.filter(h => new Date(h.createdAt) > twoHoursAgo);
-
-    if (recentHistory.length > 0) {
-      message.warning('Trong vòng 2 tiếng bạn không thể lấy thêm đề mới từ thư mục này!');
-      return;
-    }
 
     try {
-      const res: any = await randomApi.refetch();
+      const res: any = await refetchRandom();
       const data = res?.data?.data;
 
-      if (!data) return message.error('Không lấy được đề thi!');
+      if (res.error && res.error.status === 404)
+        return message.error('Thư mục không có đề thi! Vui lòng chọn thư mục khác.');
 
-      const isDuplicate = history.some(h => h.id === data.documentId);
-      if (isDuplicate) {
-        message.warning('Đề này đã được lấy trước đó, thử lại!');
-        return;
-      }
+      if (!data) return message.error('Có lỗi xảy ra. Vui lòng thử lại sau!');
 
-      const link = data.fileUrl;
-      setHistory(prev => [
-        { id: data.documentId, title: data.title, link, createdAt: data.createdAt },
-        ...prev,
-      ]);
-
-      window.open(link, '_blank');
-
-      const historyRes: any = await historyApi.refetch();
-      const items = historyRes?.data?.data?.items ?? [];
-
-      setHistory(
-        items.map((i: any) => ({
-          id: i.documentId,
-          title: i.title,
-          link: i.fileUrl,
-          createdAt: i.createdAt,
-        })),
-      );
+      setCurrentExam({ title: data.title, url: data.fileUrl });
+      setViewerOpen(true);
+      message.success('Lấy đề thi thành công!');
     } catch (e) {
       message.error('Lỗi khi lấy đề thi!');
     }
-  };
+  }, [selectedFolder, refetchRandom]);
 
   return (
     <div
@@ -136,7 +127,7 @@ export default function RandomExam() {
               placeholder="Chọn thư mục"
               style={{ width: '100%', marginBottom: 16 }}
               onChange={setSelectedFolder}
-              options={folders.map((f: any) => ({
+              options={folders.map((f: IFolderItem) => ({
                 label: (
                   <Space>
                     <IconFolderFilled size={16} color="#3b82f6" /> {f.name}
@@ -151,65 +142,63 @@ export default function RandomExam() {
             <Button
               type="primary"
               onClick={handleGetExam}
-              disabled={loadingDocs}
+              disabled={loadingRandom}
               style={{ width: '100%' }}
             >
-              {loadingDocs ? 'Đang tải...' : 'Lấy đề thi'}
+              {loadingRandom ? 'Đang tải...' : 'Lấy đề thi'}
             </Button>
           )}
         </Card>
       </div>
+      {canViewHistory && (
+        <div style={{ width: 400 }}>
+          <Typography.Title level={4}>📜 Lịch sử lấy đề thi</Typography.Title>
 
-      <div style={{ width: 400 }}>
-        <Typography.Title level={4}>📜 Lịch sử lấy đề thi</Typography.Title>
-
-        <Card
-          style={{
-            borderRadius: 16,
-            border: '1px solid #e5e7eb',
-            padding: '16px 20px',
-          }}
-        >
-          {history.length === 0 ? (
-            <Empty description="Chưa có lịch sử nào" />
-          ) : (
-            <List
-              dataSource={history}
-              renderItem={(item, index) => (
-                <List.Item
-                  style={{
-                    borderBottom: '1px solid #f0f0f0',
-                    padding: '8px 0',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <div>
-                    <Typography.Text strong>
-                      Đề số {history.length - index}: {item.title}
-                    </Typography.Text>
-                    <br />
-                    <Typography.Link href={item.link} target="_blank">
-                      <IconLink size={14} /> Mở đề
-                    </Typography.Link>
-                  </div>
-                  <Tooltip title="Chia sẻ link">
-                    <Button
-                      type="text"
-                      icon={<IconShare size={16} />}
-                      onClick={() => {
-                        setShareLink(item.link);
-                        setShareModalOpen(true);
-                      }}
-                    />
-                  </Tooltip>
-                </List.Item>
-              )}
-            />
-          )}
-        </Card>
-      </div>
+          <Card
+            style={{
+              borderRadius: 16,
+              border: '1px solid #e5e7eb',
+              padding: '16px 20px',
+            }}
+          >
+            {historyList.length === 0 ? (
+              <Empty description="Chưa có lịch sử nào" />
+            ) : (
+              <List
+                dataSource={historyList}
+                renderItem={item => (
+                  <List.Item
+                    style={{
+                      borderBottom: '1px solid #f0f0f0',
+                      padding: '8px 0',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div>
+                      <Typography.Text strong>Đề: {item.title}</Typography.Text>
+                      <br />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+                        <Typography.Text type="secondary">
+                          Người tạo: {item.createdBy}
+                        </Typography.Text>
+                        <Typography.Link
+                          style={{ display: 'flex', alignItems: 'center' }}
+                          href={item.link}
+                          target="_blank"
+                        >
+                          <IconLink size={14} /> Mở đề
+                        </Typography.Link>
+                      </div>
+                    </div>
+                  </List.Item>
+                )}
+              />
+            )}
+          </Card>
+        </div>
+      )}
 
       {currentExam && (
         <ExamViewer
@@ -219,12 +208,6 @@ export default function RandomExam() {
           fileName={currentExam.title}
         />
       )}
-
-      <ShareModal
-        open={shareModalOpen}
-        onClose={() => setShareModalOpen(false)}
-        link={shareLink || ''}
-      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ import { queryClient } from '@/config/queryClient';
 import { resources } from '@/config/resources';
 import { antdTheme } from '@/config/theme';
 import { API_URL } from '@/constants';
+import ExamSharePublic from '@/pages/course-materials/exam-bank/ExamSharePublic';
 import { profileRoutes } from '@/pages/profile/routes';
 import { semesterRoutes } from '@/pages/semester/routes';
 import { userRoutes } from '@/pages/users/routes';
@@ -95,7 +96,8 @@ function App() {
                     </Route>
                     <Route element={<GoogleLoginPage />} path="/login" />
                     <Route element={<FeedbackForm />} path="/feedback-event/:id" />
-                    <Route path="/invite-members/:token" element={<InviteWorkspace />} />,
+                    <Route element={<ExamSharePublic />} path="/exam-public" />
+                    <Route path="/invite-members/:token" element={<InviteWorkspace />} />
                   </Routes>
 
                   <Modals />
