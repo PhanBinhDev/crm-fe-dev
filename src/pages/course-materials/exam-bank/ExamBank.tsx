@@ -1,21 +1,11 @@
 import { IFolder } from '@/common/types/document';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
-import {
-  IconDotsVertical,
-  IconEdit,
-  IconFolderFilled,
-  IconPlus,
-  IconTrash,
-  IconX,
-} from '@tabler/icons-react';
+import { IconPlus, IconX } from '@tabler/icons-react';
 import {
   Button,
-  Card,
   Divider,
-  Dropdown,
   Empty,
   Input,
-  Menu,
   Modal,
   Row,
   Skeleton,
@@ -25,6 +15,7 @@ import {
 } from 'antd';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import FolderCard from './FolderCard';
 
 export default function ExamBank() {
   const navigate = useNavigate();
@@ -44,6 +35,8 @@ export default function ExamBank() {
   const folders: IFolder[] = Array.isArray((data as any)?.data?.folders)
     ? (data as any).data.folders
     : [];
+
+  console.log('folder', data);
 
   const filteredFolders = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -173,19 +166,21 @@ export default function ExamBank() {
             style={{ width: 220 }}
           />
 
-          <Button
-            type="primary"
-            icon={<IconPlus size={18} />}
-            onClick={openCreateModal}
-            loading={creating}
-            style={{
-              borderRadius: 8,
-              background: '#1890ff',
-              border: 'none',
-              fontWeight: 500,
-              height: 32,
-            }}
-          />
+          <Tooltip title="Tạo thư mục">
+            <Button
+              type="primary"
+              icon={<IconPlus size={18} />}
+              onClick={openCreateModal}
+              loading={creating}
+              style={{
+                borderRadius: 8,
+                background: '#1890ff',
+                border: 'none',
+                fontWeight: 500,
+                height: 32,
+              }}
+            />
+          </Tooltip>
         </div>
       </div>
 
@@ -195,7 +190,6 @@ export default function ExamBank() {
           style={{ margin: '100px 0' }}
         />
       )}
-
       <div>
         {isLoading ? (
           <Row gutter={[16, 20]}>
@@ -206,104 +200,19 @@ export default function ExamBank() {
             ))}
           </Row>
         ) : (
-          <Row gutter={[16, 20]}>
-            {filteredFolders.map(folder => (
-              <div
-                key={folder.id}
-                style={{
-                  width: '25%',
-                  padding: '0 8px 10px 8px',
-                }}
-              >
-                <Card
-                  hoverable
-                  onClick={() => navigate(`/exams/bank/${folder.id}`)}
-                  style={{
-                    borderRadius: 10,
-                    border: '1px solid #e5e7eb',
-                    cursor: 'pointer',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                  }}
-                  bodyStyle={{
-                    padding: 16,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 10,
-                    height: 90,
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 8,
-                        background: 'linear-gradient(180deg, #60a5fa, #3b82f6)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <IconFolderFilled size={22} color="#fff" />
-                    </div>
-                    <div style={{ flex: 1, overflow: 'hidden' }}>
-                      <Tooltip title={folder.name}>
-                        <Typography.Text
-                          style={{
-                            fontSize: 15,
-                            fontWeight: 600,
-                            color: '#111827',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {folder.name}
-                        </Typography.Text>
-                      </Tooltip>
-                    </div>
-
-                    {/* Dropdown nút ... */}
-                    <Dropdown
-                      overlay={
-                        <Menu>
-                          <Menu.Item
-                            key="edit"
-                            icon={<IconEdit size={16} />}
-                            onClick={e => {
-                              e.domEvent.stopPropagation();
-                              openEditModal(folder);
-                            }}
-                          >
-                            Sửa
-                          </Menu.Item>
-                          <Menu.Item
-                            key="delete"
-                            icon={<IconTrash size={16} />}
-                            danger
-                            onClick={e => {
-                              e.domEvent.stopPropagation();
-                              handleDeleteFolder(folder.id, folder.name);
-                            }}
-                          >
-                            Xóa
-                          </Menu.Item>
-                        </Menu>
-                      }
-                      trigger={['click']}
-                    >
-                      <Button
-                        type="text"
-                        onClick={e => e.stopPropagation()}
-                        icon={<IconDotsVertical size={18} />}
-                      />
-                    </Dropdown>
-                  </div>
-                </Card>
-              </div>
-            ))}
-          </Row>
+          <div>
+            <Row gutter={[16, 20]}>
+              {filteredFolders.map(folder => (
+                <FolderCard
+                  key={folder.id}
+                  folder={folder}
+                  onNavigate={id => navigate(`/exams/bank/${id}`)}
+                  onEdit={openEditModal}
+                  onDelete={handleDeleteFolder}
+                />
+              ))}
+            </Row>
+          </div>
         )}
       </div>
 

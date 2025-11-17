@@ -1,4 +1,5 @@
 import { IStage } from '@/common/types';
+import Spinner from '@/components/ui/Spinner';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useList } from '@refinedev/core';
@@ -8,7 +9,7 @@ import {
   IconCircleXFilled,
   IconProgress,
 } from '@tabler/icons-react';
-import { Card, Col, Grid, Progress, Row, Spin, Typography } from 'antd';
+import { Card, Col, Grid, Progress, Row, Typography } from 'antd';
 import { useMemo } from 'react';
 
 const { Text } = Typography;
@@ -119,7 +120,7 @@ const Overview = ({ stage }: OverviewProps) => {
   if (isLoading) {
     return (
       <div style={{ textAlign: 'center', padding: '50px 0' }}>
-        <Spin />
+        <Spinner />
       </div>
     );
   }

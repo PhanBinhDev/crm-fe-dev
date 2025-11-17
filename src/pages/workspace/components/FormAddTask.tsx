@@ -13,7 +13,7 @@ import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useCreate, useCustomMutation, useList } from '@refinedev/core';
 import { IconCheck, IconChevronRight } from '@tabler/icons-react';
 import { Form, Input, List, Modal, Popover, Space, Tooltip } from 'antd';
-import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
 import AssigneeActivity from './AssigneeActivity';
 import ChecklistActivity from './ChecklistActivity';
 import DuedateActivity from './DuedateActivity';
@@ -54,6 +54,21 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
     resource: 'activities/category',
     pagination: { mode: 'off' },
   });
+
+  const { data: stages } = useList<IStage>({
+    resource: 'stages',
+    pagination: { mode: 'off' },
+    filters: [{ field: 'workspaceId', operator: 'eq', value: currentWorkspace?.id }],
+    queryOptions: { enabled: !!currentWorkspace?.id },
+  });
+
+  useEffect(() => {
+    if (stages?.data && stages.data.length > 0) {
+      const first = stages.data[0];
+      setStage(first);
+      form.setFieldValue('stage', first);
+    }
+  }, [stages?.data, form]);
 
   const onCreateCategory = (values: { name: string; description: string }) => {
     createCategory(
@@ -222,7 +237,9 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
     setSubtasks([]);
     setAttachments([]);
     setChecklists([]);
-    setStage(null);
+    const firstStage = stages?.data && stages.data.length > 0 ? stages.data[0] : null;
+    setStage(firstStage);
+    form.setFieldValue('stage', firstStage);
     setShowActions({
       timeEstimate: false,
       subtasks: false,
@@ -324,7 +341,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
         checklist: [],
         attachments: [],
         timeEstimate: '',
-        stage: undefined,
+        stage: null,
         location: '',
         instructorCount: 0,
         studentCount: 0,
