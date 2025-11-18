@@ -1,8 +1,8 @@
-import { IDocument, IFolder } from '@/common/types/document';
+import { DocumentStatus, IDocument, IFolder } from '@/common/types/document';
 import ModalCreateTest from '@/components/modals/ModalCreateTest';
 import { useModal } from '@/hooks/useModal';
 import { MoreOutlined } from '@ant-design/icons';
-import { useDelete, useOne } from '@refinedev/core';
+import { useDelete, useOne, useUpdate } from '@refinedev/core';
 import {
   IconArchive,
   IconCalendar,
@@ -42,18 +42,21 @@ dayjs.extend(isBetween);
 const STATUS_OPTIONS = [
   {
     label: 'Nháp',
-    value: 'DRAFT',
-    icon: <IconFileText size={15} color="#8c8c8c" />,
+    value: 'DRAFT' as DocumentStatus,
+    icon: <IconFileText size={15} />,
+    color: 'red',
   },
   {
     label: 'Xuất bản',
-    value: 'PUBLISHED',
-    icon: <IconUpload size={15} color="#8c8c8c" />,
+    value: 'PUBLISHED' as DocumentStatus,
+    icon: <IconUpload size={15} />,
+    color: 'green',
   },
   {
     label: 'Lưu trữ',
-    value: 'ARCHIVED',
-    icon: <IconArchive size={15} color="#8c8c8c" />,
+    value: 'ARCHIVED' as DocumentStatus,
+    icon: <IconArchive size={15} />,
+    color: 'yellow',
   },
 ];
 
@@ -61,7 +64,7 @@ export default function ExamFolderDetail() {
   const { folderId } = useParams();
   const [localFolderData, setLocalFolderData] = useState<IFolder | null>(null);
   const [searchText, setSearchText] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<DocumentStatus | null>(null);
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([
     null,
     null,
@@ -70,7 +73,7 @@ export default function ExamFolderDetail() {
   const [statusOpen, setStatusOpen] = useState(false);
   const isModalCreateTest = isOpen && type === 'ModalCreateTest';
   const [rangePickerOpen, setRangePickerOpen] = useState(false);
-
+  const [statusPopoverOpen, setStatusPopoverOpen] = useState<string | null>(null);
   const {
     data: folderData,
     isLoading,
@@ -81,6 +84,7 @@ export default function ExamFolderDetail() {
   });
 
   const { mutate: deleteDocument } = useDelete();
+  const { mutate: updateDocument } = useUpdate();
 
   useEffect(() => {
     if (folderData?.data) {
@@ -150,7 +154,35 @@ export default function ExamFolderDetail() {
       },
     );
   };
-  console.log('localFolderData', localFolderData);
+  const handleUpdateStatus = (documentId: string, newStatus: DocumentStatus) => {
+    const prevLocalFolderData = localFolderData;
+    setLocalFolderData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        documents: prev.documents.map(doc =>
+          doc.id === documentId ? { ...doc, status: newStatus } : doc,
+        ),
+      };
+    });
+    updateDocument(
+      {
+        resource: 'documents',
+        id: documentId,
+        values: { status: newStatus },
+      },
+      {
+        onSuccess: () => {
+          setStatusPopoverOpen(null);
+          refetch();
+        },
+        onError: () => {
+          setLocalFolderData(prevLocalFolderData);
+          message.error('Cập nhật trạng thái thất bại. Vui lòng thử lại sau.');
+        },
+      },
+    );
+  };
 
   return (
     <div style={{ display: 'flex', height: '100%', padding: 20, gap: 20 }}>
@@ -161,7 +193,7 @@ export default function ExamFolderDetail() {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: 16,
+            marginBottom: 20,
           }}
         >
           <Typography.Title level={3} style={{ margin: 0, fontWeight: 700, color: '#111827' }}>
@@ -208,6 +240,7 @@ export default function ExamFolderDetail() {
                         borderRadius: 6,
                         background: selectedStatus === item.value ? '#e6f4ff' : 'transparent',
                         transition: 'background-color 0.2s ease',
+                        color: '#525252ff',
                       }}
                       onMouseEnter={e => {
                         e.currentTarget.style.backgroundColor = '#f5f5f5';
@@ -217,7 +250,7 @@ export default function ExamFolderDetail() {
                           selectedStatus === item.value ? '#e6f4ff' : 'transparent';
                       }}
                       onClick={() => {
-                        setSelectedStatus(item.value);
+                        setSelectedStatus(item.value as DocumentStatus);
                         setStatusOpen(false);
                       }}
                     >
@@ -365,6 +398,7 @@ export default function ExamFolderDetail() {
           <Empty description={'Không có đề thi nào'} style={{ margin: '100px 0' }} />
         ) : (
           <Table
+            size="small"
             dataSource={filteredDocuments}
             columns={[
               {
@@ -379,6 +413,11 @@ export default function ExamFolderDetail() {
                 title: 'Tên đề thi',
                 dataIndex: 'title',
                 key: 'title',
+              },
+              {
+                title: 'Mô tả',
+                dataIndex: 'description',
+                key: 'description',
               },
               {
                 title: 'Ngày đăng',
@@ -396,11 +435,75 @@ export default function ExamFolderDetail() {
                 title: 'Trạng thái',
                 dataIndex: 'status',
                 key: 'status',
-                render: (status: string) => (
-                  <Tag color={status === 'PUBLISHED' ? 'green' : 'orange'}>
-                    {status === 'PUBLISHED' ? 'Đã xuất bản' : 'Nháp'}
-                  </Tag>
-                ),
+                render: (status: string, record: IDocument) => {
+                  const statusOption = STATUS_OPTIONS.find(opt => opt.value === status);
+                  return (
+                    <Popover
+                      trigger="click"
+                      placement="bottomLeft"
+                      open={statusPopoverOpen === record.id}
+                      onOpenChange={open => setStatusPopoverOpen(open ? record.id : null)}
+                      arrow={false}
+                      styles={{ body: { padding: 5, width: 150 } }}
+                      content={
+                        <List
+                          size="small"
+                          dataSource={STATUS_OPTIONS}
+                          renderItem={item => (
+                            <List.Item
+                              key={item.value}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 10,
+                                padding: '6px 10px',
+                                cursor: 'pointer',
+                                borderRadius: 6,
+                                background: status === item.value ? '#e6f4ff' : 'transparent',
+                                transition: 'background-color 0.2s ease',
+                                color: '#525252ff',
+                              }}
+                              onMouseEnter={e => {
+                                e.currentTarget.style.backgroundColor = '#f5f5f5';
+                              }}
+                              onMouseLeave={e => {
+                                e.currentTarget.style.backgroundColor =
+                                  status === item.value ? '#e6f4ff' : 'transparent';
+                              }}
+                              onClick={() => {
+                                if (status !== item.value) {
+                                  handleUpdateStatus(record.id, item.value as DocumentStatus);
+                                } else {
+                                  setStatusPopoverOpen(null);
+                                }
+                              }}
+                            >
+                              {item.icon}
+                              <span style={{ flex: 1 }}>{item.label}</span>
+                              {status === item.value && <IconCheck size={14} color="#1890ff" />}
+                            </List.Item>
+                          )}
+                        />
+                      }
+                    >
+                      <Tag
+                        icon={statusOption?.icon}
+                        color={statusOption?.color || 'default'}
+                        style={{
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 5,
+                          width: 'fit-content',
+                        }}
+                      >
+                        {statusOption?.label || status}
+                      </Tag>
+                    </Popover>
+                  );
+                },
               },
               {
                 key: 'actions',

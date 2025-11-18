@@ -27,7 +27,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 const { Panel } = Collapse;
 const { Text } = Typography;
 
@@ -45,8 +45,6 @@ interface StatusItem {
 
 const ListView = ({ stages, activities, users }: ListViewProps) => {
   const { openModal } = useModal();
-  const [activeKeys, setActiveKeys] = useState(['TO DO', 'IN PROGRESS']);
-
   const stageMap = stages.reduce<Record<string, string>>((acc, stage) => {
     acc[stage.id] = stage.title;
     return acc;
@@ -293,6 +291,19 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
     </div>
   );
 
+  const defaultActiveKeys = Object.entries(groupedTasks)
+    .filter(([_, tasks]) => tasks.length > 0)
+    .map(([status]) => status);
+
+  const [activeKeys, setActiveKeys] = useState<string[]>(defaultActiveKeys);
+
+  useEffect(() => {
+    const newActiveKeys = Object.entries(groupedTasks)
+      .filter(([_, tasks]) => tasks.length > 0)
+      .map(([status]) => status);
+    setActiveKeys(newActiveKeys);
+  }, [activities]);
+
   const renderStatusPanel = (status: StageGroup, tasks: IActivity[]) => {
     const config = statusConfig[status];
     if (!config) return null;
@@ -369,28 +380,29 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
         className="mb-4"
       >
         <div>
-          <Table
-            style={{
-              border: '1px solid #f0f0f0',
-              padding: 0,
-            }}
-            className="ant-table-striped table-view"
-            columns={tbColumns}
-            dataSource={tasks || []}
-            rowKey="id"
-            scroll={{ x: 1200 }}
-            tableLayout="fixed"
-            pagination={false}
-            onRow={record => {
-              return {
-                onClick: () => {
-                  openModal('ModalEditActivity', { activity: record });
-                },
-              };
-            }}
-          />
-          {tasks && tasks.length > 0 && (
-            <div className="px-6 py-3 bg-white border-t border-gray-100"></div>
+          {tasks && tasks.length > 0 ? (
+            <Table
+              style={{
+                border: '1px solid #f0f0f0',
+                padding: 0,
+              }}
+              className="ant-table-striped table-view"
+              columns={tbColumns}
+              dataSource={tasks || []}
+              rowKey="id"
+              scroll={{ x: 1200 }}
+              tableLayout="fixed"
+              pagination={false}
+              onRow={record => {
+                return {
+                  onClick: () => {
+                    openModal('ModalEditActivity', { activity: record });
+                  },
+                };
+              }}
+            />
+          ) : (
+            <div style={{ textAlign: 'center', color: '#909090ff' }}>Chưa có công việc nào</div>
           )}
         </div>
       </Panel>
@@ -417,7 +429,7 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
       <div className="p-6">
         <Collapse
           activeKey={activeKeys}
-          onChange={setActiveKeys}
+          onChange={keys => setActiveKeys(keys as string[])}
           expandIcon={({ isActive }) => (
             <IconChevronRight
               size={16}
@@ -436,7 +448,7 @@ const ListView = ({ stages, activities, users }: ListViewProps) => {
           ghost
         >
           {Object.entries(statusConfig).map(([status]) =>
-            renderStatusPanel(status as any, groupedTasks[status]),
+            renderStatusPanel(status as StageGroup, groupedTasks[status]),
           )}
         </Collapse>
       </div>

@@ -61,6 +61,7 @@ const SelectActivityType = ({ onChange, value, id }: SelectActivityTypeProps) =>
     setSelectedType(type);
 
     onChange(type);
+    setOpen(false);
   };
 
   return (

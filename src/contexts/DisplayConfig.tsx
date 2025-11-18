@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 export interface DisplayConfig {
   showAssignee: boolean;
   showEndTime: boolean;
-  // showStartTime: boolean;
+  showStartTime: boolean;
   showEstimate: boolean;
   showPriority: boolean;
   showDescription: boolean;
@@ -18,7 +18,7 @@ export const defaultConfig: DisplayConfig = {
   showAssignee: false,
   showEstimate: true,
   showEndTime: true,
-  // showStartTime: false,
+  showStartTime: false,
   showPriority: true,
   showDescription: false,
   showProgress: false,

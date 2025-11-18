@@ -246,24 +246,41 @@ const NotificationItem = memo(
             )}
 
             {item.data?.workspaceId && (
-              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <Button
-                  type="primary"
-                  size="small"
-                  loading={loadingId === item.data?.workspaceId}
-                  onClick={() => handleAcceptInvitation(item.data?.workspaceId)}
-                >
-                  Chấp nhận
-                </Button>
-                <Button
-                  size="small"
-                  danger
-                  loading={rejectingId === item.data?.workspaceId}
-                  onClick={() => handleRejectInvitation(item.data?.workspaceId)}
-                >
-                  Từ chối
-                </Button>
-              </div>
+              <>
+                {item.data?.status === 'pending' && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <Button
+                      type="primary"
+                      size="small"
+                      loading={loadingId === item.data?.workspaceId}
+                      onClick={() => handleAcceptInvitation(item.data?.workspaceId)}
+                    >
+                      Chấp nhận
+                    </Button>
+
+                    <Button
+                      size="small"
+                      danger
+                      loading={rejectingId === item.data?.workspaceId}
+                      onClick={() => handleRejectInvitation(item.data?.workspaceId)}
+                    >
+                      Từ chối
+                    </Button>
+                  </div>
+                )}
+
+                {item.data?.status === 'accepted' && (
+                  <p style={{ display: 'flex', alignItems: 'center', gap: 5, fontWeight: 500 }}>
+                    <IconChecks size={14} color="green" /> Bạn đã chấp nhận lời mời
+                  </p>
+                )}
+
+                {item.data?.status === 'rejected' && (
+                  <p style={{ display: 'flex', alignItems: 'center', gap: 5, fontWeight: 500 }}>
+                    <IconX size={14} color="red" /> Bạn đã từ chối lời mời
+                  </p>
+                )}
+              </>
             )}
 
             <div

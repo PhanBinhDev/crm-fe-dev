@@ -1,30 +1,24 @@
 import { IFolder } from '@/common/types/document';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
-import {
-  IconDotsVertical,
-  IconEdit,
-  IconFolderFilled,
-  IconPlus,
-  IconTrash,
-  IconX,
-} from '@tabler/icons-react';
+import { IconCalendar, IconPlus, IconX } from '@tabler/icons-react';
 import {
   Button,
-  Card,
+  DatePicker,
   Divider,
-  Dropdown,
   Empty,
   Input,
-  Menu,
   Modal,
+  Popover,
   Row,
   Skeleton,
   Tooltip,
   Typography,
   message,
 } from 'antd';
+import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import FolderCard from './FolderCard';
 
 export default function ExamBank() {
   const navigate = useNavigate();
@@ -33,6 +27,11 @@ export default function ExamBank() {
   const [editingFolder, setEditingFolder] = useState<IFolder | null>(null);
   const [folderName, setFolderName] = useState('');
   const [description, setDescription] = useState('');
+  const [rangePickerOpen, setRangePickerOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([
+    null,
+    null,
+  ]);
 
   const { data, isLoading, refetch } = useList<{ data: { folders: IFolder[] } }>({
     resource: 'documents/folders',
@@ -45,10 +44,26 @@ export default function ExamBank() {
     ? (data as any).data.folders
     : [];
 
+  console.log('folder', data);
+
   const filteredFolders = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    return folders.filter(f => f.name?.toLowerCase().includes(keyword));
-  }, [folders, search]);
+
+    let result = folders.filter(
+      f =>
+        f.name?.toLowerCase().includes(keyword) ||
+        f.description?.toLowerCase().includes(keyword) ||
+        (f.totalDocuments?.toString() || '').includes(keyword) ||
+        f.createdBy?.name.toLowerCase().includes(keyword),
+    );
+
+    if (dateRange[0] && dateRange[1]) {
+      const start = dateRange[0].startOf('day');
+      const end = dateRange[1].endOf('day');
+      result = result.filter(doc => dayjs(doc.createdAt).isBetween(start, end, null, '[]'));
+    }
+    return result;
+  }, [folders, search, dateRange]);
 
   const openCreateModal = () => {
     setEditingFolder(null);
@@ -161,31 +176,96 @@ export default function ExamBank() {
     >
       <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
         <Typography.Title level={3} style={{ margin: 0, fontWeight: 700, color: '#111827' }}>
-          Thư Mục Đề Thi
+          Thư Mục Đề Thi ({folders?.length})
         </Typography.Title>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <Input.Search
-            placeholder="Tìm thư mục..."
+            placeholder="Tìm kiếm thư mục..."
             allowClear
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ width: 220 }}
+            style={{ width: 250 }}
           />
 
-          <Button
-            type="primary"
-            icon={<IconPlus size={18} />}
-            onClick={openCreateModal}
-            loading={creating}
-            style={{
-              borderRadius: 8,
-              background: '#1890ff',
-              border: 'none',
-              fontWeight: 500,
-              height: 32,
-            }}
-          />
+          <Popover
+            trigger="click"
+            placement="bottomLeft"
+            open={rangePickerOpen}
+            onOpenChange={setRangePickerOpen}
+            arrow={false}
+            content={
+              <div style={{ padding: 3 }}>
+                <DatePicker.RangePicker
+                  format="DD/MM/YYYY"
+                  value={dateRange}
+                  onChange={dates => {
+                    setDateRange(dates ?? [null, null]);
+                    if (dates && dates[0] && dates[1]) {
+                      setRangePickerOpen(false);
+                    }
+                  }}
+                  style={{ width: 260 }}
+                  placeholder={['Từ ngày', 'Đến ngày']}
+                />
+              </div>
+            }
+          >
+            <Tooltip title="Lọc theo khoảng thời gian">
+              <Button
+                type="default"
+                icon={<IconCalendar size={15} color="#646464" />}
+                style={{
+                  borderRadius: 6,
+                  border: '1px solid #d9d9d9',
+                  height: 32,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  color: '#24292f',
+                  background: '#fff',
+                  padding: '0px 7px',
+                }}
+              >
+                {dateRange[0] && dateRange[1] ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ fontSize: 13, color: '#595959' }}>
+                      {dayjs(dateRange[0]).format('DD/MM')} → {dayjs(dateRange[1]).format('DD/MM')}
+                    </span>
+                    <Button
+                      type="text"
+                      icon={<IconX size={14} color="#e60f0fff" />}
+                      onClick={() => setDateRange([null, null])}
+                      style={{
+                        border: 'none',
+                        color: '#8c8c8c',
+                        width: 15,
+                        height: 15,
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <span style={{ fontSize: 14, fontWeight: 500, color: '#646464' }}>Chọn ngày</span>
+                )}
+              </Button>
+            </Tooltip>
+          </Popover>
+
+          <Tooltip title="Tạo thư mục">
+            <Button
+              type="primary"
+              icon={<IconPlus size={18} />}
+              onClick={openCreateModal}
+              loading={creating}
+              style={{
+                borderRadius: 8,
+                background: '#1890ff',
+                border: 'none',
+                fontWeight: 500,
+                height: 32,
+              }}
+            />
+          </Tooltip>
         </div>
       </div>
 
@@ -195,7 +275,6 @@ export default function ExamBank() {
           style={{ margin: '100px 0' }}
         />
       )}
-
       <div>
         {isLoading ? (
           <Row gutter={[16, 20]}>
@@ -206,104 +285,19 @@ export default function ExamBank() {
             ))}
           </Row>
         ) : (
-          <Row gutter={[16, 20]}>
-            {filteredFolders.map(folder => (
-              <div
-                key={folder.id}
-                style={{
-                  width: '25%',
-                  padding: '0 8px 10px 8px',
-                }}
-              >
-                <Card
-                  hoverable
-                  onClick={() => navigate(`/exams/bank/${folder.id}`)}
-                  style={{
-                    borderRadius: 10,
-                    border: '1px solid #e5e7eb',
-                    cursor: 'pointer',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                  }}
-                  bodyStyle={{
-                    padding: 16,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 10,
-                    height: 90,
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 8,
-                        background: 'linear-gradient(180deg, #60a5fa, #3b82f6)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <IconFolderFilled size={22} color="#fff" />
-                    </div>
-                    <div style={{ flex: 1, overflow: 'hidden' }}>
-                      <Tooltip title={folder.name}>
-                        <Typography.Text
-                          style={{
-                            fontSize: 15,
-                            fontWeight: 600,
-                            color: '#111827',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {folder.name}
-                        </Typography.Text>
-                      </Tooltip>
-                    </div>
-
-                    {/* Dropdown nút ... */}
-                    <Dropdown
-                      overlay={
-                        <Menu>
-                          <Menu.Item
-                            key="edit"
-                            icon={<IconEdit size={16} />}
-                            onClick={e => {
-                              e.domEvent.stopPropagation();
-                              openEditModal(folder);
-                            }}
-                          >
-                            Sửa
-                          </Menu.Item>
-                          <Menu.Item
-                            key="delete"
-                            icon={<IconTrash size={16} />}
-                            danger
-                            onClick={e => {
-                              e.domEvent.stopPropagation();
-                              handleDeleteFolder(folder.id, folder.name);
-                            }}
-                          >
-                            Xóa
-                          </Menu.Item>
-                        </Menu>
-                      }
-                      trigger={['click']}
-                    >
-                      <Button
-                        type="text"
-                        onClick={e => e.stopPropagation()}
-                        icon={<IconDotsVertical size={18} />}
-                      />
-                    </Dropdown>
-                  </div>
-                </Card>
-              </div>
-            ))}
-          </Row>
+          <div>
+            <Row gutter={[16, 20]}>
+              {filteredFolders.map(folder => (
+                <FolderCard
+                  key={folder.id}
+                  folder={folder}
+                  onNavigate={id => navigate(`/exams/bank/${id}`)}
+                  onEdit={openEditModal}
+                  onDelete={handleDeleteFolder}
+                />
+              ))}
+            </Row>
+          </div>
         )}
       </div>
 

@@ -75,7 +75,7 @@ const FolderCard = ({ folder, onNavigate, onEdit, onDelete }: FolderCardProps) =
         >
           <Button
             type="text"
-            icon={<span style={{ fontSize: 16 }}>⋮</span>}
+            icon={<span style={{ fontSize: 16, color: 'black', fontWeight: 500 }}>⋮</span>}
             onClick={e => e.stopPropagation()}
             style={{
               position: 'absolute',
@@ -94,7 +94,7 @@ const FolderCard = ({ folder, onNavigate, onEdit, onDelete }: FolderCardProps) =
           <div
             style={{
               display: 'flex',
-              justifyContent: 'center',
+              justifyContent: 'space-between',
               alignItems: 'center',
               flexDirection: 'column',
             }}
@@ -124,44 +124,62 @@ const FolderCard = ({ folder, onNavigate, onEdit, onDelete }: FolderCardProps) =
               {folder.totalDocuments ? folder.totalDocuments : 0} files
             </p>
           </div>
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <Typography.Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: isHovered ? '#111827' : '#374151',
+                  display: 'block',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  transition: 'color 0.2s ease',
+                }}
+              >
+                {folder.name}
+              </Typography.Text>
 
-          <div style={{ flex: 1, minWidth: 0, justifyContent: 'space-between' }}>
-            <Typography.Text
-              style={{
-                fontSize: 15,
-                fontWeight: 600,
-                color: isHovered ? '#111827' : '#374151',
-                display: 'block',
-                marginBottom: 2,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                transition: 'color 0.2s ease',
-              }}
-            >
-              {folder.name}
-            </Typography.Text>
+              <p
+                style={{
+                  fontSize: 12,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  lineHeight: 1.2,
+                  marginTop: 3,
+                  marginBottom: 0,
+                }}
+              >
+                {folder.description}
+              </p>
+            </div>
 
-            <p
+            <div
               style={{
+                display: 'flex',
+                alignItems: 'center',
                 fontSize: 12,
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                lineHeight: 1.2,
-                marginBottom: 3,
+                opacity: 0.65,
+                marginTop: 5,
               }}
             >
-              {folder.description}
-            </p>
-
-            <p style={{ fontSize: 12, opacity: 0.65 }}>
-              {/* {folder.createdBy} */}vtdiem
+              <p style={{ margin: 0, flexShrink: 0 }}>{folder.createdBy?.name}</p>
               <IconPointFilled size={7} color="#999" style={{ margin: '0 3px' }} />
-              {dayjs(folder.createdAt).format('DD/MM/YYYY')}
-            </p>
+              <p style={{ margin: 0, flexShrink: 0 }}>
+                {dayjs(folder.createdAt).format('DD/MM/YYYY')}
+              </p>
+            </div>
           </div>
         </div>
       </Card>

@@ -1,9 +1,13 @@
 import { DateRange } from '@/common/types';
 import { IconCalendar, IconChevronDown, IconChevronUp } from '@tabler/icons-react';
-import { Button, Calendar, Input, Popover, Space } from 'antd';
+import { Button, Calendar, Input, Popover, Space, message } from 'antd';
 
 import dayjs, { Dayjs } from 'dayjs';
 import { useEffect, useRef, useState } from 'react';
+
+const isDateInPast = (date: Dayjs): boolean => {
+  return date.isBefore(dayjs(), 'minute');
+};
 
 const presetOptions = [
   {
@@ -139,7 +143,7 @@ const DuedateActivity = ({ value, onChange }: DuedateActivityProps) => {
       end: value.end,
     });
     setSelectedDate(value.end ?? value.start ?? undefined);
-  }, [value.start, value.end]);
+  }, [value]);
 
   // Format date for display in input
   const formatDateForInput = (date: Dayjs | null) => {
@@ -193,59 +197,82 @@ const DuedateActivity = ({ value, onChange }: DuedateActivityProps) => {
   }, [dateRange]);
 
   const handlePresetSelect = (date: Dayjs) => {
-    setDateRange({ start: null, end: date });
+    if (isDateInPast(date)) {
+      message.warning('Không thể chọn thời gian trong quá khứ');
+      return;
+    }
+
+    const newRange = { start: null, end: date };
+    setDateRange(newRange);
     setSelectedDate(date);
     setSelectedPreset(null);
-    onChange?.({ start: null, end: date });
+    onChange?.(newRange);
   };
 
   const handleCalendarSelect = (date: Dayjs) => {
     const dateWithTime = date.hour(23).minute(59).second(59);
 
+    if (isDateInPast(dateWithTime)) {
+      message.warning('Không thể chọn thời gian trong quá khứ');
+      return;
+    }
+
     if (focusedInput === 'start' || (!focusedInput && !dateRange.start)) {
-      setDateRange(prev => ({ ...prev, start: dateWithTime }));
+      const newRange = { ...dateRange, start: dateWithTime };
+      setDateRange(newRange);
       setFocusedInput('end');
       setSelectedPreset(null);
+      onChange?.(newRange);
+
       setTimeout(() => {
         endInputRef.current?.focus();
       }, 100);
-      onChange?.({ ...dateRange, start: dateWithTime });
     } else if (focusedInput === 'end' || !dateRange.end) {
-      setDateRange(prev => ({ ...prev, end: dateWithTime }));
+      const newRange = { ...dateRange, end: dateWithTime };
+      setDateRange(newRange);
       setSelectedPreset(null);
-      onChange?.({ ...dateRange, end: dateWithTime });
+      onChange?.(newRange);
     }
 
     setSelectedDate(dateWithTime);
   };
 
-  const handleInputChange = (value: string, type: 'start' | 'end') => {
-    const parsedDate = parseDateFromInput(value);
+  const handleInputChange = (inputValue: string, type: 'start' | 'end') => {
+    const parsedDate = parseDateFromInput(inputValue);
 
     if (parsedDate) {
+      if (isDateInPast(parsedDate)) {
+        message.error('Không thể chọn thời gian trong quá khứ');
+        return;
+      }
+
       setSelectedPreset(null);
 
       setDateRange(prev => {
-        let newRange;
+        let newRange: DateRange;
+
         if (type === 'start') {
           if (prev.end && parsedDate.isAfter(prev.end)) {
+            message.warning('Ngày bắt đầu không thể sau ngày kết thúc');
             newRange = { start: parsedDate, end: null };
           } else {
             newRange = { ...prev, start: parsedDate };
           }
         } else {
           if (prev.start && parsedDate.isBefore(prev.start)) {
+            message.warning('Ngày kết thúc không thể trước ngày bắt đầu');
             newRange = { start: null, end: parsedDate };
           } else {
             newRange = { ...prev, end: parsedDate };
           }
         }
+
         onChange?.(newRange);
         return newRange;
       });
 
       setSelectedDate(parsedDate);
-    } else if (value === '') {
+    } else if (inputValue === '') {
       setDateRange(prev => {
         const newRange = { ...prev, [type]: null };
         onChange?.(newRange);
@@ -295,6 +322,10 @@ const DuedateActivity = ({ value, onChange }: DuedateActivityProps) => {
     setSelectedPreset(null);
     setFocusedInput(null);
     onChange?.({ start: null, end: null });
+  };
+
+  const disabledDate = (current: Dayjs): boolean => {
+    return current && current.isBefore(dayjs(), 'day');
   };
 
   const popoverContent = (
@@ -363,6 +394,7 @@ const DuedateActivity = ({ value, onChange }: DuedateActivityProps) => {
         <div style={{ flex: 1 }}>
           <Calendar
             fullscreen={false}
+            disabledDate={disabledDate}
             headerRender={({ onChange, value }) => {
               const current = value || dayjs();
               return (

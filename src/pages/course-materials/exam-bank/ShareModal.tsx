@@ -1,99 +1,65 @@
-import { Button, DatePicker, message, Modal, Space, Switch, Typography } from 'antd';
-import dayjs from 'dayjs';
-import { useState } from 'react';
+import { Button, message, Modal, Space, Typography } from 'antd';
 
 interface ShareModalProps {
   open: boolean;
   onClose: () => void;
   link?: string;
-  defaultPublic?: boolean;
   defaultExpire?: string | null;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({
-  open,
-  onClose,
-  link,
-  defaultPublic = false,
-  defaultExpire = null,
-}) => {
-  const [isPublic, setIsPublic] = useState(defaultPublic);
-  const [expireDate, setExpireDate] = useState<dayjs.Dayjs | null>(
-    defaultExpire ? dayjs(defaultExpire) : null,
-  );
+export const ShareModal: React.FC<ShareModalProps> = ({ open, onClose, link }) => {
+  const fileName = link ? link.split('/').pop() : 'Liên kết chia sẻ';
 
-  const handleSave = () => {
-    message.success('Đã lưu cài đặt chia sẻ');
-    onClose();
-  };
+  const expires = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+  expires.setHours(expires.getHours() + 1);
+
+  const publicLink =
+    import.meta.env.VITE_API_BASE_URL +
+    '/exam-public?examName=' +
+    fileName +
+    '&expires=' +
+    expires.toISOString();
 
   const handleCopy = async () => {
-    if (!link) return;
+    if (!publicLink) return;
     try {
-      await navigator.clipboard.writeText(link);
-      message.success('Đã sao chép liên kết chia sẻ!');
+      await navigator.clipboard.writeText(publicLink);
+      message.success('Đã sao chép liên kết!');
     } catch {
-      message.error('Không thể sao chép link!');
+      message.error('Không thể sao chép liên kết!');
     }
   };
 
   return (
-    <Modal
-      open={open}
-      title="Cài đặt chia sẻ"
-      onCancel={onClose}
-      onOk={handleSave}
-      okText="Lưu"
-      centered
-    >
+    <Modal open={open} onCancel={onClose} centered footer={null}>
       <Space direction="vertical" style={{ width: '100%' }}>
         <div>
-          <Typography.Text strong>Trạng thái chia sẻ:</Typography.Text>
-          <div style={{ marginTop: 8 }}>
-            <Switch
-              checked={isPublic}
-              onChange={setIsPublic}
-              checkedChildren="Công khai"
-              unCheckedChildren="Riêng tư"
-            />
-          </div>
-        </div>
-
-        <div>
-          <Typography.Text strong>Thời gian hết hạn:</Typography.Text>
-          <DatePicker
-            showTime
-            style={{ width: '100%', marginTop: 8 }}
-            value={expireDate}
-            onChange={v => setExpireDate(v)}
-          />
-        </div>
-
-        {isPublic && link && (
-          <div>
-            <Typography.Text strong>Liên kết chia sẻ:</Typography.Text>
-            <div
+          <Typography.Text strong style={{ fontSize: 16 }}>
+            Liên kết chia sẻ:
+          </Typography.Text>
+          <div
+            style={{
+              marginTop: 8,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <input
+              readOnly
+              value={publicLink}
               style={{
-                marginTop: 8,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
+                flex: 1,
+                padding: '6px 8px',
+                borderRadius: 6,
+                border: '1px solid #ccc',
               }}
-            >
-              <input
-                readOnly
-                value={link}
-                style={{
-                  flex: 1,
-                  padding: '6px 8px',
-                  borderRadius: 6,
-                  border: '1px solid #ccc',
-                }}
-              />
-              <Button onClick={handleCopy}>Sao chép</Button>
-            </div>
+            />
+            <Button type="primary" onClick={handleCopy}>
+              Sao chép
+            </Button>
           </div>
-        )}
+        </div>
       </Space>
     </Modal>
   );

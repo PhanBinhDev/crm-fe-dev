@@ -16,7 +16,6 @@ import {
   DatePicker,
   Input,
   Row,
-  Select,
   Space,
   Tooltip,
   Typography,
@@ -32,16 +31,12 @@ const { Text } = Typography;
 interface IFormData {
   name: string;
   phone: string;
-  username: string;
-  major: string;
   dateOfBirth: string;
 }
 
 const pickEditableFields = (obj: any): IFormData => ({
   name: obj.name || '',
   phone: obj.phone || '',
-  username: obj.username || '',
-  major: obj.major || '',
   dateOfBirth: obj.dateOfBirth || '',
 });
 
@@ -70,15 +65,11 @@ const GeneralSettings = () => {
   const [formData, setFormData] = useState<IFormData>({
     name: '',
     phone: '',
-    username: '',
-    major: '',
     dateOfBirth: '',
   });
   const [initialDataState, setInitialDataState] = useState<IFormData>({
     name: '',
     phone: '',
-    username: '',
-    major: '',
     dateOfBirth: '',
   });
 
@@ -434,6 +425,26 @@ const GeneralSettings = () => {
         <div style={{ flex: 3, minWidth: 300, paddingTop: isMobile ? 0 : 10 }}>
           <Row gutter={[20, 16]}>
             <Col xs={24} md={12}>
+              <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <label style={{ fontWeight: 500 }}>Email</label>
+                <Tooltip title="Bạn không thể tự thay đổi email của mình">
+                  <IconInfoHexagon size={14} color="#838383" />
+                </Tooltip>
+              </div>
+              <Input value={identity?.email || 'N/A'} disabled style={readOnlyFieldStyle} />
+            </Col>
+
+            <Col xs={24} md={12}>
+              <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <label style={{ fontWeight: 500 }}>Chuyên ngành</label>
+                <Tooltip title="Bạn không thể tự thay đổi chuyên ngành của mình">
+                  <IconInfoHexagon size={14} color="#838383" />
+                </Tooltip>
+              </div>
+              <Input value={identity?.major} style={readOnlyFieldStyle} disabled />
+            </Col>
+
+            <Col xs={24} md={12}>
               <div style={{ marginBottom: 8 }}>
                 <label style={{ fontWeight: 500 }}>Họ và tên</label>
               </div>
@@ -442,30 +453,6 @@ const GeneralSettings = () => {
                 onChange={e => handleInputChange('name', e.target.value)}
                 placeholder="Nhập họ và tên"
               />
-            </Col>
-
-            <Col xs={24} md={12}>
-              <div style={{ marginBottom: 8 }}>
-                <label style={{ fontWeight: 500 }}>Chuyên ngành</label>
-              </div>
-              <Select
-                value={formData.major || undefined}
-                onChange={value => handleInputChange('major', value)}
-                placeholder="Chọn chuyên ngành"
-                style={{ width: '100%' }}
-                options={majorOptions}
-                showSearch
-                filterOption={(input, option: any) =>
-                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                }
-              />
-            </Col>
-
-            <Col xs={24} md={12}>
-              <div style={{ marginBottom: 8 }}>
-                <label style={{ fontWeight: 500 }}>Email</label>
-              </div>
-              <Input value={identity?.email || 'N/A'} disabled style={readOnlyFieldStyle} />
             </Col>
 
             <Col xs={24} md={12}>
@@ -494,14 +481,13 @@ const GeneralSettings = () => {
             </Col>
 
             <Col xs={24} md={12}>
-              <div style={{ marginBottom: 8 }}>
+              <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
                 <label style={{ fontWeight: 500 }}>Mã giảng viên</label>
+                <Tooltip title="Bạn không thể tự thay đổi mã giảng viên của mình">
+                  <IconInfoHexagon size={14} color="#838383" />
+                </Tooltip>
               </div>
-              <Input
-                value={formData.username}
-                onChange={e => handleInputChange('username', e.target.value)}
-                placeholder="Nhập mã giảng viên"
-              />
+              <Input value={identity?.username} disabled style={readOnlyFieldStyle} />
             </Col>
 
             <Col xs={24} md={12}>
