@@ -52,7 +52,7 @@ export interface IFolder {
   description: string;
   createdAt: string;
   updatedAt: string;
-  createdBy: string;
+  createdBy: { name: string };
   documents: IDocument[];
   totalDocuments: number;
 }

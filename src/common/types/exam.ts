@@ -4,6 +4,8 @@ export interface IHistoryItem {
   link: string;
   createdAt: string;
   createdBy: string;
+  createdByUserName: string;
+  folderName: string;
 }
 
 export interface IFolderItem {

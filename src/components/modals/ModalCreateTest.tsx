@@ -582,14 +582,14 @@ const ModalCreateTest = ({ onSuccess }: ModalCreateTestProps) => {
                           <p
                             className="ant-upload-hint"
                             style={{
-                              fontSize: 11,
+                              fontSize: 12,
                               color: '#8c8c8c',
                               margin: 0,
                               lineHeight: 1.8,
                             }}
                           >
                             Hỗ trợ các định dạng:
-                            <br /> PDF, DOC, DOCX, XLS, XLSX
+                            <br /> PDF, DOC, DOCX
                           </p>
                         </div>
                       </Upload.Dragger>

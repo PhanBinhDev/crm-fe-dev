@@ -324,7 +324,7 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
         callback: () => handleReset(),
       });
     } catch (error) {
-      console.error('❌ Lỗi khi submit form:', error);
+      console.error('Lỗi khi submit form:', error);
     }
   };
 

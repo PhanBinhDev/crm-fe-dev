@@ -1,5 +1,6 @@
 import { MemberRole, MemberStatus, WorkspaceVisibility } from '@/common/enum/workspace';
 import { IWorkspace } from '@/common/types';
+import { IMember } from '@/common/types/workspaces';
 import CustomAvatar from '@/components/ui/CustomAvatar';
 import Spinner from '@/components/ui/Spinner';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,13 +8,26 @@ import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { getColorFromName, getInitials } from '@/utils/activity';
 import { useOne } from '@refinedev/core';
 import { IconTransfer, IconUpload, IconX } from '@tabler/icons-react';
-import { App, Avatar, Button, Card, Form, Input, message, Modal, Select, Space, Switch, Tooltip, Upload } from 'antd';
+import {
+  App,
+  Avatar,
+  Button,
+  Card,
+  Form,
+  Input,
+  message,
+  Modal,
+  Select,
+  Space,
+  Switch,
+  Tooltip,
+  Upload,
+} from 'antd';
 import dayjs from 'dayjs';
 import { isEqual } from 'lodash';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { useMediaQuery } from 'usehooks-ts';
-import { IMember } from '@/common/types/workspaces';
 
 interface IWorkspaceInfoProps {
   onFormChange: (isChanged: boolean) => void;
@@ -28,7 +42,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
   const [form] = Form.useForm();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
-  
+
   const [isTransferModalVisible, setIsTransferModalVisible] = useState(false);
   const [newOwnerId, setNewOwnerId] = useState<string | undefined>();
   const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
@@ -106,14 +120,16 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
     if (!workspace || !workspace.members) return [];
 
     return workspace.members
-      .filter((m: IMember) => 
-        (m.role === MemberRole.ADMIN || m.role === MemberRole.MEMBER) && m.status === MemberStatus.ACTIVE 
-    )
+      .filter(
+        (m: IMember) =>
+          (m.role === MemberRole.ADMIN || m.role === MemberRole.MEMBER) &&
+          m.status === MemberStatus.ACTIVE,
+      )
       .map((member: IMember) => ({
         label: `${member.user.name} (${member.user.email})`,
         value: member.user.id,
       }));
-  }, [workspace]); 
+  }, [workspace]);
 
   const canTransferOwnership = eligibleMembersForTransfer.length > 0;
 
@@ -125,7 +141,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
       workspace?.members?.find(m => m.user.id === user?.id && m.role === MemberRole.ADMIN)
     );
   }, [user, workspace]);
-  
+
   const tooltipTitle = useMemo(() => {
     if (user?.id !== workspace?.owner?.id) {
       return 'Chỉ chủ sở hữu mới có thể chuyển quyền.';
@@ -186,8 +202,10 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
 
   const showTransferModal = () => {
     if (!canTransferOwnership) {
-        message.warning('Workspace cần ít nhất 1 thành viên khác chủ sở hữu hiện tại để chuyển quyền.');
-        return;
+      message.warning(
+        'Workspace cần ít nhất 1 thành viên khác chủ sở hữu hiện tại để chuyển quyền.',
+      );
+      return;
     }
 
     setNewOwnerId(undefined);
@@ -227,7 +245,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
         },
       },
     );
-  }
+  };
 
   const confirmOwnershipTransfer = () => {
     if (!canTransferOwnership) {
@@ -235,11 +253,11 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
       return;
     }
     if (!newOwnerId) {
-      message.error('Vui lòng chọn người nhận quyền sở hữu mới.'); 
+      message.error('Vui lòng chọn người nhận quyền sở hữu mới.');
       return;
     }
 
-    closeTransferModal(); 
+    closeTransferModal();
     setIsConfirmModalVisible(true);
   };
 
@@ -248,7 +266,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
   }
 
   return (
-    <App> 
+    <App>
       <div
         style={{
           maxWidth: '90%',
@@ -440,7 +458,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                           Hiển thị workspace công khai
                         </span>
                         <span style={{ fontSize: 14, color: '#888', fontWeight: 400 }}>
-                          Mọi người có thể tìm thấy workspace này khi tìm kiếm
+                          Mọi người có thể nhìn thấy workspace này
                         </span>
                       </Space>
                       <Form.Item
@@ -504,10 +522,10 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                               </div>
                             </div>
                           </div>
-                          
-                            <Tooltip title={tooltipTitle}>
-                              <div>
-                                <Button
+
+                          <Tooltip title={tooltipTitle}>
+                            <div>
+                              <Button
                                 type="primary"
                                 icon={<IconTransfer size={16} color="#fff" />}
                                 styles={{
@@ -518,12 +536,13 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                                   },
                                 }}
                                 onClick={showTransferModal}
-                                disabled={ user?.id !== workspace?.owner?.id || !canTransferOwnership}
-                                style={{ display : 'inline-block'}}
+                                disabled={
+                                  user?.id !== workspace?.owner?.id || !canTransferOwnership
+                                }
+                                style={{ display: 'inline-block' }}
                               />
-                              </div>
-                            </Tooltip>
-                          
+                            </div>
+                          </Tooltip>
                         </div>
                       </div>
 
@@ -577,7 +596,11 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
               </div>
             </Form>
             <Modal
-              title={<span style={{ fontWeight: 700, fontSize: 18, color: '#1f2937' }}>Chuyển Quyền Sở Hữu</span>}
+              title={
+                <span style={{ fontWeight: 700, fontSize: 18, color: '#1f2937' }}>
+                  Chuyển Quyền Sở Hữu
+                </span>
+              }
               open={isTransferModalVisible}
               footer={null}
               onCancel={closeTransferModal}
@@ -586,22 +609,24 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
               style={{ borderRadius: 12, overflow: 'hidden' }}
             >
               <div style={{ padding: '16px 0 0 0' }}>
-                <div style={{ 
-                    background: '#fef2f2', 
-                    padding: 16, 
-                    borderRadius: 8, 
-                    marginBottom: 20, 
-                    borderLeft: '4px solid #ef4444' 
-                }}>
+                <div
+                  style={{
+                    background: '#fef2f2',
+                    padding: 16,
+                    borderRadius: 8,
+                    marginBottom: 20,
+                    borderLeft: '4px solid #ef4444',
+                  }}
+                >
                   <h3 style={{ color: '#dc2626', fontWeight: 700, fontSize: 16, margin: 0 }}>
                     CẢNH BÁO NGUY HIỂM VÀ KHÔNG THỂ HOÀN TÁC!
                   </h3>
                   <p style={{ color: '#b91c1c', fontSize: 13, marginTop: 6, marginBottom: 0 }}>
-                    Hành động này sẽ <strong>vĩnh viễn</strong> chuyển giao quyền sở hữu và bạn sẽ mất tất cả
-                    quyền quản trị cao nhất. Vui lòng chọn cẩn thận!
+                    Hành động này sẽ <strong>vĩnh viễn</strong> chuyển giao quyền sở hữu và bạn sẽ
+                    mất tất cả quyền quản trị cao nhất. Vui lòng chọn cẩn thận!
                   </p>
                 </div>
-                
+
                 <div style={{ marginBottom: 20 }}>
                   <label
                     htmlFor="new-owner-select"
@@ -617,23 +642,23 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                     onChange={value => {
                       setNewOwnerId(value);
                     }}
-                    value={newOwnerId} 
-                    size="large" 
-                    status={!newOwnerId ? 'error' : undefined} 
+                    value={newOwnerId}
+                    size="large"
+                    status={!newOwnerId ? 'error' : undefined}
                   />
-                   {!newOwnerId && (
-                      <p style={{ color: '#ff4d4f', fontSize: 12, marginTop: 4 }}>
-                          Vui lòng chọn người nhận quyền sở hữu.
-                      </p>
+                  {!newOwnerId && (
+                    <p style={{ color: '#ff4d4f', fontSize: 12, marginTop: 4 }}>
+                      Vui lòng chọn người nhận quyền sở hữu.
+                    </p>
                   )}
                 </div>
-                
+
                 <Button
                   type="primary"
                   danger
-                  style={{ 
+                  style={{
                     marginTop: 10,
-                    width: '100%', 
+                    width: '100%',
                     height: 40,
                     fontWeight: 700,
                     borderRadius: 8,
@@ -649,7 +674,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                 </Button>
               </div>
             </Modal>
-           
+
             <Modal
               open={isConfirmModalVisible}
               onCancel={() => setIsConfirmModalVisible(false)}
@@ -660,21 +685,30 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
               closable
               width={380}
               maskClosable
-              onOk={handleTransfer} 
-              okButtonProps={{ 
-                style: { 
-                  borderRadius: 8, 
-                  height: 35, 
-                  width: '40%', 
-                  fontWeight: 600, 
-                  backgroundColor: '#dc2626', 
-                  borderColor: '#dc2626', 
-                  color: '#ffffff', 
-                  boxShadow: '0 2px 4px rgba(220, 38, 38, 0.2)' 
-                }
+              onOk={handleTransfer}
+              okButtonProps={{
+                style: {
+                  borderRadius: 8,
+                  height: 35,
+                  width: '40%',
+                  fontWeight: 600,
+                  backgroundColor: '#dc2626',
+                  borderColor: '#dc2626',
+                  color: '#ffffff',
+                  boxShadow: '0 2px 4px rgba(220, 38, 38, 0.2)',
+                },
               }}
               cancelButtonProps={{
-                style: { borderRadius: 8, height: 35, width: '40%', fontWeight: 600, backgroundColor: '#ffffff', borderColor: '#d1d5db', color: '#374151', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }
+                style: {
+                  borderRadius: 8,
+                  height: 35,
+                  width: '40%',
+                  fontWeight: 600,
+                  backgroundColor: '#ffffff',
+                  borderColor: '#d1d5db',
+                  color: '#374151',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                },
               }}
               footer={(_, { OkBtn, CancelBtn }) => (
                 <div style={{ display: 'flex', justifyContent: 'center', gap: 16, paddingTop: 16 }}>
@@ -684,8 +718,30 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
               )}
             >
               <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                <div style={{ margin: '0 auto 24px', width: 48, height: 48, borderRadius: '50%', backgroundColor: '#fef2f2', border: '2px solid #dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <div
+                  style={{
+                    margin: '0 auto 24px',
+                    width: 48,
+                    height: 48,
+                    borderRadius: '50%',
+                    backgroundColor: '#fef2f2',
+                    border: '2px solid #dc2626',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    stroke="#dc2626"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                     <line x1="12" y1="9" x2="12" y2="13"></line>
                     <line x1="12" y1="17" x2="12.01" y2="17"></line>

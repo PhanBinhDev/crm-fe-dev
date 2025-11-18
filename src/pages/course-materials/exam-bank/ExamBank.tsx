@@ -1,18 +1,21 @@
 import { IFolder } from '@/common/types/document';
 import { useCreate, useDelete, useList, useUpdate } from '@refinedev/core';
-import { IconPlus, IconX } from '@tabler/icons-react';
+import { IconCalendar, IconPlus, IconX } from '@tabler/icons-react';
 import {
   Button,
+  DatePicker,
   Divider,
   Empty,
   Input,
   Modal,
+  Popover,
   Row,
   Skeleton,
   Tooltip,
   Typography,
   message,
 } from 'antd';
+import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FolderCard from './FolderCard';
@@ -24,6 +27,11 @@ export default function ExamBank() {
   const [editingFolder, setEditingFolder] = useState<IFolder | null>(null);
   const [folderName, setFolderName] = useState('');
   const [description, setDescription] = useState('');
+  const [rangePickerOpen, setRangePickerOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([
+    null,
+    null,
+  ]);
 
   const { data, isLoading, refetch } = useList<{ data: { folders: IFolder[] } }>({
     resource: 'documents/folders',
@@ -40,8 +48,22 @@ export default function ExamBank() {
 
   const filteredFolders = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    return folders.filter(f => f.name?.toLowerCase().includes(keyword));
-  }, [folders, search]);
+
+    let result = folders.filter(
+      f =>
+        f.name?.toLowerCase().includes(keyword) ||
+        f.description?.toLowerCase().includes(keyword) ||
+        (f.totalDocuments?.toString() || '').includes(keyword) ||
+        f.createdBy?.name.toLowerCase().includes(keyword),
+    );
+
+    if (dateRange[0] && dateRange[1]) {
+      const start = dateRange[0].startOf('day');
+      const end = dateRange[1].endOf('day');
+      result = result.filter(doc => dayjs(doc.createdAt).isBetween(start, end, null, '[]'));
+    }
+    return result;
+  }, [folders, search, dateRange]);
 
   const openCreateModal = () => {
     setEditingFolder(null);
@@ -154,17 +176,80 @@ export default function ExamBank() {
     >
       <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'space-between' }}>
         <Typography.Title level={3} style={{ margin: 0, fontWeight: 700, color: '#111827' }}>
-          Thư Mục Đề Thi
+          Thư Mục Đề Thi ({folders?.length})
         </Typography.Title>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <Input.Search
-            placeholder="Tìm thư mục..."
+            placeholder="Tìm kiếm thư mục..."
             allowClear
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ width: 220 }}
+            style={{ width: 250 }}
           />
+
+          <Popover
+            trigger="click"
+            placement="bottomLeft"
+            open={rangePickerOpen}
+            onOpenChange={setRangePickerOpen}
+            arrow={false}
+            content={
+              <div style={{ padding: 3 }}>
+                <DatePicker.RangePicker
+                  format="DD/MM/YYYY"
+                  value={dateRange}
+                  onChange={dates => {
+                    setDateRange(dates ?? [null, null]);
+                    if (dates && dates[0] && dates[1]) {
+                      setRangePickerOpen(false);
+                    }
+                  }}
+                  style={{ width: 260 }}
+                  placeholder={['Từ ngày', 'Đến ngày']}
+                />
+              </div>
+            }
+          >
+            <Tooltip title="Lọc theo khoảng thời gian">
+              <Button
+                type="default"
+                icon={<IconCalendar size={15} color="#646464" />}
+                style={{
+                  borderRadius: 6,
+                  border: '1px solid #d9d9d9',
+                  height: 32,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  color: '#24292f',
+                  background: '#fff',
+                  padding: '0px 7px',
+                }}
+              >
+                {dateRange[0] && dateRange[1] ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ fontSize: 13, color: '#595959' }}>
+                      {dayjs(dateRange[0]).format('DD/MM')} → {dayjs(dateRange[1]).format('DD/MM')}
+                    </span>
+                    <Button
+                      type="text"
+                      icon={<IconX size={14} color="#e60f0fff" />}
+                      onClick={() => setDateRange([null, null])}
+                      style={{
+                        border: 'none',
+                        color: '#8c8c8c',
+                        width: 15,
+                        height: 15,
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <span style={{ fontSize: 14, fontWeight: 500, color: '#646464' }}>Chọn ngày</span>
+                )}
+              </Button>
+            </Tooltip>
+          </Popover>
 
           <Tooltip title="Tạo thư mục">
             <Button

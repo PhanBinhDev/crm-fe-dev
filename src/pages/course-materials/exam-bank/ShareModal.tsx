@@ -24,9 +24,9 @@ export const ShareModal: React.FC<ShareModalProps> = ({ open, onClose, link }) =
     if (!publicLink) return;
     try {
       await navigator.clipboard.writeText(publicLink);
-      message.success('Đã sao chép liên kết chia sẻ!');
+      message.success('Đã sao chép liên kết!');
     } catch {
-      message.error('Không thể sao chép link!');
+      message.error('Không thể sao chép liên kết!');
     }
   };
 
@@ -34,7 +34,9 @@ export const ShareModal: React.FC<ShareModalProps> = ({ open, onClose, link }) =
     <Modal open={open} onCancel={onClose} centered footer={null}>
       <Space direction="vertical" style={{ width: '100%' }}>
         <div>
-          <Typography.Text strong>Liên kết chia sẻ:</Typography.Text>
+          <Typography.Text strong style={{ fontSize: 16 }}>
+            Liên kết chia sẻ:
+          </Typography.Text>
           <div
             style={{
               marginTop: 8,
@@ -53,7 +55,9 @@ export const ShareModal: React.FC<ShareModalProps> = ({ open, onClose, link }) =
                 border: '1px solid #ccc',
               }}
             />
-            <Button onClick={handleCopy}>Sao chép</Button>
+            <Button type="primary" onClick={handleCopy}>
+              Sao chép
+            </Button>
           </div>
         </div>
       </Space>
