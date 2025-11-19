@@ -160,14 +160,14 @@ export default function RandomExam() {
           >
             <div
               style={{
-                background: 'linear-gradient(135deg, #1890ff 0%, #0050b3 100%)',
+                background: '#1890ff',
                 padding: '18px 48px',
                 color: 'white',
                 position: 'relative',
                 overflow: 'hidden',
               }}
             >
-              <div
+              {/* <div
                 style={{
                   position: 'absolute',
                   top: 0,
@@ -179,7 +179,7 @@ export default function RandomExam() {
                   background: 'white',
                   transform: 'translate(50px, -50px)',
                 }}
-              />
+              /> */}
               <Space align="center" size={20} style={{ position: 'relative', zIndex: 1 }}>
                 <div
                   style={{
@@ -398,14 +398,14 @@ export default function RandomExam() {
             >
               <div
                 style={{
-                  background: 'linear-gradient(135deg, #1890ff 0%, #0050b3 100%)',
+                  background: '#1890ff',
                   padding: '20px 24px',
                   color: 'white',
                   position: 'relative',
                   overflow: 'hidden',
                 }}
               >
-                <div
+                {/* <div
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -417,7 +417,7 @@ export default function RandomExam() {
                     background: 'white',
                     transform: 'translate(30px, -30px)',
                   }}
-                />
+                /> */}
                 <Space align="center" size={14} style={{ position: 'relative', zIndex: 1 }}>
                   <div
                     style={{

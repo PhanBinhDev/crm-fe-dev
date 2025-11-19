@@ -6,7 +6,6 @@ import { getUserRoleLabel } from '@/constants/user';
 import { useAuth } from '@/hooks/useAuth';
 import { getUserStatusLabel } from '@/utils';
 import { getColorFromName } from '@/utils/activity';
-import { getMajorOptionsForRole } from '@/utils/majorGroups';
 import { useCustomMutation, useInvalidate, useOne } from '@refinedev/core';
 import { IconDeviceFloppy, IconInfoHexagon, IconUpload, IconX } from '@tabler/icons-react';
 import {
@@ -74,11 +73,6 @@ const GeneralSettings = () => {
   });
 
   const { mutate: updateUser, isPending: isUpdating } = useCustomMutation();
-
-  const majorOptions = useMemo(() => {
-    if (!identity?.role) return [];
-    return getMajorOptionsForRole(identity.role);
-  }, [identity?.role]);
 
   useEffect(() => {
     if (identity) {

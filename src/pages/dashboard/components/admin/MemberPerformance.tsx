@@ -53,8 +53,9 @@ const MemberPerformance: React.FC = () => {
 
   // Tính toán performance cho mỗi member
   const tableData: MemberPerformanceData[] = members.map((member: any) => {
-    const memberTasks = tasks.filter((task: any) => task.assignees.id === member.userId);
-
+    const memberTasks = tasks.filter(task =>
+      task.assignees?.some((a: any) => a.userId === member.userId),
+    );
     const completed = memberTasks.filter((t: any) => t.stage.stageGroup === 'done').length;
     const active = memberTasks.filter(
       (t: any) => t.stage.stageGroup !== 'done' && t.stage.stageGroup !== 'cancelled',

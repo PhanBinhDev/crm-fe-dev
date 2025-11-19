@@ -87,7 +87,7 @@ export const DisplaySettings: React.FC = () => {
             alignItems: 'center',
           }}
         >
-          <span>Công việc đã hoàn thành</span>
+          <span>Công việc đã đóng</span>
           <Switch
             checked={config.showCompleted}
             onChange={checked => handleConfigChange('showCompleted', checked)}
