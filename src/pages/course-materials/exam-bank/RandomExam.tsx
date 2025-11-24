@@ -2,7 +2,7 @@ import { UserRole } from '@/common/enum/user';
 import { IFolderItem, IHistoryItem } from '@/common/types/exam';
 import { useAuth } from '@/hooks/useAuth';
 import { getColorFromName } from '@/utils/activity';
-import { useCustom, useList, useOne } from '@refinedev/core';
+import { useList, useOne } from '@refinedev/core';
 import {
   IconClock,
   IconDice,
@@ -85,17 +85,16 @@ export default function RandomExam() {
     id: '',
   });
 
-  const historyApi = useCustom({
-    url: selectedFolder ? `documents/folders/${selectedFolder}/history` : '',
-    method: 'get',
-    queryOptions: { enabled: false },
+  const { refetch: refetchHistory } = useOne({
+    resource: `documents/folders/${selectedFolder}/history`,
+    id: '',
   });
 
   useEffect(() => {
     const loadHistory = async () => {
       if (!selectedFolder) return;
 
-      const res: any = await historyApi.refetch();
+      const res: any = await refetchHistory();
       const items = res?.data?.data?.items ?? [];
 
       setHistory(
@@ -111,7 +110,7 @@ export default function RandomExam() {
     };
 
     loadHistory();
-  }, [selectedFolder]);
+  }, [selectedFolder, viewerOpen]);
 
   const handleGetExam = useCallback(async () => {
     if (!selectedFolder) return message.warning('Bạn chưa chọn thư mục!');
@@ -131,9 +130,6 @@ export default function RandomExam() {
       message.error('Lỗi khi lấy đề thi!');
     }
   }, [selectedFolder, refetchRandom]);
-
-  console.log('his', historyList);
-  console.log('pa his', paginatedHistory);
 
   return (
     <div>

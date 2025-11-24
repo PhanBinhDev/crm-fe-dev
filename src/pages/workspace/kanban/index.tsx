@@ -77,7 +77,7 @@ const KanbanWorkspaces = () => {
       operator?: Exclude<CrudOperators, 'or' | 'and'>;
     }> = [
       { field: 'priority', value: filterParams.priority },
-      { field: 'assignees', value: filterParams.assigneeId },
+      { field: 'assigneeId', value: filterParams.assigneeId },
       { field: 'stageId', value: filterParams.stageId },
       { field: 'category', value: filterParams.category },
       { field: 'type', value: filterParams.type },
@@ -92,6 +92,8 @@ const KanbanWorkspaces = () => {
 
     return [...baseFilters, ...conditionalFilters];
   }, [searchValue, filterParams, workspaceData?.data.id]);
+
+  console.log(filterParams);
 
   const { data: activitiesData, isFetching: isLoadingActivities } = useList<IActivity>({
     resource: 'activities',
