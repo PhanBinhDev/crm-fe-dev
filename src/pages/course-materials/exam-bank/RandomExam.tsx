@@ -2,7 +2,7 @@ import { UserRole } from '@/common/enum/user';
 import { IFolderItem, IHistoryItem } from '@/common/types/exam';
 import { useAuth } from '@/hooks/useAuth';
 import { getColorFromName } from '@/utils/activity';
-import { useCustom, useList, useOne } from '@refinedev/core';
+import { useCustom, useList } from '@refinedev/core';
 import {
   IconClock,
   IconDice,
@@ -40,7 +40,7 @@ export default function RandomExam() {
 
   const { user } = useAuth();
 
-  const { data: folderData, isLoading } = useList({
+  const { data: folderData, isLoading: isLoadingFolders } = useList({
     resource: 'documents/folders',
   });
 
@@ -48,20 +48,116 @@ export default function RandomExam() {
     return (folderData as any)?.data?.folders ?? [];
   }, [folderData]);
 
-  const { data: historyDataAll } = useOne({
-    resource: `documents/history/all`,
-    id: '',
+  const { data: historyDataAll, refetch: refetchHistoryAll } = useCustom({
+    url: 'documents/history/all',
+    method: 'get',
+    queryOptions: {
+      enabled:
+        selectedFolder == null && user?.role !== UserRole.SUPERADMIN && user?.role !== UserRole.CNBM
+          ? false
+          : true,
+    },
   });
 
   const canViewHistory = useMemo(() => {
     return user?.role === UserRole.SUPERADMIN || user?.role === UserRole.CNBM;
   }, [user]);
 
+  const { refetch: refetchFolderHistory } = useCustom({
+    url: selectedFolder ? `documents/folders/${selectedFolder}/history` : '',
+    method: 'get',
+    queryOptions: {
+      enabled: false,
+    },
+  });
+
+  useEffect(() => {
+    if (!selectedFolder || !canViewHistory) {
+      setHistory([]);
+      return;
+    }
+
+    const fetchHistory = async () => {
+      try {
+        const res: any = await refetchFolderHistory();
+        const items = res?.data?.data?.items ?? [];
+
+        setHistory(
+          items.map((i: any) => ({
+            id: i.documentId,
+            title: i.title,
+            link: i.fileUrl,
+            createdAt: i.createdAt,
+            createdBy: i.createdByUserName,
+            folderName: i.folderName,
+          })),
+        );
+      } catch (error) {
+        console.error('Error fetching folder history:', error);
+        setHistory([]);
+      }
+    };
+
+    fetchHistory();
+  }, [selectedFolder, refetchFolderHistory, canViewHistory]);
+
+  const { refetch: fetchRandomExam, isFetching: loadingRandom } = useCustom({
+    url: selectedFolder ? `documents/folders/${selectedFolder}/random` : '',
+    method: 'get',
+    queryOptions: {
+      enabled: false,
+    },
+  });
+
+  const handleGetExam = useCallback(async () => {
+    if (!selectedFolder) {
+      return message.warning('Bạn chưa chọn thư mục!');
+    }
+
+    try {
+      const res: any = await fetchRandomExam();
+      const data = res?.data?.data;
+
+      if (res.error?.status === 404) {
+        return message.error('Thư mục không có đề thi! Vui lòng chọn thư mục khác.');
+      }
+
+      if (!data?.fileUrl) {
+        return message.error('Có lỗi xảy ra. Vui lòng thử lại sau!');
+      }
+      const newHistoryItem: IHistoryItem = {
+        id: data.documentId || Date.now().toString(),
+        title: data.title,
+        link: data.fileUrl,
+        createdAt: new Date().toISOString(),
+        createdBy: user?.name || user?.email || 'Bạn',
+        createdByUserName: user?.name || user?.email || 'Bạn',
+        folderName: folders.find((f: any) => f.id === selectedFolder)?.name || 'Unknown',
+      };
+
+      if (canViewHistory && selectedFolder) {
+        setHistory(prev => [newHistoryItem, ...prev]);
+      }
+
+      setCurrentExam({ title: data.title, url: data.fileUrl });
+      setViewerOpen(true);
+
+      if (canViewHistory) {
+        if (selectedFolder) {
+          refetchFolderHistory();
+        } else {
+          refetchHistoryAll();
+        }
+      }
+    } catch (e) {
+      message.error('Lỗi khi lấy đề thi!');
+    }
+  }, [selectedFolder, fetchRandomExam, canViewHistory, refetchFolderHistory, refetchHistoryAll]);
+
   const historyList: IHistoryItem[] = useMemo(() => {
     if (selectedFolder) return history;
 
     const raw = (historyDataAll as any)?.data?.folders ?? [];
-
     return raw.flatMap(
       (f: any) =>
         f.items?.map((i: any) => ({
@@ -80,61 +176,10 @@ export default function RandomExam() {
     return historyList.slice(start, start + pageSize);
   }, [historyList, page]);
 
-  const { isLoading: loadingRandom, refetch: refetchRandom } = useOne({
-    resource: `documents/folders/${selectedFolder}/random`,
-    id: '',
-  });
-
-  const historyApi = useCustom({
-    url: selectedFolder ? `documents/folders/${selectedFolder}/history` : '',
-    method: 'get',
-    queryOptions: { enabled: false },
-  });
-
-  useEffect(() => {
-    const loadHistory = async () => {
-      if (!selectedFolder) return;
-
-      const res: any = await historyApi.refetch();
-      const items = res?.data?.data?.items ?? [];
-
-      setHistory(
-        items.map((i: any) => ({
-          id: i.documentId,
-          title: i.title,
-          link: i.fileUrl,
-          createdAt: i.createdAt,
-          createdBy: i.createdByUserName,
-          folderName: i.folderName,
-        })),
-      );
-    };
-
-    loadHistory();
-  }, [selectedFolder]);
-
-  const handleGetExam = useCallback(async () => {
-    if (!selectedFolder) return message.warning('Bạn chưa chọn thư mục!');
-
-    try {
-      const res: any = await refetchRandom();
-      const data = res?.data?.data;
-
-      if (res.error && res.error.status === 404)
-        return message.error('Thư mục không có đề thi! Vui lòng chọn thư mục khác.');
-
-      if (!data) return message.error('Có lỗi xảy ra. Vui lòng thử lại sau!');
-
-      setCurrentExam({ title: data.title, url: data.fileUrl });
-      setViewerOpen(true);
-    } catch (e) {
-      message.error('Lỗi khi lấy đề thi!');
-    }
-  }, [selectedFolder, refetchRandom]);
-
-  console.log('his', historyList);
-  console.log('pa his', paginatedHistory);
-
+  const handleViewerClose = () => {
+    setViewerOpen(false);
+    setCurrentExam(null);
+  };
   return (
     <div>
       <div
@@ -167,19 +212,6 @@ export default function RandomExam() {
                 overflow: 'hidden',
               }}
             >
-              {/* <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  opacity: 0.1,
-                  width: 200,
-                  height: 200,
-                  borderRadius: '50%',
-                  background: 'white',
-                  transform: 'translate(50px, -50px)',
-                }}
-              /> */}
               <Space align="center" size={20} style={{ position: 'relative', zIndex: 1 }}>
                 <div
                   style={{
@@ -217,7 +249,7 @@ export default function RandomExam() {
             </div>
 
             <div style={{ padding: '25px' }}>
-              {isLoading ? (
+              {isLoadingFolders ? (
                 <div style={{ textAlign: 'center', padding: '80px 0' }}>
                   <Spin
                     size="large"
@@ -405,19 +437,6 @@ export default function RandomExam() {
                   overflow: 'hidden',
                 }}
               >
-                {/* <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    opacity: 0.08,
-                    width: 120,
-                    height: 120,
-                    borderRadius: '50%',
-                    background: 'white',
-                    transform: 'translate(30px, -30px)',
-                  }}
-                /> */}
                 <Space align="center" size={14} style={{ position: 'relative', zIndex: 1 }}>
                   <div
                     style={{
@@ -592,7 +611,7 @@ export default function RandomExam() {
       {currentExam && (
         <ExamViewer
           open={viewerOpen}
-          onClose={() => setViewerOpen(false)}
+          onClose={handleViewerClose}
           fileUrl={currentExam.url}
           fileName={currentExam.title}
         />

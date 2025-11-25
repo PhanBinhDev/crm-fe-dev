@@ -1,5 +1,5 @@
 import { createUserImportTemplate } from '@/services/utils/exportUtils';
-import { useCustomMutation } from '@refinedev/core';
+import { useCustomMutation, useInvalidate } from '@refinedev/core';
 import {
   IconDownload,
   IconFileSpreadsheet,
@@ -22,6 +22,7 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
   const [urlInput, setUrlInput] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
   const { mutate: importUsers } = useCustomMutation();
+  const invalidate = useInvalidate();
 
   const handleDownloadTemplate = () => {
     try {
@@ -144,27 +145,38 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
         });
       }
       // ...existing code xử lý response...
-      if (response && (response as any).statusCode === 200) {
-        const { successCount, failureCount } = (response as any).data;
-        if (successCount > 0) {
-          if (failureCount > 0) {
-            message.warning(
-              `Import thành công ${successCount} người dùng, nhưng có ${failureCount} user thất bại.`,
+      if (response) {
+        const responseData = (response as any).data || (response as any);
+
+        const successCount = responseData.successCount;
+        const failureCount = responseData.failureCount;
+
+        if (typeof successCount === 'number' && typeof failureCount === 'number') {
+          if (successCount > 0) {
+            if (failureCount > 0) {
+              message.warning(
+                `Import thành công ${successCount} người dùng, nhưng có ${failureCount} user thất bại.`,
+              );
+            } else {
+              message.success(`Import thành công! Đã import ${successCount} người dùng.`);
+              invalidate({ resource: 'users/all', invalidates: ['list'] });
+              onSuccess();
+              onClose();
+            }
+          } else if (failureCount > 0) {
+            message.error(
+              `Import thất bại! ${failureCount} user không thể import. Vui lòng kiểm tra file.`,
             );
           } else {
-            message.success(`Import thành công! Đã import ${successCount} người dùng.`);
-            onSuccess();
-            onClose();
+            message.warning(
+              'File không có dữ liệu hợp lệ để import. Vui lòng kiểm tra lại cấu trúc file.',
+            );
           }
-        } else if (failureCount > 0) {
-          message.error(`Import thất bại! ${failureCount} user không thể import.`);
         } else {
-          message.warning(
-            'File không có dữ liệu hợp lệ để import. Vui lòng kiểm tra lại cấu trúc file.',
-          );
+          message.error('Import thất bại. Phản hồi server không hợp lệ.');
         }
       } else {
-        message.error('Import thất bại. Vui lòng kiểm tra file hoặc link.');
+        message.error('Có lỗi xảy ra khi import.');
       }
     } catch (error: any) {
       message.error('Có lỗi xảy ra khi import.');
