@@ -101,26 +101,55 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
     }
     setSubmitLoading(true);
     try {
-      let response;
       if (fileList.length > 0) {
         const formData = new FormData();
         formData.append('file', fileList[0]);
-        response = await new Promise((resolve, reject) => {
-          importUsers(
-            {
-              url: '/users/import',
-              method: 'post',
-              values: formData,
-              config: {
-                headers: { 'Content-Type': 'multipart/form-data' },
-              },
+        importUsers(
+          {
+            url: '/users/import',
+            method: 'post',
+            values: formData,
+            config: {
+              headers: { 'Content-Type': 'multipart/form-data' },
             },
-            {
-              onSuccess: res => resolve(res),
-              onError: error => reject(error),
+          },
+          {
+            onSuccess: (res: any) => {
+              console.log('Import response:', res);
+              console.log('Response keys:', Object.keys(res || {}));
+              console.log('Response.data:', res?.data);
+              // Response không có statusCode ở top level, chỉ cần check có data là thành công
+              if (res?.data) {
+                const { successCount, failureCount } = res?.data;
+                if (successCount > 0) {
+                  if (failureCount > 0) {
+                    message.warning(
+                      `Import thành công ${successCount} người dùng, nhưng có ${failureCount} user thất bại.`,
+                    );
+                  } else {
+                    message.success(`Import thành công! Đã import ${successCount} người dùng.`);
+                    onSuccess();
+                    onClose();
+                  }
+                } else if (failureCount > 0) {
+                  message.error(`Import thất bại! ${failureCount} user không thể import.`);
+                } else {
+                  message.warning(
+                    'File không có dữ liệu hợp lệ để import. Vui lòng kiểm tra lại cấu trúc file.',
+                  );
+                }
+              } else {
+                message.error('Import thất bại. Vui lòng kiểm tra file hoặc link.');
+              }
+              setSubmitLoading(false);
             },
-          );
-        });
+            onError: (error: any) => {
+              console.error('Import error:', error);
+              message.error('Có lỗi xảy ra khi import.');
+              setSubmitLoading(false);
+            },
+          },
+        );
       } else if (urlInput.trim()) {
         if (!validateUrl(urlInput.trim())) {
           // setInputError('URL không hợp lệ. Vui lòng nhập đúng định dạng.');
@@ -129,46 +158,53 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
           return;
         }
         const convertedUrl = convertGoogleSheetUrl(urlInput.trim());
-        response = await new Promise((resolve, reject) => {
-          importUsers(
-            {
-              url: '/users/import-url',
-              method: 'post',
-              values: { url: convertedUrl },
+        importUsers(
+          {
+            url: '/users/import-url',
+            method: 'post',
+            values: { url: convertedUrl },
+          },
+          {
+            onSuccess: (res: any) => {
+              console.log('Import from URL response:', res);
+              console.log('Response keys:', Object.keys(res || {}));
+              console.log('Response.data:', res?.data);
+              // Response không có statusCode ở top level, chỉ cần check có data là thành công
+              if (res?.data) {
+                const { successCount, failureCount } = res?.data;
+                if (successCount > 0) {
+                  if (failureCount > 0) {
+                    message.warning(
+                      `Import thành công ${successCount} người dùng, nhưng có ${failureCount} user thất bại.`,
+                    );
+                  } else {
+                    message.success(`Import thành công! Đã import ${successCount} người dùng.`);
+                    onSuccess();
+                    onClose();
+                  }
+                } else if (failureCount > 0) {
+                  message.error(`Import thất bại! ${failureCount} user không thể import.`);
+                } else {
+                  message.warning(
+                    'File không có dữ liệu hợp lệ để import. Vui lòng kiểm tra lại cấu trúc file.',
+                  );
+                }
+              } else {
+                message.error('Import thất bại. Vui lòng kiểm tra file hoặc link.');
+              }
+              setSubmitLoading(false);
             },
-            {
-              onSuccess: res => resolve(res),
-              onError: error => reject(error),
+            onError: (error: any) => {
+              console.error('Import error:', error);
+              message.error('Có lỗi xảy ra khi import.');
+              setSubmitLoading(false);
             },
-          );
-        });
-      }
-      // ...existing code xử lý response...
-      if (response && (response as any).statusCode === 200) {
-        const { successCount, failureCount } = (response as any).data;
-        if (successCount > 0) {
-          if (failureCount > 0) {
-            message.warning(
-              `Import thành công ${successCount} người dùng, nhưng có ${failureCount} user thất bại.`,
-            );
-          } else {
-            message.success(`Import thành công! Đã import ${successCount} người dùng.`);
-            onSuccess();
-            onClose();
-          }
-        } else if (failureCount > 0) {
-          message.error(`Import thất bại! ${failureCount} user không thể import.`);
-        } else {
-          message.warning(
-            'File không có dữ liệu hợp lệ để import. Vui lòng kiểm tra lại cấu trúc file.',
-          );
-        }
-      } else {
-        message.error('Import thất bại. Vui lòng kiểm tra file hoặc link.');
+          },
+        );
       }
     } catch (error: any) {
+      console.error('Unexpected error:', error);
       message.error('Có lỗi xảy ra khi import.');
-    } finally {
       setSubmitLoading(false);
     }
   };
