@@ -31,7 +31,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
 
   const menu = useMemo(() => {
     const items = [];
-    const isCurrentUser = member.user.id === currentMemberUser?.user?.id;
+    const isCurrentUser = member.id === currentMemberUser?.id;
     const currentRole = currentMemberUser?.role;
     const memberRole = member.role;
 
