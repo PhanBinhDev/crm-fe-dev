@@ -1,7 +1,6 @@
 import { UserRole } from '@/common/enum/user';
 import {
   IconArchive,
-  IconCalendarEvent,
   IconFileText,
   IconFolders,
   IconLayoutDashboard,
@@ -44,18 +43,18 @@ export const resources: ResourceConfig[] = [
       menuPath: '/workspaces',
     },
   },
-  {
-    name: 'semester-management',
-    list: '/semesters/list',
-    create: '/semesters/create',
-    edit: '/semesters/edit/:id',
-    show: '/semesters/show/:id',
-    meta: {
-      label: 'Quản lý kỳ học',
-      icon: <IconCalendarEvent size={16} />,
-      menuPath: '/semesters',
-    },
-  },
+  // {
+  //   name: 'semester-management',
+  //   list: '/semesters/list',
+  //   create: '/semesters/create',
+  //   edit: '/semesters/edit/:id',
+  //   show: '/semesters/show/:id',
+  //   meta: {
+  //     label: 'Quản lý kỳ học',
+  //     icon: <IconCalendarEvent size={16} />,
+  //     menuPath: '/semesters',
+  //   },
+  // },
   {
     name: 'exams',
     meta: {
