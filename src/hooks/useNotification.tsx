@@ -41,7 +41,7 @@ export const useNotification = () => {
   };
 
   const handleNotificationClick = (data: any) => {
-    console.log('Navigating to:', data.uri);
+    
 
     navigate(data.uri);
     openModal('ModalEditActivity', {
