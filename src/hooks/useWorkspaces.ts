@@ -144,7 +144,7 @@ export const useInvitationHandlers = () => {
         },
         onError: error => {
           message.error('Không thể từ chối lời mời');
-          console.log('Reject lỗi:', {
+          console.log({
             workspaceId,
             status: error?.response?.status,
             data: error?.response?.data,
