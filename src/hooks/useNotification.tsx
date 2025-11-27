@@ -55,7 +55,7 @@ export const useNotification = () => {
       const body = payload.notification?.body || '';
       const uri = payload.data?.uri || payload.fcmOptions?.link || '/';
 
-      console.log('Message received. ', payload);
+      
 
       toast(title, {
         duration: 8000,
