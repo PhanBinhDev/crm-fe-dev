@@ -1,4 +1,4 @@
-// components/TeamOverview.tsx
+
 import Spinner from '@/components/ui/Spinner';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import {
@@ -31,7 +31,6 @@ const TeamOverview: React.FC = () => {
   }
 
   const tasks = tasksData?.data || [];
-  console.log('Tasks data in TeamOverview:', tasks);
 
   // Tính toán thống kê
   const totalTasks = tasks.length;
