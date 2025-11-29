@@ -36,7 +36,6 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
     const memberRole = member.role;
 
     if (tab === 'invited') {
-      console.log('Current Role:', currentRole, 'Member Role:', memberRole);
       if (
         currentRole === MemberRole.OWNER ||
         (currentRole === MemberRole.ADMIN && memberRole !== MemberRole.ADMIN)
@@ -145,7 +144,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
   };
 
   const handleResendInvite = (member: IMember) => {
-    console.log('Resend invitation to:', member);
+   
     Modal.confirm({
       title: 'Gửi lời mời',
       content: `Bạn có chắc muốn gửi lại lời mời tới ${member.user.email}?`,
