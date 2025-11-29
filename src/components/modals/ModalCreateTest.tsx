@@ -2,7 +2,6 @@ import { IDocument } from '@/common/types/document';
 import { useModal } from '@/hooks/useModal';
 import { useCustomMutation } from '@refinedev/core';
 import {
-  IconArchive,
   IconCheck,
   IconChevronRight,
   IconFile,
@@ -25,11 +24,6 @@ const STATUS_OPTIONS = [
     label: 'Xuất bản',
     value: 'PUBLISHED',
     icon: <IconUpload size={15} color="#8c8c8c" />,
-  },
-  {
-    label: 'Lưu trữ',
-    value: 'ARCHIVED',
-    icon: <IconArchive size={15} color="#8c8c8c" />,
   },
 ];
 

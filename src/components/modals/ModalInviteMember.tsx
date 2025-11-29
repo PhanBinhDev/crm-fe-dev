@@ -155,7 +155,7 @@ const ModalInviteMember = () => {
         resource: `workspaces/${selectWorkspace.id}/invite`,
         values: {
           userIds,
-          // role: formData.role,
+          role: formData.role,
         },
       },
       {

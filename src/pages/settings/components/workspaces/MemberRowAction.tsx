@@ -31,7 +31,7 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
 
   const menu = useMemo(() => {
     const items = [];
-    const isCurrentUser = member.user.id === currentMemberUser?.user?.id;
+    const isCurrentUser = member.id === currentMemberUser?.id;
     const currentRole = currentMemberUser?.role;
     const memberRole = member.role;
 
@@ -47,13 +47,6 @@ const MemberRowAction = ({ member, currentMemberUser, tab }: MemberRowActionProp
           danger: true,
           onClick: () => handleCancelInvite(member),
         });
-
-        // items.push({
-        //   key: 'resend-invite',
-        //   label: 'Gửi lại lời mời',
-        //   icon: <IconUserCheck size={16} />,
-        //   onClick: () => handleResendInvite(member),
-        // });
       }
     } else {
       if (currentRole === MemberRole.OWNER && memberRole === MemberRole.MEMBER) {

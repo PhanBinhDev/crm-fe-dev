@@ -1,5 +1,5 @@
 import { createUserImportTemplate } from '@/services/utils/exportUtils';
-import { useCustomMutation } from '@refinedev/core';
+import { useCustomMutation, useInvalidate } from '@refinedev/core';
 import {
   IconDownload,
   IconFileSpreadsheet,
@@ -22,6 +22,7 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
   const [urlInput, setUrlInput] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
   const { mutate: importUsers } = useCustomMutation();
+  const invalidate = useInvalidate();
 
   const handleDownloadTemplate = () => {
     try {
@@ -125,6 +126,7 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
                   } else {
                     message.success(`Import thành công! Đã import ${successCount} người dùng.`);
                     onSuccess();
+                    invalidate({ resource: 'users/all', invalidates: ['list', 'many'] });
                     onClose();
                   }
                 } else if (failureCount > 0) {

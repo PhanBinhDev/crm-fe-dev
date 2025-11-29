@@ -4,7 +4,6 @@ import { useModal } from '@/hooks/useModal';
 import { MoreOutlined } from '@ant-design/icons';
 import { useDelete, useOne, useUpdate } from '@refinedev/core';
 import {
-  IconArchive,
   IconCalendar,
   IconCheck,
   IconChevronRight,
@@ -51,12 +50,6 @@ const STATUS_OPTIONS = [
     value: 'PUBLISHED' as DocumentStatus,
     icon: <IconUpload size={15} />,
     color: 'green',
-  },
-  {
-    label: 'Lưu trữ',
-    value: 'ARCHIVED' as DocumentStatus,
-    icon: <IconArchive size={15} />,
-    color: 'yellow',
   },
 ];
 
@@ -438,70 +431,72 @@ export default function ExamFolderDetail() {
                 render: (status: string, record: IDocument) => {
                   const statusOption = STATUS_OPTIONS.find(opt => opt.value === status);
                   return (
-                    <Popover
-                      trigger="click"
-                      placement="bottomLeft"
-                      open={statusPopoverOpen === record.id}
-                      onOpenChange={open => setStatusPopoverOpen(open ? record.id : null)}
-                      arrow={false}
-                      styles={{ body: { padding: 5, width: 150 } }}
-                      content={
-                        <List
-                          size="small"
-                          dataSource={STATUS_OPTIONS}
-                          renderItem={item => (
-                            <List.Item
-                              key={item.value}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 10,
-                                padding: '6px 10px',
-                                cursor: 'pointer',
-                                borderRadius: 6,
-                                background: status === item.value ? '#e6f4ff' : 'transparent',
-                                transition: 'background-color 0.2s ease',
-                                color: '#525252ff',
-                              }}
-                              onMouseEnter={e => {
-                                e.currentTarget.style.backgroundColor = '#f5f5f5';
-                              }}
-                              onMouseLeave={e => {
-                                e.currentTarget.style.backgroundColor =
-                                  status === item.value ? '#e6f4ff' : 'transparent';
-                              }}
-                              onClick={() => {
-                                if (status !== item.value) {
-                                  handleUpdateStatus(record.id, item.value as DocumentStatus);
-                                } else {
-                                  setStatusPopoverOpen(null);
-                                }
-                              }}
-                            >
-                              {item.icon}
-                              <span style={{ flex: 1 }}>{item.label}</span>
-                              {status === item.value && <IconCheck size={14} color="#1890ff" />}
-                            </List.Item>
-                          )}
-                        />
-                      }
-                    >
-                      <Tag
-                        icon={statusOption?.icon}
-                        color={statusOption?.color || 'default'}
-                        style={{
-                          cursor: 'pointer',
-                          userSelect: 'none',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 5,
-                          width: 'fit-content',
-                        }}
+                    <Tooltip title="Cập nhật trạng thái">
+                      <Popover
+                        trigger="click"
+                        placement="bottomLeft"
+                        open={statusPopoverOpen === record.id}
+                        onOpenChange={open => setStatusPopoverOpen(open ? record.id : null)}
+                        arrow={false}
+                        styles={{ body: { padding: 5, width: 150 } }}
+                        content={
+                          <List
+                            size="small"
+                            dataSource={STATUS_OPTIONS}
+                            renderItem={item => (
+                              <List.Item
+                                key={item.value}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: 10,
+                                  padding: '6px 10px',
+                                  cursor: 'pointer',
+                                  borderRadius: 6,
+                                  background: status === item.value ? '#e6f4ff' : 'transparent',
+                                  transition: 'background-color 0.2s ease',
+                                  color: '#525252ff',
+                                }}
+                                onMouseEnter={e => {
+                                  e.currentTarget.style.backgroundColor = '#f5f5f5';
+                                }}
+                                onMouseLeave={e => {
+                                  e.currentTarget.style.backgroundColor =
+                                    status === item.value ? '#e6f4ff' : 'transparent';
+                                }}
+                                onClick={() => {
+                                  if (status !== item.value) {
+                                    handleUpdateStatus(record.id, item.value as DocumentStatus);
+                                  } else {
+                                    setStatusPopoverOpen(null);
+                                  }
+                                }}
+                              >
+                                {item.icon}
+                                <span style={{ flex: 1 }}>{item.label}</span>
+                                {status === item.value && <IconCheck size={14} color="#1890ff" />}
+                              </List.Item>
+                            )}
+                          />
+                        }
                       >
-                        {statusOption?.label || status}
-                      </Tag>
-                    </Popover>
+                        <Tag
+                          icon={statusOption?.icon}
+                          color={statusOption?.color || 'default'}
+                          style={{
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            width: 'fit-content',
+                          }}
+                        >
+                          {statusOption?.label || status}
+                        </Tag>
+                      </Popover>
+                    </Tooltip>
                   );
                 },
               },

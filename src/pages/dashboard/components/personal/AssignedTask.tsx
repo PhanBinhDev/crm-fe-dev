@@ -75,7 +75,7 @@ export const renderContent = (content: IActivity[], containerHeigh: number, onSc
                     fontSize: 12,
                   }}
                 >
-                  {item.workspace.name} / {getActivityTypeLabel(item.type)}
+                  {item.workspace?.name} / {getActivityTypeLabel(item.type)}
                 </div>
               </div>
             </div>
