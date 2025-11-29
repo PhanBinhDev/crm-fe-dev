@@ -49,7 +49,7 @@ const MemberPerformance: React.FC = () => {
 
   const members = membersData?.data || [];
   const tasks = tasksData?.data || [];
-  console.log('member', members);
+
 
   // Tính toán performance cho mỗi member
   const tableData: MemberPerformanceData[] = members.map((member: any) => {
