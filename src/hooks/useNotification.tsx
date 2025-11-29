@@ -66,7 +66,7 @@ export const useNotification = () => {
           label: 'Xem',
           onClick: () => handleNotificationClick(uri),
         },
-        onDismiss: () => console.log('Dismissed notification'),
+        
         style: {
           backgroundColor: '#fff',
         },
@@ -74,7 +74,6 @@ export const useNotification = () => {
         description: body,
       });
 
-      console.log('invalidate');
       invalidate({
         resource: 'notifications',
         invalidates: ['list'],

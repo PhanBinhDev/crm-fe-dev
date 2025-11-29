@@ -58,12 +58,9 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
       const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
       if (match) {
         const sheetId = match[1];
-        console.log('Sheet ID extracted:', sheetId);
-        console.log('Original URL:', url);
-        console.log(
-          'Converted URL:',
-          `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=xlsx`,
-        );
+
+
+        
         return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=xlsx`;
       }
     }
@@ -115,9 +112,8 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
           },
           {
             onSuccess: (res: any) => {
-              console.log('Import response:', res);
-              console.log('Response keys:', Object.keys(res || {}));
-              console.log('Response.data:', res?.data);
+              
+              
               // Response không có statusCode ở top level, chỉ cần check có data là thành công
               if (res?.data) {
                 const { successCount, failureCount } = res?.data;
