@@ -20,8 +20,6 @@ const ActivityChangedHistory = ({ activityId }: ActivityChangedHistoryProps) => 
     },
   });
 
-  console.log('ActivityChangedHistory data:', data);
-
   const { latestLog, otherLogs } = useMemo(() => {
     if (!data) return { latestLog: null, otherLogs: [] };
 

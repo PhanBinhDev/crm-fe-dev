@@ -76,8 +76,6 @@ export const useActivityActions = () => {
   const duplicateActivity = useCallback(
     async (activity: IActivity) => {
       try {
-        console.log('duplicateActivity called with:', activity.id, activity.name);
-
         if (!currentWorkspace?.id) {
           console.error('No current workspace found');
           return;
@@ -98,7 +96,6 @@ export const useActivityActions = () => {
           attachments: undefined,
         };
 
-        console.log('duplicateData:', duplicateData);
 
         createActivity(
           {
@@ -107,7 +104,6 @@ export const useActivityActions = () => {
           },
           {
             onSuccess: data => {
-              console.log('Duplicate success:', data);
               invalidate({
                 resource: 'activities',
                 invalidates: ['list', 'detail', 'many'],
@@ -160,7 +156,7 @@ export const useActivityActions = () => {
   const createSubtask = useCallback(
     async (activity: IActivity) => {
       try {
-        console.log('createSubtask called with:', activity.id, activity.name);
+       
 
         if (!currentWorkspace?.id) {
           console.error('No current workspace found');
@@ -175,8 +171,6 @@ export const useActivityActions = () => {
           type: 'task' as const,
         };
 
-        console.log('subtaskData:', subtaskData);
-
         createActivity(
           {
             resource: 'activities',
@@ -184,7 +178,6 @@ export const useActivityActions = () => {
           },
           {
             onSuccess: data => {
-              console.log('Create subtask success:', data);
               invalidate({
                 resource: 'activities',
                 invalidates: ['list', 'detail', 'many'],

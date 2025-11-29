@@ -41,7 +41,7 @@ export const useNotification = () => {
   };
 
   const handleNotificationClick = (data: any) => {
-    console.log('Navigating to:', data.uri);
+    
 
     navigate(data.uri);
     openModal('ModalEditActivity', {
@@ -55,7 +55,7 @@ export const useNotification = () => {
       const body = payload.notification?.body || '';
       const uri = payload.data?.uri || payload.fcmOptions?.link || '/';
 
-      console.log('Message received. ', payload);
+      
 
       toast(title, {
         duration: 8000,
@@ -66,7 +66,7 @@ export const useNotification = () => {
           label: 'Xem',
           onClick: () => handleNotificationClick(uri),
         },
-        onDismiss: () => console.log('Dismissed notification'),
+        
         style: {
           backgroundColor: '#fff',
         },
@@ -74,7 +74,6 @@ export const useNotification = () => {
         description: body,
       });
 
-      console.log('invalidate');
       invalidate({
         resource: 'notifications',
         invalidates: ['list'],

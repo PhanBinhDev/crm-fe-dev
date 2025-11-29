@@ -61,7 +61,6 @@ const ActivityLinkTab = ({ activityId }: ActivityLinkTabProps) => {
         return;
       }
       setIsSubmitting(true);
-      console.log(title, url, description);
       addLink(
         {
           resource: `activities/${activityId}/links`,

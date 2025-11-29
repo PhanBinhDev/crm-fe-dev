@@ -17,10 +17,8 @@ const messaging = getMessaging(app);
 const generateToken = async () => {
   const perrmission = await Notification.requestPermission();
 
-  console.log('perrmission', perrmission);
 
   if (perrmission !== 'granted') {
-    console.log('No permission for notification');
     return;
   }
 
@@ -28,7 +26,6 @@ const generateToken = async () => {
     vapidKey: import.meta.env.REACT_APP_FIREBASE_VAPID_KEY,
   });
 
-  console.log('Token:', token);
 };
 
 export { generateToken, messaging };

@@ -144,12 +144,7 @@ export const useInvitationHandlers = () => {
         },
         onError: error => {
           message.error('Không thể từ chối lời mời');
-          console.log('Reject lỗi:', {
-            workspaceId,
-            status: error?.response?.status,
-            data: error?.response?.data,
-            url: `workspaces/${workspaceId}/reject-invitation`,
-          });
+          
           setHiddenWorkspaceIds(prev => {
             const newSet = new Set(prev);
             newSet.delete(workspaceId);

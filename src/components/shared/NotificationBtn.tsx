@@ -361,8 +361,7 @@ const NotificationBtn = () => {
     if (tab === 'mentions') return item.type === NotificationType.MENTION;
     return true;
   });
-  console.log('filter noti', filteredNotifications);
-  console.log(' noti', notifications);
+ 
 
   const markAsRead = (noti: INotification) => {
     if (noti.type === NotificationType.ACTIVITY && noti.data?.uri && noti.data?.open) {

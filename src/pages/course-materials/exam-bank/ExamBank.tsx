@@ -44,7 +44,7 @@ export default function ExamBank() {
     ? (data as any).data.folders
     : [];
 
-  console.log('folder', data);
+
 
   const filteredFolders = useMemo(() => {
     const keyword = search.trim().toLowerCase();
