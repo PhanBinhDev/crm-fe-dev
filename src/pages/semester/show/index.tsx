@@ -14,7 +14,6 @@ const SemesterInfo: React.FC = () => {
   const { data, isLoading } = query;
   const semester = data?.data;
 
-  console.log({ semester: semester?.endDate, start: semester?.startDate });
 
   return (
     <Card loading={isLoading} title={semester?.name}>
