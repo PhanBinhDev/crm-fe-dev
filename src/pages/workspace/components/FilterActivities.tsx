@@ -79,7 +79,7 @@ const FilterActivities = ({
 
     if (filters.keyword) params.createdBy = filters.keyword;
 
-    console.log('📌 Params gửi đi từ FilterActivities:', params);
+   
     onApply?.(params);
     setOpen(false);
   };

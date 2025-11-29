@@ -162,10 +162,8 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
           },
           {
             onSuccess: (res: any) => {
-              console.log('Import from URL response:', res);
-              console.log('Response keys:', Object.keys(res || {}));
-              console.log('Response.data:', res?.data);
-              // Response không có statusCode ở top level, chỉ cần check có data là thành công
+              
+  
               if (res?.data) {
                 const { successCount, failureCount } = res?.data;
                 if (successCount > 0) {

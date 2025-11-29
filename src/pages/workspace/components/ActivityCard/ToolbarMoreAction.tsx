@@ -39,7 +39,7 @@ const ToolbarMoreAction = ({ activity }: ToolbarMoreActionProps) => {
 
   const handleDuplicate = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    console.log('handleDuplicate called');
+  
     duplicateActivity(activity);
     setOpen(false);
   };
@@ -61,8 +61,7 @@ const ToolbarMoreAction = ({ activity }: ToolbarMoreActionProps) => {
   };
 
   const handleCreateSubtask = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    console.log('handleCreateSubtask called');
+    e?.stopPropagation(); 
     createSubtask(activity);
     setOpen(false);
   };

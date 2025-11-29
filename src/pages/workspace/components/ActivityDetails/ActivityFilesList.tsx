@@ -58,7 +58,7 @@ const ActivityFilesList = ({ files, onUploadFileSuccess }: ActivityFilesListProp
           );
         });
 
-        console.log(uploadResult);
+       
 
         if (uploadResult?.data) {
           uploadResult?.data.map((file: { status: string; url: string }) =>

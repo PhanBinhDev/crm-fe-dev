@@ -93,7 +93,7 @@ const KanbanWorkspaces = () => {
     return [...baseFilters, ...conditionalFilters];
   }, [searchValue, filterParams, workspaceData?.data.id]);
 
-  console.log(filterParams);
+
 
   const { data: activitiesData, isFetching: isLoadingActivities } = useList<IActivity>({
     resource: 'activities',
