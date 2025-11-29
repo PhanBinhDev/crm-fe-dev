@@ -198,6 +198,40 @@ export const ImportModal: FC<ImportModalProps> = ({ visible, onClose, onSuccess 
           },
         );
       }
+      // ...existing code xử lý response...
+      if (response) {
+        const responseData = (response as any).data || (response as any);
+
+        const successCount = responseData.successCount;
+        const failureCount = responseData.failureCount;
+
+        if (typeof successCount === 'number' && typeof failureCount === 'number') {
+          if (successCount > 0) {
+            if (failureCount > 0) {
+              message.warning(
+                `Import thành công ${successCount} người dùng, nhưng có ${failureCount} user thất bại.`,
+              );
+            } else {
+              message.success(`Import thành công! Đã import ${successCount} người dùng.`);
+              invalidate({ resource: 'users/all', invalidates: ['list'] });
+              onSuccess();
+              onClose();
+            }
+          } else if (failureCount > 0) {
+            message.error(
+              `Import thất bại! ${failureCount} user không thể import. Vui lòng kiểm tra file.`,
+            );
+          } else {
+            message.warning(
+              'File không có dữ liệu hợp lệ để import. Vui lòng kiểm tra lại cấu trúc file.',
+            );
+          }
+        } else {
+          message.error('Import thất bại. Phản hồi server không hợp lệ.');
+        }
+      } else {
+        message.error('Có lỗi xảy ra khi import.');
+      }
     } catch (error: any) {
       console.error('Unexpected error:', error);
       message.error('Có lỗi xảy ra khi import.');
