@@ -57,28 +57,37 @@ export async function exportUsersToCSV(users: IUser[], selectedFields?: string[]
 
 // Tạo file Excel mẫu cho import user
 export function createUserImportTemplate() {
-  // Tạo dữ liệu mẫu với 2 dòng: header và dòng ví dụ (đủ 8 cột, đúng thứ tự backend)
+  // Tạo dữ liệu mẫu với header tiếng Việt và 2 dòng ví dụ (7 cột, đúng thứ tự backend)
   const templateData = [
-    // Dòng header đúng thứ tự backend yêu cầu
-    ['Name', 'Username', 'Email', 'Phone', 'Role', 'DateOfBirth', 'Major', 'Avatar'],
-    // Dòng ví dụ với dữ liệu mẫu
+    // Dòng header tiếng Việt đúng thứ tự backend yêu cầu
+    ['Họ và tên', 'Username', 'Email', 'Số điện thoại', 'Vai trò', 'Ngày sinh', 'Chuyên ngành'],
+    // Dòng ví dụ 1
     [
-      'Nguyen Van A',
+      'Nguyen Van',
       'nguyenvana',
       'nguyenvana@example.com',
-      '0123456789',
+      '0923456789',
       'GV',
       '1990-01-01',
       'Toan hoc',
-      'https://example.com/avatar.jpg',
+    ],
+    // Dòng ví dụ 2
+    [
+      'Anh em',
+      'ssds',
+      'huyyy@gm.co',
+      '0776190234',
+      'TM',
+      '1990-01-01',
+      'Hacker',
     ],
   ];
 
   // Tạo worksheet
   const ws = XLSX.utils.aoa_to_sheet(templateData);
 
-  // Đặt độ rộng cột
-  const colWidths = [10, 15, 25, 15, 10, 12, 15, 30];
+  // Đặt độ rộng cột (7 cột)
+  const colWidths = [15, 15, 25, 15, 10, 12, 15];
   ws['!cols'] = colWidths.map(wch => ({ wch }));
 
   // Tạo workbook
@@ -87,28 +96,27 @@ export function createUserImportTemplate() {
 
   // Tạo sheet hướng dẫn
   const instructionData = [
-    ['INSTRUCTION FOR USER IMPORT FILE'],
+    ['HƯỚNG DẪN IMPORT FILE NGƯỜI DÙNG'],
     [''],
-    ['1. Required fields:'],
-    ['   - Name: Full name of the user'],
-    ['   - Username: Username (optional, will be auto-generated if blank)'],
-    ['   - Email: Valid email address'],
-    ['   - Phone: Contact phone number'],
-    ['   - Role: One of: TM, CNBM, GV'],
+    ['1. Các trường bắt buộc:'],
+    ['   - Họ và tên: Tên đầy đủ của người dùng'],
+    ['   - Username: Tên đăng nhập (tùy chọn, sẽ tự động tạo nếu để trống)'],
+    ['   - Email: Địa chỉ email hợp lệ'],
+    ['   - Số điện thoại: Số điện thoại liên hệ'],
+    ['   - Vai trò: Một trong các giá trị: TM, CNBM, GV'],
     [''],
-    ['2. Optional fields:'],
-    ['   - DateOfBirth: Format YYYY-MM-DD (e.g., 1990-01-01)'],
-    ['   - Major: e.g., Math, Physics...'],
-    ['   - Avatar: Avatar image URL (can be blank)'],
+    ['2. Các trường tùy chọn:'],
+    ['   - Ngày sinh: Định dạng YYYY-MM-DD (ví dụ: 1990-01-01)'],
+    ['   - Chuyên ngành: Ví dụ: Lập trình web,...'],
     [''],
-    ['3. Supported roles:'],
+    ['3. Các vai trò được hỗ trợ:'],
     ...ROLE_OPTIONS.map(role => [`   - ${role.value}: ${role.label}`]),
     [''],
-    ['4. Notes:'],
-    ['   - Delete this sheet and instruction rows before import'],
-    ['   - Only keep the header row and actual data'],
-    ['   - Date format must be YYYY-MM-DD'],
-    ['   - Email must be unique in the system'],
+    ['4. Lưu ý:'],
+    ['   - Xóa sheet hướng dẫn này trước khi import'],
+    ['   - Chỉ giữ lại dòng header và dữ liệu thực tế'],
+    ['   - Định dạng ngày phải là YYYY-MM-DD'],
+    ['   - Email phải là duy nhất trong hệ thống'],
   ];
 
   const instructionWs = XLSX.utils.aoa_to_sheet(instructionData);
