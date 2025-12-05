@@ -142,7 +142,7 @@ export const useInvitationHandlers = () => {
           message.success('Đã từ chối lời mời');
           invalidate({ resource: 'workspaces/invitations', invalidates: ['list'] });
         },
-        onError: error => {
+        onError: () => {
           message.error('Không thể từ chối lời mời');
           
           setHiddenWorkspaceIds(prev => {

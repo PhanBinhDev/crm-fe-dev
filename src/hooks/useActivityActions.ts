@@ -96,14 +96,13 @@ export const useActivityActions = () => {
           attachments: undefined,
         };
 
-
         createActivity(
           {
             resource: 'activities',
             values: duplicateData,
           },
           {
-            onSuccess: data => {
+            onSuccess: () => {
               invalidate({
                 resource: 'activities',
                 invalidates: ['list', 'detail', 'many'],
@@ -156,8 +155,6 @@ export const useActivityActions = () => {
   const createSubtask = useCallback(
     async (activity: IActivity) => {
       try {
-       
-
         if (!currentWorkspace?.id) {
           console.error('No current workspace found');
           return;
@@ -177,7 +174,7 @@ export const useActivityActions = () => {
             values: subtaskData,
           },
           {
-            onSuccess: data => {
+            onSuccess: () => {
               invalidate({
                 resource: 'activities',
                 invalidates: ['list', 'detail', 'many'],

@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken } from 'firebase/messaging';
+import { getMessaging } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,18 +14,4 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
-const generateToken = async () => {
-  const perrmission = await Notification.requestPermission();
-
-
-  if (perrmission !== 'granted') {
-    return;
-  }
-
-  const token = await getToken(messaging, {
-    vapidKey: import.meta.env.REACT_APP_FIREBASE_VAPID_KEY,
-  });
-
-};
-
-export { generateToken, messaging };
+export { messaging };
