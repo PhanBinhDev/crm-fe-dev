@@ -69,7 +69,8 @@ export interface FormAddActivityPayload {
   location?: string;
   onlineLink?: string;
   estimateTime?: number;
-  category?: ICategory;
+  category?: { id: string } | null;
+  categoryId?: string;
   mandatory?: boolean;
   parentId?: string;
   assignees?: PayloadAssignee[];
