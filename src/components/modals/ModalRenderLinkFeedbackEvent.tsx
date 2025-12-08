@@ -11,8 +11,8 @@ const ModalRenderLinkFeedbackEvent = ({
   activity,
   setOpenModal,
 }: ModalRenderLinkFeedbackEventProps) => {
-  const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const feedbackLink = `${VITE_API_BASE_URL}/feedback-event/${activity.id}`;
+  const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
+  const feedbackLink = `${VITE_BASE_URL}/feedback-event/${activity.id}`;
 
   const handleCopy = async () => {
     try {
