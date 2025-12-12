@@ -16,7 +16,6 @@ import {
   IconCornerLeftUp,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftCollapseFilled,
-  IconShare,
   IconX,
 } from '@tabler/icons-react';
 import { Button, Input, Layout, Modal, Skeleton, Space, Tooltip, Typography } from 'antd';
@@ -627,7 +626,7 @@ const ModalEditActivity = () => {
               </Text>
             </div>
             {/* Chia sẻ */}
-            {activity.type === ActivityType.EVENT && activity.stage.stageGroup === 'done' ? (
+            {activity.type === ActivityType.EVENT && activity.stage.stageGroup === 'done' && (
               <>
                 <Button
                   styles={{
@@ -654,15 +653,6 @@ const ModalEditActivity = () => {
                   />
                 )}
               </>
-            ) : (
-              <Button
-                styles={{
-                  icon: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
-                }}
-                icon={<IconShare size={16} />}
-              >
-                Chia sẻ
-              </Button>
             )}
 
             <Tooltip title="Đóng">
