@@ -111,8 +111,6 @@ const ModalEditActivity = () => {
     return activityData.data;
   }, [activityData, isLoadingActivity]);
 
-  console.log('activity', activity);
-
   useEffect(() => {
     if (activity) {
       setSelectedItem({
@@ -193,11 +191,7 @@ const ModalEditActivity = () => {
         if (!prev) return prev;
         const hasChanges = !_.isEqual(_.pick(prev.data, Object.keys(updates)), updates);
 
-        console.log('nothing changed');
-
         if (!hasChanges) return prev;
-
-        console.log('run changed');
 
         return {
           ...prev,
@@ -519,7 +513,7 @@ const ModalEditActivity = () => {
   const closedStage = useMemo(() => {
     if (!stagesData?.data || isLoadingStages) return undefined;
 
-    return stagesData.data.find(stage => stage.title === 'CLOSED');
+    return stagesData.data.find(stage => stage.stageGroup === 'closed');
   }, [stagesData, isLoadingStages]);
 
   const handleCloseModalFeedbackLink = () => {
@@ -529,11 +523,15 @@ const ModalEditActivity = () => {
           stageId: closedStage.id,
         }
       : undefined;
-    updateActivity({ values: updateStage });
+
+    updateActivity({
+      values: updateStage,
+    });
     setOpenModalFeedbackLink(false);
     closeModal();
     setData({});
   };
+  console.log(activity);
 
   return (
     <Modal
@@ -629,7 +627,7 @@ const ModalEditActivity = () => {
               </Text>
             </div>
             {/* Chia sẻ */}
-            {activity.type === ActivityType.EVENT && activity.stage.title === 'DONE' ? (
+            {activity.type === ActivityType.EVENT && activity.stage.stageGroup === 'done' ? (
               <>
                 <Button
                   styles={{
@@ -647,7 +645,7 @@ const ModalEditActivity = () => {
                     });
                   }}
                 >
-                  Đóng sự kiện
+                  Kết thúc sự kiện
                 </Button>
                 {openModalFeedbackLink && (
                   <ModalRenderLinkFeedbackEvent

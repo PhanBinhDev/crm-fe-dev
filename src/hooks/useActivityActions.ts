@@ -23,8 +23,8 @@ export const useActivityActions = () => {
         const sortedStages = [...stages].sort((a, b) => (a.position || 0) - (b.position || 0));
         const completedStage =
           sortedStages.find(stage => stage.stageGroup === 'done') ||
-          sortedStages.find(stage => stage.title?.toUpperCase() === 'COMPLETE') ||
-          sortedStages.find(stage => stage.title?.toUpperCase() === 'DONE') ||
+          sortedStages.find(stage => stage.stageGroup?.toUpperCase() === 'COMPLETE') ||
+          sortedStages.find(stage => stage.stageGroup?.toUpperCase() === 'DONE') ||
           sortedStages[sortedStages.length - 1];
 
         // OPTIMISTIC UPDATE: Cập nhật UI ngay lập tức

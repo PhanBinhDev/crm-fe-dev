@@ -61,6 +61,65 @@ const ExamSharePublic = () => {
     return () => clearInterval(interval);
   }, [params]);
 
+  useEffect(() => {
+    const block = (e: any) => e.preventDefault();
+
+    document.addEventListener('contextmenu', block);
+    document.addEventListener('copy', block);
+    document.addEventListener('cut', block);
+    document.addEventListener('paste', block);
+    document.addEventListener('selectstart', block);
+    document.addEventListener('dragstart', block);
+
+    const blockKeys = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || ['F12', 'PrtScreen', 'F11'].includes(e.key)) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('keydown', blockKeys);
+
+    return () => {
+      document.removeEventListener('contextmenu', block);
+      document.removeEventListener('copy', block);
+      document.removeEventListener('cut', block);
+      document.removeEventListener('paste', block);
+      document.removeEventListener('selectstart', block);
+      document.removeEventListener('dragstart', block);
+      window.removeEventListener('keydown', blockKeys);
+    };
+  }, []);
+
+  useEffect(() => {
+    const detect = setInterval(() => {
+      if (
+        window.outerWidth - window.innerWidth > 200 ||
+        window.outerHeight - window.innerHeight > 200
+      ) {
+        window.location.reload();
+      }
+    }, 1000);
+
+    return () => clearInterval(detect);
+  }, []);
+
+  useEffect(() => {
+    const handleBlur = () => {
+      document.body.style.filter = 'blur(10px)';
+    };
+    const handleFocus = () => {
+      document.body.style.filter = 'none';
+    };
+
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
   if (isExpired) {
     return (
       <div style={{ padding: 20, textAlign: 'center' }}>
@@ -71,13 +130,16 @@ const ExamSharePublic = () => {
   }
 
   return (
-    <div style={{ height: '100vh' }} onContextMenu={e => e.preventDefault()}>
+    <div
+      style={{ height: '100vh', width: '100vw', pointerEvents: 'none', userSelect: 'none' }}
+      onContextMenu={e => e.preventDefault()}
+    >
       <iframe
         src={`${cloudinaryUrl}#toolbar=0&navpanes=0&scrollbar=0`}
         title="PDF Viewer"
         width="100%"
         height="100%"
-        style={{ border: 'none' }}
+        style={{ border: 'none', pointerEvents: 'none', userSelect: 'none' }}
       />
     </div>
   );

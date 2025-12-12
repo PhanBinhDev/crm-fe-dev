@@ -35,7 +35,7 @@ const StageActivity = ({ value, onChange, error }: StageActivityProps) => {
       stage =>
         stage.isBuiltIn &&
         stage.stageGroup === StageGroup.NOT_STARTED &&
-        stage.title.toLocaleUpperCase() === 'TO DO',
+        stage.stageGroup.toLocaleUpperCase() === 'TO DO',
     );
 
     return { stages: filteredStages, defaultTodoState: defaultStage };
@@ -105,7 +105,7 @@ const StageActivity = ({ value, onChange, error }: StageActivityProps) => {
                     fontSize: 14,
                   }}
                 />
-                {stage.title.toUpperCase()}
+                {stage.stageGroup.toUpperCase()}
 
                 {value?.id === stage.id && (
                   <IconCheck style={{ marginLeft: 'auto', color: '#202020' }} size={14} />

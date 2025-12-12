@@ -14,7 +14,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ open, onClose, link }) =
   expires.setHours(expires.getHours() + 1);
 
   const publicLink =
-    import.meta.env.VITE_API_BASE_URL +
+    import.meta.env.VITE_BASE_URL +
     '/exam-public?examName=' +
     fileName +
     '&expires=' +

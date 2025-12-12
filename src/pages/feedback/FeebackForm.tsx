@@ -43,7 +43,7 @@ const FeedbackForm = () => {
       studentId,
       numPhone,
       comments,
-      rating: String(avgRating),
+      rating: +avgRating,
       images: images?.map((file: any) => ({
         uid: file.uid,
         name: file.name,
@@ -53,6 +53,8 @@ const FeedbackForm = () => {
         originFileObj: file.originFileObj,
       })),
     };
+
+    console.log(payload);
 
     createFeedback(
       {
