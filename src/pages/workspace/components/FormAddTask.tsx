@@ -317,6 +317,10 @@ const FormAddTask = forwardRef(({ openUploader, onSubmit }: FormAddTaskProps, re
         subtask: subtasks.filter(task => task.trim()),
         checklist: checklists,
         attachments: fileUrls,
+        ...(category && {
+          categoryId: category,
+          category: { id: category },
+        }),
       };
 
       onSubmit?.({

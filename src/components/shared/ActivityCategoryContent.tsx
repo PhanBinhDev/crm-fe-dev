@@ -74,7 +74,9 @@ const ActivityCategoryContent = ({ category, onCategoryChange }: ActivityCategor
             {categories?.data.map(item => (
               <Tooltip
                 key={item.id}
-                title={item.description.charAt(0).toUpperCase() + item.description.slice(1) || ''}
+                title={
+                  item?.description?.charAt(0).toUpperCase() + item?.description?.slice(1) || ''
+                }
                 placement="right"
               >
                 <List.Item
