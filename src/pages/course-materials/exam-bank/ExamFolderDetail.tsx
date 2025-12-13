@@ -1,5 +1,6 @@
 import { DocumentStatus, IDocument, IFolder } from '@/common/types/document';
 import ModalCreateTest from '@/components/modals/ModalCreateTest';
+import ModalEditDocument from '@/components/modals/ModalEditDocument';
 import { useModal } from '@/hooks/useModal';
 import { MoreOutlined } from '@ant-design/icons';
 import { useDelete, useOne, useUpdate } from '@refinedev/core';
@@ -10,6 +11,7 @@ import {
   IconClearAll,
   IconEye,
   IconFileText,
+  IconPencil,
   IconPlus,
   IconTrash,
   IconUpload,
@@ -64,6 +66,8 @@ export default function ExamFolderDetail() {
   ]);
   const { isOpen, type, openModal } = useModal();
   const [statusOpen, setStatusOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<IDocument | null>(null);
+  const isModalEditDocument = isOpen && type === 'ModalEditDocument';
   const isModalCreateTest = isOpen && type === 'ModalCreateTest';
   const [rangePickerOpen, setRangePickerOpen] = useState(false);
   const [statusPopoverOpen, setStatusPopoverOpen] = useState<string | null>(null);
@@ -175,6 +179,11 @@ export default function ExamFolderDetail() {
         },
       },
     );
+  };
+
+  const handleEditDocument = (document: IDocument) => {
+    setSelectedDocument(document);
+    openModal('ModalEditDocument');
   };
 
   return (
@@ -420,6 +429,13 @@ export default function ExamFolderDetail() {
                 render: (createdAt: string) => <span>{dayjs(createdAt).format('DD/MM/YYYY')}</span>,
               },
               {
+                title: 'Cập nhật lần cuối',
+                dataIndex: 'updatedAt',
+                key: 'updatedAt',
+                sorter: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+                render: (createdAt: string) => <span>{dayjs(createdAt).format('DD/MM/YYYY')}</span>,
+              },
+              {
                 title: 'Người đăng',
                 dataIndex: ['createdBy', 'name'],
                 key: 'createdBy',
@@ -515,14 +531,57 @@ export default function ExamFolderDetail() {
                           }
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{ display: 'flex', alignItems: 'center' }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderBottom: '1px solid #f0f0f0',
+                            borderRadius: 4,
+                            padding: 4,
+                            color: 'inherit',
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.backgroundColor = '#f5f5f5';
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
                         >
                           <IconEye size={14} style={{ marginRight: 5 }} />
                           Xem chi tiết
                         </Link>
+
+                        <Typography.Text
+                          style={{
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderBottom: '1px solid #f0f0f0',
+                            padding: 4,
+                            borderRadius: 4,
+                          }}
+                          onClick={() => {
+                            handleEditDocument(record);
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.backgroundColor = '#f5f5f5';
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <IconPencil size={14} style={{ marginRight: 5 }} />
+                          Chỉnh sửa
+                        </Typography.Text>
+
                         <Typography.Text
                           type="danger"
-                          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                          style={{
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderRadius: 4,
+                            padding: 4,
+                          }}
                           onClick={() => {
                             Modal.confirm({
                               title: 'Xác nhận xóa',
@@ -532,6 +591,12 @@ export default function ExamFolderDetail() {
                               okButtonProps: { danger: true },
                               onOk: () => handleDeleteDocument(record.id),
                             });
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.backgroundColor = '#f5f5f5';
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
                           }}
                         >
                           <IconTrash size={14} style={{ marginRight: 5 }} />
@@ -551,6 +616,9 @@ export default function ExamFolderDetail() {
           />
         )}
         {isModalCreateTest && <ModalCreateTest onSuccess={refetch} />}
+        {isModalEditDocument && selectedDocument && (
+          <ModalEditDocument document={selectedDocument} onSuccess={refetch} />
+        )}
       </div>
     </div>
   );

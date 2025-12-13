@@ -7,4 +7,5 @@ export type ModalType =
   | 'ModalRenameActivity'
   | 'WorkspaceShareModal'
   | 'ModalInviteMember'
-  | 'ModalCreateTest';
+  | 'ModalCreateTest'
+  | 'ModalEditDocument';
