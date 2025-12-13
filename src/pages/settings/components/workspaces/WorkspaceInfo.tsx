@@ -115,6 +115,7 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
     }),
     [workspace],
   );
+  console.log('workspace', workspace);
 
   const eligibleMembersForTransfer = useMemo(() => {
     if (!workspace || !workspace.members) return [];
@@ -587,7 +588,11 @@ const WorkspaceInfo = forwardRef(({ onFormChange, onUpdate }: IWorkspaceInfoProp
                           Số thành viên:
                         </span>
                         <span style={{ fontSize: 14, fontWeight: 600, color: '#1677ff' }}>
-                          {workspace?.members?.length || 1} thành viên
+                          {workspace?.members?.filter(member => member.status === 'active')
+                            .length ||
+                            0 ||
+                            1}{' '}
+                          thành viên
                         </span>
                       </div>
                     </div>

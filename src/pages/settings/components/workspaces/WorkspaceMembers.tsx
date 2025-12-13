@@ -91,7 +91,7 @@ const WorkspaceMembers = () => {
       return [
         { key: 'active', label: 'Hoạt động', count: 0 },
         { key: 'invited', label: 'Đã mời', count: 0 },
-        { key: 'requested', label: 'Yêu cầu', count: 0 },
+        // { key: 'requested', label: 'Yêu cầu', count: 0 },
       ];
     }
 

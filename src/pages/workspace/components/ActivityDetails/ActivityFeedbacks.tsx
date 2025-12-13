@@ -1,5 +1,5 @@
 import { IFeedback } from '@/common/types/feedback';
-import { Card, List, Rate, Space, Typography } from 'antd';
+import { Card, List, Rate, Typography } from 'antd';
 import dayjs from 'dayjs';
 
 interface ActivityFeedbacksProps {
@@ -27,8 +27,7 @@ const ActivityFeedbacks = ({ filteredFeedbacks }: ActivityFeedbacksProps) => {
   return (
     <div
       style={{
-        padding: '10px',
-        margin: '10px',
+        margin: '5px',
         overflowY: 'auto',
         maxHeight: '70vh',
       }}
@@ -36,34 +35,42 @@ const ActivityFeedbacks = ({ filteredFeedbacks }: ActivityFeedbacksProps) => {
       <List
         dataSource={filteredFeedbacks}
         renderItem={feedback => (
-          <List.Item style={{ borderBottom: '1px solid #f0f0f0' }}>
+          <List.Item
+            style={{
+              paddingTop: 6,
+              paddingBottom: 6,
+              borderBottom: '1px solid #f0f0f0',
+            }}
+          >
             <Card
               bordered
+              bodyStyle={{
+                padding: '10px 14px',
+              }}
               style={{
                 width: '100%',
                 borderRadius: 10,
                 background: '#fff',
-                display: 'flex',
-                flexDirection: 'column',
               }}
             >
-              <Space direction="vertical" style={{ width: '100%' }}>
+              <div style={{ width: '100%' }}>
                 <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                   <Typography.Text style={{ fontSize: 16, flex: 1 }} strong>
                     {feedback.fullName}
                   </Typography.Text>
-                  <Rate disabled style={{ fontSize: 8 }} defaultValue={feedback.rating} />
+                  <Rate disabled style={{ fontSize: 11 }} defaultValue={feedback.rating} />
                 </div>
                 <Typography.Text style={{ fontSize: 14 }}>
                   {feedback.email} - {feedback.studentId}
                 </Typography.Text>
-              </Space>
+              </div>
 
               {feedback.comments && (
                 <>
                   <Typography.Paragraph
                     style={{
-                      marginTop: 8,
+                      marginTop: 6,
+                      marginBottom: 4,
                       fontSize: 13,
                       color: '#333',
                       whiteSpace: 'pre-wrap',

@@ -1,7 +1,7 @@
 import { IFeedback } from '@/common/types';
 import { useList } from '@refinedev/core';
 import { IconFilter2 } from '@tabler/icons-react';
-import { Button, Checkbox, Popover, Radio, Skeleton, Space, Typography } from 'antd';
+import { Button, Checkbox, Popover, Radio, Skeleton, Space, Tooltip, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 import ActivityFeedbacks from './ActivityFeedbacks';
 
@@ -29,13 +29,13 @@ const ActivityFeedbackTab = ({ activityId }: ActivityFeedbackTabProps) => {
   const filteredFeedbacks = useMemo(
     () =>
       activityFeedbacks?.data.filter(feedback => {
-        if (filters.type === 'rating' && feedback.rating === 0) {
+        if (filters.type === 'rating' && Number(feedback.rating) === 0) {
           return false;
         }
         if (filters.type === 'feedback' && !feedback.comments) {
           return false;
         }
-        if (filters.rating.length > 0 && !filters.rating.includes(feedback.rating)) {
+        if (filters.rating.length > 0 && !filters.rating.includes(Number(feedback.rating))) {
           return false;
         }
         if (filters.hasComment && !feedback.comments) {
@@ -116,30 +116,33 @@ const ActivityFeedbackTab = ({ activityId }: ActivityFeedbackTabProps) => {
           Đánh giá và Phản hồi
         </Typography.Title>
         <Space style={{ gap: 0 }}>
-          <Popover
-            placement="bottomRight"
-            content={FilterContent}
-            trigger={['click']}
-            arrow={false}
-            styles={{
-              body: {
-                padding: 0,
-              },
-            }}
-          >
-            <Button
+          <Tooltip title="Bộ lọc đánh giá và phản hồi">
+            {' '}
+            <Popover
+              placement="bottomRight"
+              content={FilterContent}
+              trigger={['click']}
+              arrow={false}
               styles={{
-                icon: {
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                body: {
+                  padding: 0,
                 },
               }}
-              type="text"
-              icon={<IconFilter2 size={16} stroke={1.5} color="#646464" />}
-              style={{ borderRadius: 8 }}
-            />
-          </Popover>
+            >
+              <Button
+                styles={{
+                  icon: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  },
+                }}
+                type="text"
+                icon={<IconFilter2 size={16} stroke={1.5} color="#646464" />}
+                style={{ borderRadius: 8 }}
+              />
+            </Popover>
+          </Tooltip>
         </Space>
       </div>
       <div style={{ background: '#f7f7f7ff', height: '100%', width: '100%' }}>
