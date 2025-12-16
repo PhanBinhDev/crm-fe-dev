@@ -58,8 +58,6 @@ const ActivityFilesList = ({ files, onUploadFileSuccess }: ActivityFilesListProp
           );
         });
 
-       
-
         if (uploadResult?.data) {
           uploadResult?.data.map((file: { status: string; url: string }) =>
             fileUrls.push({ url: file.url }),
@@ -67,8 +65,6 @@ const ActivityFilesList = ({ files, onUploadFileSuccess }: ActivityFilesListProp
         } else {
           return;
         }
-
-        console.log(fileUrls);
 
         if (fileUrls.length > 0) {
           onUploadFileSuccess(fileUrls);
@@ -144,7 +140,7 @@ const ActivityFilesList = ({ files, onUploadFileSuccess }: ActivityFilesListProp
             }}
             onClick={() => {
               // Mở file để xem trực tiếp
-              window.open(file.url, '_blank');
+              window.open(`${import.meta.env.VITE_API_BASE_URL}${file.url}`, '_blank');
             }}
           >
             <div style={{ fontSize: 20, display: 'flex', alignItems: 'center' }}>
