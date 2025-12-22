@@ -1,7 +1,7 @@
 import { ActivityFile, IActivity } from '@/common/types';
-import { useCreate } from '@refinedev/core';
+import { useCreate, useUpdate } from '@refinedev/core';
 import { IconPlus } from '@tabler/icons-react';
-import { Button, Typography } from 'antd';
+import { Button, message, Typography } from 'antd';
 import { useState } from 'react';
 import ActivityFilesList from './ActivityFilesList';
 
@@ -14,28 +14,28 @@ interface ActivityFilesTabProps {
 const ActivityFilesTab = ({ activity }: ActivityFilesTabProps) => {
   const [localFiles, setLocalFiles] = useState<ActivityFile[]>(activity?.files || []);
   const { isPending } = useCreate();
+  const { mutate: updateActivity } = useUpdate();
 
   const onUploadFileSuccess = (files: ActivityFile[]) => {
     setLocalFiles(prev => [...prev, ...files]);
 
-    // chưa có api
-    // createActivityFile(
-    //   {
-    //     resource: `activities/${activity.id}`,
-    //     values: {
-    //       activityId: activity.id,
-    //       files: files,
-    //     },
-    //   },
-    //   {
-    //     onSuccess: () => {
-    //       message.success('Cập nhật thành công.');
-    //     },
-    //     onError: () => {
-    //       message.error('Cập nhật thất bại. Vui lòng thử lại sau.');
-    //     },
-    //   },
-    // );
+    updateActivity(
+      {
+        resource: `activities`,
+        id: activity.id,
+        values: {
+          files: files,
+        },
+      },
+      {
+        onSuccess: () => {
+          message.success('Cập nhật thành công.');
+        },
+        onError: () => {
+          message.error('Cập nhật thất bại. Vui lòng thử lại sau.');
+        },
+      },
+    );
   };
 
   return (
