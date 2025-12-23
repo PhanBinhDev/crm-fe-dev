@@ -608,10 +608,18 @@ const ModalEditActivity = () => {
               },
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                borderRight: '1px solid #e0e0e0',
+                paddingRight: 12,
+              }}
+            >
               <IconCalendar style={{ color: '#8c8c8c', fontSize: 12 }} size={12} />
               <Text style={{ fontSize: 13, display: 'block' }}>
-                Ngày tạo:
+                Ngày tạo:{' '}
                 {new Date(activity?.createdAt).toLocaleDateString('vi-VN', {
                   day: '2-digit',
                   month: '2-digit',

@@ -4,11 +4,18 @@ import { AVATAR_PLACEHOLDER } from '@/constants/app';
 import { useDisplayConfig } from '@/contexts/DisplayConfig';
 import { useModal } from '@/hooks/useModal';
 import { getColorFromName, getInitials } from '@/utils/activity';
+import { formatMinutesToText } from '@/utils/formatter';
 import { CalendarOutlined, HourglassOutlined, UserOutlined } from '@ant-design/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useOne } from '@refinedev/core';
-import { IconCaretDownFilled, IconCategory, IconFlagFilled, IconShare } from '@tabler/icons-react';
+import {
+  IconAlertTriangle,
+  IconCaretDownFilled,
+  IconCategory,
+  IconFlagFilled,
+  IconShare,
+} from '@tabler/icons-react';
 import { Avatar, Button, Card, Progress, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
@@ -269,18 +276,44 @@ const ActivityCard = ({
                   fontSize: 12,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <CalendarOutlined size={13} />
-                  <div>
-                    <Tooltip title={activity.startTime ? 'Thời gian bắt đầu' : ''} placement="left">
-                      {activity.startTime ? dayjs(activity.startTime).format('DD/MM/YY') : ''}
-                    </Tooltip>
-
-                    <Tooltip title={activity.endTime ? 'Thời gian kết thúc' : ''} placement="right">
-                      {dayjs(activity.endTime).format('DD/MM/YY')}
-                    </Tooltip>
+                {dayjs(activity.endTime).isBefore(dayjs()) &&
+                activity.stage.stageGroup !== 'done' ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontSize: 12,
+                      border: `1px solid red`,
+                      padding: '1px 4px',
+                      borderRadius: 4,
+                      width: 'fit-content',
+                      background: 'red',
+                    }}
+                  >
+                    <IconAlertTriangle size={14} color={'white'} />
+                    <p style={{ color: 'white', fontWeight: 600 }}>Trễ hạn</p>
                   </div>
-                </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <CalendarOutlined size={13} />
+                    <div>
+                      <Tooltip
+                        title={activity.startTime ? 'Thời gian bắt đầu' : ''}
+                        placement="left"
+                      >
+                        {activity.startTime ? dayjs(activity.startTime).format('DD/MM/YY') : ''}
+                      </Tooltip>
+
+                      <Tooltip
+                        title={activity.endTime ? 'Thời gian kết thúc' : ''}
+                        placement="right"
+                      >
+                        {dayjs(activity.endTime).format('DD/MM/YY')}
+                      </Tooltip>
+                    </div>
+                  </div>
+                )}
               </div>
             </Tooltip>
           ) : (
@@ -300,7 +333,7 @@ const ActivityCard = ({
               >
                 <HourglassOutlined size={13} />
                 <div>
-                  <span>{activity.estimateTime} giờ</span>
+                  <span>{formatMinutesToText(activity.estimateTime)}</span>
                 </div>
               </div>
             </Tooltip>

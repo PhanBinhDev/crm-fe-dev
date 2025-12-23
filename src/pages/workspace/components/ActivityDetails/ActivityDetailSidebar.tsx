@@ -59,6 +59,7 @@ const ActivityDetailSidebar = ({
       retry: false,
     },
   });
+  console.log('subActivitiesData', subActivitiesData);
 
   const { mutate: createActivity, isPending: isCreating } = useCreate<IActivity>({
     resource: 'activities',

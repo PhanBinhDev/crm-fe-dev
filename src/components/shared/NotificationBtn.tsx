@@ -4,7 +4,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useModal } from '@/hooks/useModal';
 import { useInvitationHandlers } from '@/hooks/useWorkspaces';
 import { getColorFromName, getInitials } from '@/utils/activity';
-import { useList, useUpdate } from '@refinedev/core';
+import { useList, useOne, useUpdate } from '@refinedev/core';
 import { IconBell, IconChecks, IconCloudDownload, IconFile, IconX } from '@tabler/icons-react';
 import {
   Avatar,
@@ -320,6 +320,7 @@ const NotificationBtn = () => {
   const [tab, setTab] = useState<NotificationTab>('all');
   const { openModal } = useModal();
   const navigate = useNavigate();
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
 
   const {
     data: notificationsData,
@@ -361,12 +362,26 @@ const NotificationBtn = () => {
     if (tab === 'mentions') return item.type === NotificationType.MENTION;
     return true;
   });
- 
+  const { data: activityData, refetch: refetchActivity } = useOne({
+    resource: 'activities',
+    id: selectedActivityId || '',
+    queryOptions: {
+      enabled: false,
+    },
+  });
+  const markAsRead = async (noti: INotification) => {
+    if (noti.type === NotificationType.ACTIVITY && noti.data?.activityId) {
+      try {
+        setSelectedActivityId(noti.data.activityId);
 
-  const markAsRead = (noti: INotification) => {
-    if (noti.type === NotificationType.ACTIVITY && noti.data?.uri && noti.data?.open) {
-      navigate(noti.data.uri);
-      openModal('ModalEditActivity', { activity: noti.data.open });
+        const { data } = await refetchActivity();
+
+        if (data?.data) {
+          openModal('ModalEditActivity', { activity: data.data });
+        }
+      } catch (error) {
+        console.error('Error fetching activity:', error);
+      }
     }
     if (noti.type === NotificationType.WORKSPACE) {
       navigate('/settings/workspaces');
