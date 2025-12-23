@@ -70,7 +70,7 @@ export interface FormAddActivityPayload {
   onlineLink?: string;
   estimateTime?: number;
   category?: { id: string } | null;
-  categoryId?: string;
+  categoryId?: string | null;
   mandatory?: boolean;
   parentId?: string;
   assignees?: PayloadAssignee[];
