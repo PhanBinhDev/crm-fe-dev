@@ -1,6 +1,5 @@
-import { PlusOutlined } from '@ant-design/icons';
 import { useCreate } from '@refinedev/core';
-import { Button, Form, Input, Radio, Typography, Upload, message } from 'antd';
+import { Button, Form, Input, Radio, Typography, message } from 'antd';
 import { useParams } from 'react-router-dom';
 
 const { TextArea } = Input;
@@ -63,7 +62,7 @@ const FeedbackForm = () => {
       },
       {
         onSuccess: () => {
-          message.success('TGửi phản hồi thành công!');
+          message.success('Gửi phản hồi thành công!');
         },
         onError: () => {
           message.error('Gửi phản hồi thất bại. Vui lòng thử lại sau.');
@@ -161,7 +160,7 @@ const FeedbackForm = () => {
         </Form.Item>
 
         {/* Upload ảnh */}
-        <Form.Item
+        {/* <Form.Item
           label="Hình ảnh minh họa"
           name="images"
           valuePropName="fileList"
@@ -173,7 +172,7 @@ const FeedbackForm = () => {
               <div style={{ marginTop: 8 }}>Upload</div>
             </div>
           </Upload>
-        </Form.Item>
+        </Form.Item> */}
 
         <Form.Item>
           <Button type="primary" htmlType="submit" block loading={isPendingCreateFeedback}>

@@ -41,8 +41,6 @@ export const useNotification = () => {
   };
 
   const handleNotificationClick = (data: any) => {
-    
-
     navigate(data.uri);
     openModal('ModalEditActivity', {
       activity: data.open,
@@ -55,18 +53,16 @@ export const useNotification = () => {
       const body = payload.notification?.body || '';
       const uri = payload.data?.uri || payload.fcmOptions?.link || '/';
 
-      
-
       toast(title, {
         duration: 8000,
         icon: <IconBell size={14} color="#1677ff" />,
         position: 'top-right',
         id: `notification-${Date.now()}`,
-        action: {
-          label: 'Xem',
-          onClick: () => handleNotificationClick(uri),
-        },
-        
+        // action: {
+        //   label: 'Xem',
+        //   onClick: () => handleNotificationClick(uri),
+        // },
+
         style: {
           backgroundColor: '#fff',
         },
